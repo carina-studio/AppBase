@@ -12,11 +12,11 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>C:\Studio\AppBase\Core\CarinaStudio.Core.xml</DocumentationFile>
+    <DocumentationFile>CarinaStudio.Core.xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>C:\Studio\AppBase\Core\CarinaStudio.Core.xml</DocumentationFile>
+    <DocumentationFile>CarinaStudio.Core.xml</DocumentationFile>
   </PropertyGroup>
 
 </Project>
