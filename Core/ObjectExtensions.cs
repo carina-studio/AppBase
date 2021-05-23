@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 namespace CarinaStudio
 {
@@ -53,5 +54,51 @@ namespace CarinaStudio
 		/// <returns>Custom return value.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static R Let<T, R>(this T value, Func<T, R> action) => action(value);
+
+
+		/// <summary>
+		/// Acquire lock on given object and generate value after releasing lock.
+		/// </summary>
+		/// <typeparam name="T">Type of given object.</typeparam>
+		/// <typeparam name="R">Type of generated value.</typeparam>
+		/// <param name="obj">Object to acquire lock on.</param>
+		/// <param name="func">Function to generate value.</param>
+		/// <returns>Generated value.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static R Lock<T, R>(this T obj, Func<R> func) where T : class
+		{
+			Monitor.Enter(obj);
+			try
+			{
+				return func();
+			}
+			finally
+			{
+				Monitor.Exit(obj);
+			}
+		}
+
+
+		/// <summary>
+		/// Acquire lock on given object and generate value after releasing lock.
+		/// </summary>
+		/// <typeparam name="T">Type of given object.</typeparam>
+		/// <typeparam name="R">Type of generated value.</typeparam>
+		/// <param name="obj">Object to acquire lock on.</param>
+		/// <param name="func">Function to generate value.</param>
+		/// <returns>Generated value.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static R Lock<T, R>(this T obj, Func<T, R> func) where T : class
+		{
+			Monitor.Enter(obj);
+			try
+			{
+				return func(obj);
+			}
+			finally
+			{
+				Monitor.Exit(obj);
+			}
+		}
 	}
 }
