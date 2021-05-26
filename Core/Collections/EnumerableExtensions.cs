@@ -1,21 +1,21 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
 namespace CarinaStudio.Collections
 {
 	/// <summary>
-	/// Extensions for <see cref="IEnumerable{T}"/>.
+	/// Extensions for <see cref="IEnumerable"/> and <see cref="IEnumerable{T}"/>.
 	/// </summary>
 	public static class EnumerableExtensions
 	{
 		/// <summary>
-		/// Generate readable string represents content in <see cref="IEnumerable{T}"/>.
+		/// Generate readable string represents content in <see cref="IEnumerable"/>.
 		/// </summary>
-		/// <typeparam name="T">Type of element.</typeparam>
-		/// <param name="enumerable"><see cref="IEnumerable{T}"/>.</param>
+		/// <param name="enumerable"><see cref="IEnumerable"/>.</param>
 		/// <returns>Readable string represents content.</returns>
-		public static string ContentToString<T>(this IEnumerable<T> enumerable)
+		public static string ContentToString(this IEnumerable enumerable)
 		{
 			var stringBuilder = new StringBuilder("[");
 			foreach (var element in enumerable)
