@@ -123,7 +123,14 @@ namespace CarinaStudio.Configuration
 		public void Load(Stream stream)
 		{
 			// load to memory first
-			var memoryStream = new MemoryStream().Also((memoryStream) => stream.CopyTo(memoryStream));
+			if (!(stream is MemoryStream memoryStream) || memoryStream.Position != 0)
+			{
+				memoryStream = new MemoryStream().Also((memoryStream) =>
+				{
+					stream.CopyTo(memoryStream);
+					memoryStream.Position = 0;
+				});
+			}
 
 			// load
 			this.serializer.Deserialize(memoryStream, out var values, out var metadata);
