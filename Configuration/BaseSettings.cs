@@ -254,7 +254,7 @@ namespace CarinaStudio.Configuration
 			{
 				try
 				{
-					using var fileStream = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.Write);
+					using var fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write);
 					fileStream.Write(data);
 					break;
 				}
