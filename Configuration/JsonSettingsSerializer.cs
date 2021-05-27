@@ -214,14 +214,34 @@ namespace CarinaStudio.Configuration
 					foreach (var e in jsonValue.EnumerateArray())
 						array[index++] = (long)this.ReadJsonValue(e, Int64Type);
 				}),
-				SingleType => jsonValue.GetSingle(),
+				SingleType => jsonValue.ValueKind switch
+				{
+					JsonValueKind.String => jsonValue.GetString() switch
+					{
+						"NaN" => float.NaN,
+						"PositiveInfinity" => float.PositiveInfinity,
+						"NegativeInfinity" => float.NegativeInfinity,
+						_ => throw new ArgumentException($"Invalid single value: {jsonValue}."),
+					},
+					_ => jsonValue.GetSingle(),
+				},
 				SingleArrayType => new float[jsonValue.GetArrayLength()].Also((array) =>
 				{
 					var index = 0;
 					foreach (var e in jsonValue.EnumerateArray())
 						array[index++] = (float)this.ReadJsonValue(e, SingleType);
 				}),
-				DoubleType => jsonValue.GetDouble(),
+				DoubleType => jsonValue.ValueKind switch
+				{
+					JsonValueKind.String => jsonValue.GetString() switch
+					{
+						"NaN" => double.NaN,
+						"PositiveInfinity" => double.PositiveInfinity,
+						"NegativeInfinity" => double.NegativeInfinity,
+						_ => throw new ArgumentException($"Invalid double value: {jsonValue}."),
+					},
+					_ => jsonValue.GetDouble(),
+				},
 				DoubleArrayType => new double[jsonValue.GetArrayLength()].Also((array) =>
 				{
 					var index = 0;
@@ -339,7 +359,17 @@ namespace CarinaStudio.Configuration
 					writer.WriteEndArray();
 					break;
 				case SingleType:
-					writer.WriteNumberValue((float)value);
+					((float)value).Let((floatValue) =>
+					{
+						if (float.IsNaN(floatValue))
+							writer.WriteStringValue("NaN");
+						else if (float.IsPositiveInfinity(floatValue))
+							writer.WriteStringValue("PositiveInfinity");
+						else if (float.IsNegativeInfinity(floatValue))
+							writer.WriteStringValue("NegativeInfinity");
+						else
+							writer.WriteNumberValue(floatValue);
+					});
 					break;
 				case SingleArrayType:
 					writer.WriteStartArray();
@@ -348,7 +378,17 @@ namespace CarinaStudio.Configuration
 					writer.WriteEndArray();
 					break;
 				case DoubleType:
-					writer.WriteNumberValue((double)value);
+					((double)value).Let((doubleValue) =>
+					{
+						if (double.IsNaN(doubleValue))
+							writer.WriteStringValue("NaN");
+						else if (double.IsPositiveInfinity(doubleValue))
+							writer.WriteStringValue("PositiveInfinity");
+						else if (double.IsNegativeInfinity(doubleValue))
+							writer.WriteStringValue("NegativeInfinity");
+						else
+							writer.WriteNumberValue(doubleValue);
+					});
 					break;
 				case DoubleArrayType:
 					writer.WriteStartArray();
