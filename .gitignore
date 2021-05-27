@@ -3,3 +3,4 @@ obj
 bin
 PublishProfiles
 /Core/CarinaStudio.Core.xml
+/Configuration/CarinaStudio.Configuration.xml
