@@ -12,6 +12,8 @@
     <Nullable>enable</Nullable>
     <PackageId>CarinaStudio.AppBase.Configuration</PackageId>
     <Description>AppBase is a set of libraries mainly for .NET Core desktop application. CarinaStudio.AppBase.Configuration provides easy way to use and manage application settings.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/carina-studio/AppBase</PackageProjectUrl>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
