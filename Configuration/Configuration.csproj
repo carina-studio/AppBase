@@ -1,22 +1,25 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AssemblyVersion>0.9.0</AssemblyVersion>
+    <AssemblyVersion>0.9.0.528</AssemblyVersion>
+    <Version>0.9.0.528</Version>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <RootNamespace>CarinaStudio.Configuration</RootNamespace>
-    <AssemblyName>CarinaStudio.Configuration</AssemblyName>
+    <AssemblyName>CarinaStudio.AppBase.Configuration</AssemblyName>
     <Authors>Carina Studio</Authors>
     <Company>Carina Studio</Company>
     <Copyright>©2021 Carina Studio</Copyright>
     <Nullable>enable</Nullable>
+    <PackageId>CarinaStudio.AppBase.Configuration</PackageId>
+    <Description>AppBase is a set of libraries mainly for .NET Core desktop application. CarinaStudio.AppBase.Configuration provides easy way to use and manage application settings.</Description>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>CarinaStudio.Configuration.xml</DocumentationFile>
+    <DocumentationFile>CarinaStudio.AppBase.Configuration.xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>CarinaStudio.Configuration.xml</DocumentationFile>
+    <DocumentationFile>CarinaStudio.AppBase.Configuration.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
