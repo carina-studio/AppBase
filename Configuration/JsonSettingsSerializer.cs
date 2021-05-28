@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Text.Json;
 
 namespace CarinaStudio.Configuration
@@ -19,73 +17,37 @@ namespace CarinaStudio.Configuration
 
 
 		/// <summary>
-		/// Type name of <see cref="bool"/> array.
-		/// </summary>
-		protected const string BooleanArrayType = "BooleanArray";
-		/// <summary>
 		/// Type name of <see cref="bool"/>.
 		/// </summary>
 		protected const string BooleanType = "Boolean";
-		/// <summary>
-		/// Type name of <see cref="byte"/> array.
-		/// </summary>
-		protected const string ByteArrayType = "ByteArray";
 		/// <summary>
 		/// Type name of <see cref="byte"/>.
 		/// </summary>
 		protected const string ByteType = "Byte";
 		/// <summary>
-		/// Type name of <see cref="short"/> array.
-		/// </summary>
-		protected const string Int16ArrayType = "Int16Array";
-		/// <summary>
 		/// Type name of <see cref="short"/>.
 		/// </summary>
 		protected const string Int16Type = "Int16";
-		/// <summary>
-		/// Type name of <see cref="int"/> array.
-		/// </summary>
-		protected const string Int32ArrayType = "Int32Array";
 		/// <summary>
 		/// Type name of <see cref="int"/>.
 		/// </summary>
 		protected const string Int32Type = "Int32";
 		/// <summary>
-		/// Type name of <see cref="long"/> array.
-		/// </summary>
-		protected const string Int64ArrayType = "Int64Array";
-		/// <summary>
 		/// Type name of <see cref="long"/>.
 		/// </summary>
 		protected const string Int64Type = "Int64";
-		/// <summary>
-		/// Type name of <see cref="float"/> array.
-		/// </summary>
-		protected const string SingleArrayType = "SingleArray";
 		/// <summary>
 		/// Type name of <see cref="float"/>.
 		/// </summary>
 		protected const string SingleType = "Single";
 		/// <summary>
-		/// Type name of <see cref="double"/> array.
-		/// </summary>
-		protected const string DoubleArrayType = "DoubleArray";
-		/// <summary>
 		/// Type name of <see cref="double"/>.
 		/// </summary>
 		protected const string DoubleType = "Double";
 		/// <summary>
-		/// Type name of <see cref="DateTime"/> array.
-		/// </summary>
-		protected const string DateTimeArrayType = "DateTimeArray";
-		/// <summary>
 		/// Type name of <see cref="DateTime"/>.
 		/// </summary>
 		protected const string DateTimeType = "DateTime";
-		/// <summary>
-		/// Type name of <see cref="string"/> array.
-		/// </summary>
-		protected const string StringArrayType = "StringArray";
 		/// <summary>
 		/// Type name of <see cref="string"/>.
 		/// </summary>
@@ -150,8 +112,10 @@ namespace CarinaStudio.Configuration
 			{
 				var elementType = valueType.GetElementType();
 				if (valueType.GetArrayRank() == 1 && elementType != null)
-					return this.GetTypeName(elementType) + "Array";
+					return this.GetTypeName(elementType);
 			}
+			else if (valueType.IsEnum)
+				return valueType.FullName.AsNonNull();
 			else if (valueType == typeof(bool))
 				return BooleanType;
 			else if (valueType == typeof(byte))
@@ -184,38 +148,59 @@ namespace CarinaStudio.Configuration
 		{
 			return typeName switch
 			{
-				BooleanType => jsonValue.GetBoolean(),
-				BooleanArrayType => new bool[jsonValue.GetArrayLength()].Also((array) =>
+				BooleanType => jsonValue.ValueKind switch
 				{
-					var index = 0;
-					foreach (var e in jsonValue.EnumerateArray())
-						array[index++] = (bool)this.ReadJsonValue(e, BooleanType);
-				}),
-				ByteType => jsonValue.GetByte(),
-				ByteArrayType => jsonValue.GetBytesFromBase64(),
-				Int16Type => jsonValue.GetInt16(),
-				Int16ArrayType => new short[jsonValue.GetArrayLength()].Also((array) =>
+					JsonValueKind.Array => new bool[jsonValue.GetArrayLength()].Also((array) =>
+					{
+						var index = 0;
+						foreach (var e in jsonValue.EnumerateArray())
+							array[index++] = (bool)this.ReadJsonValue(e, typeName);
+					}),
+					_ => jsonValue.GetBoolean(),
+				},
+				ByteType => jsonValue.ValueKind switch
 				{
-					var index = 0;
-					foreach (var e in jsonValue.EnumerateArray())
-						array[index++] = (short)this.ReadJsonValue(e, Int16Type);
-				}),
-				Int32Type => jsonValue.GetInt32(),
-				Int32ArrayType => new int[jsonValue.GetArrayLength()].Also((array) =>
+					JsonValueKind.String => jsonValue.GetBytesFromBase64(),
+					_ => jsonValue.GetByte(),
+				},
+				Int16Type => jsonValue.ValueKind switch
 				{
-					var index = 0;
-					foreach (var e in jsonValue.EnumerateArray())
-						array[index++] = (int)this.ReadJsonValue(e, Int32Type);
-				}),
-				Int64Type => jsonValue.GetInt64(),
-				Int64ArrayType => new long[jsonValue.GetArrayLength()].Also((array) =>
+					JsonValueKind.Array => new short[jsonValue.GetArrayLength()].Also((array) =>
+					{
+						var index = 0;
+						foreach (var e in jsonValue.EnumerateArray())
+							array[index++] = (short)this.ReadJsonValue(e, typeName);
+					}),
+					_ => jsonValue.GetInt16(),
+				},
+				Int32Type => jsonValue.ValueKind switch
 				{
-					var index = 0;
-					foreach (var e in jsonValue.EnumerateArray())
-						array[index++] = (long)this.ReadJsonValue(e, Int64Type);
-				}),
+					JsonValueKind.Array => new int[jsonValue.GetArrayLength()].Also((array) =>
+					{
+						var index = 0;
+						foreach (var e in jsonValue.EnumerateArray())
+							array[index++] = (int)this.ReadJsonValue(e, typeName);
+					}),
+					_ => jsonValue.GetInt32(),
+				},
+				Int64Type => jsonValue.ValueKind switch
+				{
+					JsonValueKind.Array => new long[jsonValue.GetArrayLength()].Also((array) =>
+					{
+						var index = 0;
+						foreach (var e in jsonValue.EnumerateArray())
+							array[index++] = (long)this.ReadJsonValue(e, typeName);
+					}),
+					_ => jsonValue.GetInt64(),
+				},
 				SingleType => jsonValue.ValueKind switch
 				{
+					JsonValueKind.Array => new float[jsonValue.GetArrayLength()].Also((array) =>
+					{
+						var index = 0;
+						foreach (var e in jsonValue.EnumerateArray())
+							array[index++] = (float)this.ReadJsonValue(e, typeName);
+					}),
 					JsonValueKind.String => jsonValue.GetString() switch
 					{
 						"NaN" => float.NaN,
@@ -225,14 +210,14 @@ namespace CarinaStudio.Configuration
 					},
 					_ => jsonValue.GetSingle(),
 				},
-				SingleArrayType => new float[jsonValue.GetArrayLength()].Also((array) =>
-				{
-					var index = 0;
-					foreach (var e in jsonValue.EnumerateArray())
-						array[index++] = (float)this.ReadJsonValue(e, SingleType);
-				}),
 				DoubleType => jsonValue.ValueKind switch
 				{
+					JsonValueKind.Array => new double[jsonValue.GetArrayLength()].Also((array) =>
+					{
+						var index = 0;
+						foreach (var e in jsonValue.EnumerateArray())
+							array[index++] = (double)this.ReadJsonValue(e, typeName);
+					}),
 					JsonValueKind.String => jsonValue.GetString() switch
 					{
 						"NaN" => double.NaN,
@@ -242,26 +227,26 @@ namespace CarinaStudio.Configuration
 					},
 					_ => jsonValue.GetDouble(),
 				},
-				DoubleArrayType => new double[jsonValue.GetArrayLength()].Also((array) =>
+				DateTimeType => jsonValue.ValueKind switch
 				{
-					var index = 0;
-					foreach (var e in jsonValue.EnumerateArray())
-						array[index++] = (double)this.ReadJsonValue(e, DoubleType);
-				}),
-				DateTimeType => DateTime.FromBinary(jsonValue.GetInt64()),
-				DateTimeArrayType => new DateTime[jsonValue.GetArrayLength()].Also((array) =>
+					JsonValueKind.Array => new DateTime[jsonValue.GetArrayLength()].Also((array) =>
+					{
+						var index = 0;
+						foreach (var e in jsonValue.EnumerateArray())
+							array[index++] = (DateTime)this.ReadJsonValue(e, typeName);
+					}),
+					_ => DateTime.FromBinary(jsonValue.GetInt64()),
+				},
+				StringType => jsonValue.ValueKind switch
 				{
-					var index = 0;
-					foreach (var e in jsonValue.EnumerateArray())
-						array[index++] = (DateTime)this.ReadJsonValue(e, DateTimeType);
-				}),
-				StringType => jsonValue.GetString(),
-				StringArrayType => new string[jsonValue.GetArrayLength()].Also((array) =>
-				{
-					var index = 0;
-					foreach (var e in jsonValue.EnumerateArray())
-						array[index++] = (string)this.ReadJsonValue(e, StringType);
-				}),
+					JsonValueKind.Array => new string[jsonValue.GetArrayLength()].Also((array) =>
+					{
+						var index = 0;
+						foreach (var e in jsonValue.EnumerateArray())
+							array[index++] = (string)this.ReadJsonValue(e, typeName);
+					}),
+					_ => jsonValue.GetString(),
+				},
 				_ => throw new ArgumentException($"Unsupported type name: {typeName}."),
 			};
 		}
@@ -314,105 +299,125 @@ namespace CarinaStudio.Configuration
 		/// <param name="value">Value to write.</param>
 		protected virtual void WriteJsonValue(Utf8JsonWriter writer, string typeName, object value)
 		{
-			switch(typeName)
+			switch (typeName)
 			{
 				case BooleanType:
-					writer.WriteBooleanValue((bool)value);
-					break;
-				case BooleanArrayType:
-					writer.WriteStartArray();
-					foreach (var b in (bool[])value)
-						this.WriteJsonValue(writer, BooleanType, b);
-					writer.WriteEndArray();
+					if (value is bool[] boolArray)
+					{
+						writer.WriteStartArray();
+						foreach (var b in boolArray)
+							this.WriteJsonValue(writer, typeName, b);
+						writer.WriteEndArray();
+					}
+					else
+						writer.WriteBooleanValue((bool)value);
 					break;
 				case ByteType:
-					writer.WriteNumberValue((byte)value);
-					break;
-				case ByteArrayType:
-					writer.WriteBase64StringValue(((byte[])value).AsSpan());
+					if (value is byte[] byteArray)
+						writer.WriteBase64StringValue(byteArray.AsSpan());
+					else
+						writer.WriteNumberValue((byte)value);
 					break;
 				case Int16Type:
-					writer.WriteNumberValue((short)value);
-					break;
-				case Int16ArrayType:
-					writer.WriteStartArray();
-					foreach (var i in (short[])value)
-						this.WriteJsonValue(writer, Int16Type, i);
-					writer.WriteEndArray();
+					if (value is short[] shortArray)
+					{
+						writer.WriteStartArray();
+						foreach (var i in shortArray)
+							this.WriteJsonValue(writer, typeName, i);
+						writer.WriteEndArray();
+					}
+					else
+						writer.WriteNumberValue((short)value);
 					break;
 				case Int32Type:
-					writer.WriteNumberValue((int)value);
-					break;
-				case Int32ArrayType:
-					writer.WriteStartArray();
-					foreach (var i in (int[])value)
-						this.WriteJsonValue(writer, Int32Type, i);
-					writer.WriteEndArray();
+					if (value is int[] intArrar)
+					{
+						writer.WriteStartArray();
+						foreach (var i in intArrar)
+							this.WriteJsonValue(writer, typeName, i);
+						writer.WriteEndArray();
+					}
+					else
+						writer.WriteNumberValue((int)value);
 					break;
 				case Int64Type:
-					writer.WriteNumberValue((long)value);
-					break;
-				case Int64ArrayType:
-					writer.WriteStartArray();
-					foreach (var i in (long[])value)
-						this.WriteJsonValue(writer, Int64Type, i);
-					writer.WriteEndArray();
+					if (value is long[] longArray)
+					{
+						writer.WriteStartArray();
+						foreach (var i in longArray)
+							this.WriteJsonValue(writer, typeName, i);
+						writer.WriteEndArray();
+					}
+					else
+						writer.WriteNumberValue((long)value);
 					break;
 				case SingleType:
-					((float)value).Let((floatValue) =>
+					if (value is float[] floatArray)
 					{
-						if (float.IsNaN(floatValue))
-							writer.WriteStringValue("NaN");
-						else if (float.IsPositiveInfinity(floatValue))
-							writer.WriteStringValue("PositiveInfinity");
-						else if (float.IsNegativeInfinity(floatValue))
-							writer.WriteStringValue("NegativeInfinity");
-						else
-							writer.WriteNumberValue(floatValue);
-					});
-					break;
-				case SingleArrayType:
-					writer.WriteStartArray();
-					foreach (var f in (float[])value)
-						this.WriteJsonValue(writer, SingleType, f);
-					writer.WriteEndArray();
+						writer.WriteStartArray();
+						foreach (var f in floatArray)
+							this.WriteJsonValue(writer, typeName, f);
+						writer.WriteEndArray();
+					}
+					else
+					{
+						((float)value).Let((floatValue) =>
+						{
+							if (float.IsNaN(floatValue))
+								writer.WriteStringValue("NaN");
+							else if (float.IsPositiveInfinity(floatValue))
+								writer.WriteStringValue("PositiveInfinity");
+							else if (float.IsNegativeInfinity(floatValue))
+								writer.WriteStringValue("NegativeInfinity");
+							else
+								writer.WriteNumberValue(floatValue);
+						});
+					}
 					break;
 				case DoubleType:
-					((double)value).Let((doubleValue) =>
+					if (value is double[] doubleArray)
 					{
-						if (double.IsNaN(doubleValue))
-							writer.WriteStringValue("NaN");
-						else if (double.IsPositiveInfinity(doubleValue))
-							writer.WriteStringValue("PositiveInfinity");
-						else if (double.IsNegativeInfinity(doubleValue))
-							writer.WriteStringValue("NegativeInfinity");
-						else
-							writer.WriteNumberValue(doubleValue);
-					});
-					break;
-				case DoubleArrayType:
-					writer.WriteStartArray();
-					foreach (var d in (double[])value)
-						this.WriteJsonValue(writer, DoubleType, d);
-					writer.WriteEndArray();
+						writer.WriteStartArray();
+						foreach (var d in doubleArray)
+							this.WriteJsonValue(writer, typeName, d);
+						writer.WriteEndArray();
+					}
+					else
+					{
+						((double)value).Let((doubleValue) =>
+						{
+							if (double.IsNaN(doubleValue))
+								writer.WriteStringValue("NaN");
+							else if (double.IsPositiveInfinity(doubleValue))
+								writer.WriteStringValue("PositiveInfinity");
+							else if (double.IsNegativeInfinity(doubleValue))
+								writer.WriteStringValue("NegativeInfinity");
+							else
+								writer.WriteNumberValue(doubleValue);
+						});
+					}
 					break;
 				case DateTimeType:
-					writer.WriteNumberValue(((DateTime)value).ToBinary());
-					break;
-				case DateTimeArrayType:
-					writer.WriteStartArray();
-					foreach (var d in (DateTime[])value)
-						this.WriteJsonValue(writer, DateTimeType, d);
-					writer.WriteEndArray();
+					if (value is DateTime[] dtArray)
+					{
+						writer.WriteStartArray();
+						foreach (var d in dtArray)
+							this.WriteJsonValue(writer, typeName, d);
+						writer.WriteEndArray();
+					}
+					else
+						writer.WriteNumberValue(((DateTime)value).ToBinary());
 					break;
 				case StringType:
-					writer.WriteStringValue((string)value);
-					break;
-				case StringArrayType:
-					writer.WriteStartArray();
-					foreach (var s in (string[])value)
-						this.WriteJsonValue(writer, StringType, s);
-					writer.WriteEndArray();
+					if (value is string[] stringArray)
+					{
+						writer.WriteStartArray();
+						foreach (var s in stringArray)
+							this.WriteJsonValue(writer, typeName, s);
+						writer.WriteEndArray();
+					}
+					else
+						writer.WriteStringValue((string)value);
 					break;
 				default:
 					throw new ArgumentException($"Unsupported type name: {typeName}.");
