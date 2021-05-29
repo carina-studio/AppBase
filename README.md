@@ -1,4 +1,4 @@
-# Introduction
+# Introduction of AppBase
 **AppBase** is a set of libraries mainly designed for .NET Core based desktop application. Currently there are 2 modules providing the following functions:
 
 * **CarinaStudio.AppBase.Core**
@@ -23,3 +23,6 @@ You can also install by Package Manager command:
 Install-Package CarinaStudio.AppBase.Core
 Install-Package CarinaStudio.AppBase.Configuration
 ```
+
+# API Documentation
+You can find API documentation [here](https://carina-studio.github.io/AppBase/Documentation/api/).
