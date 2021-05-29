@@ -28,6 +28,8 @@ namespace CarinaStudio.Configuration
 		public static readonly SettingKey<DateTime[]> DateTimeArrayKey = new SettingKey<DateTime[]>(nameof(DateTimeArrayKey), new DateTime[] { new DateTime(1911, 10, 10) });
 		public static readonly SettingKey<string> StringKey = new SettingKey<string>(nameof(StringKey), "Carina Studio");
 		public static readonly SettingKey<string[]> StringArrayKey = new SettingKey<string[]>(nameof(StringArrayKey), new string[] { "Hello", "World" });
+		public static readonly SettingKey<TestEnum> EnumKey = new SettingKey<TestEnum>(nameof(EnumKey), TestEnum.Value0);
+		public static readonly SettingKey<TestEnum[]> EnumArrayKey = new SettingKey<TestEnum[]>(nameof(EnumArrayKey), new TestEnum[] { TestEnum.Value0, TestEnum.Value1 });
 		public static readonly IList<SettingKey> AllKeys = typeof(TestSettings).GetFields()
 			.TakeWhile((it) => it.IsStatic && typeof(SettingKey).IsAssignableFrom(it.FieldType))
 			.Select((field, _) => (SettingKey)field.GetValue(null).AsNonNull())
@@ -56,7 +58,25 @@ namespace CarinaStudio.Configuration
 			it[DateTimeArrayKey] = new DateTime[0];
 			it[StringKey] = "Hello World";
 			it[StringArrayKey] = new string[] { "Carina", "Studio" };
+			it[EnumKey] = TestEnum.Value1;
+			it[EnumArrayKey] = new TestEnum[] { TestEnum.Value1, TestEnum.Value0 };
 		});
+
+
+		/// <summary>
+		/// Test enumerarion.
+		/// </summary>
+		public enum TestEnum
+		{
+			/// <summary>
+			/// Value 0.
+			/// </summary>
+			Value0,
+			/// <summary>
+			/// Value 1.
+			/// </summary>
+			Value1,
+		}
 
 
 		// Public fields.

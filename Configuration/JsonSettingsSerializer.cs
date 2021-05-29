@@ -115,7 +115,7 @@ namespace CarinaStudio.Configuration
 					return this.GetTypeName(elementType);
 			}
 			else if (valueType.IsEnum)
-				return valueType.FullName.AsNonNull();
+				return $"{valueType.FullName}, {valueType.Assembly.GetName().Name}";
 			else if (valueType == typeof(bool))
 				return BooleanType;
 			else if (valueType == typeof(byte))
@@ -139,7 +139,7 @@ namespace CarinaStudio.Configuration
 
 
 		/// <summary>
-		/// Read setting value from JSON value according to type name.
+		/// Read setting value from JSON value according to type name. JSON value will be treated as string or string array if type name cannot be recognized.
 		/// </summary>
 		/// <param name="jsonValue">JSON value.</param>
 		/// <param name="typeName">Type name.</param>
@@ -237,17 +237,45 @@ namespace CarinaStudio.Configuration
 					}),
 					_ => DateTime.FromBinary(jsonValue.GetInt64()),
 				},
-				StringType => jsonValue.ValueKind switch
+				StringType => this.ReadJsonValueAsString(jsonValue),
+				_ => Type.GetType(typeName)?.Let((type) =>
 				{
-					JsonValueKind.Array => new string[jsonValue.GetArrayLength()].Also((array) =>
+					if (type.IsEnum)
 					{
-						var index = 0;
-						foreach (var e in jsonValue.EnumerateArray())
-							array[index++] = (string)this.ReadJsonValue(e, typeName);
-					}),
-					_ => jsonValue.GetString(),
-				},
-				_ => throw new ArgumentException($"Unsupported type name: {typeName}."),
+						if (jsonValue.ValueKind == JsonValueKind.Array)
+						{
+							return Array.CreateInstance(type, jsonValue.GetArrayLength()).Also((array) =>
+							{
+								var index = 0;
+								foreach (var e in jsonValue.EnumerateArray())
+									array.SetValue(this.ReadJsonValue(e, typeName), index++);
+							});
+						}
+						else if (Enum.TryParse(type, jsonValue.GetString(), out var enumValue))
+							return enumValue;
+					}
+					return null;
+				}) ?? this.ReadJsonValueAsString(jsonValue),
+			};
+		}
+
+
+		/// <summary>
+		/// Read setting value from JSON value as string or string array.
+		/// </summary>
+		/// <param name="jsonValue">JSON value.</param>
+		/// <returns>Setting value as string or string array.</returns>
+		protected object ReadJsonValueAsString(JsonElement jsonValue)
+		{
+			return jsonValue.ValueKind switch
+			{
+				JsonValueKind.Array => new string[jsonValue.GetArrayLength()].Also((array) =>
+				{
+					var index = 0;
+					foreach (var e in jsonValue.EnumerateArray())
+						array[index++] = (string)ReadJsonValueAsString(e);
+				}),
+				_ => jsonValue.GetString(),
 			};
 		}
 
@@ -420,7 +448,18 @@ namespace CarinaStudio.Configuration
 						writer.WriteStringValue((string)value);
 					break;
 				default:
-					throw new ArgumentException($"Unsupported type name: {typeName}.");
+					if (value is Array unknownArray && unknownArray.Rank == 1)
+					{
+						writer.WriteStartArray();
+						foreach (var e in unknownArray)
+							this.WriteJsonValue(writer, typeName, e.AsNonNull());
+						writer.WriteEndArray();
+					}
+					else if (value.GetType().IsEnum)
+						writer.WriteStringValue(value.ToString());
+					else
+						throw new ArgumentException($"Unsupported type name: {typeName}.");
+					break;
 			}
 		}
 	}
