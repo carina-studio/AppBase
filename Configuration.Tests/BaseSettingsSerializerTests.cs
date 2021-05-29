@@ -58,7 +58,7 @@ namespace CarinaStudio.Configuration
 			settings.Save(filePath);
 
 			// reset and load from file
-			settings.ResetAllValues();
+			settings.ResetValues();
 			settings.Load(filePath);
 
 			// check values
@@ -115,7 +115,7 @@ namespace CarinaStudio.Configuration
 			});
 
 			// reset and load from memory
-			settings.ResetAllValues();
+			settings.ResetValues();
 			using (var stream = new MemoryStream(data))
 				settings.Load(stream);
 

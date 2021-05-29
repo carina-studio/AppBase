@@ -61,6 +61,7 @@ namespace CarinaStudio.Configuration
 		/// </summary>
 		/// <param name="key">Key of setting.</param>
 		/// <returns>Setting value, or default value.</returns>
+		[Obsolete("Try using generic GetValueOrDefault() instead, unless you don't know the type of value.")]
 		public object GetValueOrDefault(SettingKey key)
 		{
 			var rawValue = this.GetRawValue(key);
@@ -70,6 +71,7 @@ namespace CarinaStudio.Configuration
 		}
 
 
+#pragma warning disable CS0618
 		/// <summary>
 		/// Get setting value as type specified by key, or get default value.
 		/// </summary>
@@ -77,6 +79,7 @@ namespace CarinaStudio.Configuration
 		/// <param name="key">Key of setting.</param>
 		/// <returns>Setting value, or default value.</returns>
 		public T GetValueOrDefault<T>(SettingKey<T> key) => (T)this.GetValueOrDefault((SettingKey)key);
+#pragma warning restore CS0618
 
 
 		/// <summary>
@@ -98,7 +101,7 @@ namespace CarinaStudio.Configuration
 				{
 					if (!File.Exists(fileName))
 					{
-						this.ResetAllValues();
+						this.ResetValues();
 						break;
 					}
 					using var fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read);
@@ -137,8 +140,10 @@ namespace CarinaStudio.Configuration
 
 			// override current values
 			var keysNeedToReset = this.values.Keys.Except(values.Keys);
+#pragma warning disable CS0618
 			foreach (var keyValue in values)
 				this.SetValue(keyValue.Key, keyValue.Value);
+#pragma warning restore CS0618
 			foreach (var key in keysNeedToReset)
 				this.ResetValue(key);
 
@@ -177,18 +182,26 @@ namespace CarinaStudio.Configuration
 		/// <summary>
 		/// Reset all values to default.
 		/// </summary>
-		public void ResetAllValues()
+		public void ResetValues() => this.ResetValues(this.Keys);
+
+
+		/// <summary>
+		/// Reset specific set of values to default.
+		/// </summary>
+		public void ResetValues(IEnumerable<SettingKey> keys)
 		{
 			foreach (var key in this.Keys)
 				this.ResetValue(key);
 		}
 
 
+#pragma warning disable CS0618
 		/// <summary>
 		/// Reset setting to default value.
 		/// </summary>
 		/// <param name="key">Key of setting.</param>
 		public void ResetValue(SettingKey key) => this.SetValue(key, key.DefaultValue);
+#pragma warning restore CS0618
 
 
 		/// <summary>
@@ -301,6 +314,7 @@ namespace CarinaStudio.Configuration
 		/// </summary>
 		/// <param name="key">Key og setting.</param>
 		/// <param name="value">New value.</param>
+		[Obsolete("Try using generic SetValue() instead, unless you don't know the type of value.")]
 		public void SetValue(SettingKey key, object value)
 		{
 			// check value
@@ -340,7 +354,7 @@ namespace CarinaStudio.Configuration
 		}
 
 
-#pragma warning disable CS8604
+#pragma warning disable CS8604, CS0618
 		/// <summary>
 		/// Set value of setting.
 		/// </summary>
@@ -348,7 +362,19 @@ namespace CarinaStudio.Configuration
 		/// <param name="key">Key og setting.</param>
 		/// <param name="value">New value.</param>
 		public void SetValue<T>(SettingKey<T> key, T value) => this.SetValue((SettingKey)key, value);
-#pragma warning restore CS8604
+#pragma warning restore CS8604, CS0618
+
+
+		/// <summary>
+		/// Check whether type of value of given setting is correct or not. You can get raw value by calling <see cref="GetRawValue(SettingKey)"/> if type is incorrect.
+		/// </summary>
+		/// <param name="key">Key of setting.</param>
+		/// <returns>True if type of value of given setting is correct.</returns>
+		public bool VerifyValue(SettingKey key)
+		{
+			var rawValue = this.GetRawValue(key);
+			return rawValue == null || key.ValueType.IsAssignableFrom(rawValue.GetType());
+		}
 
 
 		/// <summary>

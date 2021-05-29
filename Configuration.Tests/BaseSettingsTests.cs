@@ -36,7 +36,7 @@ namespace CarinaStudio.Configuration
 			}
 
 			// reset bae settings.
-			baseSettings.ResetAllValues();
+			baseSettings.ResetValues();
 
 			// check copied settings
 			foreach (var key in TestSettings.AllKeys)
@@ -71,7 +71,7 @@ namespace CarinaStudio.Configuration
 			}
 
 			// reset all values
-			settings.ResetAllValues();
+			settings.ResetValues();
 
 			// check all values
 			foreach (var key in TestSettings.AllKeys)
