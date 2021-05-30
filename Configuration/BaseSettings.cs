@@ -516,6 +516,24 @@ namespace CarinaStudio.Configuration
 		public string Name { get; }
 
 
+		/// <summary>
+		/// Equality operator.
+		/// </summary>
+		/// <param name="x">Operand 1.</param>
+		/// <param name="y">Operand 2.</param>
+		/// <returns>True if operands are equivalent.</returns>
+		public static bool operator ==(SettingKey x, SettingKey y) => x.Equals(y);
+
+
+		/// <summary>
+		/// Inequality operator.
+		/// </summary>
+		/// <param name="x">Operand 1.</param>
+		/// <param name="y">Operand 2.</param>
+		/// <returns>True if operands are not equivalent.</returns>
+		public static bool operator !=(SettingKey x, SettingKey y) => !x.Equals(y);
+
+
 #pragma warning disable CS1591
 		// To readable string.
 		public override string ToString() => this.Name;
