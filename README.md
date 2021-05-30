@@ -1,4 +1,6 @@
-# 📢Introduction of AppBase [![NuGet](https://img.shields.io/nuget/v/CarinaStudio.AppBase.Core.svg)](https://www.nuget.org/packages/CarinaStudio.AppBase.Core) [![Release](https://img.shields.io/github/release-date-pre/carina-studio/AppBase)](https://github.com/carina-studio/AppBase/releases) 
+[![NuGet](https://img.shields.io/nuget/v/CarinaStudio.AppBase.Core.svg)](https://www.nuget.org/packages/CarinaStudio.AppBase.Core) [![Release](https://img.shields.io/github/release-date-pre/carina-studio/AppBase)](https://github.com/carina-studio/AppBase/releases) 
+
+# 📢Introduction of AppBase 
 **AppBase** is a set of libraries mainly designed for .NET Core based desktop application. Currently there are 2 modules providing the following functions:
 
 * **CarinaStudio.AppBase.Core**
