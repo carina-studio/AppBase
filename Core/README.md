@@ -1,8 +1,8 @@
-# CarinaStudio.AppBase.Core
+# 📦CarinaStudio.AppBase.Core
 This is the core assembly of AppBase providing and extending base functions for .NET Core application and other AppBase assemblies.
 
-## Extensions for *System.Object*
-Inspired by Kotlin, we provide some extension methods for System.Object to make your code more elegant and clear.
+## 👉Extensions for *System.Object*
+Inspired by Kotlin, we provide some extension methods for ```System.Object``` to make your code more elegant and clear.
 
 ### Object.AsNonNull()
 Lots of methods generate nullable result. If you can assume that result should not be null, then you can use this method to eliminate extra nullibility checking.
@@ -70,7 +70,7 @@ lock(this.map)
 }
 ```
 
-## Extensions for *System.IDisposable*
+## 👉Extensions for *System.IDisposable*
 
 ### IDisposable?.DisposeAndReturnNull()
 To call ```Dispose()``` if reference is not null, then return null. Usually be used for resource releasing.
@@ -123,7 +123,7 @@ using(var reader = new StreamReader(filePath, Encoding.UTF8))
     str = reader.ReadToEnd();
 ```
 
-## *ObservableValue&lt;T&gt;*
+## 👉*ObservableValue&lt;T&gt;*
 Combination of ```IObservable<T>``` and a value just like ```LiveData<T>``` in Android. You may use it with ```ReactiveCommand``` provided by [ReactiveUI](https://github.com/reactiveui/ReactiveUI).
 
 ```c#
@@ -139,7 +139,7 @@ void OpenFile()
 }
 ```
 
-## *MutableObservableValue&lt;T&gt;*
+## 👉*MutableObservableValue&lt;T&gt;*
 ```ObservableValue<T>``` is an abstract class, so we provide ```MutableObservableValue<T>``` to let you easy to update value of ```ObservableValue<T>``` in your code. You can still create your own class extends from ```ObservableValue<T>``` and update value by itself. Further more, we also provide some classes extends from ```MutableObservableValue<T>``` specialized for some type of values:
 
 * ```MutableObservableBoolean```
