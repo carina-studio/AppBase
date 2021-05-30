@@ -2,7 +2,7 @@
 **AppBase** is a set of libraries mainly designed for .NET Core based desktop application. Currently there are 2 modules providing the following functions:
 
 * **CarinaStudio.AppBase.Core**
-  * Extensions for *System.Object* and *System.IDisposable* to make your code more elegant and clear.
+  * Extensions for *System.Object* and *System.IDisposable* to make your code more elegant and clear. ([Learn more](https://github.com/carina-studio/AppBase/tree/master/Core#extensions-for-systemobject))
   * Extended *System.IDisposable* to make it easier to share resources across components in your application.
   * Extensions for *System.Collections.Generic.\** for collection state checking and searching.
   * Extensions for *System.Threading.SynchronizationContext* for delayed call-back support.
