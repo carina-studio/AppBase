@@ -3,11 +3,11 @@
 
 * **CarinaStudio.AppBase.Core**
   * Extensions for *System.Object* and *System.IDisposable* to make your code more elegant and clear. ([Learn more](https://github.com/carina-studio/AppBase/tree/master/Core#extensions-for-systemobject))
-  * Extended *System.IDisposable* to make it easier to share resources across components in your application.
+  * Extended *System.IDisposable* to make it easier to share resources across components in your application. ([Learn more](https://github.com/carina-studio/AppBase/tree/master/Core#extensions-for-systemidisposable))
   * Extensions for *System.Collections.Generic.\** for collection state checking and searching.
   * Extensions for *System.Threading.SynchronizationContext* for delayed call-back support.
   * Schedulable action to execute action later and prevent duplicate execution.
-  * Implementation of *System.IObservable&lt;T&gt;* to support observable value/field just like LiveData on Android.
+  * Implementation of *System.IObservable&lt;T&gt;* to support observable value/field just like LiveData on Android. ([Learn more](https://github.com/carina-studio/AppBase/tree/master/Core#observablevaluet))
 * **CarinaStudio.AppBase.Configuration**
   * Class for key-value based application settings which supports various type of value.
   * Save application settings to given file.
