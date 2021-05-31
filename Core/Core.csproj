@@ -3,12 +3,13 @@
   <PropertyGroup>
     <AssemblyVersion>0.9.2.530</AssemblyVersion>
     <Version>0.9.2.530</Version>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+		<TargetFrameworks>netcoreapp3.1;netstandard2.1;net50</TargetFrameworks>
     <RootNamespace>CarinaStudio</RootNamespace>
     <AssemblyName>CarinaStudio.AppBase.Core</AssemblyName>
     <Authors>Carina Studio</Authors>
     <Company>Carina Studio</Company>
     <Copyright>©2021 Carina Studio</Copyright>
+    <LangVersion>Latest</LangVersion>
     <Nullable>enable</Nullable>
     <PackageId>CarinaStudio.AppBase.Core</PackageId>
     <Description>AppBase is a set of libraries mainly for .NET Core desktop application. CarinaStudio.AppBase.Core is the core library of AppBase, provides extension functions for object, collection and threading.</Description>
