@@ -17,17 +17,21 @@ namespace CarinaStudio.Collections
 		/// <returns>Readable string represents content.</returns>
 		public static string ContentToString(this IEnumerable enumerable)
 		{
+			if (enumerable is string str)
+				return str;
 			var stringBuilder = new StringBuilder("[");
 			foreach (var element in enumerable)
 			{
 				if (stringBuilder.Length > 1)
 					stringBuilder.Append(", ");
-				if (element is string)
+				if (element is string || element is StringBuilder)
 				{
 					stringBuilder.Append('"');
 					stringBuilder.Append(element.ToString());
 					stringBuilder.Append('"');
 				}
+				else if (element is IEnumerable innerEnumerable)
+					stringBuilder.Append(innerEnumerable.ContentToString());
 				else if (element != null)
 					stringBuilder.Append(element.ToString());
 				else
