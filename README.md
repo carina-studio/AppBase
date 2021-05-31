@@ -1,7 +1,7 @@
-[![NuGet](https://img.shields.io/nuget/v/CarinaStudio.AppBase.Core.svg)](https://www.nuget.org/packages/CarinaStudio.AppBase.Core) [![Release](https://img.shields.io/github/release-date-pre/carina-studio/AppBase)](https://github.com/carina-studio/AppBase/releases) 
+[![NuGet](https://img.shields.io/nuget/v/CarinaStudio.AppBase.Core.svg)](https://www.nuget.org/packages/CarinaStudio.AppBase.Core) [![License](https://img.shields.io/github/license/carina-studio/AppBase)](https://github.com/carina-studio/AppBase/blob/master/LICENSE) [![Releases](https://img.shields.io/github/release-date-pre/carina-studio/AppBase)](https://github.com/carina-studio/AppBase/releases) 
 
-# 📢Introduction of AppBase 
-**AppBase** is a set of libraries mainly designed for .NET Core based desktop application. Currently there are 2 modules providing the following functions:
+# 👋Introduction of AppBase 
+**AppBase** is a set of libraries mainly designed for .NET Core based application. Currently there are 2 modules providing the following functions:
 
 * **CarinaStudio.AppBase.Core**
   * Extensions for ```System.Object``` and ```System.IDisposable``` to make your code more elegant and clear. ([Learn more](https://github.com/carina-studio/AppBase/tree/master/Core#extensions-for-systemobject))
@@ -27,4 +27,4 @@ Install-Package CarinaStudio.AppBase.Configuration
 ```
 
 # 📃API Documentation
-You can find API documentation [here](https://carina-studio.github.io/AppBase/Documentation/api/).
+You can find API documentation [HERE](https://carina-studio.github.io/AppBase/Documentation/api/).
