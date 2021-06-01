@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+#if !NETSTANDARD
 using System.Text.Json;
+#endif
 
 namespace CarinaStudio.Configuration
 {
+#if !NETSTANDARD
 	/// <summary>
 	/// Implementation of <see cref="ISettingsSerializer"/> which serialize settings to JSON format data.
 	/// </summary>
@@ -86,8 +89,8 @@ namespace CarinaStudio.Configuration
 					return;
 				foreach (var jsonValueEntry in jsonValuesArray.EnumerateArray())
 				{
-					var name = jsonValueEntry.GetProperty("Name").GetString();
-					var typeName = jsonValueEntry.GetProperty("Type").GetString();
+					var name = jsonValueEntry.GetProperty("Name").GetString().AsNonNull();
+					var typeName = jsonValueEntry.GetProperty("Type").GetString().AsNonNull();
 					var defaultValue = this.ReadJsonValue(jsonValueEntry.GetProperty("Default"), typeName);
 					var value = this.ReadJsonValue(jsonValueEntry.GetProperty("Value"), typeName);
 					keyValues[new SettingKey(name, defaultValue.GetType(), defaultValue)] = value;
@@ -275,7 +278,7 @@ namespace CarinaStudio.Configuration
 					foreach (var e in jsonValue.EnumerateArray())
 						array[index++] = (string)ReadJsonValueAsString(e);
 				}),
-				_ => jsonValue.GetString(),
+				_ => jsonValue.GetString().AsNonNull(),
 			};
 		}
 
@@ -463,4 +466,5 @@ namespace CarinaStudio.Configuration
 			}
 		}
 	}
+#endif
 }
