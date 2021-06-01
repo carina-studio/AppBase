@@ -12,6 +12,20 @@ namespace CarinaStudio.Configuration
 	/// </summary>
 	abstract class BaseSettingsSerializerTests<TSerializer> where TSerializer : ISettingsSerializer
 	{
+		// Fields.
+		readonly string testFileName;
+
+
+		/// <summary>
+		/// Initialize new <see cref="BaseSettingsSerializerTests{TSerializer}"/> instance.
+		/// </summary>
+		/// <param name="testFileName">File name for testing.</param>
+		protected BaseSettingsSerializerTests(string testFileName)
+		{
+			this.testFileName = testFileName;
+		}
+
+
 		/// <summary>
 		/// Create instance of <see cref="TSerializer"/>.
 		/// </summary>
@@ -29,7 +43,7 @@ namespace CarinaStudio.Configuration
 			var settings = new TestSettings(1, this.CreateSettingsSerializer());
 
 			// save to file
-			var filePath = Path.Combine(Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName).AsNonNull(), "test_settings.json");
+			var filePath = Path.Combine(Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName).AsNonNull(), this.testFileName);
 			settings.Save(filePath);
 
 			// modify values

@@ -245,17 +245,22 @@ namespace CarinaStudio.Configuration
 				{
 					if (type.IsEnum)
 					{
-						if (jsonValue.ValueKind == JsonValueKind.Array)
+						try
 						{
-							return Array.CreateInstance(type, jsonValue.GetArrayLength()).Also((array) =>
+							if (jsonValue.ValueKind == JsonValueKind.Array)
 							{
-								var index = 0;
-								foreach (var e in jsonValue.EnumerateArray())
-									array.SetValue(this.ReadJsonValue(e, typeName), index++);
-							});
+								return Array.CreateInstance(type, jsonValue.GetArrayLength()).Also((array) =>
+								{
+									var index = 0;
+									foreach (var e in jsonValue.EnumerateArray())
+										array.SetValue(this.ReadJsonValue(e, typeName), index++);
+								});
+							}
+							else if (Enum.TryParse(type, jsonValue.GetString(), out var enumValue))
+								return enumValue;
 						}
-						else if (Enum.TryParse(type, jsonValue.GetString(), out var enumValue))
-							return enumValue;
+						catch
+						{ }
 					}
 					return null;
 				}) ?? this.ReadJsonValueAsString(jsonValue),

@@ -11,6 +11,13 @@ namespace CarinaStudio.Configuration
 	[TestFixture]
 	class JsonSettingsSerializerTests : BaseSettingsSerializerTests<JsonSettingsSerializer>
 	{
+		/// <summary>
+		/// Initialize new <see cref="JsonSettingsSerializerTests"/> instance.
+		/// </summary>
+		public JsonSettingsSerializerTests() : base("test_settings.json")
+		{ }
+
+
 		// Create serializer.
 		protected override JsonSettingsSerializer CreateSettingsSerializer() => JsonSettingsSerializer.Default;
 	}
