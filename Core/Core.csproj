@@ -11,7 +11,7 @@
     <Copyright>©2021 Carina Studio</Copyright>
     <Nullable>enable</Nullable>
     <PackageId>CarinaStudio.AppBase.Core</PackageId>
-    <Description>AppBase is a set of libraries mainly for .NET Core desktop application. CarinaStudio.AppBase.Core is the core library of AppBase, provides extension functions for object, collection and threading.</Description>
+    <Description>AppBase is a base library set for .NET application. CarinaStudio.AppBase.Core is the core library of AppBase, provides extensions for object, collection and threading to make your code more elegant and clear.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/carina-studio/AppBase</PackageProjectUrl>
   </PropertyGroup>
