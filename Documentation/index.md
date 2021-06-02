@@ -1,17 +1,20 @@
-[![NuGet](https://img.shields.io/nuget/v/CarinaStudio.AppBase.Core.svg)](https://www.nuget.org/packages/CarinaStudio.AppBase.Core) [![License](https://img.shields.io/github/license/carina-studio/AppBase)](https://github.com/carina-studio/AppBase/blob/master/LICENSE) [![Releases](https://img.shields.io/github/release-date-pre/carina-studio/AppBase)](https://github.com/carina-studio/AppBase/releases) 
+[![](https://img.shields.io/nuget/v/CarinaStudio.AppBase.Core.svg)](https://www.nuget.org/packages/CarinaStudio.AppBase.Core) 
+[![](https://img.shields.io/github/license/carina-studio/AppBase)](https://github.com/carina-studio/AppBase/blob/master/LICENSE) 
+[![](https://img.shields.io/github/release-date-pre/carina-studio/AppBase)](https://github.com/carina-studio/AppBase/releases) 
 
 # 👋Introduction of AppBase 
 **AppBase** is a set of libraries designed for .NET based application. Currently there are 2 modules providing the following functions:
 
 📦CarinaStudio.AppBase.Core
- * Extensions for ```System.Object``` and ```System.IDisposable``` to make your code more elegant and clear. ([Learn more](https://github.com/carina-studio/AppBase/tree/master/Core#extensions-for-systemobject))
- * Extensions for arrays and ```System.Memory<T>``` to get memory address.
+* Extensions for ```System.Object``` to make your code more elegant and clear. ([Learn more](articles/object_extensions.md))
+* Extensions for ```System.IDisposable``` to make your code more elegant and clear. ([Learn more](articles/disposable_extensions.md))
+* Extensions for arrays and ```System.Memory<T>``` to get memory address.
 * Extended ```System.IDisposable``` to make it easier to share resources across components in your application.
-* Extensions for ```System.Collections.Generic.*``` for collection state checking and searching. ([Learn more](https://github.com/carina-studio/AppBase/tree/master/Core/Collections#extensions-for-systemcollectionsgenericicollectiont))
-* Extensions for ```System.Threading.SynchronizationContext``` for delayed call-back support. ([Learn mode](https://github.com/carina-studio/AppBase/tree/master/Core/Threading#extensions-for-systemthreadingsynchronizationcontext))
-* Implementations of ```System.Threading.SynchronizationContext``` and ```System.Threading.Tasks.TaskScheduler``` to let you schedule and run tasks on dedicated threads. ([Learn more](https://github.com/carina-studio/AppBase/tree/master/Core/Threading#singlethreadsynchronizationcontext))
-* Schedulable action to execute action later and prevent duplicate execution. ([Learn more](https://github.com/carina-studio/AppBase/tree/master/Core/Threading#scheduledaction))
-* Implementation of ```System.IObservable<T>``` to support observable value/field just like ```LiveData<T>``` on Android. ([Learn more](https://github.com/carina-studio/AppBase/tree/master/Core#observablevaluet))
+* Extensions for ```System.Collections.Generic.*``` for collection state checking and searching. ([Learn more](articles/collection_extensions.md))
+* Extensions for ```System.Threading.SynchronizationContext``` for delayed call-back support. ([Learn mode](articles/threading.md#extensions-for-systemthreadingsynchronizationcontext))
+* Implementations of ```System.Threading.SynchronizationContext``` and ```System.Threading.Tasks.TaskScheduler``` to let you schedule and run tasks on dedicated threads. ([Learn more](articles/threading.md#singlethreadsynchronizationcontext))
+* Schedulable action to execute action later and prevent duplicate execution. ([Learn more](articles/threading.md#scheduledaction))
+* Implementation of ```System.IObservable<T>``` to support observable value/field just like ```LiveData<T>``` on Android. ([Learn more](articles/observable_value.md))
 
 📦CarinaStudio.AppBase.Configuration
 * Class for key-value based application settings which supports various type of value.
