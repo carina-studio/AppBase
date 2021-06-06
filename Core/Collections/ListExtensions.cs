@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Collections.ObjectModel;
 
 namespace CarinaStudio.Collections
 {
@@ -9,6 +9,20 @@ namespace CarinaStudio.Collections
 	/// </summary>
 	public static class ListExtensions
 	{
+		/// <summary>
+		/// Make given <see cref="IList{T}"/> as read-only <see cref="IList{T}"/>.
+		/// </summary>
+		/// <typeparam name="T">Type of element.</typeparam>
+		/// <param name="list"><see cref="IList{T}"/> to make as read-only.</param>
+		/// <returns>Read-only <see cref="IList{T}"/>.</returns>
+		public static IList<T> AsReadOnly<T>(this IList<T> list)
+		{
+			if (list.IsReadOnly)
+				return list;
+			return new ReadOnlyCollection<T>(list);
+		}
+
+
 		/// <summary>
 		/// Find given element by binary-search.
 		/// </summary>
