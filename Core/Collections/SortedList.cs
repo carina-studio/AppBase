@@ -435,6 +435,28 @@ namespace CarinaStudio.Collections
 		public T this[int index] { get => this.list[index]; }
 
 
+		/// <summary>
+		/// Copy elements to array.
+		/// </summary>
+		/// <returns>Array of copied elements</returns>
+		public T[] ToArray() => this.list.ToArray();
+
+
+		/// <summary>
+		/// Copy elements to array.
+		/// </summary>
+		/// <param name="index">Index of first element in list to copy.</param>
+		/// <param name="count">Number of elements to copy.</param>
+		/// <returns>Array of copied elements</returns>
+		public T[] ToArray(int index, int count) => new T[count].Also((it) => this.CopyTo(index, it, 0, count));
+
+
+		/// <summary>
+		/// Set the capacity to the actual number of elements in list.
+		/// </summary>
+		public void TrimExcess() => this.list.TrimExcess();
+
+
 		// Interface implementations.
 		void ICollection<T>.Add(T value) => this.Add(value);
 		void ICollection.CopyTo(Array array, int index) => this.CopyTo((T[])array, index);
