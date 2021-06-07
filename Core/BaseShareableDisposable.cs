@@ -6,7 +6,7 @@ namespace CarinaStudio
 	/// Base implementation of <see cref="IShareableDisposable{TSelf}"/>.
 	/// </summary>
 	/// <typeparam name="TSelf">Self type.</typeparam>
-	public abstract class BaseShareableDisposable<TSelf> : IShareableDisposable<TSelf> where TSelf : IShareableDisposable<TSelf>
+	public abstract class BaseShareableDisposable<TSelf> : BaseDisposable, IShareableDisposable<TSelf> where TSelf : IShareableDisposable<TSelf>
 	{
 		/// <summary>
 		/// Base implementation of internal resource holder.
@@ -27,8 +27,6 @@ namespace CarinaStudio
 
 
 		// Fields.
-		volatile bool isDisposed;
-		volatile bool isDisposing;
 		readonly BaseResourceHolder resourceHolder;
 
 
@@ -51,32 +49,8 @@ namespace CarinaStudio
 		/// <summary>
 		/// Dispose the instance.
 		/// </summary>
-		public void Dispose()
-		{
-			lock (this)
-			{
-				if (this.isDisposing || this.isDisposed)
-					return;
-				this.isDisposing = true;
-			}
-			GC.SuppressFinalize(this);
-			try
-			{
-				this.Dispose(true);
-			}
-			finally
-			{
-				this.isDisposing = false;
-				this.isDisposed = true;
-			}
-		}
-
-
-		/// <summary>
-		/// Dispose the instance.
-		/// </summary>
-		/// <param name="disposing">True to dispose managed resources.</param>
-		protected virtual void Dispose(bool disposing)
+		/// <param name="disposing">True to dispose managed resources also.</param>
+		protected override void Dispose(bool disposing)
 		{
 			lock (this.resourceHolder)
 			{
@@ -97,12 +71,6 @@ namespace CarinaStudio
 			this.ThrowIfDisposed();
 			return (T)this.resourceHolder;
 		}
-
-
-		/// <summary>
-		/// Check whether instance has been disposed or not.
-		/// </summary>
-		protected bool IsDisposed { get => this.isDisposed; }
 
 
 		/// <summary>
@@ -144,15 +112,5 @@ namespace CarinaStudio
 		/// <param name="resourceHolder">Resource holder.</param>
 		/// <returns>New instance which shares internal resources.</returns>
 		protected abstract TSelf Share(BaseResourceHolder resourceHolder);
-
-
-		/// <summary>
-		/// Throw <see cref="ObjectDisposedException"/> if instance has been disposed.
-		/// </summary>
-		protected void ThrowIfDisposed()
-		{
-			if (this.isDisposed)
-				throw new ObjectDisposedException(this.GetType().Name);
-		}
 	}
 }
