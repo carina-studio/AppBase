@@ -1,6 +1,7 @@
 ﻿using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace CarinaStudio.Collections
 {
@@ -86,6 +87,40 @@ namespace CarinaStudio.Collections
 					Assert.AreEqual(~index, testList.BinarySearch(testList[index] - 1, comparison));
 				}
 			}
+		}
+
+
+		/// <summary>
+		/// Test for copying elements of list to array.
+		/// </summary>
+		[Test]
+		public void CopyingToArrayTest()
+		{
+			// prepare
+			var testList = (IList<int>)new int[1024].Also((it) =>
+			{
+				for (var i = it.Length - 1; i >= 0; --i)
+					it[i] = this.random.Next(int.MinValue, int.MaxValue);
+			});
+			var refList = new List<int>(testList);
+
+			// copy head of list
+			var array = new int[testList.Count / 10];
+			var refArray = new int[array.Length];
+			testList.CopyTo(0, array, 0, array.Length);
+			refList.CopyTo(0, refArray, 0, refArray.Length);
+			Assert.IsTrue(array.SequenceEqual(refArray), "Copied elements are incorrect.");
+
+			// copy tail of list
+			testList.CopyTo(testList.Count - array.Length, array, 0, array.Length);
+			refList.CopyTo(refList.Count - refArray.Length, refArray, 0, refArray.Length);
+			Assert.IsTrue(array.SequenceEqual(refArray), "Copied elements are incorrect.");
+
+			// copy middle of list
+			var index = this.random.Next(1, testList.Count - array.Length);
+			testList.CopyTo(index, array, 0, array.Length);
+			refList.CopyTo(index, refArray, 0, refArray.Length);
+			Assert.IsTrue(array.SequenceEqual(refArray), "Copied elements are incorrect.");
 		}
 	}
 }
