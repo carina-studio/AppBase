@@ -156,66 +156,54 @@ namespace CarinaStudio.Collections
 				return;
 			}
 
-			// insert and re-sort directly if count of moved elements exceeds half of list
-			if (((insertionRegionSize + elementCount) << 1) >= (count + elementCount))
-			{
-				list.AddRange(sortedElements);
-				list.Sort(comparer);
-				if (this.isINotifyCollectionChanged)
-					this.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
-				return;
-			}
-
-			// insert at end of insertion range first and sort
-			list.InsertRange(insertEndIndex, sortedElements);
-			if (this.isINotifyCollectionChanged)
-				this.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, (IList)sortedElements.AsReadOnly(), insertEndIndex));
-			var sortedInsertionRegion = new T[insertionRegionSize].Also((it) =>
-			{
-				list.CopyTo(insertStartIndex, it, 0, insertionRegionSize);
-				Array.Sort(it, comparer);
-			});
-			var listIndex = insertStartIndex;
+			// insert by blocks
+			var seStartIndex = 0;
 			var seIndex = 0;
-			var sirIndex = 0;
-			while (seIndex < elementCount && sirIndex < insertionRegionSize)
+			var insertionCount = 0;
+			while (seIndex < elementCount && insertStartIndex < count)
 			{
 				var seElement = sortedElements[seIndex];
-				var sirElement = sortedInsertionRegion[sirIndex];
-				var insertionElement = default(T);
-				if (comparer.Compare(sirElement, seElement) <= 0)
-				{
-					insertionElement = sirElement;
-					++sirIndex;
-				}
+				var comparisonResult = comparer.Compare(seElement, list[insertStartIndex]);
+				if (comparisonResult <= 0)
+					++seIndex;
 				else
 				{
-					insertionElement = seElement;
-					++seIndex;
+					insertionCount = (seIndex - seStartIndex);
+					if (insertionCount == 1)
+					{
+						list.Insert(insertStartIndex, sortedElements[seStartIndex]);
+						if (this.isINotifyCollectionChanged)
+							this.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, sortedElements[seStartIndex], insertStartIndex));
+						insertStartIndex += 2;
+						++count;
+					}
+					else if (insertionCount > 0)
+					{
+						var insertionElements = sortedElements.ToArray(seStartIndex, insertionCount);
+						list.InsertRange(insertStartIndex, insertionElements);
+						if (this.isINotifyCollectionChanged)
+							this.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, (IList)insertionElements, insertStartIndex));
+						insertStartIndex += insertionCount + 1;
+						count += insertionCount;
+					}
+					else
+						++insertStartIndex;
+					seStartIndex = seIndex;
 				}
-				var originalElement = list[listIndex];
-				list[listIndex] = insertionElement;
-				if (this.isINotifyCollectionChanged)
-					this.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, insertionElement, originalElement, listIndex));
-				++listIndex;
 			}
-			while (seIndex < elementCount)
+			insertionCount = (elementCount - seStartIndex);
+			if (insertionCount == 1)
 			{
-				var insertionElement = sortedElements[seIndex++];
-				var originalElement = list[listIndex];
-				list[listIndex] = insertionElement;
+				list.Insert(insertStartIndex, sortedElements[seStartIndex]);
 				if (this.isINotifyCollectionChanged)
-					this.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, insertionElement, originalElement, listIndex));
-				++listIndex;
+					this.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, sortedElements[seStartIndex], insertStartIndex));
 			}
-			while (sirIndex < insertionRegionSize)
+			else if (insertionCount > 0)
 			{
-				var insertionElement = sortedInsertionRegion[sirIndex++];
-				var originalElement = list[listIndex];
-				list[listIndex] = insertionElement;
+				var insertionElements = sortedElements.ToArray(seStartIndex, insertionCount);
+				list.InsertRange(insertStartIndex, insertionElements);
 				if (this.isINotifyCollectionChanged)
-					this.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, insertionElement, originalElement, listIndex));
-				++listIndex;
+					this.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, (IList)insertionElements, insertStartIndex));
 			}
 		}
 

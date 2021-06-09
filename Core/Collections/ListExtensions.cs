@@ -80,5 +80,48 @@ namespace CarinaStudio.Collections
 				return BinarySearch<T>(list, start, middle, element);
 			return BinarySearch<T>(list, middle + 1, end, element);
 		}
+
+
+		/// <summary>
+		/// Copy elements to array.
+		/// </summary>
+		/// <typeparam name="T">Type of list element.</typeparam>
+		/// <param name="list"><see cref="IList{T}"/>.</param>
+		/// <param name="index">Index of first element in list to copy.</param>
+		/// <param name="array">Array to place copied elements.</param>
+		/// <param name="arrayIndex">Index of first position in <paramref name="array"/> to place copied elements.</param>
+		/// <param name="count">Number of elements to copy.</param>
+		public static void CopyTo<T>(this IList<T> list, int index, T[] array, int arrayIndex, int count)
+		{
+			if (list is List<T> sysList)
+				sysList.CopyTo(index, array, arrayIndex, count);
+			else if (list is SortedList<T> sortedList)
+				sortedList.CopyTo(index, array, arrayIndex, count);
+			else if (count > 0)
+			{
+				if (index < 0 || index >= list.Count)
+					throw new ArgumentOutOfRangeException(nameof(index));
+				if (arrayIndex < 0 || arrayIndex >= array.Length)
+					throw new ArgumentOutOfRangeException(nameof(arrayIndex));
+				if (index + count > list.Count || arrayIndex + count > array.Length)
+					throw new ArgumentOutOfRangeException(nameof(count));
+				while (count > 0)
+				{
+					array[arrayIndex++] = list[index++];
+					--count;
+				}
+			}
+		}
+
+
+		/// <summary>
+		/// Copy elements to array.
+		/// </summary>
+		/// <typeparam name="T">Type of list element.</typeparam>
+		/// <param name="list"><see cref="IList{T}"/>.</param>
+		/// <param name="index">Index of first element in list to copy.</param>
+		/// <param name="count">Number of elements to copy.</param>
+		/// <returns>Array of copied elements</returns>
+		public static T[] ToArray<T>(this IList<T> list, int index, int count) => new T[count].Also((it) => list.CopyTo(index, it, 0, count));
 	}
 }
