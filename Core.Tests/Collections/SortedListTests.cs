@@ -1,6 +1,7 @@
 ﻿using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 
 namespace CarinaStudio.Collections
@@ -107,6 +108,72 @@ namespace CarinaStudio.Collections
 			sortedList.Clear();
 			sortedList.AddAll(planeElements);
 			this.VerifySortedList(sortedList, refList);
+		}
+
+
+		/// <summary>
+		/// Test for collection changed event.
+		/// </summary>
+		[Test]
+		public void CollectionChangedEventTest()
+		{
+			// prepare
+			var randomElements = this.GenerateRandomArray(10240);
+			var sortedList = new ObservableSortedList<int>();
+			var reflectedList = new List<int>();
+			sortedList.CollectionChanged += (_, e) =>
+			{
+				switch (e.Action)
+				{
+					case NotifyCollectionChangedAction.Add:
+						{
+							var newItems = e.NewItems;
+							var elements = new int[newItems.Count].Also((it) => newItems.CopyTo(it, 0));
+							reflectedList.InsertRange(e.NewStartingIndex, elements);
+						}
+						break;
+					case NotifyCollectionChangedAction.Remove:
+						reflectedList.RemoveRange(e.OldStartingIndex, e.OldItems.Count);
+						break;
+					case NotifyCollectionChangedAction.Reset:
+						reflectedList.Clear();
+						reflectedList.AddRange(sortedList);
+						break;
+					default:
+						throw new AssertionException($"Uncovered collection change action: {e.Action}.");
+				}
+			};
+
+			// add elements by range
+			var startIndex = 0;
+			var remaining = randomElements.Length;
+			while (remaining > 0)
+			{
+				var count = Math.Min(remaining, this.random.Next(1, 100));
+				var elements = new int[count].Also((it) => Array.Copy(randomElements, startIndex, it, 0, count));
+				startIndex += count;
+				remaining -= count;
+				sortedList.AddAll(elements);
+			}
+			Assert.IsTrue(sortedList.SequenceEqual(reflectedList), "List built by collection change event is incorrect after adding elements.");
+
+			// remove random range elements
+			remaining = sortedList.Count;
+			for (int i = remaining / 100; i > 0 && remaining > 0; --i)
+			{
+				var count = Math.Min(remaining, this.random.Next(1, 100));
+				var removingElements = new int[count].Also((it) =>
+				{
+					for (var j = count - 1; j >= 0; --j)
+						it[j] = randomElements[this.random.Next(0, randomElements.Length)];
+				});
+				sortedList.RemoveAll(removingElements);
+			}
+			Assert.IsTrue(sortedList.SequenceEqual(reflectedList), "List built by collection change event is incorrect after removing elements.");
+
+			// Clear
+			sortedList.Clear();
+			Assert.IsTrue(sortedList.SequenceEqual(reflectedList), "List built by collection change event is incorrect after clearing.");
 		}
 
 
