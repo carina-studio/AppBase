@@ -6,6 +6,7 @@
     <RootNamespace>CarinaStudio</RootNamespace>
     <AssemblyName>CarinaStudio.Core.Tests</AssemblyName>
     <Nullable>enable</Nullable>
+    <StartupObject>CarinaStudio.Program</StartupObject>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

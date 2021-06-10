@@ -1,7 +1,9 @@
 ﻿using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Linq;
 
 namespace CarinaStudio.Collections
@@ -26,7 +28,7 @@ namespace CarinaStudio.Collections
 			var randomElements = this.GenerateRandomArray(10240);
 			var sortedElements = ((int[])randomElements.Clone()).Also((it) => Array.Sort(it));
 			var planeElements = new int[randomElements.Length];
-			var sortedList = new ObservableSortedList<int>();
+			var sortedList = new SortedList<int>();
 			var refList = new List<int>();
 
 			// add element one-by-one
@@ -119,7 +121,7 @@ namespace CarinaStudio.Collections
 		{
 			// prepare
 			var randomElements = this.GenerateRandomArray(10240);
-			var sortedList = new ObservableSortedList<int>();
+			var sortedList = new SortedList<int>();
 			var reflectedList = new List<int>();
 			sortedList.CollectionChanged += (_, e) =>
 			{
@@ -186,6 +188,281 @@ namespace CarinaStudio.Collections
 
 
 		/// <summary>
+		/// Test for performance of adding elements randomly comparing to <see cref="ObservableCollection{T}"/> and <see cref="List{T}"/>.
+		/// </summary>
+		/// <param name="elementCount">Number of final number of elements.</param>
+		/// <param name="addingBlockSize">Number of elements for each adding.</param>
+		public void RandomAddingPerformanceTest(int elementCount, int addingBlockSize)
+		{
+			var stopWatch = new Stopwatch().Also((it) => it.Start());
+			var sortedList = new SortedList<int>();
+			var observableCollection = new ObservableCollection<int>();
+			var list = new List<int>();
+			var sortedListDuration = 0L;
+			var observableCollectionDuration = 0L;
+			var listDuration = 0L;
+			if (addingBlockSize == 1)
+			{
+				// prepare
+				var addingElements = new int[elementCount].Also((it) =>
+				{
+					for (var i = elementCount - 1; i >= 0; --i)
+						it[i] = this.random.Next(int.MinValue, int.MaxValue);
+				});
+
+				// test performance of sorted list
+				for (var i = 0; i < 5; ++i)
+				{
+					sortedList.Clear();
+					var startTime = stopWatch.ElapsedMilliseconds;
+					for (var j = elementCount - 1; j >= 0; --j)
+						sortedList.Add(addingElements[j]);
+					sortedListDuration += (stopWatch.ElapsedMilliseconds - startTime);
+				}
+				sortedListDuration /= 5;
+
+				// test performance of observable collection
+				for (var i = 0; i < 5; ++i)
+				{
+					observableCollection.Clear();
+					var startTime = stopWatch.ElapsedMilliseconds;
+					for (var j = elementCount - 1; j >= 0; --j)
+					{
+						var element = addingElements[j];
+						var index = observableCollection.BinarySearch(element);
+						if (index < 0)
+							index = ~index;
+						observableCollection.Insert(index, element);
+					}
+					observableCollectionDuration += (stopWatch.ElapsedMilliseconds - startTime);
+				}
+				sortedListDuration /= 5;
+
+				// test performance of list
+				for (var i = 0; i < 5; ++i)
+				{
+					list.Clear();
+					var startTime = stopWatch.ElapsedMilliseconds;
+					for (var j = elementCount - 1; j >= 0; --j)
+					{
+						list.Add(addingElements[j]);
+						list.Sort();
+					}
+					listDuration += (stopWatch.ElapsedMilliseconds - startTime);
+				}
+				listDuration /= 5;
+			}
+			else
+			{
+				// prepare
+				var remaining = elementCount;
+				var addingBlocks = new List<int[]>().Also((it) =>
+				{
+					while (remaining > 0)
+					{
+						var blockSize = Math.Min(remaining, addingBlockSize);
+						var block = new int[blockSize].Also((block) =>
+						{
+							for (var i = blockSize - 1; i >= 0; --i)
+								block[i] = this.random.Next(int.MinValue, int.MaxValue);
+						});
+						it.Add(block);
+						remaining -= blockSize;
+					}
+				});
+
+				// test performance of sorted list
+				for (var i = 0; i < 5; ++i)
+				{
+					sortedList.Clear();
+					var startTime = stopWatch.ElapsedMilliseconds;
+					for (var j = addingBlocks.Count - 1; j >= 0; --j)
+						sortedList.AddAll(addingBlocks[j]);
+					sortedListDuration += (stopWatch.ElapsedMilliseconds - startTime);
+				}
+				sortedListDuration /= 5;
+
+				// test performance of observable collection
+				for (var i = 0; i < 5; ++i)
+				{
+					observableCollection.Clear();
+					var startTime = stopWatch.ElapsedMilliseconds;
+					for (var j = addingBlocks.Count - 1; j >= 0; --j)
+					{
+						var block = addingBlocks[j];
+						foreach (var element in block)
+						{
+							var index = observableCollection.BinarySearch(element);
+							if (index < 0)
+								index = ~index;
+							observableCollection.Insert(index, element);
+						}
+					}
+					observableCollectionDuration += (stopWatch.ElapsedMilliseconds - startTime);
+				}
+				observableCollectionDuration /= 5;
+
+				// test performance of list
+				for (var i = 0; i < 5; ++i)
+				{
+					list.Clear();
+					var startTime = stopWatch.ElapsedMilliseconds;
+					for (var j = addingBlocks.Count - 1; j >= 0; --j)
+					{
+						list.AddRange(addingBlocks[j]);
+						list.Sort();
+					}
+					listDuration += (stopWatch.ElapsedMilliseconds - startTime);
+				}
+				listDuration /= 5;
+			}
+			Console.WriteLine($"[N={elementCount}, B={addingBlockSize}]");
+			Console.WriteLine($"SortedList: {sortedListDuration}");
+			Console.WriteLine($"ObservableCollection: {observableCollectionDuration}");
+			Console.WriteLine($"List: {listDuration}");
+			Console.WriteLine();
+		}
+
+
+		/// <summary>
+		/// Test for performance of adding non-overlapped elements randomly comparing to <see cref="ObservableCollection{T}"/> and <see cref="List{T}"/>.
+		/// </summary>
+		/// <param name="elementCount">Number of final number of elements.</param>
+		/// <param name="addingBlockSize">Number of elements for each adding.</param>
+		public void RandomNonOverlappedAddingPerformanceTest(int elementCount, int addingBlockSize)
+		{
+			var stopWatch = new Stopwatch().Also((it) => it.Start());
+			var sortedList = new SortedList<int>();
+			var observableCollection = new ObservableCollection<int>();
+			var list = new List<int>();
+			var sortedListDuration = 0L;
+			var observableCollectionDuration = 0L;
+			var listDuration = 0L;
+			if (addingBlockSize == 1)
+			{
+				// prepare
+				var addingElements = new int[elementCount].Also((it) =>
+				{
+					for (var i = elementCount - 1; i >= 0; --i)
+						it[i] = i;
+					it.Shuffle();
+				});
+
+				// test performance of sorted list
+				for (var i = 0; i < 5; ++i)
+				{
+					sortedList.Clear();
+					var startTime = stopWatch.ElapsedMilliseconds;
+					for (var j = elementCount - 1; j >= 0; --j)
+						sortedList.Add(addingElements[j]);
+					sortedListDuration += (stopWatch.ElapsedMilliseconds - startTime);
+				}
+				sortedListDuration /= 5;
+
+				// test performance of observable collection
+				for (var i = 0; i < 5; ++i)
+				{
+					observableCollection.Clear();
+					var startTime = stopWatch.ElapsedMilliseconds;
+					for (var j = elementCount - 1; j >= 0; --j)
+					{
+						var element = addingElements[j];
+						var index = observableCollection.BinarySearch(element);
+						if (index < 0)
+							index = ~index;
+						observableCollection.Insert(index, element);
+					}
+					observableCollectionDuration += (stopWatch.ElapsedMilliseconds - startTime);
+				}
+				sortedListDuration /= 5;
+
+				// test performance of list
+				for (var i = 0; i < 5; ++i)
+				{
+					list.Clear();
+					var startTime = stopWatch.ElapsedMilliseconds;
+					for (var j = elementCount - 1; j >= 0; --j)
+					{
+						list.Add(addingElements[j]);
+						list.Sort();
+					}
+					listDuration += (stopWatch.ElapsedMilliseconds - startTime);
+				}
+				listDuration /= 5;
+			}
+			else
+			{
+				// prepare
+				var remaining = elementCount;
+				var addingBlocks = new List<int[]>().Also((it) =>
+				{
+					while (remaining > 0)
+					{
+						var blockSize = Math.Min(remaining, addingBlockSize);
+						var block = new int[blockSize].Also((block) =>
+						{
+							for (var i = blockSize - 1; i >= 0; --i)
+								block[i] = remaining--;
+						});
+						it.Add(block);
+					}
+					it.Shuffle();
+				});
+
+				// test performance of sorted list
+				for (var i = 0; i < 5; ++i)
+				{
+					sortedList.Clear();
+					var startTime = stopWatch.ElapsedMilliseconds;
+					for (var j = addingBlocks.Count - 1; j >= 0; --j)
+						sortedList.AddAll(addingBlocks[j]);
+					sortedListDuration += (stopWatch.ElapsedMilliseconds - startTime);
+				}
+				sortedListDuration /= 5;
+
+				// test performance of observable collection
+				for (var i = 0; i < 5; ++i)
+				{
+					observableCollection.Clear();
+					var startTime = stopWatch.ElapsedMilliseconds;
+					for (var j = addingBlocks.Count - 1; j >= 0; --j)
+					{
+						var block = addingBlocks[j];
+						foreach (var element in block)
+						{
+							var index = observableCollection.BinarySearch(element);
+							if (index < 0)
+								index = ~index;
+							observableCollection.Insert(index, element);
+						}
+					}
+					observableCollectionDuration += (stopWatch.ElapsedMilliseconds - startTime);
+				}
+				observableCollectionDuration /= 5;
+
+				// test performance of list
+				for (var i = 0; i < 5; ++i)
+				{
+					list.Clear();
+					var startTime = stopWatch.ElapsedMilliseconds;
+					for (var j = addingBlocks.Count - 1; j >= 0; --j)
+					{
+						list.AddRange(addingBlocks[j]);
+						list.Sort();
+					}
+					listDuration += (stopWatch.ElapsedMilliseconds - startTime);
+				}
+				listDuration /= 5;
+			}
+			Console.WriteLine($"[N={elementCount}, B={addingBlockSize}]");
+			Console.WriteLine($"SortedList: {sortedListDuration}");
+			Console.WriteLine($"ObservableCollection: {observableCollectionDuration}");
+			Console.WriteLine($"List: {listDuration}");
+			Console.WriteLine();
+		}
+
+
+		/// <summary>
 		/// Test for removing elements.
 		/// </summary>
 		[Test]
@@ -194,7 +471,7 @@ namespace CarinaStudio.Collections
 			// prepare
 			var randomElements = this.GenerateRandomArray(10240);
 			var sortedElements = ((int[])randomElements.Clone()).Also((it) => Array.Sort(it));
-			var sortedList = new ObservableSortedList<int>(randomElements);
+			var sortedList = new SortedList<int>(randomElements);
 			var refList = new List<int>(sortedList);
 			this.VerifySortedList(sortedList, refList);
 

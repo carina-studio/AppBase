@@ -10,11 +10,10 @@ namespace CarinaStudio.Collections
 	/// List which makes elements sorted automatically. Implmentations of <see cref="IList{T}"/> are also optimized for sorted case.
 	/// </summary>
 	/// <typeparam name="T">Type of element.</typeparam>
-	public class SortedList<T> : IList, IList<T>, IReadOnlyList<T>
+	public class SortedList<T> : IList, IList<T>, INotifyCollectionChanged, IReadOnlyList<T>
 	{
 		// Fields.
 		readonly IComparer<T> comparer;
-		readonly bool isINotifyCollectionChanged;
 		readonly List<T> list = new List<T>();
 
 
@@ -26,7 +25,6 @@ namespace CarinaStudio.Collections
 		public SortedList(IComparer<T> comparer, IEnumerable<T>? elements = null)
 		{
 			this.comparer = comparer;
-			this.isINotifyCollectionChanged = this is INotifyCollectionChanged;
 			this.SetupInitElements(elements);
 		}
 
@@ -39,7 +37,6 @@ namespace CarinaStudio.Collections
 		public SortedList(Comparison<T> comparison, IEnumerable<T>? elements = null)
 		{
 			this.comparer = Comparer<T>.Create(comparison);
-			this.isINotifyCollectionChanged = this is INotifyCollectionChanged;
 			this.SetupInitElements(elements);
 		}
 
@@ -53,7 +50,6 @@ namespace CarinaStudio.Collections
 			if (!typeof(IComparable<T>).IsAssignableFrom(typeof(T)))
 				throw new ArgumentException($"Element type '{typeof(T).Name}' doesn't implement IComparable.");
 			this.comparer = Comparer<T>.Default;
-			this.isINotifyCollectionChanged = this is INotifyCollectionChanged;
 			this.SetupInitElements(elements);
 		}
 
@@ -72,8 +68,7 @@ namespace CarinaStudio.Collections
 			if (count == 0 || comparer.Compare(element, list[count - 1]) >= 0)
 			{
 				list.Add(element);
-				if (this.isINotifyCollectionChanged)
-					this.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, element, count));
+				this.CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, element, count));
 				return count;
 			}
 
@@ -81,8 +76,7 @@ namespace CarinaStudio.Collections
 			if (comparer.Compare(element, list[0]) <= 0)
 			{
 				list.Insert(0, element);
-				if (this.isINotifyCollectionChanged)
-					this.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, element, 0));
+				this.CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, element, 0));
 				return 0;
 			}
 
@@ -91,8 +85,7 @@ namespace CarinaStudio.Collections
 			if (insertionIndex < 0)
 				insertionIndex = ~insertionIndex;
 			list.Insert(insertionIndex, element);
-			if (this.isINotifyCollectionChanged)
-				this.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, element, insertionIndex));
+			this.CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, element, insertionIndex));
 			return insertionIndex;
 		}
 
@@ -122,8 +115,7 @@ namespace CarinaStudio.Collections
 			if (count == 0 || comparer.Compare(sortedElements[0], list[count - 1]) >= 0)
 			{
 				list.AddRange(sortedElements);
-				if (this.isINotifyCollectionChanged)
-					this.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, (IList)sortedElements.AsReadOnly(), count));
+				this.CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, (IList)sortedElements.AsReadOnly(), count));
 				return;
 			}
 
@@ -131,8 +123,7 @@ namespace CarinaStudio.Collections
 			if (comparer.Compare(sortedElements[elementCount - 1], list[0]) <= 0)
 			{
 				list.InsertRange(0, sortedElements);
-				if (this.isINotifyCollectionChanged)
-					this.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, (IList)sortedElements.AsReadOnly(), 0));
+				this.CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, (IList)sortedElements.AsReadOnly(), 0));
 				return;
 			}
 
@@ -151,9 +142,17 @@ namespace CarinaStudio.Collections
 			if (insertionRegionSize == 0)
 			{
 				list.InsertRange(insertStartIndex, sortedElements);
-				if (this.isINotifyCollectionChanged)
-					this.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, (IList)sortedElements.AsReadOnly(), insertStartIndex));
+				this.CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, (IList)sortedElements.AsReadOnly(), insertStartIndex));
 				return;
+			}
+
+			// reserve space first
+			if (list.Capacity < count + elementCount)
+			{
+				if (list.Capacity < int.MaxValue >> 1)
+					list.Capacity = Math.Max(count << 1, count + (elementCount << 1));
+				else
+					list.Capacity = count + (elementCount << 1);
 			}
 
 			// insert by blocks
@@ -172,17 +171,15 @@ namespace CarinaStudio.Collections
 					if (insertionCount == 1)
 					{
 						list.Insert(insertStartIndex, sortedElements[seStartIndex]);
-						if (this.isINotifyCollectionChanged)
-							this.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, sortedElements[seStartIndex], insertStartIndex));
+						this.CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, sortedElements[seStartIndex], insertStartIndex));
 						insertStartIndex += 2;
 						++count;
 					}
 					else if (insertionCount > 0)
 					{
-						var insertionElements = sortedElements.ToArray(seStartIndex, insertionCount);
+						var insertionElements = new ListRangeView<T>(sortedElements, seStartIndex, insertionCount);
 						list.InsertRange(insertStartIndex, insertionElements);
-						if (this.isINotifyCollectionChanged)
-							this.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, (IList)insertionElements, insertStartIndex));
+						this.CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, insertionElements, insertStartIndex));
 						insertStartIndex += insertionCount + 1;
 						count += insertionCount;
 					}
@@ -195,15 +192,13 @@ namespace CarinaStudio.Collections
 			if (insertionCount == 1)
 			{
 				list.Insert(insertStartIndex, sortedElements[seStartIndex]);
-				if (this.isINotifyCollectionChanged)
-					this.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, sortedElements[seStartIndex], insertStartIndex));
+				this.CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, sortedElements[seStartIndex], insertStartIndex));
 			}
 			else if (insertionCount > 0)
 			{
-				var insertionElements = sortedElements.ToArray(seStartIndex, insertionCount);
+				var insertionElements = new ListRangeView<T>(sortedElements, seStartIndex, insertionCount);
 				list.InsertRange(insertStartIndex, insertionElements);
-				if (this.isINotifyCollectionChanged)
-					this.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, (IList)insertionElements, insertStartIndex));
+				this.CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, insertionElements, insertStartIndex));
 			}
 		}
 
@@ -214,9 +209,14 @@ namespace CarinaStudio.Collections
 		public void Clear()
 		{
 			this.list.Clear();
-			if (this.isINotifyCollectionChanged)
-				this.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+			this.CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
 		}
+
+
+		/// <summary>
+		/// Raised when list changed.
+		/// </summary>
+		public event NotifyCollectionChangedEventHandler? CollectionChanged;
 
 
 		/// <summary>
@@ -267,15 +267,6 @@ namespace CarinaStudio.Collections
 
 
 		/// <summary>
-		/// Called when list changed.
-		/// </summary>
-		/// <remarks>The method will be called ONLY if derived class implements <see cref="INotifyCollectionChanged"/> interface.</remarks>
-		/// <param name="e">Event data.</param>
-		protected virtual void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
-		{ }
-
-
-		/// <summary>
 		/// Remove first found of given element.
 		/// </summary>
 		/// <param name="element">Element to remove.</param>
@@ -286,8 +277,7 @@ namespace CarinaStudio.Collections
 			if (index < 0)
 				return false;
 			this.list.RemoveAt(index);
-			if (this.isINotifyCollectionChanged)
-				this.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, element, index));
+			this.CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, element, index));
 			return true;
 		}
 
@@ -323,6 +313,7 @@ namespace CarinaStudio.Collections
 			var listIndex = count - 1;
 			var removingStartIndex = -1;
 			var removingEndIndex = -1;
+			var collectionChangedHandlers = this.CollectionChanged;
 			while (seIndex >= 0 && listIndex >= 0)
 			{
 				var seElement = sortedElements[seIndex];
@@ -333,12 +324,11 @@ namespace CarinaStudio.Collections
 					if (removingStartIndex > listIndex + 1)
 					{
 						var removingCount = removingEndIndex - removingStartIndex;
-						var removedElements = this.isINotifyCollectionChanged
-							? new T[removingCount].Also((it) => list.CopyTo(removingStartIndex, it, 0, removingCount))
+						var removedElements = collectionChangedHandlers != null
+							? new ListRangeView<T>(this.list, removingStartIndex, removingCount)
 							: null;
 						list.RemoveRange(removingStartIndex, removingCount);
-						if (this.isINotifyCollectionChanged)
-							this.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removedElements, removingStartIndex));
+						collectionChangedHandlers?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removedElements, removingStartIndex));
 						removingEndIndex = listIndex + 1;
 						result += removingCount;
 					}
@@ -355,12 +345,11 @@ namespace CarinaStudio.Collections
 			if (removingEndIndex > removingStartIndex)
 			{
 				var removingCount = removingEndIndex - removingStartIndex;
-				var removedElements = this.isINotifyCollectionChanged
-					? new T[removingCount].Also((it) => list.CopyTo(removingStartIndex, it, 0, removingCount))
+				var removedElements = collectionChangedHandlers != null
+					? new ListRangeView<T>(this.list, removingStartIndex, removingCount)
 					: null;
 				list.RemoveRange(removingStartIndex, removingCount);
-				if (this.isINotifyCollectionChanged)
-					this.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removedElements, removingStartIndex));
+				collectionChangedHandlers?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removedElements, removingStartIndex));
 				result += removingCount;
 			}
 
@@ -382,12 +371,12 @@ namespace CarinaStudio.Collections
 				throw new ArgumentOutOfRangeException(nameof(index));
 			if (index + count > this.list.Count)
 				throw new ArgumentOutOfRangeException(nameof(count));
-			var removedElements = this.isINotifyCollectionChanged
-					? new T[count].Also((it) => this.list.CopyTo(index, it, 0, count))
+			var collectionChangedHandlers = this.CollectionChanged;
+			var removedElements = collectionChangedHandlers != null
+					? new ListRangeView<T>(this.list, index, count)
 					: null;
 			this.list.RemoveRange(index, count);
-			if (removedElements != null)
-				this.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removedElements, index));
+			collectionChangedHandlers?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removedElements, index));
 		}
 
 

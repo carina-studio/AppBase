@@ -33,7 +33,7 @@ namespace CarinaStudio.Collections
 		public void ElementConversionTest()
 		{
 			// Prepare
-			var srcList = new ObservableSortedList<int>();
+			var srcList = new SortedList<int>();
 			var testList = new TestList(srcList);
 			this.VerifyTypeConvertedList(srcList, testList);
 
