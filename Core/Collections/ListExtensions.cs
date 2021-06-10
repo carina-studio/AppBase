@@ -9,6 +9,10 @@ namespace CarinaStudio.Collections
 	/// </summary>
 	public static class ListExtensions
 	{
+		// Fields.
+		static readonly Random random = new Random();
+
+
 		/// <summary>
 		/// Make given <see cref="IList{T}"/> as read-only <see cref="IList{T}"/>.
 		/// </summary>
@@ -110,6 +114,44 @@ namespace CarinaStudio.Collections
 					array[arrayIndex++] = list[index++];
 					--count;
 				}
+			}
+		}
+
+
+		/// <summary>
+		/// Shuffle elements in given list.
+		/// </summary>
+		/// <typeparam name="T">Type of list element.</typeparam>
+		/// <param name="list"><see cref="IList{T}"/>.</param>
+		public static void Shuffle<T>(this IList<T> list) => Shuffle(list, 0, list.Count);
+
+
+		/// <summary>
+		/// Shuffle elements in given list.
+		/// </summary>
+		/// <typeparam name="T">Type of list element.</typeparam>
+		/// <param name="list"><see cref="IList{T}"/>.</param>
+		/// <param name="index">Index of first element in list to shuffle.</param>
+		/// <param name="count">Number of elements to shuffle.</param>
+		public static void Shuffle<T>(this IList<T> list, int index, int count)
+		{
+			if (count <= 1)
+				return;
+			if (index < 0 || index >= list.Count)
+				throw new ArgumentOutOfRangeException(nameof(index));
+			if (index + count > list.Count)
+				throw new ArgumentOutOfRangeException(nameof(count));
+			var remaining = count;
+			while (remaining > 0)
+			{
+				var i = random.Next(index, index + count);
+				var j = random.Next(index, index + count);
+				while (i == j)
+					j = random.Next(index, index + count);
+				var temp = list[i];
+				list[i] = list[j];
+				list[j] = temp;
+				--remaining;
 			}
 		}
 
