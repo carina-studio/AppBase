@@ -100,6 +100,7 @@ namespace CarinaStudio.Collections
 		{ }
 
 
+#pragma warning disable CS8600
 #pragma warning disable CS8604
 		// Called when source list changed.
 		void OnSourceListChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -108,7 +109,7 @@ namespace CarinaStudio.Collections
 			{
 				case NotifyCollectionChangedAction.Add:
 					{
-						var newSourceElements = e.NewItems;
+						var newSourceElements = e.NewItems.AsNonNull();
 						if (newSourceElements.Count == 1)
 						{
 							var newElement = this.ConvertElement((TSrc)newSourceElements[0]);
@@ -129,7 +130,7 @@ namespace CarinaStudio.Collections
 					{
 						var oldIndex = e.OldStartingIndex;
 						var newIndex = e.NewStartingIndex;
-						var count = e.OldItems.Count;
+						var count = e.OldItems.AsNonNull().Count;
 						var list = this.list;
 						var movedElements = list.ToArray(oldIndex, count);
 						list.RemoveRange(oldIndex, count);
@@ -140,7 +141,7 @@ namespace CarinaStudio.Collections
 				case NotifyCollectionChangedAction.Remove:
 					{
 						var index = e.OldStartingIndex;
-						var count = e.OldItems.Count;
+						var count = e.OldItems.AsNonNull().Count;
 						var list = this.list;
 						if (this.CollectionChanged == null)
 						{
@@ -161,7 +162,7 @@ namespace CarinaStudio.Collections
 				case NotifyCollectionChangedAction.Replace:
 					{
 						var index = e.OldStartingIndex;
-						var count = e.OldItems.Count;
+						var count = e.OldItems.AsNonNull().Count;
 						var sourceList = this.sourceList;
 						var list = this.list;
 						if (this.CollectionChanged == null)
@@ -194,6 +195,7 @@ namespace CarinaStudio.Collections
 			}
 		}
 #pragma warning restore CS8604
+#pragma warning restore CS8600
 
 
 		// Rebuild list.

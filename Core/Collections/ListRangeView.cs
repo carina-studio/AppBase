@@ -112,9 +112,10 @@ namespace CarinaStudio.Collections
 		{
 			get
 			{
+				index += this.startIndex;
 				if (index < this.startIndex || index >= this.endIndex)
 					throw new ArgumentOutOfRangeException();
-				return this.list[this.startIndex + index];
+				return this.list[index];
 			}
 		}
 
