@@ -233,7 +233,7 @@ namespace CarinaStudio.Collections
 		void ICollection<TDest>.Clear() => throw new InvalidOperationException();
 		void ICollection.CopyTo(Array array, int index) => this.CopyTo((TDest[])array, index);
 		bool ICollection<TDest>.IsReadOnly => true;
-		bool ICollection.IsSynchronized => false;
+		bool ICollection.IsSynchronized => (this.sourceList as ICollection)?.IsSynchronized ?? false;
 		bool ICollection<TDest>.Remove(TDest item) => throw new InvalidOperationException();
 		object ICollection.SyncRoot => this;
 		IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
@@ -252,8 +252,8 @@ namespace CarinaStudio.Collections
 			return -1;
 		}
 		void IList.Insert(int index, object? value) => throw new InvalidOperationException();
-		bool IList.IsFixedSize => false;
-		bool IList.IsReadOnly => false;
+		bool IList.IsFixedSize => (this.sourceList as IList)?.IsFixedSize ?? false;
+		bool IList.IsReadOnly => true;
 		object? IList.this[int index] { get => this.list[index]; set => throw new InvalidOperationException(); }
 		TDest IList<TDest>.this[int index] { get => this.list[index]; set => throw new InvalidOperationException(); }
 		void IList<TDest>.Insert(int index, TDest item) => throw new InvalidOperationException();
