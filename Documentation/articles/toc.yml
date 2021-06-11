@@ -10,5 +10,7 @@
   href: collection_extensions.md
 - name: SortedList<T>
   href: sorted_list.md
+- name: TypeConvertedList<S, D>
+  href: type_converted_list.md
 - name: Threading functions
   href: threading.md
