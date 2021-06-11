@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 
 namespace CarinaStudio.Collections
 {
@@ -16,6 +17,7 @@ namespace CarinaStudio.Collections
 		/// <summary>
 		/// Make given <see cref="IList{T}"/> as read-only <see cref="IList{T}"/>.
 		/// </summary>
+		/// <remarks>If <paramref name="list"/> implements <see cref="INotifyCollectionChanged"/> then returned <see cref="IList{T}"/> will also implements <see cref="INotifyCollectionChanged"/>.</remarks>
 		/// <typeparam name="T">Type of element.</typeparam>
 		/// <param name="list"><see cref="IList{T}"/> to make as read-only.</param>
 		/// <returns>Read-only <see cref="IList{T}"/>.</returns>
@@ -23,6 +25,8 @@ namespace CarinaStudio.Collections
 		{
 			if (list.IsReadOnly)
 				return list;
+			if (list is INotifyCollectionChanged)
+				return new ReadOnlyObservableList<T>(list);
 			return new ReadOnlyCollection<T>(list);
 		}
 
