@@ -13,7 +13,7 @@
     <PackageId>CarinaStudio.AppBase.Core</PackageId>
     <Description>AppBase is a base library set for .NET application. CarinaStudio.AppBase.Core is the core library of AppBase, provides extensions for object, collection and threading to make your code more elegant and clear.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/carina-studio/AppBase</PackageProjectUrl>
+    <PackageProjectUrl>https://carina-studio.github.io/AppBase/</PackageProjectUrl>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

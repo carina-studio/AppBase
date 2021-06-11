@@ -13,7 +13,7 @@
     <PackageId>CarinaStudio.AppBase.Configuration</PackageId>
     <Description>AppBase is a base library set for .NET application. CarinaStudio.AppBase.Configuration provides easy way to use and manage your application settings.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/carina-studio/AppBase</PackageProjectUrl>
+    <PackageProjectUrl>https://carina-studio.github.io/AppBase/</PackageProjectUrl>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
