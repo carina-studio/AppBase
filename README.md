@@ -11,6 +11,8 @@
 * Extensions for arrays and ```System.Memory<T>``` to get memory address.
 * Extended ```System.IDisposable``` to make it easier to share resources across components in your application.
 * Extensions for ```System.Collections.Generic.*``` for collection state checking and searching. ([Learn more](https://carina-studio.github.io/AppBase/articles/collection_extensions.html))
+* ```SortedList<T>``` to let you easy to build sorted list and display on UI. ([Learn more](https://carina-studio.github.io/AppBase/articles/sorted_list.html))
+* ```TypeConvertedList<S, D>``` to help you to build a list based-on another list with different type of element. ([Learn more](https://carina-studio.github.io/AppBase/articles/type_converted_list.html))
 * Extensions for ```System.Threading.SynchronizationContext``` for delayed call-back support. ([Learn mode](https://carina-studio.github.io/AppBase/articles/threading.html#extensions-for-systemthreadingsynchronizationcontext))
 * Implementations of ```System.Threading.SynchronizationContext``` and ```System.Threading.Tasks.TaskScheduler``` to let you schedule and run tasks on dedicated threads. ([Learn more](https://carina-studio.github.io/AppBase/articles/threading.html#singlethreadsynchronizationcontext))
 * Schedulable action to execute action later and prevent duplicate execution. ([Learn more](https://carina-studio.github.io/AppBase/articles/threading.html#scheduledaction))
