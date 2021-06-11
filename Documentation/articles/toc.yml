@@ -8,5 +8,7 @@
   href: observable_value.md
 - name: Extensions for System.Collections.Generic.*
   href: collection_extensions.md
+- name: SortedList<T>
+  href: sorted_list.md
 - name: Threading functions
   href: threading.md
