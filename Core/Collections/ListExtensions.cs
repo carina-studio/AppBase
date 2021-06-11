@@ -123,6 +123,79 @@ namespace CarinaStudio.Collections
 
 
 		/// <summary>
+		/// Check whether elements in given <see cref="IList{T}"/> is sorted or not.
+		/// </summary>
+		/// <typeparam name="T">Type of elements.</typeparam>
+		/// <param name="list"><see cref="IList{T}"/>.</param>
+		/// <param name="comparer"><see cref="IComparer{T}"/> to check order of elements.</param>
+		/// <returns>True if elements in <see cref="IList{T}"/> is sorted.</returns>
+		public static bool IsSorted<T>(this IList<T> list, IComparer<T> comparer) => IsSorted(list, comparer.Compare);
+
+
+		/// <summary>
+		/// Check whether elements in given <see cref="IList{T}"/> is sorted or not.
+		/// </summary>
+		/// <typeparam name="T">Type of elements.</typeparam>
+		/// <param name="list"><see cref="IList{T}"/>.</param>
+		/// <param name="comparison">Comparison method to check order of elements.</param>
+		/// <returns>True if elements in <see cref="IList{T}"/> is sorted.</returns>
+		public static bool IsSorted<T>(this IList<T> list, Comparison<T> comparison)
+		{
+			var count = list.Count;
+			if (count > 1)
+			{
+				var nextElement = list[count - 1];
+				for (var i = count - 2; i >= 0; --i)
+				{
+					var element = list[i];
+					if (comparison(element, nextElement) > 0)
+						return false;
+					nextElement = element;
+				}
+			}
+			return true;
+		}
+
+
+		/// <summary>
+		/// Check whether elements in given <see cref="IList{T}"/> is sorted or not.
+		/// </summary>
+		/// <typeparam name="T">Type of elements.</typeparam>
+		/// <param name="list"><see cref="IList{T}"/>.</param>
+		/// <returns>True if elements in <see cref="IList{T}"/> is sorted.</returns>
+		public static bool IsSorted<T>(this IList<T> list) where T : IComparable<T>
+		{
+			var count = list.Count;
+			if (count > 1)
+			{
+				var nextElement = list[count - 1];
+				for (var i = count - 2; i >= 0; --i)
+				{
+					var element = list[i];
+					if (element.CompareTo(nextElement) > 0)
+						return false;
+					nextElement = element;
+				}
+			}
+			return true;
+		}
+
+
+		/// <summary>
+		/// Select an element from given <see cref="IList{T}"/> randomly.
+		/// </summary>
+		/// <typeparam name="T">Type of element.</typeparam>
+		/// <param name="list"><see cref="IList{T}"/>.</param>
+		/// <returns>Element selected from <see cref="IList{T}"/>.</returns>
+		public static T SelectRandomElement<T>(this IList<T> list)
+		{
+			if (list.IsEmpty())
+				throw new ArgumentException("Cannot select random element from empty list.");
+			return list[random.Next(0, list.Count)];
+		}
+
+
+		/// <summary>
 		/// Shuffle elements in given list.
 		/// </summary>
 		/// <typeparam name="T">Type of list element.</typeparam>

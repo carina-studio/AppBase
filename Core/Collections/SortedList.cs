@@ -138,7 +138,11 @@ namespace CarinaStudio.Collections
 			// insert to single position
 			var insertionRegionSize = (insertEndIndex - insertStartIndex);
 			if (insertionRegionSize < 0)
+			{
+				if (!this.IsSorted(comparer))
+					throw new InternalStateCorruptedException();
 				throw new ArgumentException("Elements are not sorted properly.");
+			}
 			if (insertionRegionSize == 0)
 			{
 				list.InsertRange(insertStartIndex, sortedElements);
