@@ -194,6 +194,7 @@ namespace CarinaStudio.Collections
 		/// <param name="addingBlockSize">Number of elements for each adding.</param>
 		public void RandomAddingPerformanceTest(int elementCount, int addingBlockSize)
 		{
+			var testCount = 3;
 			var stopWatch = new Stopwatch().Also((it) => it.Start());
 			var sortedList = new SortedList<int>();
 			var observableCollection = new ObservableCollection<int>();
@@ -211,7 +212,7 @@ namespace CarinaStudio.Collections
 				});
 
 				// test performance of sorted list
-				for (var i = 0; i < 5; ++i)
+				for (var i = 0; i < testCount; ++i)
 				{
 					sortedList.Clear();
 					var startTime = stopWatch.ElapsedMilliseconds;
@@ -219,10 +220,10 @@ namespace CarinaStudio.Collections
 						sortedList.Add(addingElements[j]);
 					sortedListDuration += (stopWatch.ElapsedMilliseconds - startTime);
 				}
-				sortedListDuration /= 5;
+				sortedListDuration /= testCount;
 
 				// test performance of observable collection
-				for (var i = 0; i < 5; ++i)
+				for (var i = 0; i < testCount; ++i)
 				{
 					observableCollection.Clear();
 					var startTime = stopWatch.ElapsedMilliseconds;
@@ -236,10 +237,10 @@ namespace CarinaStudio.Collections
 					}
 					observableCollectionDuration += (stopWatch.ElapsedMilliseconds - startTime);
 				}
-				sortedListDuration /= 5;
+				sortedListDuration /= testCount;
 
 				// test performance of list
-				for (var i = 0; i < 5; ++i)
+				for (var i = 0; i < testCount; ++i)
 				{
 					list.Clear();
 					var startTime = stopWatch.ElapsedMilliseconds;
@@ -250,7 +251,7 @@ namespace CarinaStudio.Collections
 					}
 					listDuration += (stopWatch.ElapsedMilliseconds - startTime);
 				}
-				listDuration /= 5;
+				listDuration /= testCount;
 			}
 			else
 			{
@@ -272,7 +273,7 @@ namespace CarinaStudio.Collections
 				});
 
 				// test performance of sorted list
-				for (var i = 0; i < 5; ++i)
+				for (var i = 0; i < testCount; ++i)
 				{
 					sortedList.Clear();
 					var startTime = stopWatch.ElapsedMilliseconds;
@@ -280,10 +281,10 @@ namespace CarinaStudio.Collections
 						sortedList.AddAll(addingBlocks[j]);
 					sortedListDuration += (stopWatch.ElapsedMilliseconds - startTime);
 				}
-				sortedListDuration /= 5;
+				sortedListDuration /= testCount;
 
 				// test performance of observable collection
-				for (var i = 0; i < 5; ++i)
+				for (var i = 0; i < testCount; ++i)
 				{
 					observableCollection.Clear();
 					var startTime = stopWatch.ElapsedMilliseconds;
@@ -300,10 +301,10 @@ namespace CarinaStudio.Collections
 					}
 					observableCollectionDuration += (stopWatch.ElapsedMilliseconds - startTime);
 				}
-				observableCollectionDuration /= 5;
+				observableCollectionDuration /= testCount;
 
 				// test performance of list
-				for (var i = 0; i < 5; ++i)
+				for (var i = 0; i < testCount; ++i)
 				{
 					list.Clear();
 					var startTime = stopWatch.ElapsedMilliseconds;
@@ -314,7 +315,7 @@ namespace CarinaStudio.Collections
 					}
 					listDuration += (stopWatch.ElapsedMilliseconds - startTime);
 				}
-				listDuration /= 5;
+				listDuration /= testCount;
 			}
 			Console.WriteLine($"[N={elementCount}, B={addingBlockSize}]");
 			Console.WriteLine($"SortedList: {sortedListDuration}");
@@ -331,6 +332,7 @@ namespace CarinaStudio.Collections
 		/// <param name="addingBlockSize">Number of elements for each adding.</param>
 		public void RandomNonOverlappedAddingPerformanceTest(int elementCount, int addingBlockSize)
 		{
+			var testCount = 3;
 			var stopWatch = new Stopwatch().Also((it) => it.Start());
 			var sortedList = new SortedList<int>();
 			var observableCollection = new ObservableCollection<int>();
@@ -349,7 +351,7 @@ namespace CarinaStudio.Collections
 				});
 
 				// test performance of sorted list
-				for (var i = 0; i < 5; ++i)
+				for (var i = 0; i < testCount; ++i)
 				{
 					sortedList.Clear();
 					var startTime = stopWatch.ElapsedMilliseconds;
@@ -357,10 +359,10 @@ namespace CarinaStudio.Collections
 						sortedList.Add(addingElements[j]);
 					sortedListDuration += (stopWatch.ElapsedMilliseconds - startTime);
 				}
-				sortedListDuration /= 5;
+				sortedListDuration /= testCount;
 
 				// test performance of observable collection
-				for (var i = 0; i < 5; ++i)
+				for (var i = 0; i < testCount; ++i)
 				{
 					observableCollection.Clear();
 					var startTime = stopWatch.ElapsedMilliseconds;
@@ -374,10 +376,10 @@ namespace CarinaStudio.Collections
 					}
 					observableCollectionDuration += (stopWatch.ElapsedMilliseconds - startTime);
 				}
-				sortedListDuration /= 5;
+				sortedListDuration /= testCount;
 
 				// test performance of list
-				for (var i = 0; i < 5; ++i)
+				for (var i = 0; i < testCount; ++i)
 				{
 					list.Clear();
 					var startTime = stopWatch.ElapsedMilliseconds;
@@ -388,7 +390,7 @@ namespace CarinaStudio.Collections
 					}
 					listDuration += (stopWatch.ElapsedMilliseconds - startTime);
 				}
-				listDuration /= 5;
+				listDuration /= testCount;
 			}
 			else
 			{
@@ -403,6 +405,7 @@ namespace CarinaStudio.Collections
 						{
 							for (var i = blockSize - 1; i >= 0; --i)
 								block[i] = remaining--;
+							block.Shuffle();
 						});
 						it.Add(block);
 					}
@@ -410,7 +413,7 @@ namespace CarinaStudio.Collections
 				});
 
 				// test performance of sorted list
-				for (var i = 0; i < 5; ++i)
+				for (var i = 0; i < testCount; ++i)
 				{
 					sortedList.Clear();
 					var startTime = stopWatch.ElapsedMilliseconds;
@@ -418,10 +421,10 @@ namespace CarinaStudio.Collections
 						sortedList.AddAll(addingBlocks[j]);
 					sortedListDuration += (stopWatch.ElapsedMilliseconds - startTime);
 				}
-				sortedListDuration /= 5;
+				sortedListDuration /= testCount;
 
 				// test performance of observable collection
-				for (var i = 0; i < 5; ++i)
+				for (var i = 0; i < testCount; ++i)
 				{
 					observableCollection.Clear();
 					var startTime = stopWatch.ElapsedMilliseconds;
@@ -438,10 +441,10 @@ namespace CarinaStudio.Collections
 					}
 					observableCollectionDuration += (stopWatch.ElapsedMilliseconds - startTime);
 				}
-				observableCollectionDuration /= 5;
+				observableCollectionDuration /= testCount;
 
 				// test performance of list
-				for (var i = 0; i < 5; ++i)
+				for (var i = 0; i < testCount; ++i)
 				{
 					list.Clear();
 					var startTime = stopWatch.ElapsedMilliseconds;
@@ -452,7 +455,7 @@ namespace CarinaStudio.Collections
 					}
 					listDuration += (stopWatch.ElapsedMilliseconds - startTime);
 				}
-				listDuration /= 5;
+				listDuration /= testCount;
 			}
 			Console.WriteLine($"[N={elementCount}, B={addingBlockSize}]");
 			Console.WriteLine($"SortedList: {sortedListDuration}");

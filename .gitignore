@@ -4,3 +4,4 @@ bin
 PublishProfiles
 /Core/CarinaStudio.AppBase.Core.xml
 /Configuration/CarinaStudio.AppBase.Configuration.xml
+/Core.Tests/Collections/~$SortedListTests.xlsx
