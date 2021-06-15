@@ -96,7 +96,7 @@ namespace CarinaStudio.Configuration
 							{
 								if (!node.HasChildNodes)
 									return null;
-								return node.FirstChild.Let((it) =>
+								return node.FirstChild?.Let((it) =>
 								{
 									if (it.NodeType == XmlNodeType.Text && int.TryParse(it.Value, out var intValue))
 										return (int?)intValue;
@@ -111,7 +111,7 @@ namespace CarinaStudio.Configuration
 							{
 								if (!node.HasChildNodes)
 									return null;
-								return node.FirstChild.Let((it) =>
+								return node.FirstChild?.Let((it) =>
 								{
 									if (it.NodeType == XmlNodeType.Text && long.TryParse(it.Value, out var longValue))
 										return (DateTime?)DateTime.FromBinary(longValue);
@@ -143,20 +143,20 @@ namespace CarinaStudio.Configuration
 												switch (childNode.Name)
 												{
 													case "Name":
-														name = childNode.FirstChild.Value;
+														name = childNode.FirstChild?.Value;
 														break;
 													case "Type":
-														typeName = childNode.FirstChild.Value;
+														typeName = childNode.FirstChild?.Value;
 														break;
 													case "Default":
 														if (typeName == null)
 															throw new XmlException($"No type of setting value specified for '{name}'.");
-														defaultValue = this.ReadXmlValue(childNode.FirstChild, typeName);
+														defaultValue = this.ReadXmlValue(childNode.FirstChild.AsNonNull(), typeName);
 														break;
 													case "Value":
 														if (typeName == null)
 															throw new XmlException($"No type of setting value specified for '{name}'.");
-														value = this.ReadXmlValue(childNode.FirstChild, typeName);
+														value = this.ReadXmlValue(childNode.FirstChild.AsNonNull(), typeName);
 														break;
 												}
 											}
@@ -257,23 +257,23 @@ namespace CarinaStudio.Configuration
 				case BooleanType:
 					if(this.IsXmlValueArray(xmlValue))
 						return new List<bool>().Also((list) => this.ReadXmlValueArray(xmlValue, typeName, list)).ToArray();
-					return bool.Parse(xmlValue.Value);
+					return bool.Parse(xmlValue.Value ?? "");
 				case ByteType:
 					if (byte.TryParse(xmlValue.Value, out var byteValue))
 						return byteValue;
-					return Convert.FromBase64String(xmlValue.Value);
+					return Convert.FromBase64String(xmlValue.Value ?? "");
 				case Int16Type:
 					if (this.IsXmlValueArray(xmlValue))
 						return new List<short>().Also((list) => this.ReadXmlValueArray(xmlValue, typeName, list)).ToArray();
-					return short.Parse(xmlValue.Value);
+					return short.Parse(xmlValue.Value ?? "");
 				case Int32Type:
 					if (this.IsXmlValueArray(xmlValue))
 						return new List<int>().Also((list) => this.ReadXmlValueArray(xmlValue, typeName, list)).ToArray();
-					return int.Parse(xmlValue.Value);
+					return int.Parse(xmlValue.Value ?? "");
 				case Int64Type:
 					if (this.IsXmlValueArray(xmlValue))
 						return new List<long>().Also((list) => this.ReadXmlValueArray(xmlValue, typeName, list)).ToArray();
-					return long.Parse(xmlValue.Value);
+					return long.Parse(xmlValue.Value ?? "");
 				case SingleType:
 					if (this.IsXmlValueArray(xmlValue))
 						return new List<float>().Also((list) => this.ReadXmlValueArray(xmlValue, typeName, list)).ToArray();
@@ -284,7 +284,7 @@ namespace CarinaStudio.Configuration
 							"NaN" => float.NaN,
 							"+Infinity" => float.PositiveInfinity,
 							"-Infinity" => float.NegativeInfinity,
-							_ => float.Parse(str),
+							_ => float.Parse(str ?? ""),
 						};
 					});
 				case DoubleType:
@@ -297,13 +297,13 @@ namespace CarinaStudio.Configuration
 							"NaN" => double.NaN,
 							"+Infinity" => double.PositiveInfinity,
 							"-Infinity" => double.NegativeInfinity,
-							_ => double.Parse(str),
+							_ => double.Parse(str ?? ""),
 						};
 					});
 				case DateTimeType:
 					if (this.IsXmlValueArray(xmlValue))
 						return new List<DateTime>().Also((list) => this.ReadXmlValueArray(xmlValue, typeName, list)).ToArray();
-					return DateTime.FromBinary(long.Parse(xmlValue.Value));
+					return DateTime.FromBinary(long.Parse(xmlValue.Value ?? ""));
 				default:
 					return Type.GetType(typeName)?.Let((type) =>
 					{
@@ -323,7 +323,7 @@ namespace CarinaStudio.Configuration
 									});
 								});
 							}
-							return Enum.Parse(type, xmlValue.Value);
+							return Enum.Parse(type, xmlValue.Value ?? "");
 						}
 						catch
 						{
@@ -353,7 +353,7 @@ namespace CarinaStudio.Configuration
 				{
 					if (node.NodeType != XmlNodeType.Element || node.Name != "Value" || !node.HasChildNodes)
 						continue;
-					list.Add(this.ReadXmlValue(node.FirstChild, typeName));
+					list.Add(this.ReadXmlValue(node.FirstChild.AsNonNull(), typeName));
 				}
 				finally
 				{
@@ -372,7 +372,7 @@ namespace CarinaStudio.Configuration
 		{
 			if(this.IsXmlValueArray(xmlValue))
 				return new List<string>().Also((list) => this.ReadXmlValueArray(xmlValue, StringType, list)).ToArray();
-			return xmlValue.Value;
+			return xmlValue.Value ?? "";
 		}
 
 

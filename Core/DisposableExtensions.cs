@@ -21,6 +21,7 @@ namespace CarinaStudio
 		}
 
 
+#pragma warning disable CS8600
 		/// <summary>
 		/// Exhange the source <see cref="IDisposable"/> with another one.
 		/// </summary>
@@ -44,8 +45,10 @@ namespace CarinaStudio
 			}
 			return result;
 		}
+#pragma warning restore CS8600
 
 
+#pragma warning disable CS8600
 		/// <summary>
 		/// Exhange the source <see cref="IDisposable"/> with another one.
 		/// </summary>
@@ -69,6 +72,7 @@ namespace CarinaStudio
 			}
 			return result;
 		}
+#pragma warning restore CS8600
 
 
 		/// <summary>
