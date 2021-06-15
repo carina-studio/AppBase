@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyVersion>0.9.6.611</AssemblyVersion>
+    <Version>0.9.6.611</Version>
+    <TargetFrameworks>netcoreapp3.1;netstandard2.1;net50</TargetFrameworks>
+    <RootNamespace>CarinaStudio</RootNamespace>
+    <AssemblyName>CarinaStudio.AppBase.Application</AssemblyName>
+    <Authors>Carina Studio</Authors>
+    <Company>Carina Studio</Company>
+    <Copyright>©2021 Carina Studio</Copyright>
+    <Nullable>enable</Nullable>
+    <PackageId>CarinaStudio.AppBase.Application</PackageId>
+    <Description>AppBase is a base library set for .NET application. CarinaStudio.AppBase.Application provides an infrastructure for building desktop application.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://carina-studio.github.io/AppBase/</PackageProjectUrl>
+  </PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<DocumentationFile>CarinaStudio.AppBase.Application.xml</DocumentationFile>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<DocumentationFile>CarinaStudio.AppBase.Application.xml</DocumentationFile>
+	</PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Configuration\Configuration.csproj" />
+    <ProjectReference Include="..\Core\Core.csproj" />
+  </ItemGroup>
+
+</Project>
