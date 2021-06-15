@@ -12,6 +12,10 @@ namespace CarinaStudio.ViewModels
 	/// </summary>
 	public abstract class ViewModel : BaseDisposable, IApplicationObject, INotifyPropertyChanged
 	{
+		// Static fields.
+		static volatile int nextId = 0;
+
+
 		// Fields.
 		readonly Thread dependencyThread;
 		readonly SortedList<ObservableProperty, object?> propertyValues = new SortedList<ObservableProperty, object?>(ObservableProperty.Comparer);
@@ -25,9 +29,10 @@ namespace CarinaStudio.ViewModels
 		{
 			app.VerifyAccess();
 			this.Application = app;
-			this.Logger = app.LoggerFactory.CreateLogger(this.GetType().Name);
 			this.SynchronizationContext = SynchronizationContext.Current ?? throw new InvalidOperationException("No SynchronizationContext on current thread.");
 			this.dependencyThread = Thread.CurrentThread;
+			this.Id = Interlocked.Increment(ref nextId);
+			this.Logger = app.LoggerFactory.CreateLogger($"{this.GetType().Name}-{this.Id}");
 		}
 
 
@@ -80,6 +85,12 @@ namespace CarinaStudio.ViewModels
 		}
 #pragma warning restore CS8600
 #pragma warning restore CS8603
+
+
+		/// <summary>
+		/// Get unique ID of view-model instance.
+		/// </summary>
+		public int Id { get; }
 
 
 		/// <summary>
@@ -150,5 +161,12 @@ namespace CarinaStudio.ViewModels
 		/// Get <see cref="SynchronizationContext"/> on thread which view-model depends on.
 		/// </summary>
 		public SynchronizationContext SynchronizationContext { get; }
+
+
+		/// <summary>
+		/// Get readable string represents this view-model.
+		/// </summary>
+		/// <returns>String represents this view-model.</returns>
+		public override string ToString() => $"{this.GetType().Name}-{this.Id}";
 	}
 }
