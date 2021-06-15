@@ -64,6 +64,7 @@ namespace CarinaStudio.ViewModels
 
 
 #pragma warning disable CS8603
+#pragma warning disable CS8600
 		/// <summary>
 		/// Get property value.
 		/// </summary>
@@ -77,6 +78,7 @@ namespace CarinaStudio.ViewModels
 				return (T)value;
 			return property.DefaultValue;
 		}
+#pragma warning restore CS8600
 #pragma warning restore CS8603
 
 

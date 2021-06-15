@@ -15,6 +15,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Documentation", "Documentat
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application", "Application\Application.csproj", "{B3057548-70BA-4F6E-9B4B-E17490106A8E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application.Tests", "Application.Tests\Application.Tests.csproj", "{27010917-8371-4A43-AF04-643EAFF9944E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -149,6 +151,26 @@ Global
 		{B3057548-70BA-4F6E-9B4B-E17490106A8E}.Release|x64.Build.0 = Release|Any CPU
 		{B3057548-70BA-4F6E-9B4B-E17490106A8E}.Release|x86.ActiveCfg = Release|Any CPU
 		{B3057548-70BA-4F6E-9B4B-E17490106A8E}.Release|x86.Build.0 = Release|Any CPU
+		{27010917-8371-4A43-AF04-643EAFF9944E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{27010917-8371-4A43-AF04-643EAFF9944E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{27010917-8371-4A43-AF04-643EAFF9944E}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{27010917-8371-4A43-AF04-643EAFF9944E}.Debug|ARM.Build.0 = Debug|Any CPU
+		{27010917-8371-4A43-AF04-643EAFF9944E}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{27010917-8371-4A43-AF04-643EAFF9944E}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{27010917-8371-4A43-AF04-643EAFF9944E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{27010917-8371-4A43-AF04-643EAFF9944E}.Debug|x64.Build.0 = Debug|Any CPU
+		{27010917-8371-4A43-AF04-643EAFF9944E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{27010917-8371-4A43-AF04-643EAFF9944E}.Debug|x86.Build.0 = Debug|Any CPU
+		{27010917-8371-4A43-AF04-643EAFF9944E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{27010917-8371-4A43-AF04-643EAFF9944E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{27010917-8371-4A43-AF04-643EAFF9944E}.Release|ARM.ActiveCfg = Release|Any CPU
+		{27010917-8371-4A43-AF04-643EAFF9944E}.Release|ARM.Build.0 = Release|Any CPU
+		{27010917-8371-4A43-AF04-643EAFF9944E}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{27010917-8371-4A43-AF04-643EAFF9944E}.Release|ARM64.Build.0 = Release|Any CPU
+		{27010917-8371-4A43-AF04-643EAFF9944E}.Release|x64.ActiveCfg = Release|Any CPU
+		{27010917-8371-4A43-AF04-643EAFF9944E}.Release|x64.Build.0 = Release|Any CPU
+		{27010917-8371-4A43-AF04-643EAFF9944E}.Release|x86.ActiveCfg = Release|Any CPU
+		{27010917-8371-4A43-AF04-643EAFF9944E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
