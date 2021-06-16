@@ -8,8 +8,16 @@ namespace CarinaStudio
 	/// </summary>
 	class TestSettings : BaseSettings
 	{
+		// Keys.
+		public static readonly SettingKey<int> Int32 = new SettingKey<int>("Int32");
+
+
+		// Constructor.
 		public TestSettings() : base(JsonSettingsSerializer.Default)
 		{ }
+
+		
+		// Implementations.
 		protected override int Version => 1;
 		protected override void OnUpgrade(int oldVersion)
 		{ }

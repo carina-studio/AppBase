@@ -1,4 +1,5 @@
-﻿using CarinaStudio.Threading;
+﻿using CarinaStudio.Configuration;
+using CarinaStudio.Threading;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -27,12 +28,23 @@ namespace CarinaStudio.ViewModels
 		/// <param name="app"><see cref="IApplication"/> which view-model belongs to.</param>
 		protected ViewModel(IApplication app)
 		{
+			// check thread
 			app.VerifyAccess();
+
+			// setup fields
 			this.Application = app;
 			this.SynchronizationContext = SynchronizationContext.Current ?? throw new InvalidOperationException("No SynchronizationContext on current thread.");
 			this.dependencyThread = Thread.CurrentThread;
 			this.Id = Interlocked.Increment(ref nextId);
 			this.Logger = app.LoggerFactory.CreateLogger($"{this.GetType().Name}-{this.Id}");
+			this.Settings = app.Settings;
+
+			// attach to application
+			app.PropertyChanged += this.OnApplicationPropertyChanged;
+
+			// attach to settings
+			this.Settings.SettingChanged += this.OnSettingChanged;
+			this.Settings.SettingChanging += this.OnSettingChanging;
 		}
 
 
@@ -64,7 +76,19 @@ namespace CarinaStudio.ViewModels
 		/// <param name="disposing">True to release managed resources.</param>
 		protected override void Dispose(bool disposing)
 		{
+			// check thread
+			if (disposing)
+				this.VerifyAccess();
+
+			// clear event handlers
 			this.PropertyChanged = null;
+
+			// detach from settings
+			this.Settings.SettingChanged -= this.OnSettingChanged;
+			this.Settings.SettingChanging -= this.OnSettingChanging;
+
+			// detach from application
+			this.Application.PropertyChanged -= this.OnApplicationPropertyChanged;
 		}
 
 
@@ -99,6 +123,18 @@ namespace CarinaStudio.ViewModels
 		protected ILogger Logger { get; }
 
 
+		// Called when application property changed.
+		void OnApplicationPropertyChanged(object sender, PropertyChangedEventArgs e) => this.OnApplicationPropertyChanged(e);
+
+
+		/// <summary>
+		/// Called when property of <see cref="Application"/> has been changed.
+		/// </summary>
+		/// <param name="e">Event data.</param>
+		protected virtual void OnApplicationPropertyChanged(PropertyChangedEventArgs e)
+		{ }
+
+
 		/// <summary>
 		/// Called when property changed.
 		/// </summary>
@@ -111,10 +147,40 @@ namespace CarinaStudio.ViewModels
 		}
 
 
+		// Called when application setting changed.
+		void OnSettingChanged(object? sender, SettingChangedEventArgs e) => this.OnSettingChanged(e);
+
+
+		/// <summary>
+		/// Called when application setting has been changed.
+		/// </summary>
+		/// <param name="e">Event data.</param>
+		protected virtual void OnSettingChanged(SettingChangedEventArgs e)
+		{ }
+
+
+		// Called when application setting is changing.
+		void OnSettingChanging(object? sender, SettingChangingEventArgs e) => this.OnSettingChanging(e);
+
+
+		/// <summary>
+		/// Called when application setting is changing.
+		/// </summary>
+		/// <param name="e">Event data.</param>
+		protected virtual void OnSettingChanging(SettingChangingEventArgs e)
+		{ }
+
+
 		/// <summary>
 		/// Raised when property changed.
 		/// </summary>
 		public event PropertyChangedEventHandler? PropertyChanged;
+
+
+		/// <summary>
+		/// Get application settings.
+		/// </summary>
+		protected BaseSettings Settings { get; private set; }
 
 
 		/// <summary>

@@ -1,6 +1,7 @@
 ﻿using CarinaStudio.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
+using System.ComponentModel;
 using System.Threading;
 
 namespace CarinaStudio
@@ -27,6 +28,7 @@ namespace CarinaStudio
 		// Implementations.
 		public bool CheckAccess() => Thread.CurrentThread == this.thread;
 		public ILoggerFactory LoggerFactory { get; }
+		public event PropertyChangedEventHandler? PropertyChanged;
 		public BaseSettings Settings { get; }
 		public SynchronizationContext SynchronizationContext { get; }
 	}

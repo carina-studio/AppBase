@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using CarinaStudio.Configuration;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 
@@ -20,9 +21,30 @@ namespace CarinaStudio.ViewModels
 		public const int MinTestRangeInt32 = -100;
 
 
+		// Fields.
+		public SettingChangedEventArgs? LatestSettingChangedEventArgs;
+		public SettingChangingEventArgs? LatestSettingChangingEventArgs;
+
+
 		// Constructor.
 		public TestViewModel(TestApplication app) : base(app)
 		{ }
+
+
+		// Setting changed.
+		protected override void OnSettingChanged(SettingChangedEventArgs e)
+		{
+			base.OnSettingChanged(e);
+			this.LatestSettingChangedEventArgs = e;
+		}
+
+
+		// Setting changing.
+		protected override void OnSettingChanging(SettingChangingEventArgs e)
+		{
+			base.OnSettingChanging(e);
+			this.LatestSettingChangingEventArgs = e;
+		}
 
 
 		// Print log.

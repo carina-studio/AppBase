@@ -229,5 +229,53 @@ namespace CarinaStudio.ViewModels
 					throw new AssertionException("Should not allow setting property from another thread.");
 			});
 		}
+
+
+		/// <summary>
+		/// Test for monitoring settings change.
+		/// </summary>
+		[Test]
+		public void SettingsChangeTest()
+		{
+			this.testSyncContext?.Send(() =>
+			{
+				// prepare
+				using var viewModel = new TestViewModel(this.application.AsNonNull());
+				var settings = this.application.AsNonNull().Settings;
+
+				// check initial state
+				Assert.IsNull(viewModel.LatestSettingChangedEventArgs, "OnSettingChanged should not be called.");
+				Assert.IsNull(viewModel.LatestSettingChangingEventArgs, "OnSettingChanging should not be called.");
+
+				// change setting
+				settings.SetValue(TestSettings.Int32, 123);
+				Assert.IsNotNull(viewModel.LatestSettingChangedEventArgs, "OnSettingChanged should be called.");
+				Assert.IsNotNull(viewModel.LatestSettingChangingEventArgs, "OnSettingChanging should be called.");
+				Assert.AreEqual(TestSettings.Int32, viewModel.LatestSettingChangedEventArgs?.Key, "Key received in OnSettingChanged is incorrect.");
+				Assert.AreEqual(TestSettings.Int32, viewModel.LatestSettingChangingEventArgs?.Key, "Key received in OnSettingChanging is incorrect.");
+				viewModel.LatestSettingChangedEventArgs = null;
+				viewModel.LatestSettingChangingEventArgs = null;
+				settings.SetValue(TestSettings.Int32, 123);
+				Assert.IsNull(viewModel.LatestSettingChangedEventArgs, "OnSettingChanged should not be called.");
+				Assert.IsNull(viewModel.LatestSettingChangingEventArgs, "OnSettingChanging should not be called.");
+
+				// change setting again
+				settings.SetValue(TestSettings.Int32, 456);
+				Assert.IsNotNull(viewModel.LatestSettingChangedEventArgs, "OnSettingChanged should be called.");
+				Assert.IsNotNull(viewModel.LatestSettingChangingEventArgs, "OnSettingChanging should be called.");
+				Assert.AreEqual(TestSettings.Int32, viewModel.LatestSettingChangedEventArgs?.Key, "Key received in OnSettingChanged is incorrect.");
+				Assert.AreEqual(TestSettings.Int32, viewModel.LatestSettingChangingEventArgs?.Key, "Key received in OnSettingChanging is incorrect.");
+				viewModel.LatestSettingChangedEventArgs = null;
+				viewModel.LatestSettingChangingEventArgs = null;
+
+				// dispose view-model
+				viewModel.Dispose();
+
+				// change setting after disposing
+				settings.SetValue(TestSettings.Int32, 1234);
+				Assert.IsNull(viewModel.LatestSettingChangedEventArgs, "OnSettingChanged should not be called after disposing.");
+				Assert.IsNull(viewModel.LatestSettingChangingEventArgs, "OnSettingChanging should not be called after disposing.");
+			});
+		}
 	}
 }
