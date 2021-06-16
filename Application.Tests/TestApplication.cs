@@ -13,6 +13,12 @@ namespace CarinaStudio
 	/// </summary>
 	class TestApplication : IApplication
 	{
+		// String key.
+		public const string FormatString = "Test string {0}";
+		public const string FormatStringKey = "FormatString";
+		public const string InvalidStringKey = "Invalid";
+
+
 		// Fields.
 		readonly Thread thread;
 
@@ -29,7 +35,11 @@ namespace CarinaStudio
 
 		// Implementations.
 		public bool CheckAccess() => Thread.CurrentThread == this.thread;
-		public string? GetString(string key, string? defaultValue = null) => defaultValue;
+		public string? GetString(string key, string? defaultValue = null) => key switch
+		{
+			FormatStringKey => FormatString,
+			_ => defaultValue,
+		};
 		public bool IsShutdownStarted => false;
 		public ILoggerFactory LoggerFactory { get; }
 		public event PropertyChangedEventHandler? PropertyChanged;

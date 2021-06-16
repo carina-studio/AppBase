@@ -106,21 +106,9 @@ namespace CarinaStudio
 		/// <returns>True if directory has been created successfully.</returns>
 		public static bool TryCreatePrivateDirectory(this IApplication app, string relativePath, out DirectoryInfo? directoryInfo)
 		{
-			// check parameter
-			if (Path.IsPathRooted(relativePath))
-			{
-				directoryInfo = null;
-				return false;
-			}
-
-			// create directory
 			try
 			{
-				var fullPath = Path.Combine(app.RootPrivateDirectoryPath, relativePath);
-				if (Directory.Exists(fullPath))
-					directoryInfo = new DirectoryInfo(fullPath);
-				else
-					directoryInfo = Directory.CreateDirectory(fullPath);
+				directoryInfo = CreatePrivateDirectory(app, relativePath);
 				return true;
 			}
 			catch
