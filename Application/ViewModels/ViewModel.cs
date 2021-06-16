@@ -13,6 +13,18 @@ namespace CarinaStudio.ViewModels
 	/// </summary>
 	public abstract class ViewModel : BaseDisposable, IApplicationObject, INotifyPropertyChanged
 	{
+		// Value holder of observable property.
+		class ObservablePropertyValue<T> : ObservableValue<T>
+		{
+			// Constructor.
+			public ObservablePropertyValue(ObservableProperty<T> property) : base(property.DefaultValue)
+			{ }
+
+			// Update value.
+			public void Update(T value) => this.Value = value;
+		}
+
+
 		// Static fields.
 		static volatile int nextId = 0;
 
@@ -92,23 +104,36 @@ namespace CarinaStudio.ViewModels
 		}
 
 
-#pragma warning disable CS8603
-#pragma warning disable CS8600
 		/// <summary>
 		/// Get property value.
 		/// </summary>
 		/// <typeparam name="T">Type of value.</typeparam>
 		/// <param name="property">Property to get.</param>
 		/// <returns>Value of property.</returns>
-		protected T GetValue<T>(ObservableProperty<T> property)
+		public T GetValue<T>(ObservableProperty<T> property)
 		{
 			this.VerifyAccess();
-			if (this.propertyValues.TryGetValue(property, out var value))
-				return (T)value;
+			if (this.propertyValues.TryGetValue(property, out var propertyValue) && propertyValue != null)
+				return ((ObservablePropertyValue<T>)propertyValue).Value;
 			return property.DefaultValue;
 		}
-#pragma warning restore CS8600
-#pragma warning restore CS8603
+
+
+		/// <summary>
+		/// Get property value as <see cref="IObservable{T}"/>.
+		/// </summary>
+		/// <typeparam name="T">Type of value.</typeparam>
+		/// <param name="property">Property to get.</param>
+		/// <returns><see cref="IObservable{T}"/> represents value of property.</returns>
+		public IObservable<T> GetValueAsObservable<T>(ObservableProperty<T> property)
+		{
+			this.VerifyAccess();
+			if (this.propertyValues.TryGetValue(property, out var propertyValue) && propertyValue != null)
+				return (ObservablePropertyValue<T>)propertyValue;
+			if (!property.OwnerType.IsAssignableFrom(this.GetType()))
+				throw new ArgumentException($"{this.GetType().Name} is not owner of property '{property.Name}'.");
+			return new ObservablePropertyValue<T>(property).Also((it) => this.propertyValues[property] = it);
+		}
 
 
 		/// <summary>
@@ -204,22 +229,23 @@ namespace CarinaStudio.ViewModels
 				value = property.CoercionFunction(value);
 
 			// validate value
-			if (property.ValidationFunction!=null && !property.ValidationFunction(value))
+			if (property.ValidationFunction != null && !property.ValidationFunction(value))
 				throw new ArgumentException($"Invalid value for property '{property.Name}': {value}.");
 
 			// get old value
-			if (!this.propertyValues.TryGetValue(property, out var oldValue))
-				oldValue = property.DefaultValue;
+			T oldValue = property.DefaultValue;
+			if (this.propertyValues.TryGetValue(property, out var propertyValueObj) && propertyValueObj != null)
+				oldValue = ((ObservablePropertyValue<T>)propertyValueObj).Value;
 
 			// check equality
 			if (this.CheckValueEuqality(oldValue, value))
 				return;
 
 			// update value
-			if (this.CheckValueEuqality(property.DefaultValue, value))
-				this.propertyValues.Remove(property);
+			if (propertyValueObj != null)
+				((ObservablePropertyValue<T>)propertyValueObj).Update(value);
 			else
-				this.propertyValues[property] = value;
+				this.propertyValues[property] = new ObservablePropertyValue<T>(property).Also((it) => it.Update(value));
 			this.OnPropertyChanged(property, oldValue, value);
 		}
 

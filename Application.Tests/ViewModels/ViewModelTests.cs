@@ -13,6 +13,36 @@ namespace CarinaStudio.ViewModels
 	[TestFixture]
 	class ViewModelTests
 	{
+		// Implementation of observer.
+		class Observer<T> : IObserver<T>
+		{
+			// Fields.
+			public bool IsOnNextCalled;
+#pragma warning disable CS8601
+			public T LatestValue = default;
+#pragma warning restore CS8601
+			readonly Action? onNextAction;
+
+			// Constructor.
+			public Observer(Action? onNextAction = null)
+			{
+				this.onNextAction = onNextAction;
+			}
+
+			// Implementations.
+			public void OnCompleted()
+			{ }
+			public void OnError(Exception error)
+			{ }
+			public void OnNext(T value)
+			{
+				this.IsOnNextCalled = true;
+				this.LatestValue = value;
+				this.onNextAction?.Invoke();
+			}
+		}
+
+
 		// Fields.
 		TestApplication? application;
 		SingleThreadSynchronizationContext? testSyncContext;
@@ -164,6 +194,16 @@ namespace CarinaStudio.ViewModels
 				viewModel.TestRangeInt32 = TestViewModel.MinTestRangeInt32 - 2;
 				Assert.AreEqual(TestViewModel.MinTestRangeInt32, viewModel.TestRangeInt32, "Property value is not coerced.");
 				Assert.AreEqual("", latestChangedPropertyName, "PropertyChanged should not be raised.");
+
+				// get property as IObservable
+				var observable = viewModel.GetValueAsObservable(TestViewModel.TestInt32Property);
+				var observer = new Observer<int>(); ;
+				using var subscribedObserver = observable.Subscribe(observer);
+				viewModel.TestInt32 = -123;
+				Assert.AreEqual(-123, observer.LatestValue, "Observer for property was not notified.");
+				viewModel.TestInt32 = 123;
+				Assert.AreEqual(123, observer.LatestValue, "Observer for property was not notified.");
+				latestChangedPropertyName = "";
 
 				// change property with validation function
 				try
