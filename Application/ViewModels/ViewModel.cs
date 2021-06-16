@@ -127,7 +127,7 @@ namespace CarinaStudio.ViewModels
 		{
 			// check state
 			this.VerifyAccess();
-			this.ThrowIfDisposed();
+			this.VerifyDisposed();
 
 			// check owner
 			if (!property.OwnerType.IsAssignableFrom(this.GetType()))

@@ -46,7 +46,7 @@ namespace CarinaStudio
 		/// <summary>
 		/// Throw <see cref="ObjectDisposedException"/> if instance has been disposed.
 		/// </summary>
-		protected void ThrowIfDisposed()
+		protected void VerifyDisposed()
 		{
 			if (this.isDisposed != 0)
 				throw new ObjectDisposedException(this.GetType().Name);

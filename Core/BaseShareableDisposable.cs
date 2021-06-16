@@ -68,7 +68,7 @@ namespace CarinaStudio
 		/// <returns>Resource holder.</returns>
 		protected T GetResourceHolder<T>() where T : BaseResourceHolder
 		{
-			this.ThrowIfDisposed();
+			this.VerifyDisposed();
 			return (T)this.resourceHolder;
 		}
 
@@ -79,7 +79,7 @@ namespace CarinaStudio
 		/// <returns>New instance which shares internal resources.</returns>
 		public TSelf Share()
 		{
-			this.ThrowIfDisposed();
+			this.VerifyDisposed();
 			lock (this.resourceHolder)
 			{
 				if (this.resourceHolder.ReferenceCount <= 0)
