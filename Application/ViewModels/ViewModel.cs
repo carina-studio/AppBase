@@ -149,7 +149,7 @@ namespace CarinaStudio.ViewModels
 
 
 		// Called when application property changed.
-		void OnApplicationPropertyChanged(object sender, PropertyChangedEventArgs e) => this.OnApplicationPropertyChanged(e);
+		void OnApplicationPropertyChanged(object? sender, PropertyChangedEventArgs e) => this.OnApplicationPropertyChanged(e);
 
 
 		/// <summary>
