@@ -134,10 +134,11 @@ namespace CarinaStudio.ViewModels
 				throw new ArgumentException($"{this.GetType().Name} is not owner of property '{property.Name}'.");
 
 			// coerce value
-			value = property.CoercionFunction(value);
+			if (property.CoercionFunction != null)
+				value = property.CoercionFunction(value);
 
 			// validate value
-			if (!property.ValidationFunction(value))
+			if (property.ValidationFunction!=null && !property.ValidationFunction(value))
 				throw new ArgumentException($"Invalid value for property '{property.Name}': {value}.");
 
 			// get old value

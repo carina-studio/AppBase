@@ -107,23 +107,15 @@ namespace CarinaStudio.ViewModels
 		internal ObservableProperty(Type ownerType, string name, T defaultValue, Func<T, T>? coerce, Predicate<T>? validate) : base(ownerType, name, typeof(T))
 		{
 			this.DefaultValue = defaultValue;
-			this.CoercionFunction = coerce ?? DefaultCoercionFunction;
-			this.ValidationFunction = validate ?? DefaultValidationFunction;
+			this.CoercionFunction = coerce;
+			this.ValidationFunction = validate;
 		}
 
 
 		/// <summary>
 		/// Coercion function.
 		/// </summary>
-		public Func<T, T> CoercionFunction { get; }
-
-
-		// Default coercion function.
-		static T DefaultCoercionFunction(T value) => value;
-
-
-		// Default validation function.
-		static bool DefaultValidationFunction(T value) => true;
+		public Func<T, T>? CoercionFunction { get; }
 
 
 		/// <summary>
@@ -135,6 +127,6 @@ namespace CarinaStudio.ViewModels
 		/// <summary>
 		/// Validation function.
 		/// </summary>
-		public Predicate<T> ValidationFunction { get; }
+		public Predicate<T>? ValidationFunction { get; }
 	}
 }
