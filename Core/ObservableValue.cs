@@ -87,6 +87,12 @@ namespace CarinaStudio
 
 
 		/// <summary>
+		/// Check whether at least one <see cref="IObserver{T}"/> has been subscribed to this instance or not.
+		/// </summary>
+		public bool HasObservers { get => this.observerListHead != null; }
+
+
+		/// <summary>
 		/// Check whether value is not null or not.
 		/// </summary>
 		public bool IsNotNull { get => this.value != null; }
