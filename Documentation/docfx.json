@@ -21,6 +21,16 @@
             "**/obj/**"
           ],
           "src": "../Configuration"
+        },
+        {
+          "files": [
+            "**/*.csproj"
+          ],
+          "exclude": [
+            "**/bin/**",
+            "**/obj/**"
+          ],
+          "src": "../Application"
         }
       ],
       "dest": "api"
