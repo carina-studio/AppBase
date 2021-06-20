@@ -3,7 +3,7 @@
   <PropertyGroup>
     <AssemblyVersion>0.10.0.616</AssemblyVersion>
     <Version>0.10.0.616</Version>
-    <TargetFrameworks>netcoreapp3.1;netstandard2.1;net50</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1;netstandard2.1;net5.0</TargetFrameworks>
     <RootNamespace>CarinaStudio.Configuration</RootNamespace>
     <AssemblyName>CarinaStudio.AppBase.Configuration</AssemblyName>
     <Authors>Carina Studio</Authors>
