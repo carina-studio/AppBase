@@ -69,9 +69,9 @@ namespace CarinaStudio.Tests
 
 
 		// Event handler.
-		void OnEventReceived(object? sender, EventArgs e)
+		void OnEventReceived(object? sender, TArgs e)
 		{
-			this.EventArgs = (TArgs)e;
+			this.EventArgs = e;
 			Interlocked.Increment(ref this.eventCount);
 		}
 
