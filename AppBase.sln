@@ -13,15 +13,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Configuration.Tests", "Conf
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Documentation", "Documentation\Documentation.csproj", "{DED9A1FD-A0FF-4D65-8C69-F2A7BF0D707B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application", "Application\Application.csproj", "{B3057548-70BA-4F6E-9B4B-E17490106A8E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Application", "Application\Application.csproj", "{B3057548-70BA-4F6E-9B4B-E17490106A8E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application.Tests", "Application.Tests\Application.Tests.csproj", "{27010917-8371-4A43-AF04-643EAFF9944E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Application.Tests", "Application.Tests\Application.Tests.csproj", "{27010917-8371-4A43-AF04-643EAFF9944E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{97A787BC-3EE8-4243-AC81-9755C157B8AF}"
 	ProjectSection(SolutionItems) = preProject
 		LICENSE = LICENSE
 		README.md = README.md
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{8F1B45F7-5B11-4C6B-B3C3-5F1261A5F29C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -177,6 +179,26 @@ Global
 		{27010917-8371-4A43-AF04-643EAFF9944E}.Release|x64.Build.0 = Release|Any CPU
 		{27010917-8371-4A43-AF04-643EAFF9944E}.Release|x86.ActiveCfg = Release|Any CPU
 		{27010917-8371-4A43-AF04-643EAFF9944E}.Release|x86.Build.0 = Release|Any CPU
+		{8F1B45F7-5B11-4C6B-B3C3-5F1261A5F29C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8F1B45F7-5B11-4C6B-B3C3-5F1261A5F29C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8F1B45F7-5B11-4C6B-B3C3-5F1261A5F29C}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{8F1B45F7-5B11-4C6B-B3C3-5F1261A5F29C}.Debug|ARM.Build.0 = Debug|Any CPU
+		{8F1B45F7-5B11-4C6B-B3C3-5F1261A5F29C}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{8F1B45F7-5B11-4C6B-B3C3-5F1261A5F29C}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{8F1B45F7-5B11-4C6B-B3C3-5F1261A5F29C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8F1B45F7-5B11-4C6B-B3C3-5F1261A5F29C}.Debug|x64.Build.0 = Debug|Any CPU
+		{8F1B45F7-5B11-4C6B-B3C3-5F1261A5F29C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8F1B45F7-5B11-4C6B-B3C3-5F1261A5F29C}.Debug|x86.Build.0 = Debug|Any CPU
+		{8F1B45F7-5B11-4C6B-B3C3-5F1261A5F29C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8F1B45F7-5B11-4C6B-B3C3-5F1261A5F29C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8F1B45F7-5B11-4C6B-B3C3-5F1261A5F29C}.Release|ARM.ActiveCfg = Release|Any CPU
+		{8F1B45F7-5B11-4C6B-B3C3-5F1261A5F29C}.Release|ARM.Build.0 = Release|Any CPU
+		{8F1B45F7-5B11-4C6B-B3C3-5F1261A5F29C}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{8F1B45F7-5B11-4C6B-B3C3-5F1261A5F29C}.Release|ARM64.Build.0 = Release|Any CPU
+		{8F1B45F7-5B11-4C6B-B3C3-5F1261A5F29C}.Release|x64.ActiveCfg = Release|Any CPU
+		{8F1B45F7-5B11-4C6B-B3C3-5F1261A5F29C}.Release|x64.Build.0 = Release|Any CPU
+		{8F1B45F7-5B11-4C6B-B3C3-5F1261A5F29C}.Release|x86.ActiveCfg = Release|Any CPU
+		{8F1B45F7-5B11-4C6B-B3C3-5F1261A5F29C}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

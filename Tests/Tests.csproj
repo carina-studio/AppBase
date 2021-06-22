@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyVersion>0.11.0.620</AssemblyVersion>
+    <Version>0.11.0.620</Version>
+    <TargetFrameworks>netcoreapp3.1;netstandard2.1;net5.0</TargetFrameworks>
+    <RootNamespace>CarinaStudio.Tests</RootNamespace>
+    <AssemblyName>CarinaStudio.AppBase.Tests</AssemblyName>
+    <Authors>Carina Studio</Authors>
+    <Company>Carina Studio</Company>
+    <Copyright>©2021 Carina Studio</Copyright>
+    <Nullable>enable</Nullable>
+    <PackageId>CarinaStudio.AppBase.Tests</PackageId>
+    <Description>AppBase is a base library set for .NET application. CarinaStudio.AppBase.Tests provides helper classes ans methods for unit test.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://carina-studio.github.io/AppBase/</PackageProjectUrl>
+  </PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<DocumentationFile>CarinaStudio.AppBase.Tests.xml</DocumentationFile>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<DocumentationFile>CarinaStudio.AppBase.Tests.xml</DocumentationFile>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Core\Core.csproj" />
+	</ItemGroup>
+
+</Project>
