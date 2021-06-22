@@ -17,8 +17,9 @@ namespace CarinaStudio.Tests
 		/// <param name="propertyName">Name of property.</param>
 		/// <param name="targetValue">Target value.</param>
 		/// <param name="timeout">Timeout in milliseconds.</param>
-		/// <returns>True if value of property has been changed to target value in given timeout.</returns>
-		public static async Task<bool> WaitForPropertyAsync(this INotifyPropertyChanged obj, string propertyName, object? targetValue, int timeout = Timeout.Infinite)
+		/// <param name="cancellationToken">Cancellation token to cancel waiting.</param>
+		/// <returns>True if value of property has been changed to target value before cancellation or timeout.</returns>
+		public static async Task<bool> WaitForPropertyAsync(this INotifyPropertyChanged obj, string propertyName, object? targetValue, int timeout = Timeout.Infinite, CancellationToken? cancellationToken = null)
 		{
 			// check property value
 			var objType = obj.GetType();
@@ -28,7 +29,7 @@ namespace CarinaStudio.Tests
 				return true;
 
 			// add event handler
-			var cancellationTokenSource = new CancellationTokenSource();
+			using var timeoutTokenSource = new CancellationTokenSource();
 			var eventHandler = (PropertyChangedEventHandler?)null;
 			eventHandler = new PropertyChangedEventHandler((_, e) =>
 			{
@@ -38,10 +39,13 @@ namespace CarinaStudio.Tests
 				if (targetValue?.Equals(value) ?? value == null)
 				{
 					obj.PropertyChanged -= eventHandler;
-					cancellationTokenSource.Cancel();
+					timeoutTokenSource.Cancel();
 				}
 			});
 			obj.PropertyChanged += eventHandler;
+
+			// combine cancellation token if needed
+			using var cancellationTokenSource = cancellationToken?.Let(it => CancellationTokenSource.CreateLinkedTokenSource(cancellationToken.Value, timeoutTokenSource.Token)) ?? timeoutTokenSource;
 
 			// wait for property change
 			await Task.Delay(timeout, cancellationTokenSource.Token);
