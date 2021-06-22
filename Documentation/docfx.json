@@ -31,6 +31,16 @@
             "**/obj/**"
           ],
           "src": "../Application"
+        },
+        {
+          "files": [
+            "**/*.csproj"
+          ],
+          "exclude": [
+            "**/bin/**",
+            "**/obj/**"
+          ],
+          "src": "../Tests"
         }
       ],
       "dest": "api"
