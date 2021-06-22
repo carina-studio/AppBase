@@ -3,7 +3,7 @@
 [![](https://img.shields.io/github/release-date-pre/carina-studio/AppBase)](https://github.com/carina-studio/AppBase/releases) 
 
 # 👋Introduction of AppBase 
-**AppBase** is a set of libraries designed for .NET based application. Currently there are 3 packages providing the following functions:
+**AppBase** is a set of libraries designed for .NET based application. Currently there are 4 packages providing the following functions:
 
 📦**CarinaStudio.AppBase.Core**
 - Extensions for ```System.Object``` to make your code more elegant and clear. ([Learn more](https://carina-studio.github.io/AppBase/articles/object_extensions.html))
@@ -26,6 +26,11 @@
 📦**CarinaStudio.AppBase.Application**
 - ```IApplication``` to provide abstract interface to application instance no matter what UI framework you use.
 - ```ViewModel``` to provide base implementation of view-model including observable properties, logger, etc.
+
+📦**CarinaStudio.AppBase.Tests**
+- Provide random functions like generating random string or creating file with random name.
+- ```EventMonitor<T>``` to monitor and track event raising.
+- ```INotifyPropertyChanged.WaitForPropertyAsync()``` to wait for specfic property to be given value.
 
 # 📥Install to your project
 AppBase has been uploaded to **NuGet**, you can find it on:
