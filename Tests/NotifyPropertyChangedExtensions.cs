@@ -48,7 +48,12 @@ namespace CarinaStudio.Tests
 			using var cancellationTokenSource = cancellationToken?.Let(it => CancellationTokenSource.CreateLinkedTokenSource(cancellationToken.Value, timeoutTokenSource.Token)) ?? timeoutTokenSource;
 
 			// wait for property change
-			await Task.Delay(timeout, cancellationTokenSource.Token);
+			try
+			{
+				await Task.Delay(timeout, cancellationTokenSource.Token);
+			}
+			catch (TaskCanceledException)
+			{ }
 			obj.PropertyChanged -= eventHandler;
 
 			// check property value
