@@ -48,14 +48,14 @@ namespace CarinaStudio.Tests
 
 
 		/// <summary>
-		/// Generate string contains random charactors.
+		/// Generate string contains random characters.
 		/// </summary>
-		/// <remarks>Charactors will be seleced randomly from '0' to '9' and 'a' to 'z'.</remarks>
+		/// <remarks>Characters will be seleced randomly from '0' to '9' and 'a' to 'z'.</remarks>
 		/// <param name="length">Length of string.</param>
 		/// <returns>Generated string.</returns>
 		public static string GenerateRandomString(int length) => new string(new char[length].Also(it =>
 		{
-			for (var i = length - 1; i > -0; --i)
+			for (var i = length - 1; i >= 0; --i)
 			{
 				var n = random.Next(0, 36);
 				if (n < 10)
