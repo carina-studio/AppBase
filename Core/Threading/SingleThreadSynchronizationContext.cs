@@ -100,13 +100,18 @@ namespace CarinaStudio.Threading
 				// execute call-back
 				this.OperationStarted();
 				postedCallback.Callback?.Invoke(postedCallback.CallbackState);
-				this.OperationCompleted();
 
 				// recycle control block
 				postedCallback.Callback = null;
 				postedCallback.CallbackState = null;
-				postedCallback.Next = this.freePostedCallbackListHead;
-				this.freePostedCallbackListHead = postedCallback;
+				lock (this.syncLock)
+				{
+					postedCallback.Next = this.freePostedCallbackListHead;
+					this.freePostedCallbackListHead = postedCallback;
+				}
+
+				// complete call-back
+				this.OperationCompleted();
 			}
 		}
 
