@@ -9,10 +9,10 @@ using System.Linq;
 namespace CarinaStudio.Collections
 {
 	/// <summary>
-	/// Test of <see cref="SortedList{T}"/>.
+	/// Test of <see cref="SortedObservableList{T}"/>.
 	/// </summary>
 	[TestFixture]
-	class SortedListTests
+	class SortedObservableListTests
 	{
 		// Fields.
 		readonly Random random = new Random();
@@ -28,7 +28,7 @@ namespace CarinaStudio.Collections
 			var randomElements = this.GenerateRandomArray(10240);
 			var sortedElements = ((int[])randomElements.Clone()).Also((it) => Array.Sort(it));
 			var planeElements = new int[randomElements.Length];
-			var sortedList = new SortedList<int>();
+			var sortedList = new SortedObservableList<int>();
 			var refList = new List<int>();
 
 			// add element one-by-one
@@ -121,7 +121,7 @@ namespace CarinaStudio.Collections
 		{
 			// prepare
 			var randomElements = this.GenerateRandomArray(10240);
-			var sortedList = new SortedList<int>();
+			var sortedList = new SortedObservableList<int>();
 			var reflectedList = new List<int>();
 			sortedList.CollectionChanged += (_, e) =>
 			{
@@ -196,7 +196,7 @@ namespace CarinaStudio.Collections
 		{
 			var testCount = 3;
 			var stopWatch = new Stopwatch().Also((it) => it.Start());
-			var sortedList = new SortedList<int>();
+			var sortedList = new SortedObservableList<int>();
 			var observableCollection = new ObservableCollection<int>();
 			var list = new List<int>();
 			var sortedListDuration = 0L;
@@ -334,7 +334,7 @@ namespace CarinaStudio.Collections
 		{
 			var testCount = 3;
 			var stopWatch = new Stopwatch().Also((it) => it.Start());
-			var sortedList = new SortedList<int>();
+			var sortedList = new SortedObservableList<int>();
 			var observableCollection = new ObservableCollection<int>();
 			var list = new List<int>();
 			var sortedListDuration = 0L;
@@ -474,7 +474,7 @@ namespace CarinaStudio.Collections
 			// prepare
 			var randomElements = this.GenerateRandomArray(10240);
 			var sortedElements = ((int[])randomElements.Clone()).Also((it) => Array.Sort(it));
-			var sortedList = new SortedList<int>(randomElements);
+			var sortedList = new SortedObservableList<int>(randomElements);
 			var refList = new List<int>(sortedList);
 			this.VerifySortedList(sortedList, refList);
 
@@ -510,7 +510,7 @@ namespace CarinaStudio.Collections
 
 
 		// Verify sorted list.
-		void VerifySortedList(SortedList<int> sortedList, IList<int> refList)
+		void VerifySortedList(SortedObservableList<int> sortedList, IList<int> refList)
 		{
 			Assert.AreEqual(refList.Count, sortedList.Count, "Number of elements is incorrect.");
 			for (var i = sortedList.Count - 1; i >= 0; --i)

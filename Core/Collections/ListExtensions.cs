@@ -103,7 +103,7 @@ namespace CarinaStudio.Collections
 		{
 			if (list is List<T> sysList)
 				sysList.CopyTo(index, array, arrayIndex, count);
-			else if (list is SortedList<T> sortedList)
+			else if (list is SortedObservableList<T> sortedList)
 				sortedList.CopyTo(index, array, arrayIndex, count);
 			else if (count > 0)
 			{

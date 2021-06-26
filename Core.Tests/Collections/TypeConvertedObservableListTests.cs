@@ -5,13 +5,13 @@ using System.Collections.Generic;
 namespace CarinaStudio.Collections
 {
 	/// <summary>
-	/// Test of <see cref="TypeConvertedList{TSrc, TDest}"/>.
+	/// Test of <see cref="TypeConvertedObservableList{TSrc, TDest}"/>.
 	/// </summary>
 	[TestFixture]
-	class TypeConvertedListTests
+	class TypeConvertedObservableListTests
 	{
 		// Test class of TypeConvertedList.
-		class TestList : TypeConvertedList<int, long>
+		class TestList : TypeConvertedObservableList<int, long>
 		{
 			// Constructor.
 			public TestList(IList<int> source) : base(source)
@@ -33,7 +33,7 @@ namespace CarinaStudio.Collections
 		public void ElementConversionTest()
 		{
 			// Prepare
-			var srcList = new SortedList<int>();
+			var srcList = new SortedObservableList<int>();
 			var testList = new TestList(srcList);
 			this.VerifyTypeConvertedList(srcList, testList);
 

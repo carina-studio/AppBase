@@ -10,7 +10,7 @@ namespace CarinaStudio.Collections
 	/// </summary>
 	/// <typeparam name="TSrc">Type of element of source list.</typeparam>
 	/// <typeparam name="TDest">Type of converted elements.</typeparam>
-	public abstract class TypeConvertedList<TSrc, TDest> : BaseDisposable, IList, IList<TDest>, INotifyCollectionChanged, IReadOnlyList<TDest>
+	public abstract class TypeConvertedObservableList<TSrc, TDest> : BaseDisposable, IList, IList<TDest>, INotifyCollectionChanged, IReadOnlyList<TDest>
 	{
 		// Fields.
 		readonly List<TDest> list = new List<TDest>();
@@ -18,10 +18,10 @@ namespace CarinaStudio.Collections
 
 
 		/// <summary>
-		/// Initialize new <see cref="TypeConvertedList{TSrc, TDest}"/> instance.
+		/// Initialize new <see cref="TypeConvertedObservableList{TSrc, TDest}"/> instance.
 		/// </summary>
 		/// <param name="source">Source list.</param>
-		protected TypeConvertedList(IList<TSrc> source)
+		protected TypeConvertedObservableList(IList<TSrc> source)
 		{
 			this.sourceList = source;
 			this.RebuildList();

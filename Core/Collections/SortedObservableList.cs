@@ -10,7 +10,7 @@ namespace CarinaStudio.Collections
 	/// List which makes elements sorted automatically. Implmentations of <see cref="IList{T}"/> are also optimized for sorted case.
 	/// </summary>
 	/// <typeparam name="T">Type of element.</typeparam>
-	public class SortedList<T> : IList, IList<T>, INotifyCollectionChanged, IReadOnlyList<T>
+	public class SortedObservableList<T> : IList, IList<T>, INotifyCollectionChanged, IReadOnlyList<T>
 	{
 		// Fields.
 		readonly IComparer<T> comparer;
@@ -18,11 +18,11 @@ namespace CarinaStudio.Collections
 
 
 		/// <summary>
-		/// Initialize new <see cref="SortedList{T}"/> instance.
+		/// Initialize new <see cref="SortedObservableList{T}"/> instance.
 		/// </summary>
 		/// <param name="comparer"><see cref="IComparer{T}"/> to sort elements.</param>
 		/// <param name="elements">Initial elements.</param>
-		public SortedList(IComparer<T> comparer, IEnumerable<T>? elements = null)
+		public SortedObservableList(IComparer<T> comparer, IEnumerable<T>? elements = null)
 		{
 			this.comparer = comparer;
 			this.SetupInitElements(elements);
@@ -30,11 +30,11 @@ namespace CarinaStudio.Collections
 
 
 		/// <summary>
-		/// Initialize new <see cref="SortedList{T}"/> instance.
+		/// Initialize new <see cref="SortedObservableList{T}"/> instance.
 		/// </summary>
 		/// <param name="comparison"><see cref="Comparison{T}"/> to sort elements.</param>
 		/// <param name="elements">Initial elements.</param>
-		public SortedList(Comparison<T> comparison, IEnumerable<T>? elements = null)
+		public SortedObservableList(Comparison<T> comparison, IEnumerable<T>? elements = null)
 		{
 			this.comparer = Comparer<T>.Create(comparison);
 			this.SetupInitElements(elements);
@@ -42,10 +42,10 @@ namespace CarinaStudio.Collections
 
 
 		/// <summary>
-		/// Initialize new <see cref="SortedList{T}"/> instance.
+		/// Initialize new <see cref="SortedObservableList{T}"/> instance.
 		/// </summary>
 		/// <param name="elements">Initial elements.</param>
-		public SortedList(IEnumerable<T>? elements = null)
+		public SortedObservableList(IEnumerable<T>? elements = null)
 		{
 			if (!typeof(IComparable<T>).IsAssignableFrom(typeof(T)))
 				throw new ArgumentException($"Element type '{typeof(T).Name}' doesn't implement IComparable.");
@@ -390,7 +390,7 @@ namespace CarinaStudio.Collections
 			if (elements == null)
 				return;
 			this.list.AddRange(elements);
-			if (!(elements is SortedList<T>))
+			if (!(elements is SortedObservableList<T>))
 				this.list.Sort(this.comparer);
 		}
 
@@ -398,7 +398,7 @@ namespace CarinaStudio.Collections
 		// Sort given elements and make it as list.
 		IList<T> Sort(IEnumerable<T> elements, bool isSorted) => elements.Let((it) =>
 		{
-			if (it is SortedList<T> sortedList)
+			if (it is SortedObservableList<T> sortedList)
 				return sortedList;
 			if (!isSorted)
 				return it.ToArray().Also((array) => Array.Sort(array, this.comparer));
