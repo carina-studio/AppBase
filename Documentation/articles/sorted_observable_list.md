@@ -1,4 +1,4 @@
-﻿# SortedList&lt;T&gt;
+﻿# SortedObservableList&lt;T&gt;
 An implementation of ```IList<T>``` and ```INotifyCollectionChanged``` designed for the following cases: 
 * To make sure the items in list are always be placed in specific order.
 * To display the list on UI.
@@ -27,7 +27,7 @@ There is already a class called ```SortedList<K, V>``` provided by .NET class li
 In this case, all adding items are unpredicted and each block of adding items may overlap with other blocks.
 
 #### How to add items
-* SortedList&lt;T&gt;
+* SortedObservableList&lt;T&gt;
 ```
 foreach block B to be added
     sortedList.AddAll(B)
@@ -47,14 +47,14 @@ foreach block B to be added
 ```
 
 #### Conclusion
-In most cases, performance of ```SortedList<T>``` is slightly better than ```ObservableCollection<T>``` but much worse than ```List<T>```. It should be expected result because the insertion items are totally randomized, each block insertion will be splitted into lots of small parts which makes lots of data moving inside the list.
+In most cases, performance of ```SortedObservableList<T>``` is slightly better than ```ObservableCollection<T>``` but much worse than ```List<T>```. It should be expected result because the insertion items are totally randomized, each block insertion will be splitted into lots of small parts which makes lots of data moving inside the list.
 
 #### Test result
 * Block size = 4096
 
   List size=>|4096|8192|16384|32768|65536|131072|262144|524288
 ---|---|---|---|---|---|---|---|---
-```SortedList<T>```|4ms|3ms|8ms|26ms|106ms|443ms|3537ms|25349ms
+```SortedObservableList<T>```|4ms|3ms|8ms|26ms|106ms|443ms|3537ms|25349ms
 ```ObservableCollection<T>```|4ms|7ms|21ms|33ms|123ms|478ms|5964ms|25739ms
 ```List<T>```|0ms|1ms|3ms|6ms|20ms|65ms|655ms|2361ms
 
@@ -62,7 +62,7 @@ In most cases, performance of ```SortedList<T>``` is slightly better than ```Obs
 
   List size=>|8192|16384|32768|65536|131072|262144|524288
 ---|---|---|---|---|---|---|---
-```SortedList<T>```ms|2ms|3ms|21ms|84ms|388ms|1776ms|8591ms
+```SortedObservableList<T>```ms|2ms|3ms|21ms|84ms|388ms|1776ms|8591ms
 ```ObservableCollection<T>```ms|5ms|11ms|5ms|123ms|491ms|2051ms|9113ms
 ```List<T>```ms|0ms|1ms|4ms|14ms|42ms|139ms|539ms
 
@@ -70,7 +70,7 @@ In most cases, performance of ```SortedList<T>``` is slightly better than ```Obs
 
   List size=>|16384|32768|65536|131072|262144|524288
 ---|---|---|---|---|---|---
-```SortedList<T>```|1ms|17ms|80ms|351ms|1631ms|8096ms
+```SortedObservableList<T>```|1ms|17ms|80ms|351ms|1631ms|8096ms
 ```ObservableCollection<T>```|10ms|36ms|135ms|533ms|2012ms|8830ms
 ```List<T>```|1ms|3ms|9ms|30ms|113ms|296ms
 
@@ -84,14 +84,14 @@ In most cases, performance of ```SortedList<T>``` is slightly better than ```Obs
 Like previous test, we add random items block-by-block but items in each block doesn't overlap with any other blocks.
 
 #### Conclusion
-In this case, performance of ```SortedList<T>``` is much better then ```List<T>``` because ```SortedList<T>``` is optimized for this case. Therefore, it is good choice to use ```SortedList<T>``` if your known that the item blocks you add are almost not overlapped.
+In this case, performance of ```SortedObservableList<T>``` is much better then ```List<T>``` because ```SortedObservableList<T>``` is optimized for this case. Therefore, it is good choice to use ```SortedObservableList<T>``` if your known that the item blocks you add are almost not overlapped.
 
 #### Test result
 * Block size = 4096
 
   List size=>|4096|8192|16384|32768|65536|131072|262144|524288
 ---|---|---|---|---|---|---|---|---
-```SortedList<T>```|1ms|0ms|0ms|0ms|0ms|1ms|3ms|9ms
+```SortedObservableList<T>```|1ms|0ms|0ms|0ms|0ms|1ms|3ms|9ms
 ```ObservableCollection<T>```|1ms|2ms|6ms|34ms|78ms|500ms|1440ms|20298ms
 ```List<T>```|0ms|0ms|0ms|2ms|8ms|29ms|115ms|115ms
 
@@ -99,7 +99,7 @@ In this case, performance of ```SortedList<T>``` is much better then ```List<T>`
 
   List size=>|8192|16384|32768|65536|131072|262144|524288
 ---|---|---|---|---|---|---|---
-```SortedList<T>```|0ms|0ms|0ms|2ms|3ms|7ms|17ms
+```SortedObservableList<T>```|0ms|0ms|0ms|2ms|3ms|7ms|17ms
 ```ObservableCollection<T>```|3ms|7ms|45ms|253ms|1303ms|5095ms|21509ms
 ```List<T>```|0ms|0ms|4ms|12ms|47ms|169ms|719ms
 
@@ -107,7 +107,7 @@ In this case, performance of ```SortedList<T>``` is much better then ```List<T>`
 
   List size=>|16384|32768|65536|131072|262144|524288
 ---|---|---|---|---|---|---
-```SortedList<T>```|0ms|1ms|1ms|4ms|7ms|16ms
+```SortedObservableList<T>```|0ms|1ms|1ms|4ms|7ms|16ms
 ```ObservableCollection<T>```|7ms|14ms|187ms|853ms|3964ms|19292ms
 ```List<T>```|0ms|1ms|5ms|19ms|86ms|121ms
 
