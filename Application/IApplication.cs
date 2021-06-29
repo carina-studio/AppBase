@@ -43,6 +43,12 @@ namespace CarinaStudio
 		/// Get default application level settings.
 		/// </summary>
 		BaseSettings Settings { get; }
+
+
+		/// <summary>
+		/// Raised when string resources updated.
+		/// </summary>
+		event EventHandler StringsUpdated;
 	}
 
 
