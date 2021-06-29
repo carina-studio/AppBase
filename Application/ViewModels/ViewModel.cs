@@ -53,6 +53,7 @@ namespace CarinaStudio.ViewModels
 
 			// attach to application
 			app.PropertyChanged += this.OnApplicationPropertyChanged;
+			app.StringsUpdated += this.OnApplicationStringsUpdated;
 
 			// attach to settings
 			this.Settings.SettingChanged += this.OnSettingChanged;
@@ -101,6 +102,7 @@ namespace CarinaStudio.ViewModels
 
 			// detach from application
 			this.Application.PropertyChanged -= this.OnApplicationPropertyChanged;
+			this.Application.StringsUpdated -= this.OnApplicationStringsUpdated;
 		}
 
 
@@ -157,6 +159,17 @@ namespace CarinaStudio.ViewModels
 		/// </summary>
 		/// <param name="e">Event data.</param>
 		protected virtual void OnApplicationPropertyChanged(PropertyChangedEventArgs e)
+		{ }
+
+
+		// Called when application string resources updated.
+		void OnApplicationStringsUpdated(object? sender, EventArgs e) => this.OnApplicationStringsUpdated();
+
+
+		/// <summary>
+		/// Called when application string resources updated.
+		/// </summary>
+		protected virtual void OnApplicationStringsUpdated()
 		{ }
 
 
