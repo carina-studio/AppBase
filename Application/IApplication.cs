@@ -3,7 +3,9 @@ using CarinaStudio.Threading;
 using Microsoft.Extensions.Logging;
 using System;
 using System.ComponentModel;
+using System.Globalization;
 using System.IO;
+using System.Reflection;
 
 namespace CarinaStudio
 {
@@ -12,6 +14,18 @@ namespace CarinaStudio
 	/// </summary>
 	public interface IApplication : INotifyPropertyChanged, IThreadDependent
 	{
+		/// <summary>
+		/// Get <see cref="Assembly"/> of application.
+		/// </summary>
+		Assembly Assembly { get; }
+
+
+		/// <summary>
+		/// Get <see cref="CultureInfo"/> currently used by application.
+		/// </summary>
+		CultureInfo CultureInfo { get; }
+
+
 		/// <summary>
 		/// Get string from resources according to given key and current settings or system language.
 		/// </summary>
@@ -101,6 +115,27 @@ namespace CarinaStudio
 		/// <param name="defaultValue">Default string.</param>
 		/// <returns>String.</returns>
 		public static string GetStringNonNull(this IApplication app, string key, string defaultValue = "") => app.GetString(key, defaultValue) ?? defaultValue;
+
+
+		/// <summary>
+		/// Open stream to read manifest resource.
+		/// </summary>
+		/// <param name="app"><see cref="IApplication"/>.</param>
+		/// <param name="name">Name of resource.</param>
+		/// <returns><see cref="Stream"/> of manifest resource.</returns>
+		/// <exception cref="ArgumentException">Resource cannot be found.</exception>
+		public static Stream OpenManifestResourceStream(this IApplication app, string name) => app.Assembly.GetManifestResourceStream(name) ?? throw new ArgumentException($"Cannot find manifest resource '{name}'.");
+
+
+		/// <summary>
+		/// Open stream to read manifest resource.
+		/// </summary>
+		/// <param name="app"><see cref="IApplication"/>.</param>
+		/// <param name="type">Type to provide namespace to scope resource name.</param>
+		/// <param name="name">Name of resource.</param>
+		/// <returns><see cref="Stream"/> of manifest resource.</returns>
+		/// <exception cref="ArgumentException">Resource cannot be found.</exception>
+		public static Stream OpenManifestResourceStream(this IApplication app, Type type, string name) => app.Assembly.GetManifestResourceStream(type, name) ?? throw new ArgumentException($"Cannot find manifest resource '{name}'.");
 
 
 		/// <summary>
