@@ -506,6 +506,18 @@ namespace CarinaStudio.Collections
 				refList.RemoveAll((it) => removingElements.Contains(it));
 				this.VerifySortedList(sortedList, refList);
 			}
+
+			// remove odd numbers
+			var predicate = new Predicate<int>(n => (n & 0x1) == 1);
+			sortedList.Clear();
+			sortedList.AddAll(sortedElements, true);
+			refList.Clear();
+			refList.AddRange(sortedElements);
+			if (refList.RemoveAll(predicate) > 0)
+			{
+				sortedList.RemoveAll(predicate);
+				this.VerifySortedList(sortedList, refList);
+			}
 		}
 
 

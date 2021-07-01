@@ -169,6 +169,53 @@ namespace CarinaStudio.Collections
 
 
 		/// <summary>
+		/// Remove elements which match given condition from list.
+		/// </summary>
+		/// <param name="predicate">Function to check whether log matches given condition or not.</param>
+		/// <returns>Number of removed elements.</returns>
+		public int RemoveAll(Predicate<T> predicate)
+		{
+			var list = this.list;
+			var reslut = 0;
+			var removingEndIndex = -1;
+			var removingStartIndex = -1;
+			var collectionChangedHandlers = this.CollectionChanged;
+			for (var i = list.Count - 1; i >= 0; --i)
+			{
+				if (predicate(list[i]))
+				{
+					removingStartIndex = i;
+					if (removingEndIndex < 0)
+						removingEndIndex = (i + 1);
+				}
+				else if (removingStartIndex >= 0)
+				{
+					var count = (removingEndIndex - removingStartIndex);
+					var removedElements = collectionChangedHandlers != null
+						? list.ToArray(removingStartIndex, count)
+						: null;
+					list.RemoveRange(removingStartIndex, count);
+					collectionChangedHandlers?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removedElements, removingStartIndex));
+					reslut += count;
+					removingStartIndex = -1;
+					removingEndIndex = -1;
+				}
+			}
+			if (removingStartIndex >= 0)
+			{
+				var count = (removingEndIndex - removingStartIndex);
+				var removedElements = collectionChangedHandlers != null
+					? list.ToArray(removingStartIndex, count)
+					: null;
+				list.RemoveRange(removingStartIndex, count);
+				collectionChangedHandlers?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removedElements, removingStartIndex));
+				reslut += count;
+			}
+			return reslut;
+		}
+
+
+		/// <summary>
 		/// Remove element at given position.
 		/// </summary>
 		/// <param name="index">Index of element to remove.</param>
