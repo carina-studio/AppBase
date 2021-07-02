@@ -34,7 +34,7 @@ namespace CarinaStudio.ViewModels
 
 
 		// Static fields.
-		volatile int nextId;
+		static volatile int nextId;
 
 
 		// Constructor.

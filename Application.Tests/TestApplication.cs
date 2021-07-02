@@ -3,7 +3,9 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
+using System.Reflection;
 using System.Threading;
 
 namespace CarinaStudio
@@ -34,7 +36,9 @@ namespace CarinaStudio
 
 
 		// Implementations.
+		public Assembly Assembly => Assembly.GetExecutingAssembly();
 		public bool CheckAccess() => Thread.CurrentThread == this.thread;
+		public CultureInfo CultureInfo => CultureInfo.CurrentCulture;
 		public string? GetString(string key, string? defaultValue = null) => key switch
 		{
 			FormatStringKey => FormatString,
@@ -45,6 +49,7 @@ namespace CarinaStudio
 		public event PropertyChangedEventHandler? PropertyChanged;
 		public string RootPrivateDirectoryPath => Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName).AsNonNull();
 		public BaseSettings Settings { get; }
+		public event EventHandler? StringsUpdated;
 		public SynchronizationContext SynchronizationContext { get; }
 	}
 }
