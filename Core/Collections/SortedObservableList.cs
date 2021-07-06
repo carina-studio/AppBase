@@ -181,7 +181,7 @@ namespace CarinaStudio.Collections
 					}
 					else if (insertionCount > 0)
 					{
-						var insertionElements = new ListRangeView<T>(sortedElements, seStartIndex, insertionCount);
+						var insertionElements = sortedElements.ToArray(seStartIndex, insertionCount);
 						list.InsertRange(insertStartIndex, insertionElements);
 						this.CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, insertionElements, insertStartIndex));
 						insertStartIndex += insertionCount + 1;
@@ -200,7 +200,7 @@ namespace CarinaStudio.Collections
 			}
 			else if (insertionCount > 0)
 			{
-				var insertionElements = new ListRangeView<T>(sortedElements, seStartIndex, insertionCount);
+				var insertionElements = sortedElements.ToArray(seStartIndex, insertionCount);
 				list.InsertRange(insertStartIndex, insertionElements);
 				this.CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, insertionElements, insertStartIndex));
 			}
@@ -329,7 +329,7 @@ namespace CarinaStudio.Collections
 					{
 						var removingCount = removingEndIndex - removingStartIndex;
 						var removedElements = collectionChangedHandlers != null
-							? new ListRangeView<T>(this.list, removingStartIndex, removingCount)
+							? this.list.ToArray(removingStartIndex, removingCount)
 							: null;
 						list.RemoveRange(removingStartIndex, removingCount);
 						collectionChangedHandlers?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removedElements, removingStartIndex));
@@ -350,7 +350,7 @@ namespace CarinaStudio.Collections
 			{
 				var removingCount = removingEndIndex - removingStartIndex;
 				var removedElements = collectionChangedHandlers != null
-					? new ListRangeView<T>(this.list, removingStartIndex, removingCount)
+					? this.list.ToArray(removingStartIndex, removingCount)
 					: null;
 				list.RemoveRange(removingStartIndex, removingCount);
 				collectionChangedHandlers?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removedElements, removingStartIndex));
@@ -442,7 +442,7 @@ namespace CarinaStudio.Collections
 				throw new ArgumentOutOfRangeException(nameof(count));
 			var collectionChangedHandlers = this.CollectionChanged;
 			var removedElements = collectionChangedHandlers != null
-					? new ListRangeView<T>(this.list, index, count)
+					? this.list.ToArray(index, count)
 					: null;
 			this.list.RemoveRange(index, count);
 			collectionChangedHandlers?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removedElements, index));
