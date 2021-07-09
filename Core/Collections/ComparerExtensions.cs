@@ -16,6 +16,6 @@ namespace CarinaStudio.Collections
 		/// <param name="comparer"><see cref="IComparer{T}"/>.</param>
 		/// <returns><see cref="IComparer{T}"/> which generates inverse result of given <see cref="IComparer{T}"/>.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static IComparer<T> Inverse<T>(this IComparer<T> comparer) => Comparer<T>.Create((x, y) => comparer.Compare(y, x));
+		public static IComparer<T> Invert<T>(this IComparer<T> comparer) => Comparer<T>.Create((x, y) => comparer.Compare(y, x));
 	}
 }
