@@ -224,6 +224,12 @@ namespace CarinaStudio.Collections
 
 
 		/// <summary>
+		/// Get <see cref="IComparer{T}"/> used to compare elements by this list.
+		/// </summary>
+		public IComparer<T> Comparer { get => this.comparer; }
+
+
+		/// <summary>
 		/// Check whether given element is contained in list or not.
 		/// </summary>
 		/// <param name="element">Element.</param>
