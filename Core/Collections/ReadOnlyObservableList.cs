@@ -2,14 +2,15 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.ComponentModel;
 
 namespace CarinaStudio.Collections
 {
 	/// <summary>
-	/// Read-only <see cref="IList{T}"/> which implements <see cref="INotifyCollectionChanged"/> and wraps another <see cref="IList{T}"/> which also implements <see cref="INotifyCollectionChanged"/>.
+	/// Read-only <see cref="IList{T}"/> which implements <see cref="INotifyCollectionChanged"/> and <see cref="INotifyPropertyChanged"/> then wraps another <see cref="IList{T}"/> which also implements <see cref="INotifyCollectionChanged"/>.
 	/// </summary>
 	/// <typeparam name="T">Type of elements.</typeparam>
-	public class ReadOnlyObservableList<T> : IList, IList<T>, INotifyCollectionChanged, IReadOnlyList<T>
+	public class ReadOnlyObservableList<T> : IList, IList<T>, INotifyCollectionChanged, INotifyPropertyChanged, IReadOnlyList<T>
 	{
 		// Fields.
 		readonly IList<T> sourceList;
@@ -24,7 +25,11 @@ namespace CarinaStudio.Collections
 			if (!(source is INotifyCollectionChanged notifyCollectionChanged))
 				throw new ArgumentException("Source list doesn't implement INotifyCollectionChanged interface.");
 			this.sourceList = source;
-			notifyCollectionChanged.CollectionChanged += (_, e) => this.CollectionChanged?.Invoke(this, e);
+			notifyCollectionChanged.CollectionChanged += (_, e) =>
+			{
+				this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Count)));
+				this.CollectionChanged?.Invoke(this, e);
+			};
 		}
 
 
@@ -69,6 +74,12 @@ namespace CarinaStudio.Collections
 		/// <param name="element">Element.</param>
 		/// <returns>Index of element in list, or -1 if element is not contained in list.</returns>
 		public int IndexOf(T element) => this.sourceList.IndexOf(element);
+
+
+		/// <summary>
+		/// Raised when property changed.
+		/// </summary>
+		public event PropertyChangedEventHandler? PropertyChanged;
 
 
 		/// <summary>

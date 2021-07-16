@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Linq;
 
 namespace CarinaStudio.Collections
@@ -10,7 +11,7 @@ namespace CarinaStudio.Collections
 	/// List which makes elements sorted automatically. Implmentations of <see cref="IList{T}"/> are also optimized for sorted case.
 	/// </summary>
 	/// <typeparam name="T">Type of element.</typeparam>
-	public class SortedObservableList<T> : IList, IList<T>, INotifyCollectionChanged, IReadOnlyList<T>
+	public class SortedObservableList<T> : IList, IList<T>, INotifyCollectionChanged, INotifyPropertyChanged, IReadOnlyList<T>
 	{
 		// Fields.
 		readonly IComparer<T> comparer;
@@ -68,6 +69,7 @@ namespace CarinaStudio.Collections
 			if (count == 0 || comparer.Compare(element, list[count - 1]) >= 0)
 			{
 				list.Add(element);
+				this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Count)));
 				this.CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, element, count));
 				return count;
 			}
@@ -76,6 +78,7 @@ namespace CarinaStudio.Collections
 			if (comparer.Compare(element, list[0]) <= 0)
 			{
 				list.Insert(0, element);
+				this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Count)));
 				this.CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, element, 0));
 				return 0;
 			}
@@ -85,6 +88,7 @@ namespace CarinaStudio.Collections
 			if (insertionIndex < 0)
 				insertionIndex = ~insertionIndex;
 			list.Insert(insertionIndex, element);
+			this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Count)));
 			this.CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, element, insertionIndex));
 			return insertionIndex;
 		}
@@ -115,6 +119,7 @@ namespace CarinaStudio.Collections
 			if (count == 0 || comparer.Compare(sortedElements[0], list[count - 1]) >= 0)
 			{
 				list.AddRange(sortedElements);
+				this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Count)));
 				this.CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, (IList)sortedElements.AsReadOnly(), count));
 				return;
 			}
@@ -123,6 +128,7 @@ namespace CarinaStudio.Collections
 			if (comparer.Compare(sortedElements[elementCount - 1], list[0]) <= 0)
 			{
 				list.InsertRange(0, sortedElements);
+				this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Count)));
 				this.CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, (IList)sortedElements.AsReadOnly(), 0));
 				return;
 			}
@@ -146,6 +152,7 @@ namespace CarinaStudio.Collections
 			if (insertionRegionSize == 0)
 			{
 				list.InsertRange(insertStartIndex, sortedElements);
+				this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Count)));
 				this.CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, (IList)sortedElements.AsReadOnly(), insertStartIndex));
 				return;
 			}
@@ -175,6 +182,7 @@ namespace CarinaStudio.Collections
 					if (insertionCount == 1)
 					{
 						list.Insert(insertStartIndex, sortedElements[seStartIndex]);
+						this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Count)));
 						this.CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, sortedElements[seStartIndex], insertStartIndex));
 						insertStartIndex += 2;
 						++count;
@@ -183,6 +191,7 @@ namespace CarinaStudio.Collections
 					{
 						var insertionElements = sortedElements.ToArray(seStartIndex, insertionCount);
 						list.InsertRange(insertStartIndex, insertionElements);
+						this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Count)));
 						this.CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, insertionElements, insertStartIndex));
 						insertStartIndex += insertionCount + 1;
 						count += insertionCount;
@@ -196,12 +205,14 @@ namespace CarinaStudio.Collections
 			if (insertionCount == 1)
 			{
 				list.Insert(insertStartIndex, sortedElements[seStartIndex]);
+				this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Count)));
 				this.CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, sortedElements[seStartIndex], insertStartIndex));
 			}
 			else if (insertionCount > 0)
 			{
 				var insertionElements = sortedElements.ToArray(seStartIndex, insertionCount);
 				list.InsertRange(insertStartIndex, insertionElements);
+				this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Count)));
 				this.CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, insertionElements, insertStartIndex));
 			}
 		}
@@ -212,7 +223,10 @@ namespace CarinaStudio.Collections
 		/// </summary>
 		public void Clear()
 		{
+			if (this.list.IsEmpty())
+				return;
 			this.list.Clear();
+			this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Count)));
 			this.CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
 		}
 
@@ -277,6 +291,12 @@ namespace CarinaStudio.Collections
 
 
 		/// <summary>
+		/// Raised when property changed.
+		/// </summary>
+		public event PropertyChangedEventHandler? PropertyChanged;
+
+
+		/// <summary>
 		/// Remove first found of given element.
 		/// </summary>
 		/// <param name="element">Element to remove.</param>
@@ -287,6 +307,7 @@ namespace CarinaStudio.Collections
 			if (index < 0)
 				return false;
 			this.list.RemoveAt(index);
+			this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Count)));
 			this.CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, element, index));
 			return true;
 		}
@@ -324,6 +345,7 @@ namespace CarinaStudio.Collections
 			var removingStartIndex = -1;
 			var removingEndIndex = -1;
 			var collectionChangedHandlers = this.CollectionChanged;
+			var propertyChangedHandlers = this.PropertyChanged;
 			while (seIndex >= 0 && listIndex >= 0)
 			{
 				var seElement = sortedElements[seIndex];
@@ -338,6 +360,7 @@ namespace CarinaStudio.Collections
 							? this.list.ToArray(removingStartIndex, removingCount)
 							: null;
 						list.RemoveRange(removingStartIndex, removingCount);
+						propertyChangedHandlers?.Invoke(this, new PropertyChangedEventArgs(nameof(Count)));
 						collectionChangedHandlers?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removedElements, removingStartIndex));
 						removingEndIndex = listIndex + 1;
 						result += removingCount;
@@ -359,6 +382,7 @@ namespace CarinaStudio.Collections
 					? this.list.ToArray(removingStartIndex, removingCount)
 					: null;
 				list.RemoveRange(removingStartIndex, removingCount);
+				propertyChangedHandlers?.Invoke(this, new PropertyChangedEventArgs(nameof(Count)));
 				collectionChangedHandlers?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removedElements, removingStartIndex));
 				result += removingCount;
 			}
@@ -380,6 +404,7 @@ namespace CarinaStudio.Collections
 			var removingEndIndex = -1;
 			var removingStartIndex = -1;
 			var collectionChangedHandlers = this.CollectionChanged;
+			var propertyChangedHandlers = this.PropertyChanged;
 			for (var i = list.Count - 1; i >= 0; --i)
 			{
 				if (predicate(list[i]))
@@ -395,6 +420,7 @@ namespace CarinaStudio.Collections
 						? list.ToArray(removingStartIndex, count)
 						: null;
 					list.RemoveRange(removingStartIndex, count);
+					propertyChangedHandlers?.Invoke(this, new PropertyChangedEventArgs(nameof(Count)));
 					collectionChangedHandlers?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removedElements, removingStartIndex));
 					reslut += count;
 					removingStartIndex = -1;
@@ -408,6 +434,7 @@ namespace CarinaStudio.Collections
 					? list.ToArray(removingStartIndex, count)
 					: null;
 				list.RemoveRange(removingStartIndex, count);
+				propertyChangedHandlers?.Invoke(this, new PropertyChangedEventArgs(nameof(Count)));
 				collectionChangedHandlers?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removedElements, removingStartIndex));
 				reslut += count;
 			}
@@ -426,10 +453,14 @@ namespace CarinaStudio.Collections
 			{
 				var removedElement = this.list[index];
 				this.list.RemoveAt(index);
+				this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Count)));
 				collectionChanged(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removedElement, index));
 			}
 			else
+			{
 				this.list.RemoveAt(index);
+				this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Count)));
+			}
 		}
 
 
@@ -451,6 +482,7 @@ namespace CarinaStudio.Collections
 					? this.list.ToArray(index, count)
 					: null;
 			this.list.RemoveRange(index, count);
+			this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Count)));
 			collectionChangedHandlers?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removedElements, index));
 		}
 

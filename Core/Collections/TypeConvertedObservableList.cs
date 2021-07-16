@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.ComponentModel;
 
 namespace CarinaStudio.Collections
 {
@@ -10,7 +11,7 @@ namespace CarinaStudio.Collections
 	/// </summary>
 	/// <typeparam name="TSrc">Type of element of source list.</typeparam>
 	/// <typeparam name="TDest">Type of converted elements.</typeparam>
-	public abstract class TypeConvertedObservableList<TSrc, TDest> : BaseDisposable, IList, IList<TDest>, INotifyCollectionChanged, IReadOnlyList<TDest>
+	public abstract class TypeConvertedObservableList<TSrc, TDest> : BaseDisposable, IList, IList<TDest>, INotifyCollectionChanged, INotifyPropertyChanged, IReadOnlyList<TDest>
 	{
 		// Fields.
 		readonly List<TDest> list = new List<TDest>();
@@ -114,6 +115,7 @@ namespace CarinaStudio.Collections
 						{
 							var newElement = this.ConvertElement((TSrc)newSourceElements[0]);
 							this.list.Insert(e.NewStartingIndex, newElement);
+							this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Count)));
 							this.CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, newElement, e.NewStartingIndex));
 						}
 						else
@@ -122,6 +124,7 @@ namespace CarinaStudio.Collections
 							for (var i = newElements.Length - 1; i >= 0; --i)
 								newElements[i] = this.ConvertElement((TSrc)newSourceElements[i]);
 							this.list.InsertRange(e.NewStartingIndex, newElements);
+							this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Count)));
 							this.CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, newElements, e.NewStartingIndex));
 						}
 					}
@@ -148,6 +151,7 @@ namespace CarinaStudio.Collections
 							for (var i = count - 1; i >= 0; --i)
 								this.ReleaseElement(list[index + i]);
 							list.RemoveRange(index, count);
+							this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Count)));
 						}
 						else
 						{
@@ -155,6 +159,7 @@ namespace CarinaStudio.Collections
 							for (var i = count - 1; i >= 0; --i)
 								this.ReleaseElement(removedElements[i]);
 							list.RemoveRange(index, count);
+							this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Count)));
 							this.CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removedElements, index));
 						}
 					}
@@ -198,6 +203,12 @@ namespace CarinaStudio.Collections
 #pragma warning restore CS8600
 
 
+		/// <summary>
+		/// Raised when property changed.
+		/// </summary>
+		public event PropertyChangedEventHandler? PropertyChanged;
+
+
 		// Rebuild list.
 		void RebuildList()
 		{
@@ -211,6 +222,7 @@ namespace CarinaStudio.Collections
 			var sourceList = this.sourceList;
 			for (int i = 0, count = sourceList.Count; i < count; ++i)
 				list.Add(this.ConvertElement(sourceList[i]));
+			this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Count)));
 		}
 
 
