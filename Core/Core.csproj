@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AssemblyVersion>0.17.1.709</AssemblyVersion>
-		<Version>0.17.1.709</Version>
+    <AssemblyVersion>0.18.0.716</AssemblyVersion>
+		<Version>0.18.0.716</Version>
     <TargetFrameworks>netcoreapp3.1;netstandard2.1;net5.0</TargetFrameworks>
     <RootNamespace>CarinaStudio</RootNamespace>
     <AssemblyName>CarinaStudio.AppBase.Core</AssemblyName>
