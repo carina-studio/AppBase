@@ -512,6 +512,53 @@ namespace CarinaStudio.Collections
 
 
 		/// <summary>
+		/// Move given element to correct position if needed.
+		/// </summary>
+		/// <param name="element">Element to move.</param>
+		/// <returns>True if element has been moved to correct position.</returns>
+		public bool Sort(T element)
+		{
+			var index = list.BinarySearch(element, comparer);
+			if (index < 0)
+				index = list.IndexOf(element);
+			if (index < 0)
+				return false;
+			return this.SortAt(index);
+		}
+
+
+		/// <summary>
+		/// Move given element to correct position if needed.
+		/// </summary>
+		/// <param name="index">Current index of element to move.</param>
+		/// <returns>True if element has been moved to correct position.</returns>
+		public bool SortAt(int index)
+		{
+			// check if current position is correct or not
+			var list = this.list;
+			var count = list.Count;
+			var comparer = this.comparer;
+			if (index < 0 || index >= count)
+				throw new ArgumentOutOfRangeException();
+			if ((index == 0 || comparer.Compare(list[index - 1], list[index]) <= 0)
+				&& (index == count - 1 || comparer.Compare(list[index], list[index + 1]) <= 0))
+			{
+				return false;
+			}
+
+			// move to new position
+			var element = list[index];
+			list.RemoveAt(index);
+			var newIndex = list.BinarySearch(element, comparer);
+			if (newIndex < 0)
+				newIndex = ~newIndex;
+			list.Insert(newIndex, element);
+			this.CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, element, newIndex, index));
+			return true;
+		}
+
+
+		/// <summary>
 		/// Get element.
 		/// </summary>
 		/// <param name="index">Index of element.</param>
