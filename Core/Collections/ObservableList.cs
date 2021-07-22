@@ -161,6 +161,47 @@ namespace CarinaStudio.Collections
 
 
 		/// <summary>
+		/// Move element in the list.
+		/// </summary>
+		/// <param name="index">Index of element to move.</param>
+		/// <param name="newIndex">New index of element.</param>
+		public void Move(int index, int newIndex)
+		{
+			if (newIndex < 0 || newIndex >= this.list.Count)
+				throw new ArgumentOutOfRangeException(nameof(newIndex));
+			if (index == newIndex)
+				return;
+			T element = this.list[index];
+			this.list.RemoveAt(index);
+			this.list.Insert(newIndex, element);
+			this.CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, element, newIndex, index));
+		}
+
+
+		/// <summary>
+		/// Move elements in the list.
+		/// </summary>
+		/// <param name="index">Index of first element to move.</param>
+		/// <param name="newIndex">New index of first moved element.</param>
+		/// <param name="count">Number of elements to move.</param>
+		public void MoveRange(int index, int newIndex, int count)
+		{
+			if (count < 0 || index + count > this.list.Count)
+				throw new ArgumentOutOfRangeException(nameof(count));
+			if (newIndex < 0 || newIndex + count > this.list.Count)
+				throw new ArgumentOutOfRangeException(nameof(newIndex));
+			if (count == 0)
+				return;
+			if (index == newIndex)
+				return;
+			var elements = this.list.ToArray(index, count);
+			this.list.RemoveRange(index, count);
+			this.list.InsertRange(newIndex, elements);
+			this.CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, elements, newIndex, index));
+		}
+
+
+		/// <summary>
 		/// Raised when property changed.
 		/// </summary>
 		public event PropertyChangedEventHandler? PropertyChanged;
@@ -286,7 +327,19 @@ namespace CarinaStudio.Collections
 		public T this[int index] 
 		{
 			get => this.list[index];
-			set => this.list[index] = value;
+			set
+			{
+				var collectionChangedHandlers = this.CollectionChanged;
+				if (collectionChangedHandlers != null)
+				{
+					var oldValue = this.list[index];
+					this.list[index] = value;
+					if (!(oldValue?.Equals(value) ?? object.ReferenceEquals(value, null)))
+						collectionChangedHandlers(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, value, oldValue, index));
+				}
+				else
+					this.list[index] = value;
+			}
 		}
 
 
