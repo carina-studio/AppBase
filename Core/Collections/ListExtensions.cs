@@ -32,35 +32,48 @@ namespace CarinaStudio.Collections
 
 
 		/// <summary>
-		/// Find given element by binary-search.
+		/// Use binary-search to find given element.
 		/// </summary>
 		/// <typeparam name="T">Type of element.</typeparam>
 		/// <param name="list">List to find element.</param>
 		/// <param name="element">Element to be found.</param>
 		/// <param name="comparer"><see cref="IComparer{T}"/> to compare elements.</param>
 		/// <returns>Index of found element, or bitwise complement of index of proper position to put element.</returns>
-		public static int BinarySearch<T>(this IList<T> list, T element, IComparer<T> comparer) => BinarySearch<T>(list, 0, list.Count, element, comparer.Compare);
+		public static int BinarySearch<T>(this IList<T> list, T element, IComparer<T> comparer) => BinarySearch(list, 0, list.Count, element, comparer.Compare);
 
 
 		/// <summary>
-		/// Find given element by binary-search.
+		/// Use binary-search to find given element.
 		/// </summary>
 		/// <typeparam name="T">Type of element.</typeparam>
 		/// <param name="list">List to find element.</param>
 		/// <param name="element">Element to be found.</param>
 		/// <param name="comparison">Comparison function.</param>
 		/// <returns>Index of found element, or bitwise complement of index of proper position to put element.</returns>
-		public static int BinarySearch<T>(this IList<T> list, T element, Comparison<T> comparison) => BinarySearch<T>(list, 0, list.Count, element, comparison);
+		public static int BinarySearch<T>(this IList<T> list, T element, Comparison<T> comparison) => BinarySearch(list, 0, list.Count, element, comparison);
 
 
 		/// <summary>
-		/// Find given element by binary-search.
+		/// Use binary-search to find given element by key.
+		/// </summary>
+		/// <typeparam name="T">Type of element.</typeparam>
+		/// <typeparam name="TKey">Type of key of element.</typeparam>
+		/// <param name="list">List to find element.</param>
+		/// <param name="key">Key of element to be found.</param>
+		/// <param name="keyGetter">Method to get key from element.</param>
+		/// <param name="comparison">Comparison function.</param>
+		/// <returns>Index of found element, or bitwise complement of index of proper position to put element.</returns>
+		public static int BinarySearch<T, TKey>(this IList<T> list, TKey key, Func<T, TKey> keyGetter, Comparison<TKey> comparison) => BinarySearch(list, 0, list.Count, key, keyGetter, comparison);
+
+
+		/// <summary>
+		/// Use binary-search to find given element.
 		/// </summary>
 		/// <typeparam name="T">Type of element.</typeparam>
 		/// <param name="list">List to find element.</param>
 		/// <param name="element">Element to be found.</param>
 		/// <returns>Index of found element, or bitwise complement of index of proper position to put element.</returns>
-		public static int BinarySearch<T>(this IList<T> list, T element) where T : IComparable<T> => BinarySearch<T>(list, 0, list.Count, element);
+		public static int BinarySearch<T>(this IList<T> list, T element) where T : IComparable<T> => BinarySearch(list, 0, list.Count, element);
 
 
 		// Binary search.
@@ -73,8 +86,20 @@ namespace CarinaStudio.Collections
 			if (result == 0)
 				return middle;
 			if (result < 0)
-				return BinarySearch<T>(list, start, middle, element, comparison);
-			return BinarySearch<T>(list, middle + 1, end, element, comparison);
+				return BinarySearch(list, start, middle, element, comparison);
+			return BinarySearch(list, middle + 1, end, element, comparison);
+		}
+		static int BinarySearch<T, TKey>(IList<T> list, int start, int end, TKey key, Func<T, TKey> keyGetter, Comparison<TKey> comparison)
+		{
+			if (start >= end)
+				return ~start;
+			var middle = (start + end) / 2;
+			var result = comparison(key, keyGetter(list[middle]));
+			if (result == 0)
+				return middle;
+			if (result < 0)
+				return BinarySearch(list, start, middle, key, keyGetter, comparison);
+			return BinarySearch(list, middle + 1, end, key, keyGetter, comparison);
 		}
 		static int BinarySearch<T>(IList<T> list, int start, int end, T element) where T : IComparable<T>
 		{
@@ -85,8 +110,8 @@ namespace CarinaStudio.Collections
 			if (result == 0)
 				return middle;
 			if (result < 0)
-				return BinarySearch<T>(list, start, middle, element);
-			return BinarySearch<T>(list, middle + 1, end, element);
+				return BinarySearch(list, start, middle, element);
+			return BinarySearch(list, middle + 1, end, element);
 		}
 
 

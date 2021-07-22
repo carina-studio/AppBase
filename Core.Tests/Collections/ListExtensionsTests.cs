@@ -16,6 +16,39 @@ namespace CarinaStudio.Collections
 
 
 		/// <summary>
+		/// Test binary search by key.
+		/// </summary>
+		[Test]
+		public void BinarySearchByKeyTest()
+		{
+			// prepare
+			var keyGetter = new Func<int[], int>(it => it[0]);
+			var comparison = new Comparison<int>((x, y) => x - y);
+			var list = new List<int[]>();
+			for (var i = 0; i < 1024; ++i)
+				list.Add(new int[] { i * 2 });
+
+			// find existing elements
+			for (var t = 0; t < 100; ++t)
+			{
+				var index = this.random.Next(list.Count);
+				var key = list[index][0];
+				Assert.AreEqual(index, list.BinarySearch(key, keyGetter, comparison));
+			}
+
+			// find non-existing elements
+			Assert.AreEqual(~0, list.BinarySearch(-1, keyGetter, comparison));
+			Assert.AreEqual(~list.Count, list.BinarySearch(list[list.Count - 1][0] + 1, keyGetter, comparison));
+			for (var t = 0; t < 100; ++t)
+			{
+				var index = this.random.Next(list.Count);
+				var key = list[index][0] - 1;
+				Assert.AreEqual(~index, list.BinarySearch(key, keyGetter, comparison));
+			}
+		}
+
+
+		/// <summary>
 		/// Test binary search.
 		/// </summary>
 		[Test]
