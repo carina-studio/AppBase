@@ -1,7 +1,10 @@
-﻿using CarinaStudio.Configuration;
+﻿using CarinaStudio.Collections;
+using CarinaStudio.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CarinaStudio.ViewModels
 {
@@ -24,11 +27,17 @@ namespace CarinaStudio.ViewModels
 		// Fields.
 		public SettingChangedEventArgs? LatestSettingChangedEventArgs;
 		public SettingChangingEventArgs? LatestSettingChangingEventArgs;
+		readonly HashSet<Task> necessaryTasks = new HashSet<Task>();
+		readonly Random random = new Random();
 
 
 		// Constructor.
 		public TestViewModel(TestApplication app) : base(app)
 		{ }
+
+
+		// Check whether all necessary tasks are completed or not.
+		public bool AreNecessaryTasksCompleted { get => this.necessaryTasks.IsEmpty(); }
 
 
 		// Setting changed.
@@ -44,6 +53,16 @@ namespace CarinaStudio.ViewModels
 		{
 			base.OnSettingChanging(e);
 			this.LatestSettingChangingEventArgs = e;
+		}
+
+
+		// Perform necessary task.
+		public async Task PerformNecessaryTaskAsync()
+		{
+			var task = Task.Delay(this.random.Next(50, 3000));
+			this.necessaryTasks.Add(task);
+			await task;
+			this.necessaryTasks.Remove(task);
 		}
 
 
@@ -64,6 +83,18 @@ namespace CarinaStudio.ViewModels
 		{
 			get => this.GetValue(TestRangeInt32Property);
 			set => this.SetValue(TestRangeInt32Property, value);
+		}
+
+
+		// Wait for all necessary tasks.
+		public override async Task WaitForNecessaryTasksCompletionAsync()
+		{
+			await base.WaitForNecessaryTasksCompletionAsync();
+			foreach (var task in this.necessaryTasks.ToArray())
+			{
+				await task;
+				this.necessaryTasks.Remove(task);
+			}
 		}
 	}
 }

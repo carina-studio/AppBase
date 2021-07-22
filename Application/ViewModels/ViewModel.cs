@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace CarinaStudio.ViewModels
 {
@@ -274,5 +275,12 @@ namespace CarinaStudio.ViewModels
 		/// </summary>
 		/// <returns>String represents this view-model.</returns>
 		public override string ToString() => $"{this.GetType().Name}-{this.Id}";
+
+
+		/// <summary>
+		/// Wait for completion of all necessary asynchronous tasks.
+		/// </summary>
+		/// <returns>Task of waiting.</returns>
+		public virtual Task WaitForNecessaryTasksCompletionAsync() => Task.CompletedTask;
 	}
 }

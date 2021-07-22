@@ -317,5 +317,38 @@ namespace CarinaStudio.ViewModels
 				Assert.IsNull(viewModel.LatestSettingChangingEventArgs, "OnSettingChanging should not be called after disposing.");
 			});
 		}
+
+
+		/// <summary>
+		/// Test for calling <see cref="ViewModel.WaitForNecessaryTasksCompletionAsync"/>.
+		/// </summary>
+		[Test]
+		public void WaitForNecessaryTasksCompletionTest()
+		{
+			object syncLock = new object();
+			lock (syncLock)
+			{
+				this.testSyncContext?.Post(async () =>
+				{
+					// prepare
+					using var viewModel = new TestViewModel(this.application.AsNonNull());
+
+					// perform necessary tasks
+					Assert.IsTrue(viewModel.AreNecessaryTasksCompleted);
+					for (var t = 0; t < 10; ++t)
+						_ = viewModel.PerformNecessaryTaskAsync();
+					Assert.IsFalse(viewModel.AreNecessaryTasksCompleted);
+
+					// wait for completion of tasks
+					await viewModel.WaitForNecessaryTasksCompletionAsync();
+					Assert.IsTrue(viewModel.AreNecessaryTasksCompleted);
+
+					// complete
+					lock (syncLock)
+						Monitor.Pulse(syncLock);
+				});
+				Assert.IsTrue(Monitor.Wait(syncLock, 10000));
+			}
+		}
 	}
 }
