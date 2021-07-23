@@ -320,10 +320,10 @@ namespace CarinaStudio.ViewModels
 
 
 		/// <summary>
-		/// Test for calling <see cref="ViewModel.WaitForNecessaryTasksCompletionAsync"/>.
+		/// Test for calling <see cref="ViewModel.WaitForNecessaryTasksAsync"/>.
 		/// </summary>
 		[Test]
-		public void WaitForNecessaryTasksCompletionTest()
+		public void WaitForNecessaryTasksTest()
 		{
 			object syncLock = new object();
 			lock (syncLock)
@@ -334,14 +334,14 @@ namespace CarinaStudio.ViewModels
 					using var viewModel = new TestViewModel(this.application.AsNonNull());
 
 					// perform necessary tasks
-					Assert.IsTrue(viewModel.AreNecessaryTasksCompleted);
+					Assert.IsFalse(viewModel.HasNecessaryTasks);
 					for (var t = 0; t < 10; ++t)
 						_ = viewModel.PerformNecessaryTaskAsync();
-					Assert.IsFalse(viewModel.AreNecessaryTasksCompleted);
+					Assert.IsTrue(viewModel.HasNecessaryTasks);
 
 					// wait for completion of tasks
-					await viewModel.WaitForNecessaryTasksCompletionAsync();
-					Assert.IsTrue(viewModel.AreNecessaryTasksCompleted);
+					await viewModel.WaitForNecessaryTasksAsync();
+					Assert.IsFalse(viewModel.HasNecessaryTasks);
 
 					// complete
 					lock (syncLock)
