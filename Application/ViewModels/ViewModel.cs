@@ -180,10 +180,14 @@ namespace CarinaStudio.ViewModels
 		/// <param name="property">Changed property.</param>
 		/// <param name="oldValue">Old value.</param>
 		/// <param name="newValue">New value.</param>
-		protected virtual void OnPropertyChanged(ObservableProperty property, object? oldValue, object? newValue)
-		{
-			this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(property.Name));
-		}
+		protected virtual void OnPropertyChanged(ObservableProperty property, object? oldValue, object? newValue) => this.OnPropertyChanged(property.Name);
+
+
+		/// <summary>
+		/// Raise <see cref="PropertyChanged"/> event.
+		/// </summary>
+		/// <param name="propertyName">Name of changed property.</param>
+		protected virtual void OnPropertyChanged(string propertyName) => this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
 
 		// Called when application setting changed.
