@@ -9,6 +9,7 @@ namespace CarinaStudio.Tests
 	public static class Random
 	{
 		// Fields.
+		[ThreadStatic]
 		static readonly System.Random random = new System.Random();
 
 

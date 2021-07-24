@@ -11,6 +11,7 @@ namespace CarinaStudio.Collections
 	public static class ListExtensions
 	{
 		// Fields.
+		[ThreadStatic]
 		static readonly Random random = new Random();
 
 
