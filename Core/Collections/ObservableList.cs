@@ -382,8 +382,10 @@ namespace CarinaStudio.Collections
 		object ICollection.SyncRoot => this;
 		IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
 #pragma warning disable CS8604
+#pragma warning disable CS8600
 		int IList.Add(object? value) => this.Add((T)value);
 #pragma warning restore CS8604
+#pragma warning restore CS8600
 		bool IList.Contains(object? value)
 		{
 			if (value is T element)
@@ -397,17 +399,21 @@ namespace CarinaStudio.Collections
 			return -1;
 		}
 #pragma warning disable CS8604
+#pragma warning disable CS8600
 		void IList.Insert(int index, object? value) => this.Insert(index, (T)value);
 #pragma warning restore CS8604
+#pragma warning restore CS8600
 		bool IList.IsFixedSize => false;
 		bool IList.IsReadOnly => false;
 #pragma warning disable CS8601
+#pragma warning disable CS8600
 		object? IList.this[int index] 
 		{ 
 			get => this.list[index];
 			set => this.list[index] = (T)value;
 		}
 #pragma warning restore CS8601
+#pragma warning restore CS8600
 		void IList.Remove(object? value)
 		{
 			if (value is T element)
