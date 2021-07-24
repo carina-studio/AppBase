@@ -12,7 +12,7 @@ namespace CarinaStudio.Collections
 	{
 		// Fields.
 		[ThreadStatic]
-		static readonly Random random = new Random();
+		static Random? random;
 
 
 		/// <summary>
@@ -217,6 +217,8 @@ namespace CarinaStudio.Collections
 		{
 			if (list.IsEmpty())
 				throw new ArgumentException("Cannot select random element from empty list.");
+			if (random == null)
+				random = new Random();
 			return list[random.Next(0, list.Count)];
 		}
 
@@ -244,6 +246,8 @@ namespace CarinaStudio.Collections
 				throw new ArgumentOutOfRangeException(nameof(index));
 			if (index + count > list.Count)
 				throw new ArgumentOutOfRangeException(nameof(count));
+			if (random == null)
+				random = new Random();
 			var remaining = count;
 			while (remaining > 0)
 			{

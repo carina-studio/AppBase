@@ -10,7 +10,7 @@ namespace CarinaStudio.Tests
 	{
 		// Fields.
 		[ThreadStatic]
-		static readonly System.Random random = new System.Random();
+		static System.Random? random;
 
 
 		/// <summary>
@@ -56,6 +56,8 @@ namespace CarinaStudio.Tests
 		/// <returns>Generated string.</returns>
 		public static string GenerateRandomString(int length) => new string(new char[length].Also(it =>
 		{
+			if (random == null)
+				random = new System.Random();
 			for (var i = length - 1; i >= 0; --i)
 			{
 				var n = random.Next(0, 36);
@@ -71,7 +73,12 @@ namespace CarinaStudio.Tests
 		/// Get a random non-negative integer.
 		/// </summary>
 		/// <returns>Random integer.</returns>
-		public static int Next() => random.Next();
+		public static int Next()
+		{
+			if (random == null)
+				random = new System.Random();
+			return random.Next(); 
+		}
 
 
 		/// <summary>
@@ -79,7 +86,12 @@ namespace CarinaStudio.Tests
 		/// </summary>
 		/// <param name="maxValue">Maximum exclusive integer to get.</param>
 		/// <returns>Random integer.</returns>
-		public static int Next(int maxValue) => random.Next(maxValue);
+		public static int Next(int maxValue)
+		{
+			if (random == null)
+				random = new System.Random();
+			return random.Next(maxValue);
+		}
 
 
 		/// <summary>
@@ -88,27 +100,47 @@ namespace CarinaStudio.Tests
 		/// <param name="minValue">Minimum inclusive interger to get.</param>
 		/// <param name="maxValue">Maximum exclusive integer to get.</param>
 		/// <returns>Random integer.</returns>
-		public static int Next(int minValue, int maxValue) => random.Next(minValue, maxValue);
+		public static int Next(int minValue, int maxValue)
+		{
+			if (random == null)
+				random = new System.Random();
+			return random.Next(minValue, maxValue);
+		}
 
 
 		/// <summary>
 		/// Fill random values into given buffer.
 		/// </summary>
 		/// <param name="buffer">Buffer to fill random values.</param>
-		public static void NextBytes(byte[] buffer) => random.NextBytes(buffer);
+		public static void NextBytes(byte[] buffer)
+		{
+			if (random == null)
+				random = new System.Random();
+			random.NextBytes(buffer);
+		}
 
 
 		/// <summary>
 		/// Fill random values into given buffer.
 		/// </summary>
 		/// <param name="buffer">Buffer to fill random values.</param>
-		public static void NextBytes(Span<byte> buffer) => random.NextBytes(buffer);
+		public static void NextBytes(Span<byte> buffer)
+		{
+			if (random == null)
+				random = new System.Random();
+			random.NextBytes(buffer);
+		}
 
 
 		/// <summary>
 		/// Get a random <see cref="double"/> from [0.0, 1.0).
 		/// </summary>
 		/// <returns>Random <see cref="double"/>.</returns>
-		public static double NextDouble() => random.NextDouble();
+		public static double NextDouble()
+		{
+			if (random == null)
+				random = new System.Random();
+			return random.NextDouble();
+		}
 	}
 }
