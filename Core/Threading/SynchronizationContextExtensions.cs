@@ -74,6 +74,8 @@ namespace CarinaStudio.Threading
 				throw new ArgumentException("Invalid token.");
 			if (delayedCallback.SynchronizationContext != synchronizationContext)
 				return false;
+			var stsc = (synchronizationContext as SingleThreadSynchronizationContext);
+			var isSyncContextAlive = (stsc == null || stsc.ExecutionThread.IsAlive);
 			lock (DelayedCallbackSyncLock)
 			{
 				if (DelayedCallbackListHead == delayedCallback)
@@ -83,7 +85,7 @@ namespace CarinaStudio.Threading
 						delayedCallback.Next.Previous = null;
 					delayedCallback.Next = null;
 					delayedCallback.IsCancelled = true;
-					return true;
+					return isSyncContextAlive;
 				}
 				else if (delayedCallback.Previous != null || delayedCallback.Next != null)
 				{
@@ -94,7 +96,7 @@ namespace CarinaStudio.Threading
 					delayedCallback.Previous = null;
 					delayedCallback.Next = null;
 					delayedCallback.IsCancelled = true;
-					return true;
+					return isSyncContextAlive;
 				}
 			}
 			lock (delayedCallback)
@@ -102,7 +104,7 @@ namespace CarinaStudio.Threading
 				if (delayedCallback.IsCancelled || !delayedCallback.IsCancellable)
 					return false;
 				delayedCallback.IsCancelled = true;
-				return true;
+				return isSyncContextAlive;
 			}
 		}
 
@@ -148,7 +150,14 @@ namespace CarinaStudio.Threading
 
 				// post call-back
 				if (delayedCallback != null)
-					delayedCallback.SynchronizationContext.Post(delayedCallback.CallbackEntry, null);
+				{
+					try
+					{
+						delayedCallback.SynchronizationContext.Post(delayedCallback.CallbackEntry, null);
+					}
+					catch (ObjectDisposedException) // ignore posting to disposed context
+					{ }
+				}
 			}
 		}
 
@@ -181,6 +190,10 @@ namespace CarinaStudio.Threading
 		/// <returns>Token of posted delayed call-back.</returns>
 		public static object PostDelayed(this SynchronizationContext synchronizationContext, SendOrPostCallback callback, object? state, int delayMillis)
 		{
+			// check state
+			if (synchronizationContext is SingleThreadSynchronizationContext stsc && !stsc.ExecutionThread.IsAlive)
+				throw new ObjectDisposedException(nameof(SingleThreadSynchronizationContext));
+
 			// setup environment
 			if (!DelayedCallbackWatch.IsRunning)
 			{

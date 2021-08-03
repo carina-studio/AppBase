@@ -126,7 +126,19 @@ namespace CarinaStudio.Threading
 				}
 				Assert.IsTrue(Monitor.Wait(syncLock, 60000), "Unable to complete waiting for posting delayed call-back on multi-threads.");
 			}
-			
+
+			// test on SingleThreadSybchronizationContext
+			using var singleThreadSyncContext = new SingleThreadSynchronizationContext();
+
+			// post delayed call-back which will be executed after disposing sync context
+			var executed = false;
+			var postToken = singleThreadSyncContext.PostDelayed(() => executed = true, 1000);
+			singleThreadSyncContext.Dispose();
+			Thread.Sleep(2000);
+			Assert.IsFalse(executed);
+
+			// cancel delayed call-back after disposing sync context
+			Assert.IsFalse(singleThreadSyncContext.CancelDelayed(postToken));
 		}
 	}
 }
