@@ -18,7 +18,7 @@ namespace CarinaStudio
 
 		
 		// Implementations.
-		protected override int Version => 1;
+		public override int Version => 1;
 		protected override void OnUpgrade(int oldVersion)
 		{ }
 	}

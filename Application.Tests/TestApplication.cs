@@ -30,6 +30,7 @@ namespace CarinaStudio
 		{
 			this.LoggerFactory = new LoggerFactory(new ILoggerProvider[] { TestLoggerProvider.Default });
 			this.thread = Thread.CurrentThread;
+			this.PersistentState = new MemorySettings();
 			this.Settings = new TestSettings();
 			this.SynchronizationContext = SynchronizationContext.Current ?? throw new InvalidOperationException("No SynchronizationContext on current thread.");
 		}
@@ -47,8 +48,9 @@ namespace CarinaStudio
 		public bool IsShutdownStarted => false;
 		public ILoggerFactory LoggerFactory { get; }
 		public event PropertyChangedEventHandler? PropertyChanged;
+		public ISettings PersistentState { get; }
 		public string RootPrivateDirectoryPath => Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName).AsNonNull();
-		public PersistentSettings Settings { get; }
+		public ISettings Settings { get; }
 		public event EventHandler? StringsUpdated;
 		public SynchronizationContext SynchronizationContext { get; }
 	}
