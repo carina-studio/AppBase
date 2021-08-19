@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CarinaStudio.Collections;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,9 +9,9 @@ using System.Threading.Tasks;
 namespace CarinaStudio.Configuration
 {
 	/// <summary>
-	/// Base implementation of application settings. This is thread-safe class.
+	/// Base implementation of <see cref="ISettings"/> which can be loaded/saved from/to file. This is thread-safe class.
 	/// </summary>
-	public abstract class BaseSettings
+	public abstract class PersistentSettings : ISettings
 	{
 		// Fields.
 		readonly object eventLock = new object();
@@ -18,29 +19,38 @@ namespace CarinaStudio.Configuration
 		readonly ISettingsSerializer serializer;
 		volatile EventHandler<SettingChangedEventArgs>? settingChanged;
 		volatile EventHandler<SettingChangingEventArgs>? settingChanging;
-		readonly Dictionary<SettingKey, object> values;
+		readonly Dictionary<SettingKey, object> values = new Dictionary<SettingKey, object>();
 
 
 		/// <summary>
-		/// Initialize new <see cref="BaseSettings"/> instance.
+		/// Initialize new <see cref="PersistentSettings"/> instance.
 		/// </summary>
 		/// <param name="serializer">Settings serializer.</param>
-		protected BaseSettings(ISettingsSerializer serializer)
+		protected PersistentSettings(ISettingsSerializer serializer)
 		{
 			this.serializer = serializer;
-			this.values = new Dictionary<SettingKey, object>();
 		}
 
 
 		/// <summary>
-		/// Initialize new <see cref="BaseSettings"/> instance.
+		/// Initialize new <see cref="PersistentSettings"/> instance.
 		/// </summary>
 		/// <param name="template">Template settings to initialize values.</param>
 		/// <param name="serializer">Settings serializer.</param>
-		protected BaseSettings(BaseSettings template, ISettingsSerializer serializer)
+		protected PersistentSettings(ISettings template, ISettingsSerializer serializer)
 		{
 			this.serializer = serializer;
-			this.values = new Dictionary<SettingKey, object>(template.values);
+			if (template is PersistentSettings persistentSettings)
+				this.values.AddAll(persistentSettings.values);
+			else
+			{
+				foreach (var key in template.Keys)
+				{
+					var value = template.GetRawValue(key);
+					if (value != null)
+						this.values[key] = value;
+				}
+			}
 		}
 
 
@@ -54,32 +64,6 @@ namespace CarinaStudio.Configuration
 			values.TryGetValue(key, out var rawValue);
 			return rawValue;
 		});
-
-
-		/// <summary>
-		/// Get setting value as type specified by key, or get default value.
-		/// </summary>
-		/// <param name="key">Key of setting.</param>
-		/// <returns>Setting value, or default value.</returns>
-		[Obsolete("Try using generic GetValueOrDefault() instead, unless you don't know the type of value.")]
-		public object GetValueOrDefault(SettingKey key)
-		{
-			var rawValue = this.GetRawValue(key);
-			if (rawValue != null && key.ValueType.IsAssignableFrom(rawValue.GetType()))
-				return rawValue;
-			return key.DefaultValue;
-		}
-
-
-#pragma warning disable CS0618
-		/// <summary>
-		/// Get setting value as type specified by key, or get default value.
-		/// </summary>
-		/// <typeparam name="T">Type of value.</typeparam>
-		/// <param name="key">Key of setting.</param>
-		/// <returns>Setting value, or default value.</returns>
-		public T GetValueOrDefault<T>(SettingKey<T> key) => (T)this.GetValueOrDefault((SettingKey)key);
-#pragma warning restore CS0618
 
 
 		/// <summary>
@@ -179,22 +163,6 @@ namespace CarinaStudio.Configuration
 		/// </summary>
 		/// <param name="oldVersion">Old version to upgrade from.</param>
 		protected abstract void OnUpgrade(int oldVersion);
-
-
-		/// <summary>
-		/// Reset all values to default.
-		/// </summary>
-		public void ResetValues() => this.ResetValues(this.Keys);
-
-
-		/// <summary>
-		/// Reset specific set of values to default.
-		/// </summary>
-		public void ResetValues(IEnumerable<SettingKey> keys)
-		{
-			foreach (var key in this.Keys)
-				this.ResetValue(key);
-		}
 
 
 #pragma warning disable CS0618
@@ -356,33 +324,10 @@ namespace CarinaStudio.Configuration
 		}
 
 
-#pragma warning disable CS8604, CS0618
-		/// <summary>
-		/// Set value of setting.
-		/// </summary>
-		/// <typeparam name="T">Type of value.</typeparam>
-		/// <param name="key">Key og setting.</param>
-		/// <param name="value">New value.</param>
-		public void SetValue<T>(SettingKey<T> key, T value) => this.SetValue((SettingKey)key, value);
-#pragma warning restore CS8604, CS0618
-
-
-		/// <summary>
-		/// Check whether type of value of given setting is correct or not. You can get raw value by calling <see cref="GetRawValue(SettingKey)"/> if type is incorrect.
-		/// </summary>
-		/// <param name="key">Key of setting.</param>
-		/// <returns>True if type of value of given setting is correct.</returns>
-		public bool VerifyValue(SettingKey key)
-		{
-			var rawValue = this.GetRawValue(key);
-			return rawValue == null || key.ValueType.IsAssignableFrom(rawValue.GetType());
-		}
-
-
 		/// <summary>
 		/// Get version of settings.
 		/// </summary>
-		protected abstract int Version { get; }
+		public abstract int Version { get; }
 	}
 
 
@@ -575,7 +520,7 @@ namespace CarinaStudio.Configuration
 
 
 	/// <summary>
-	/// Metadata of <see cref="BaseSettings"/>.
+	/// Metadata of <see cref="PersistentSettings"/>.
 	/// </summary>
 	public class SettingsMetadata
 	{

@@ -54,6 +54,7 @@ namespace CarinaStudio.ViewModels
 			this.Id = Interlocked.Increment(ref nextId);
 			this.Logger = app.LoggerFactory.CreateLogger($"{this.GetType().Name}-{this.Id}");
 			this.OwnedViewModels = this.ownedViewModels.AsReadOnly();
+			this.PersistentState = app.PersistentState;
 			this.Settings = app.Settings;
 
 			// attach to application
@@ -276,15 +277,21 @@ namespace CarinaStudio.ViewModels
 
 
 		/// <summary>
+		/// Get persistent application state.
+		/// </summary>
+		protected ISettings PersistentState { get; private set; }
+
+
+		/// <summary>
 		/// Raised when property changed.
 		/// </summary>
 		public event PropertyChangedEventHandler? PropertyChanged;
 
 
 		/// <summary>
-		/// Get application settings.
+		/// Get application user settings.
 		/// </summary>
-		protected BaseSettings Settings { get; private set; }
+		protected ISettings Settings { get; private set; }
 
 
 		/// <summary>

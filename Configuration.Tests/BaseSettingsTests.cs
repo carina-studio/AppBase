@@ -3,11 +3,11 @@ using System;
 
 namespace CarinaStudio.Configuration
 {
+#pragma warning disable CS0618
 	/// <summary>
-	/// Tests of <see cref="BaseSettings"/>.
+	/// Tests of <see cref="ISettings"/>.
 	/// </summary>
-	[TestFixture]
-	class BaseSettingsTests
+	abstract class BaseSettingsTests
 	{
 		/// <summary>
 		/// Test for copying settings.
@@ -16,7 +16,7 @@ namespace CarinaStudio.Configuration
 		public void CopyingTest()
 		{
 			// prepare base settings
-			var baseSettings = new TestSettings(1, JsonSettingsSerializer.Default);
+			var baseSettings = this.CreateSettings();
 			foreach (var key in TestSettings.AllKeys)
 			{
 				if (!TestSettings.TestValues.TryGetValue(key, out var value))
@@ -27,7 +27,7 @@ namespace CarinaStudio.Configuration
 			}
 
 			// copy settings
-			var copiedSettings = new TestSettings(baseSettings, JsonSettingsSerializer.Default);
+			var copiedSettings = this.CreateSettings(baseSettings);
 			foreach (var key in TestSettings.AllKeys)
 			{
 				var baseValue = baseSettings.GetValueOrDefault(key);
@@ -45,13 +45,21 @@ namespace CarinaStudio.Configuration
 
 
 		/// <summary>
+		/// Create settings instance.
+		/// </summary>
+		/// <param name="template">Template to copy initial values from.</param>
+		/// <returns><see cref=" ISettings"/>.</returns>
+		protected abstract ISettings CreateSettings(ISettings? template = null);
+
+
+		/// <summary>
 		/// Test for default values.
 		/// </summary>
 		[Test]
 		public void DefaultValuesTest()
 		{
 			// prepare
-			var settings = new TestSettings(1, JsonSettingsSerializer.Default);
+			var settings = this.CreateSettings();
 
 			// check all values
 			foreach (var key in TestSettings.AllKeys)
@@ -89,7 +97,7 @@ namespace CarinaStudio.Configuration
 		public void EventsTest()
 		{
 			// prepare
-			var settings = new TestSettings(1, JsonSettingsSerializer.Default);
+			var settings = this.CreateSettings();
 			var settingChangedEventArgs = (SettingChangedEventArgs?)null;
 			var settingChangingEventArgs = (SettingChangingEventArgs?)null;
 			settings.SettingChanged += (_, e) => settingChangedEventArgs = e;
@@ -119,4 +127,5 @@ namespace CarinaStudio.Configuration
 			Assert.IsNull(settingChangedEventArgs, "Should not receive SettingChanged event.");
 		}
 	}
+#pragma warning restore CS0618
 }

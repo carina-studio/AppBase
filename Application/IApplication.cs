@@ -48,15 +48,21 @@ namespace CarinaStudio
 
 
 		/// <summary>
+		/// Get default <see cref="ISettings"/> to keep persistent state of application.
+		/// </summary>
+		ISettings PersistentState { get; }
+
+
+		/// <summary>
 		/// Path to root of private directory which is suitable to be accessed by this application.
 		/// </summary>
 		string RootPrivateDirectoryPath { get; }
 
 
 		/// <summary>
-		/// Get default application level settings.
+		/// Get default application level user settings.
 		/// </summary>
-		BaseSettings Settings { get; }
+		ISettings Settings { get; }
 
 
 		/// <summary>

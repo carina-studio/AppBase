@@ -5,9 +5,9 @@ using System.Linq;
 namespace CarinaStudio.Configuration
 {
 	/// <summary>
-	/// Implementation of <see cref="BaseSettings"/> for tests.
+	/// Implementation of <see cref="PersistentSettings"/> for tests.
 	/// </summary>
-	class TestSettings : BaseSettings
+	class TestSettings : PersistentSettings
 	{
 		// Keys.
 		public static readonly SettingKey<bool> BooleanKey = new SettingKey<bool>(nameof(BooleanKey), true);
@@ -89,7 +89,7 @@ namespace CarinaStudio.Configuration
 		{
 			this.Version = version;
 		}
-		public TestSettings(TestSettings template, ISettingsSerializer serializer) : base(template, serializer)
+		public TestSettings(ISettings template, ISettingsSerializer serializer) : base(template, serializer)
 		{
 			this.Version = template.Version;
 		}
@@ -104,6 +104,6 @@ namespace CarinaStudio.Configuration
 
 
 		// Version.
-		protected override int Version { get; }
+		public override int Version { get; }
 	}
 }

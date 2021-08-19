@@ -4,9 +4,9 @@ using System;
 namespace CarinaStudio
 {
 	/// <summary>
-	/// Test implementation of <see cref="BaseSettings"/>.
+	/// Test implementation of <see cref="PersistentSettings"/>.
 	/// </summary>
-	class TestSettings : BaseSettings
+	class TestSettings : PersistentSettings
 	{
 		// Keys.
 		public static readonly SettingKey<int> Int32 = new SettingKey<int>("Int32");

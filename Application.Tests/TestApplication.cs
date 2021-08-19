@@ -48,7 +48,7 @@ namespace CarinaStudio
 		public ILoggerFactory LoggerFactory { get; }
 		public event PropertyChangedEventHandler? PropertyChanged;
 		public string RootPrivateDirectoryPath => Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName).AsNonNull();
-		public BaseSettings Settings { get; }
+		public PersistentSettings Settings { get; }
 		public event EventHandler? StringsUpdated;
 		public SynchronizationContext SynchronizationContext { get; }
 	}
