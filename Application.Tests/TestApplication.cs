@@ -13,12 +13,12 @@ namespace CarinaStudio
 	/// <summary>
 	/// Test implementation of <see cref="IApplication"/>.
 	/// </summary>
-	class TestApplication : IApplication
+	public class TestApplication : IApplication
 	{
 		// String key.
-		public const string FormatString = "Test string {0}";
-		public const string FormatStringKey = "FormatString";
-		public const string InvalidStringKey = "Invalid";
+		internal const string FormatString = "Test string {0}";
+		internal const string FormatStringKey = "FormatString";
+		internal const string InvalidStringKey = "Invalid";
 
 
 		// Fields.

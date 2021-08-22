@@ -228,6 +228,10 @@ namespace CarinaStudio.AutoUpdate
 			if (this.state != UpdaterComponentState.Initializing)
 				return false;
 
+			// check parameters
+			if (!this.ValidateParametersToStart())
+				return false;
+
 			// update state
 			if (!this.ChangeState(UpdaterComponentState.Started))
 				return false;
@@ -248,6 +252,13 @@ namespace CarinaStudio.AutoUpdate
 		/// Get <see cref="SynchronizationContext"/>.
 		/// </summary>
 		public SynchronizationContext SynchronizationContext => this.Application.SynchronizationContext;
+
+
+		/// <summary>
+		/// Validate parameters to start performing operation.
+		/// </summary>
+		/// <returns>True if all parameters are valid.</returns>
+		protected virtual bool ValidateParametersToStart() => true;
 
 
 		/// <summary>
