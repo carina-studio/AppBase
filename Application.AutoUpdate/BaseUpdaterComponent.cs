@@ -14,6 +14,7 @@ namespace CarinaStudio.AutoUpdate
 		// Fields.
 		readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 		double progress = double.NaN;
+		UpdaterComponentState state = UpdaterComponentState.Initializing;
 
 
 		/// <summary>
@@ -42,20 +43,34 @@ namespace CarinaStudio.AutoUpdate
 			// check state
 			this.VerifyAccess();
 			this.VerifyDisposed();
-			if (!this.IsStarted || this.IsCompletedOrCancelled)
-				return false;
-			if (this.cancellationTokenSource.IsCancellationRequested)
-				return true;
-			if (!this.IsCancellable)
-				return false;
+			switch (this.state)
+			{
+				case UpdaterComponentState.Started:
+					break;
+				case UpdaterComponentState.Cancelling:
+				case UpdaterComponentState.Cancelled:
+					return true;
+				default:
+					return false;
+			}
 
 			// update state
-			this.IsCancellable = false;
-			this.OnPropertyChanged(nameof(IsCancellable));
+			this.ChangeState(UpdaterComponentState.Cancelling);
 
 			// cancel
 			this.cancellationTokenSource.Cancel();
 			return true;
+		}
+
+
+		// Change state.
+		bool ChangeState(UpdaterComponentState state)
+		{
+			if (this.state == state)
+				return true;
+			this.state = state;
+			this.OnPropertyChanged(nameof(State));
+			return (this.state == state);
 		}
 
 
@@ -78,6 +93,10 @@ namespace CarinaStudio.AutoUpdate
 
 			// cancel operation
 			this.cancellationTokenSource.Cancel();
+
+			// change state
+			if (disposing)
+				this.ChangeState(UpdaterComponentState.Disposed);
 		}
 
 
@@ -85,24 +104,6 @@ namespace CarinaStudio.AutoUpdate
 		/// Get <see cref="Exception"/> occurred when performing operation.
 		/// </summary>
 		public Exception? Exception { get; private set; }
-
-
-		/// <summary>
-		/// Check whether operation performed by this component is cancellable or not.
-		/// </summary>
-		public bool IsCancellable { get; private set; } = false;
-
-
-		/// <summary>
-		/// Check whether operation performed by this component is completed/cancelled or not.
-		/// </summary>
-		public bool IsCompletedOrCancelled { get; private set; }
-
-
-		/// <summary>
-		/// Check whether operation performed by this component has been started or not.
-		/// </summary>
-		public bool IsStarted { get; private set; }
 
 
 		/// <summary>
@@ -116,13 +117,12 @@ namespace CarinaStudio.AutoUpdate
 				this.Exception = ex;
 				this.OnPropertyChanged(nameof(Exception));
 			}
-			if (this.IsCancellable)
-			{
-				this.IsCancellable = false;
-				this.OnPropertyChanged(nameof(IsCancellable));
-			}
-			this.IsCompletedOrCancelled = true;
-			this.OnPropertyChanged(nameof(IsCompletedOrCancelled));
+			if (this.state == UpdaterComponentState.Cancelling)
+				this.ChangeState(UpdaterComponentState.Cancelled);
+			else if (ex == null)
+				this.ChangeState(UpdaterComponentState.Succeeded);
+			else
+				this.ChangeState(UpdaterComponentState.Failed);
 		}
 
 
@@ -149,8 +149,13 @@ namespace CarinaStudio.AutoUpdate
 			}
 			finally
 			{
-				if (this.IsStarted && !this.IsCompletedOrCancelled && !this.IsDisposed)
-					this.OnCompletedOrCancelled(exception);
+				switch(this.state)
+				{
+					case UpdaterComponentState.Started:
+					case UpdaterComponentState.Cancelling:
+						this.OnCompletedOrCancelled(exception);
+						break;
+				}
 			}
 		}
 
@@ -187,8 +192,14 @@ namespace CarinaStudio.AutoUpdate
 				this.SynchronizationContext.Post(() => this.ReportProgress(progress));
 				return;
 			}
-			if (!this.IsStarted || this.IsCompletedOrCancelled || this.IsDisposed)
-				return;
+			switch (this.state)
+			{
+				case UpdaterComponentState.Started:
+				case UpdaterComponentState.Cancelling:
+					break;
+				default:
+					return;
+			}
 			if (double.IsNaN(progress))
 			{
 				if (double.IsNaN(this.progress))
@@ -214,14 +225,12 @@ namespace CarinaStudio.AutoUpdate
 			// check state
 			this.VerifyAccess();
 			this.VerifyDisposed();
-			if (this.IsStarted)
-				return !this.IsCompletedOrCancelled && !this.cancellationTokenSource.IsCancellationRequested;
+			if (this.state != UpdaterComponentState.Initializing)
+				return false;
 
 			// update state
-			this.IsStarted = true;
-			this.OnPropertyChanged(nameof(IsStarted));
-			this.IsCancellable = true;
-			this.OnPropertyChanged(nameof(IsCancellable));
+			if (!this.ChangeState(UpdaterComponentState.Started))
+				return false;
 
 			// perform operation
 			this.PerformOperation();
@@ -230,8 +239,24 @@ namespace CarinaStudio.AutoUpdate
 
 
 		/// <summary>
+		/// Get current state.
+		/// </summary>
+		public UpdaterComponentState State { get => this.state; }
+
+
+		/// <summary>
 		/// Get <see cref="SynchronizationContext"/>.
 		/// </summary>
 		public SynchronizationContext SynchronizationContext => this.Application.SynchronizationContext;
+
+
+		/// <summary>
+		/// Throw <see cref="InvalidOperationException"/> if current state is not <see cref="UpdaterComponentState.Initializing"/>.
+		/// </summary>
+		protected void VerifyInitializing()
+		{
+			if (this.state != UpdaterComponentState.Initializing)
+				throw new InvalidOperationException($"Cannot perform oprtation when state is {this.state}.");
+		}
 	}
 }

@@ -22,24 +22,6 @@ namespace CarinaStudio.AutoUpdate
 
 
 		/// <summary>
-		/// Check whether operation performed by this component is cancellable or not.
-		/// </summary>
-		bool IsCancellable { get; }
-
-
-		/// <summary>
-		/// Check whether operation performed by this component is completed/cancelled or not.
-		/// </summary>
-		bool IsCompletedOrCancelled { get; }
-
-
-		/// <summary>
-		/// Check whether operation performed by this component has been started or not.
-		/// </summary>
-		bool IsStarted { get; }
-
-
-		/// <summary>
 		/// Get progress of operation performed by this component. The range is [0.0, 1.0] or <see cref="double.NaN"/> if progress is unknown.
 		/// </summary>
 		double Progress { get; }
@@ -50,5 +32,47 @@ namespace CarinaStudio.AutoUpdate
 		/// </summary>
 		/// <returns>True if operation started successfully.</returns>
 		bool Start();
+
+
+		/// <summary>
+		/// Get current state.
+		/// </summary>
+		UpdaterComponentState State { get; }
+	}
+
+
+	/// <summary>
+	/// State of <see cref="IUpdaterComponent"/>.
+	/// </summary>
+	public enum UpdaterComponentState
+	{
+		/// <summary>
+		/// Initializing.
+		/// </summary>
+		Initializing,
+		/// <summary>
+		/// Started.
+		/// </summary>
+		Started,
+		/// <summary>
+		/// Cancelling.
+		/// </summary>
+		Cancelling,
+		/// <summary>
+		/// Cancelled.
+		/// </summary>
+		Cancelled,
+		/// <summary>
+		/// Failed.
+		/// </summary>
+		Failed,
+		/// <summary>
+		/// Succeeded.
+		/// </summary>
+		Succeeded,
+		/// <summary>
+		/// Disposed.
+		/// </summary>
+		Disposed,
 	}
 }
