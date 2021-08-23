@@ -77,5 +77,28 @@ namespace CarinaStudio.IO
 			else if (!isReadable)
 				throw new AssertionException("Neither read nor write is supported by provider.");
 		}
+
+
+		/// <summary>
+		/// Test for <see cref="System.IO.Stream.Length"/>.
+		/// </summary>
+		[Test]
+		public async Task StreamLengthTest()
+		{
+			// prepare
+			var data = this.GenerateRandomData();
+			var provider = this.CreateInstance(data);
+
+			// check length reported by stream
+			using var stream = await provider.OpenStreamAsync(StreamAccess.Read);
+			var dataFromStream = stream.ReadAllBytes();
+			Assert.IsTrue(data.SequenceEqual(dataFromStream));
+			try
+			{
+				Assert.AreEqual(data.Length, stream.Length);
+			}
+			catch (NotSupportedException)
+			{ }
+		}
 	}
 }
