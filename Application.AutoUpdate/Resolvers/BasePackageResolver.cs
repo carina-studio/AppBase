@@ -1,4 +1,5 @@
-﻿using CarinaStudio.Threading;
+﻿using CarinaStudio.IO;
+using CarinaStudio.Threading;
 using System;
 
 namespace CarinaStudio.AutoUpdate.Resolvers
@@ -10,7 +11,6 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 	{
 		// Fields.
 		string? applicationName;
-		Uri? packageManifestUri;
 		Uri? packageUri;
 		Version? packageVersion;
 		Uri? pageUri;
@@ -19,9 +19,13 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 		/// <summary>
 		/// Initialize new <see cref="BasePackageResolver"/> instance.
 		/// </summary>
-		/// <param name="app">Application.</param>
-		public BasePackageResolver(IApplication app) : base(app)
-		{ }
+		/// <param name="streamProvider"><see cref="IStreamProvider"/> to provide data.</param>
+		public BasePackageResolver(IStreamProvider streamProvider)
+		{
+			if (streamProvider == null)
+				throw new ArgumentNullException(nameof(streamProvider));
+			this.StreamProvider = streamProvider;
+		}
 
 
 		/// <summary>
@@ -37,25 +41,6 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					return;
 				this.applicationName = value;
 				this.OnPropertyChanged(nameof(ApplicationName));
-			}
-		}
-
-
-		/// <summary>
-		/// Get or set URI to get package manifest to resolve.
-		/// </summary>
-		public Uri? PackageManifestUri
-		{
-			get => this.packageManifestUri;
-			set
-			{
-				this.VerifyAccess();
-				this.VerifyDisposed();
-				this.VerifyInitializing();
-				if (this.packageManifestUri == value)
-					return;
-				this.packageManifestUri = value;
-				this.OnPropertyChanged(nameof(PackageManifestUri));
 			}
 		}
 
@@ -112,12 +97,18 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 
 
 		/// <summary>
+		/// Get <see cref="IStreamProvider"/> to read data from.
+		/// </summary>
+		protected IStreamProvider StreamProvider { get; }
+
+
+		/// <summary>
 		/// Validate parameters to start performing operation.
 		/// </summary>
 		/// <returns>True if all parameters are valid.</returns>
 		protected override bool ValidateParametersToStart()
 		{
-			return base.ValidateParametersToStart() && this.packageManifestUri != null;
+			return base.ValidateParametersToStart() && this.StreamProvider.CanOpenRead();
 		}
 	}
 }

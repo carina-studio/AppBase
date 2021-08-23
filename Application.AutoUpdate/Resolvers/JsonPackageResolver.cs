@@ -1,6 +1,5 @@
-﻿using CarinaStudio.Threading;
+﻿using CarinaStudio.IO;
 using System;
-using System.Net;
 using System.Runtime.InteropServices;
 #if !NETSTANDARD
 using System.Text.Json;
@@ -19,8 +18,8 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 		/// <summary>
 		/// Initialize new <see cref="JsonPackageResolver"/> instance.
 		/// </summary>
-		/// <param name="app">Application.</param>
-		public JsonPackageResolver(IApplication app) : base(app)
+		/// <param name="streamProvider"><see cref="IStreamProvider"/> to provide data in JSON format.</param>
+		public JsonPackageResolver(IStreamProvider streamProvider) : base(streamProvider)
 		{ }
 
 
@@ -29,21 +28,20 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 		/// </summary>
 		/// <param name="cancellationToken">Cancellation token.</param>
 		/// <returns>Task of performing operation.</returns>
-		protected override Task PerformOperationAsync(CancellationToken cancellationToken) => Task.Run(() =>
+		protected override async Task PerformOperationAsync(CancellationToken cancellationToken)
 		{
-			// download JSON data
-			using var response = WebRequest.Create(this.PackageManifestUri.AsNonNull()).GetResponse();
-			using var jsonDocument = response.GetResponseStream().Use(stream => JsonDocument.Parse(stream));
+			// get JSON data
+			using var stream = await this.StreamProvider.OpenStreamAsync(StreamAccess.Read, cancellationToken);
+			using var jsonDocument = JsonDocument.Parse(stream);
 			var rootObject = jsonDocument.RootElement;
 			if (rootObject.ValueKind != JsonValueKind.Object)
-				throw new ArgumentException("Root element is not an object.");
+				throw new JsonException("Root element is not an object.");
 
 			// get application name
 			if (rootObject.TryGetProperty("Name", out var jsonValue)
 				&& jsonValue.ValueKind == JsonValueKind.String)
 			{
-				var appName = jsonValue.GetString();
-				this.SynchronizationContext.Post(() => this.ApplicationName = appName);
+				this.ApplicationName = jsonValue.GetString();
 			}
 
 			// get version
@@ -51,15 +49,15 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 				&& jsonValue.ValueKind == JsonValueKind.String
 				&& Version.TryParse(jsonValue.GetString().AsNonNull(), out var version))
 			{
-				this.SynchronizationContext.Post(() => this.PackageVersion = version);
+				this.PackageVersion = version;
 			}
 
 			// get page URI
-			if (rootObject.TryGetProperty("ReleasePageUrl", out jsonValue)
+			if (rootObject.TryGetProperty("PageUri", out jsonValue)
 				&& jsonValue.ValueKind == JsonValueKind.String
 				&& Uri.TryCreate(jsonValue.GetString().AsNonNull(), UriKind.Absolute, out var pageUri))
 			{
-				this.SynchronizationContext.Post(() => this.PageUri = pageUri);
+				this.PageUri = pageUri;
 			}
 
 			// check platform
@@ -75,7 +73,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 			});
 			if (string.IsNullOrEmpty(osName))
 				throw new ArgumentException("Unknown operating system.");
-			var platformName = RuntimeInformation.ProcessArchitecture.ToString();
+			var archName = RuntimeInformation.ProcessArchitecture.ToString();
 
 			// find package URI
 			if (!rootObject.TryGetProperty("Packages", out var jsonPackageListElement))
@@ -90,7 +88,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					continue;
 
 				// get package URI
-				if (!jsonPackageElement.TryGetProperty("Url", out jsonValue)
+				if (!jsonPackageElement.TryGetProperty("Uri", out jsonValue)
 					|| jsonValue.ValueKind != JsonValueKind.String
 					|| !Uri.TryCreate(jsonValue.GetString().AsNonNull(), UriKind.Absolute, out var packageUri))
 				{
@@ -98,26 +96,26 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 				}
 
 				// check OS
-				if (!jsonPackageElement.TryGetProperty("OS", out jsonValue))
+				if (!jsonPackageElement.TryGetProperty("OperatingSystem", out jsonValue))
 					genericPackageUri = packageUri;
 				else if (jsonValue.GetString() != osName)
 					continue;
 
-				// check platform
-				if (!jsonPackageElement.TryGetProperty("Platform", out jsonValue))
+				// check CPU architecture
+				if (!jsonPackageElement.TryGetProperty("Architecture", out jsonValue))
 					genericPackageUri = packageUri;
-				else if (jsonValue.GetString() != platformName)
+				else if (jsonValue.GetString() != archName)
 					continue;
 
 				// package found
-				this.SynchronizationContext.Post(() => this.PackageUri = packageUri);
+				this.PackageUri = packageUri;
 				return;
 			}
 			if (genericPackageUri != null)
-				this.SynchronizationContext.Post(() => this.PackageUri = genericPackageUri);
+				this.PackageUri = genericPackageUri;
 			else
 				throw new ArgumentException("Package URI not found.");
-		});
+		}
 	}
 #endif
 }

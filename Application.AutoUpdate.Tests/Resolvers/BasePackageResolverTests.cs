@@ -1,12 +1,9 @@
 ﻿using CarinaStudio.Tests;
-using CarinaStudio.Threading;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
-using System.Net;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading;
+using System.Threading.Tasks;
 
 namespace CarinaStudio.AutoUpdate.Resolvers
 {
@@ -21,13 +18,13 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 		public struct PackageInfo
 		{
 			/// <summary>
+			/// Get or set CPU architecture.
+			/// </summary>
+			public Architecture? Architecture { get; set; }
+			/// <summary>
 			/// Get or set operating system.
 			/// </summary>
 			public string? OperatingSystem { get; set; }
-			/// <summary>
-			/// Get or set platform.
-			/// </summary>
-			public Architecture? Platform { get; set; }
 			/// <summary>
 			/// Get or set URI of package.
 			/// </summary>
@@ -35,27 +32,81 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 		}
 
 
-		// Fields.
-		HttpListener? httpListener;
-		volatile string? httpResponseContent;
+		/// <summary>
+		/// Test for cancellation.
+		/// </summary>
+		[Test]
+		public void CancellationTest()
+		{
+			this.TestOnApplicationThread(async () =>
+			{
+				// prepare
+				this.GetEnvironment(out var osName, out var architecture);
+				var appName = Tests.Random.GenerateRandomString(8);
+				var version = new Version(1, 2, 3, 4);
+				var pageUri = new Uri("https://localhost/Package.htm");
+				var expectedPackageUri = new Uri($"https://localhost/packages/{osName}-{architecture}.zip");
+				var packageInfos = new List<PackageInfo>()
+				{
+					new PackageInfo()
+					{
+						Architecture = architecture,
+						OperatingSystem = osName,
+						Uri = expectedPackageUri,
+					},
+				};
+				var packageManifest = this.GeneratePackageManifest(appName, version, pageUri, packageInfos);
+
+				// cancel before resolving completed
+				using (var packageResolver = this.CreateInstance(packageManifest))
+				{
+					Assert.IsTrue(packageResolver.Start());
+					Assert.AreEqual(UpdaterComponentState.Started, packageResolver.State);
+					Assert.IsTrue(packageResolver.Cancel());
+					Assert.AreEqual(UpdaterComponentState.Cancelling, packageResolver.State);
+					Assert.IsTrue(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Cancelled, 10000));
+				}
+
+				// cancel after resolving completed
+				using (var packageResolver = this.CreateInstance(packageManifest))
+				{
+					Assert.IsTrue(packageResolver.Start());
+					Assert.AreEqual(UpdaterComponentState.Started, packageResolver.State);
+					Assert.IsTrue(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Succeeded, 10000));
+					Assert.IsFalse(packageResolver.Cancel());
+					Assert.AreEqual(UpdaterComponentState.Succeeded, packageResolver.State);
+				}
+
+				// cancel randomly when resolving
+				for (var t = 0; t < 100; ++t)
+				{
+					using (var packageResolver = this.CreateInstance(packageManifest))
+					{
+						Assert.IsTrue(packageResolver.Start());
+						Assert.AreEqual(UpdaterComponentState.Started, packageResolver.State);
+						await Task.Delay(Tests.Random.Next(100));
+						if (packageResolver.Cancel())
+						{
+							Assert.AreEqual(UpdaterComponentState.Cancelling, packageResolver.State);
+							Assert.IsTrue(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Cancelled, 10000));
+						}
+						else
+						{
+							Assert.AreNotEqual(UpdaterComponentState.Cancelling, packageResolver.State);
+							Assert.IsTrue(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Succeeded, 10000));
+						}
+					}
+				}
+			});
+		}
 
 
 		/// <summary>
 		/// Create <see cref="IPackageResolver"/> instance.
 		/// </summary>
-		/// <param name="app">Application.</param>
+		/// <param name="packageManifest">Package manifest.</param>
 		/// <returns><see cref="IPackageResolver"/>.</returns>
-		protected abstract IPackageResolver CreateInstance(IApplication app);
-
-
-		/// <summary>
-		/// Release HTTP server for testing.
-		/// </summary>
-		[OneTimeTearDown]
-		public void DisposeHttpListener()
-		{
-			this.httpListener?.Stop();
-		}
+		protected abstract IPackageResolver CreateInstance(string packageManifest);
 
 
 		/// <summary>
@@ -67,6 +118,23 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 		/// <param name="packageInfos">Package info list.</param>
 		/// <returns></returns>
 		protected abstract string GeneratePackageManifest(string? appName, Version? version, Uri? pageUri, IList<PackageInfo> packageInfos);
+
+
+		// Get operating system and CPU architecture of current environment.
+		void GetEnvironment(out string osName, out Architecture architecure)
+		{
+			osName = Global.Run(() =>
+			{
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+					return nameof(OSPlatform.Windows);
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+					return nameof(OSPlatform.Linux);
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+					return nameof(OSPlatform.OSX);
+				throw new AssertionException("Unknown operating system.");
+			});
+			architecure = RuntimeInformation.ProcessArchitecture;
+		}
 
 
 		/// <summary>
@@ -85,164 +153,95 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 				{
 					new PackageInfo()
 					{
+						Architecture = Architecture.X86,
 						OperatingSystem = "Windows",
-						Platform = Architecture.X86,
 						Uri = new Uri("https://localhost/packages/Windows-X86.zip"),
 					},
 					new PackageInfo()
 					{
+						Architecture = Architecture.X64,
 						OperatingSystem = "Windows",
-						Platform = Architecture.X64,
 						Uri = new Uri("https://localhost/packages/Windows-X64.zip"),
 					},
 					new PackageInfo()
 					{
+						Architecture = Architecture.X64,
 						OperatingSystem = "Linux",
-						Platform = Architecture.X64,
 						Uri = new Uri("https://localhost/packages/Linux-X64.zip"),
 					},
 					new PackageInfo()
 					{
+						Architecture = Architecture.Arm64,
 						OperatingSystem = "Linux",
-						Platform = Architecture.Arm64,
 						Uri = new Uri("https://localhost/packages/Linux-Arm64.zip"),
 					},
 					new PackageInfo()
 					{
+						Architecture = Architecture.X64,
 						OperatingSystem = "OSX",
-						Platform = Architecture.X64,
 						Uri = new Uri("https://localhost/packages/OSX-X64.zip"),
 					},
 				};
 
 				// check current operating system and platform
-				var osName = Global.Run(() =>
-				{
-					if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-						return nameof(OSPlatform.Windows);
-					if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-						return nameof(OSPlatform.Linux);
-					if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-						return nameof(OSPlatform.OSX);
-					throw new AssertionException("Unknown operating system.");
-				});
-				var platformName = RuntimeInformation.ProcessArchitecture.ToString();
-				var expectedPackageUri = new Uri($"https://localhost/packages/{osName}-{platformName}.zip");
+				this.GetEnvironment(out var osName, out var architecture);
+				var expectedPackageUri = new Uri($"https://localhost/packages/{osName}-{architecture}.zip");
 
 				// resolve package info
-				this.httpResponseContent = this.GeneratePackageManifest(appName, version, pageUri, packageInfos);
-				using (var packageResolver = this.CreateInstance(this.Application))
+				var packageManifest = this.GeneratePackageManifest(appName, version, pageUri, packageInfos);
+				using (var packageResolver = this.CreateInstance(packageManifest))
 				{
-					packageResolver.PackageManifestUri = new Uri("http://localhost:9521/PackageInfo");
 					Assert.IsTrue(packageResolver.Start());
 					Assert.IsTrue(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Succeeded, 10000));
-					Assert.AreEqual(appName, packageResolver.ApplicationName);
-					Assert.AreEqual(version, packageResolver.PackageVersion);
-					Assert.AreEqual(pageUri, packageResolver.PageUri);
 					Assert.IsNull(packageResolver.Exception);
-					Assert.AreEqual(expectedPackageUri, packageResolver.PackageUri);
+					this.VerifyResolvedPackage(packageResolver, appName, version, pageUri, expectedPackageUri);
 				}
 
 				// resolve package info without application name
-				this.httpResponseContent = this.GeneratePackageManifest(null, version, pageUri, packageInfos);
-				using (var packageResolver = this.CreateInstance(this.Application))
+				packageManifest = this.GeneratePackageManifest(null, version, pageUri, packageInfos);
+				using (var packageResolver = this.CreateInstance(packageManifest))
 				{
-					packageResolver.PackageManifestUri = new Uri("http://localhost:9521/PackageInfo");
 					Assert.IsTrue(packageResolver.Start());
 					Assert.IsTrue(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Succeeded, 10000));
-					Assert.IsNull(packageResolver.ApplicationName);
-					Assert.AreEqual(version, packageResolver.PackageVersion);
-					Assert.AreEqual(pageUri, packageResolver.PageUri);
 					Assert.IsNull(packageResolver.Exception);
-					Assert.AreEqual(expectedPackageUri, packageResolver.PackageUri);
+					this.VerifyResolvedPackage(packageResolver, null, version, pageUri, expectedPackageUri);
 				}
 
 				// resolve package info without version
-				this.httpResponseContent = this.GeneratePackageManifest(appName, null, pageUri, packageInfos);
-				using (var packageResolver = this.CreateInstance(this.Application))
+				packageManifest = this.GeneratePackageManifest(appName, null, pageUri, packageInfos);
+				using (var packageResolver = this.CreateInstance(packageManifest))
 				{
-					packageResolver.PackageManifestUri = new Uri("http://localhost:9521/PackageInfo");
 					Assert.IsTrue(packageResolver.Start());
 					Assert.IsTrue(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Succeeded, 10000));
-					Assert.AreEqual(appName, packageResolver.ApplicationName);
-					Assert.IsNull(packageResolver.PackageVersion);
-					Assert.AreEqual(pageUri, packageResolver.PageUri);
 					Assert.IsNull(packageResolver.Exception);
-					Assert.AreEqual(expectedPackageUri, packageResolver.PackageUri);
-				}
-
-				// resolve package info without page URI
-				this.httpResponseContent = this.GeneratePackageManifest(appName, version, null, packageInfos);
-				using (var packageResolver = this.CreateInstance(this.Application))
-				{
-					packageResolver.PackageManifestUri = new Uri("http://localhost:9521/PackageInfo");
-					Assert.IsTrue(packageResolver.Start());
-					Assert.IsTrue(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Succeeded, 10000));
-					Assert.AreEqual(appName, packageResolver.ApplicationName);
-					Assert.AreEqual(version, packageResolver.PackageVersion);
-					Assert.IsNull(packageResolver.PageUri);
-					Assert.IsNull(packageResolver.Exception);
-					Assert.AreEqual(expectedPackageUri, packageResolver.PackageUri);
+					this.VerifyResolvedPackage(packageResolver, appName, null, pageUri, expectedPackageUri);
 				}
 
 				// resolve package info without package list
-				this.httpResponseContent = this.GeneratePackageManifest(appName, version, pageUri, new PackageInfo[0]);
-				using (var packageResolver = this.CreateInstance(this.Application))
+				packageManifest = this.GeneratePackageManifest(appName, version, pageUri, new PackageInfo[0]);
+				using (var packageResolver = this.CreateInstance(packageManifest))
 				{
-					packageResolver.PackageManifestUri = new Uri("http://localhost:9521/PackageInfo");
 					Assert.IsTrue(packageResolver.Start());
 					Assert.IsTrue(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Failed, 10000));
-					Assert.IsNotNull(packageResolver.Exception);
+				}
+
+				// resolve package info without package manifest content
+				using (var packageResolver = this.CreateInstance(" "))
+				{
+					Assert.IsTrue(packageResolver.Start());
+					Assert.IsTrue(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Failed, 10000));
 				}
 			});
 		}
 
 
-		/// <summary>
-		/// Setup HTTP server for testing.
-		/// </summary>
-		[OneTimeSetUp]
-		public void SetupHttpListener()
+		// Verify fields in resolved package info.
+		void VerifyResolvedPackage(IPackageResolver packageResolver, string? appName, Version? version, Uri? pageUri, Uri? packageUri)
 		{
-			this.httpListener = new HttpListener().Also(it =>
-			{
-				it.Prefixes.Add("http://localhost:9521/");
-			});
-			this.httpListener.Start();
-			ThreadPool.QueueUserWorkItem(_ =>
-			{
-				while (true)
-				{
-					// wait for connection
-					var context = (HttpListenerContext?)null;
-					try
-					{
-						context = this.httpListener.GetContext();
-					}
-					catch
-					{
-						if (this.httpListener?.IsListening != true)
-							break;
-						throw;
-					}
-
-					// prepare response data
-					var responseBuffer = this.httpResponseContent?.Let(it =>
-					{
-						return Encoding.UTF8.GetBytes(it);
-					}) ?? new byte[0];
-
-					// response
-					context.Response.Let(response =>
-					{
-						response.ContentLength64 = responseBuffer.Length;
-						response.ContentEncoding = Encoding.UTF8;
-						using var stream = response.OutputStream;
-						stream.Write(responseBuffer, 0, responseBuffer.Length);
-						stream.Flush();
-					});
-				}
-			});
+			Assert.AreEqual(appName, packageResolver.ApplicationName);
+			Assert.AreEqual(version, packageResolver.PackageVersion);
+			Assert.AreEqual(pageUri, packageResolver.PageUri);
+			Assert.AreEqual(packageUri, packageResolver.PackageUri);
 		}
 	}
 }

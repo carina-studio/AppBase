@@ -15,23 +15,16 @@ namespace CarinaStudio.AutoUpdate
 		readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 		double progress = double.NaN;
 		UpdaterComponentState state = UpdaterComponentState.Initializing;
+		readonly Thread thread;
 
 
 		/// <summary>
 		/// Initialize new <see cref="BaseUpdaterComponent"/> instance.
 		/// </summary>
-		/// <param name="app">Application.</param>
-		protected BaseUpdaterComponent(IApplication app)
+		protected BaseUpdaterComponent()
 		{
-			app.VerifyAccess();
-			this.Application = app;
+			this.thread = Thread.CurrentThread;
 		}
-
-
-		/// <summary>
-		/// Get application instance.
-		/// </summary>
-		public IApplication Application { get; }
 
 
 		/// <summary>
@@ -78,7 +71,7 @@ namespace CarinaStudio.AutoUpdate
 		/// Check whether current thread is the thread which object depends on or not.
 		/// </summary>
 		/// <returns>True if current thread is the thread which object depends on.</returns>
-		public bool CheckAccess() => this.Application.CheckAccess();
+		public bool CheckAccess() => this.thread == Thread.CurrentThread;
 
 
 		/// <summary>
@@ -251,7 +244,7 @@ namespace CarinaStudio.AutoUpdate
 		/// <summary>
 		/// Get <see cref="SynchronizationContext"/>.
 		/// </summary>
-		public SynchronizationContext SynchronizationContext => this.Application.SynchronizationContext;
+		public SynchronizationContext SynchronizationContext { get; } = SynchronizationContext.Current ?? throw new InvalidOperationException("No SynchronizationContext on current thread.");
 
 
 		/// <summary>

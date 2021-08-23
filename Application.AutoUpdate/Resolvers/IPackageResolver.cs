@@ -14,12 +14,6 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 
 
 		/// <summary>
-		/// Get or set URI to get package manifest to resolve.
-		/// </summary>
-		Uri? PackageManifestUri { get; set; }
-
-
-		/// <summary>
 		/// Get resolved URI to download update package.
 		/// </summary>
 		Uri? PackageUri { get; }
