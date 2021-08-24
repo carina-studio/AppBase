@@ -65,17 +65,30 @@ namespace CarinaStudio.AutoUpdate
 		protected void TestOnApplicationThread(Func<Task> action)
 		{
 			var syncLock = new object();
+			var exception = (Exception?)null;
 			lock (syncLock)
 			{
 				this.applicationSyncContext.AsNonNull().Post(async () =>
 				{
-					await action();
-					lock (syncLock)
+					try
 					{
-						Monitor.Pulse(syncLock);
+						await action();
+					}
+					catch (Exception ex)
+					{
+						exception = ex;
+					}
+					finally
+					{
+						lock (syncLock)
+						{
+							Monitor.Pulse(syncLock);
+						}
 					}
 				});
 				Monitor.Wait(syncLock);
+				if (exception != null)
+					throw new AssertionException("Error occured while testing.", exception);
 			}
 		}
 	}

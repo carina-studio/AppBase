@@ -96,20 +96,21 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 				}
 
 				// check OS
-				if (!jsonPackageElement.TryGetProperty("OperatingSystem", out jsonValue))
-					genericPackageUri = packageUri;
-				else if (jsonValue.GetString() != osName)
-					continue;
+				var hasOsProperty = jsonPackageElement.TryGetProperty("OperatingSystem", out jsonValue);
+				var isOsMatched = (hasOsProperty && jsonValue.ValueKind == JsonValueKind.String && jsonValue.GetString() == osName);
 
 				// check CPU architecture
-				if (!jsonPackageElement.TryGetProperty("Architecture", out jsonValue))
-					genericPackageUri = packageUri;
-				else if (jsonValue.GetString() != archName)
-					continue;
+				var hasArchProperty = jsonPackageElement.TryGetProperty("Architecture", out jsonValue);
+				var isArchMatched = (hasArchProperty && jsonValue.ValueKind == JsonValueKind.String && jsonValue.GetString() == archName);
 
-				// package found
-				this.PackageUri = packageUri;
-				return;
+				// select package
+				if (!hasOsProperty && !hasArchProperty)
+					genericPackageUri = packageUri;
+				else if (isOsMatched && isArchMatched)
+				{
+					this.PackageUri = packageUri;
+					return;
+				}
 			}
 			if (genericPackageUri != null)
 				this.PackageUri = genericPackageUri;

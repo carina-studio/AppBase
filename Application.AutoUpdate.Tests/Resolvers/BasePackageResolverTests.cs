@@ -61,7 +61,6 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 				using (var packageResolver = this.CreateInstance(packageManifest))
 				{
 					Assert.IsTrue(packageResolver.Start());
-					Assert.AreEqual(UpdaterComponentState.Started, packageResolver.State);
 					Assert.IsTrue(packageResolver.Cancel());
 					Assert.AreEqual(UpdaterComponentState.Cancelling, packageResolver.State);
 					Assert.IsTrue(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Cancelled, 10000));
@@ -71,7 +70,6 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 				using (var packageResolver = this.CreateInstance(packageManifest))
 				{
 					Assert.IsTrue(packageResolver.Start());
-					Assert.AreEqual(UpdaterComponentState.Started, packageResolver.State);
 					Assert.IsTrue(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Succeeded, 10000));
 					Assert.IsFalse(packageResolver.Cancel());
 					Assert.AreEqual(UpdaterComponentState.Succeeded, packageResolver.State);
@@ -83,7 +81,6 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					using (var packageResolver = this.CreateInstance(packageManifest))
 					{
 						Assert.IsTrue(packageResolver.Start());
-						Assert.AreEqual(UpdaterComponentState.Started, packageResolver.State);
 						await Task.Delay(Tests.Random.Next(100));
 						if (packageResolver.Cancel())
 						{
