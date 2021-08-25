@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CarinaStudio.IO;
+using System;
 
 namespace CarinaStudio.AutoUpdate.Resolvers
 {
@@ -29,5 +30,11 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 		/// Get resolved URI of web page.
 		/// </summary>
 		Uri? PageUri { get; }
+
+
+		/// <summary>
+		/// Get or set source <see cref="IStreamProvider"/> to provide data of package manifest to be resolved.
+		/// </summary>
+		IStreamProvider? Source { get; set; }
 	}
 }

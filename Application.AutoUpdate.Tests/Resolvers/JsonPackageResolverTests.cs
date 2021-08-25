@@ -18,7 +18,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 		protected override IPackageResolver CreateInstance(string packageManifest)
 		{
 			var streamProvider = new MemoryStreamProvider(Encoding.UTF8.GetBytes(packageManifest), false);
-			return new JsonPackageResolver(streamProvider);
+			return new JsonPackageResolver() { Source = streamProvider };
 		}
 
 

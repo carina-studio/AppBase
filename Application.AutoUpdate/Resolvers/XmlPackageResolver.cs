@@ -16,8 +16,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 		/// <summary>
 		/// Initialize new <see cref="XmlPackageResolver"/> instance.
 		/// </summary>
-		/// <param name="streamProvider"><see cref="IStreamProvider"/> to provide data in XML format.</param>
-		public XmlPackageResolver(IO.IStreamProvider streamProvider) : base(streamProvider)
+		public XmlPackageResolver()
 		{ }
 
 
@@ -29,7 +28,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 		protected override async Task PerformOperationAsync(CancellationToken cancellationToken)
 		{
 			// get XML data
-			using var streamReader = await this.StreamProvider.OpenStreamReaderAsync(StreamAccess.Read, Encoding.UTF8, cancellationToken);
+			using var streamReader = await this.Source.AsNonNull().OpenStreamReaderAsync(StreamAccess.Read, Encoding.UTF8, cancellationToken);
 			var xmlDocument = new XmlDocument().Also(it => it.Load(streamReader));
 
 			// cancellation check

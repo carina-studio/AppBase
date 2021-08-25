@@ -14,18 +14,14 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 		Uri? packageUri;
 		Version? packageVersion;
 		Uri? pageUri;
+		IStreamProvider? source;
 
 
 		/// <summary>
 		/// Initialize new <see cref="BasePackageResolver"/> instance.
 		/// </summary>
-		/// <param name="streamProvider"><see cref="IStreamProvider"/> to provide data.</param>
-		public BasePackageResolver(IStreamProvider streamProvider)
-		{
-			if (streamProvider == null)
-				throw new ArgumentNullException(nameof(streamProvider));
-			this.StreamProvider = streamProvider;
-		}
+		public BasePackageResolver()
+		{ }
 
 
 		/// <summary>
@@ -97,9 +93,22 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 
 
 		/// <summary>
-		/// Get <see cref="IStreamProvider"/> to read data from.
+		/// Get or set source <see cref="IStreamProvider"/> to provide data of package manifest to be resolved.
 		/// </summary>
-		protected IStreamProvider StreamProvider { get; }
+		public IStreamProvider? Source
+		{
+			get => this.source;
+			set
+			{
+				this.VerifyAccess();
+				this.VerifyDisposed();
+				this.VerifyInitializing();
+				if (this.source == value)
+					return;
+				this.source = value;
+				this.OnPropertyChanged(nameof(Source));
+			}
+		}
 
 
 		/// <summary>
@@ -108,7 +117,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 		/// <returns>True if all parameters are valid.</returns>
 		protected override bool ValidateParametersToStart()
 		{
-			return base.ValidateParametersToStart() && this.StreamProvider.CanOpenRead();
+			return base.ValidateParametersToStart() && this.source != null && this.source.CanOpenRead();
 		}
 	}
 }

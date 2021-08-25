@@ -18,8 +18,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 		/// <summary>
 		/// Initialize new <see cref="JsonPackageResolver"/> instance.
 		/// </summary>
-		/// <param name="streamProvider"><see cref="IStreamProvider"/> to provide data in JSON format.</param>
-		public JsonPackageResolver(IStreamProvider streamProvider) : base(streamProvider)
+		public JsonPackageResolver() 
 		{ }
 
 
@@ -31,7 +30,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 		protected override async Task PerformOperationAsync(CancellationToken cancellationToken)
 		{
 			// get JSON data
-			using var stream = await this.StreamProvider.OpenStreamAsync(StreamAccess.Read, cancellationToken);
+			using var stream = await this.Source.AsNonNull().OpenStreamAsync(StreamAccess.Read, cancellationToken);
 			using var jsonDocument = JsonDocument.Parse(stream);
 			var rootObject = jsonDocument.RootElement;
 			if (rootObject.ValueKind != JsonValueKind.Object)
