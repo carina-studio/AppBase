@@ -5,7 +5,7 @@ using System.IO;
 namespace CarinaStudio.Configuration
 {
 	/// <summary>
-	/// Interface to serialize and deserialize <see cref="PersistentSettings"/>.
+	/// Interface to serialize and deserialize <see cref="ISettings"/>.
 	/// </summary>
 	public interface ISettingsSerializer
 	{
