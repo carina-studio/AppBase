@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Application.AutoUpdate\Application.AutoUpdate.csproj" />
+    <ProjectReference Include="..\AutoUpdate\AutoUpdate.csproj" />
     <ProjectReference Include="..\Application.Tests\Application.Tests.csproj" />
     <ProjectReference Include="..\Application\Application.csproj" />
     <ProjectReference Include="..\Core\Core.csproj" />
