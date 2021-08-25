@@ -40,6 +40,16 @@
             "**/bin/**",
             "**/obj/**"
           ],
+          "src": "../AutoUpdate"
+        },
+        {
+          "files": [
+            "**/*.csproj"
+          ],
+          "exclude": [
+            "**/bin/**",
+            "**/obj/**"
+          ],
           "src": "../Tests"
         }
       ],
