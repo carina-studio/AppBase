@@ -42,6 +42,7 @@ AppBase has been uploaded to **NuGet**, you can find it on:
 - [https://www.nuget.org/packages/CarinaStudio.AppBase.Core/](https://www.nuget.org/packages/CarinaStudio.AppBase.Core/)
 - [https://www.nuget.org/packages/CarinaStudio.AppBase.Configuration/](https://www.nuget.org/packages/CarinaStudio.AppBase.Configuration/)
 - [https://www.nuget.org/packages/CarinaStudio.AppBase.Application/](https://www.nuget.org/packages/CarinaStudio.AppBase.Application/)
+- [https://www.nuget.org/packages/CarinaStudio.AppBase.AutoUpdate/](https://www.nuget.org/packages/CarinaStudio.AppBase.AutoUpdate/)
 - [https://www.nuget.org/packages/CarinaStudio.AppBase.Tests/](https://www.nuget.org/packages/CarinaStudio.AppBase.Tests/)
 
 You can also install by Package Manager command:
@@ -49,6 +50,7 @@ You can also install by Package Manager command:
 Install-Package CarinaStudio.AppBase.Core
 Install-Package CarinaStudio.AppBase.Configuration
 Install-Package CarinaStudio.AppBase.Application
+Install-Package CarinaStudio.AppBase.AutoUpdate
 Install-Package CarinaStudio.AppBase.Tests
 ```
 
