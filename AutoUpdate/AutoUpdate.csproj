@@ -16,6 +16,14 @@
 		<PackageProjectUrl>https://carina-studio.github.io/AppBase/</PackageProjectUrl>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<DocumentationFile>CarinaStudio.AppBase.AutoUpdate.xml</DocumentationFile>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<DocumentationFile>CarinaStudio.AppBase.AutoUpdate.xml</DocumentationFile>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<ProjectReference Include="..\Core\Core.csproj" />
 		<ProjectReference Include="..\Application\Application.csproj" />
