@@ -11,7 +11,11 @@ namespace CarinaStudio.AutoUpdate.Installers
 	/// </summary>
 	public class ZipPackageInstaller : BasePackageInstaller
 	{
-		// Perform operation.
+		/// <summary>
+		/// Perform operation asynchronously.
+		/// </summary>
+		/// <param name="cancellationToken">Cancellation token.</param>
+		/// <returns>Task of performing operation.</returns>
 		protected override Task PerformOperationAsync(CancellationToken cancellationToken) => Task.Run(() =>
 		{
 			// load zip archive
