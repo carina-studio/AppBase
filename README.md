@@ -29,8 +29,7 @@
 
 📦**CarinaStudio.AppBase.AutoUpdate**
 - ```Updater``` to perform resolving, downloading and installing flow of application.
-- ```IPackageResolver``` to resolve package manifest in XML/JSON format to find location to download package.
-- ```IPackageInstaller``` to install downloaded package.
+- Use ```UpdatingSession``` as view-model of ```Updater``` to build UI for auto-update quickly.
 
 📦**CarinaStudio.AppBase.Tests**
 - Provide random functions like generating random string or creating file with random name.
