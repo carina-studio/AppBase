@@ -273,6 +273,12 @@ namespace CarinaStudio.AutoUpdate
 		}
 
 
+		/// <summary>
+		/// Get size of downloaded package in bytes.
+		/// </summary>
+		public long DownloadedPackageSize { get; private set; }
+
+
 		// Download package.
 		async Task<string?> DownloadPackageAsync(Uri packageUri)
 		{
@@ -307,7 +313,7 @@ namespace CarinaStudio.AutoUpdate
 					if (this.cancellationTokenSource.IsCancellationRequested)
 						throw new TaskCanceledException();
 
-					// download
+					// get package size
 					var packageSize = 0L;
 					try
 					{
@@ -315,17 +321,30 @@ namespace CarinaStudio.AutoUpdate
 					}
 					catch
 					{ }
+					if (packageSize > 0)
+					{
+						this.SynchronizationContext.Post(() =>
+						{
+							this.PackageSize = packageSize;
+							this.OnPropertyChanged(nameof(PackageSize));
+						});
+					}
+
+					// download
 					using var packageFileStream = new FileStream(packageFilePath, FileMode.Create, FileAccess.Write);
 					var downloadedSize = 0L;
-					var buffer = new byte[4096];
+					var buffer = new byte[65536];
 					var readCount = downloadStream.Read(buffer, 0, buffer.Length);
 					while (readCount > 0)
 					{
-						if (packageSize > 0)
+						downloadedSize += readCount;
+						this.SynchronizationContext.Post(() =>
 						{
-							downloadedSize += readCount;
+							this.DownloadedPackageSize = downloadedSize;
+							this.OnPropertyChanged(nameof(DownloadedPackageSize));
+						});
+						if (packageSize > 0)
 							this.ReportProgress((double)downloadedSize / packageSize);
-						}
 						packageFileStream.Write(buffer, 0, readCount);
 						if (this.cancellationTokenSource.IsCancellationRequested)
 							throw new TaskCanceledException();
@@ -476,6 +495,12 @@ namespace CarinaStudio.AutoUpdate
 				this.OnPropertyChanged(nameof(PackageResolver));
 			}
 		}
+
+
+		/// <summary>
+		/// Get size of package in bytes.
+		/// </summary>
+		public long? PackageSize { get; private set; }
 
 
 		/// <summary>
