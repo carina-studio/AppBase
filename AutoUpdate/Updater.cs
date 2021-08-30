@@ -338,6 +338,7 @@ namespace CarinaStudio.AutoUpdate
 						{
 							this.PackageSize = packageSize;
 							this.OnPropertyChanged(nameof(PackageSize));
+							this.ReportProgress(0);
 						});
 					}
 

@@ -1,15 +1,15 @@
 ﻿using CarinaStudio.AutoUpdate.Installers;
 using CarinaStudio.AutoUpdate.Resolvers;
-using CarinaStudio.Collections;
 using CarinaStudio.IO;
 using CarinaStudio.Tests;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -125,7 +125,7 @@ namespace CarinaStudio.AutoUpdate
 				})
 				{
 					Assert.IsTrue(updater.Start());
-					Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.InstallingPackage, 10000));
+					Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.InstallingPackage, 60000));
 					Assert.IsTrue(updater.Cancel());
 					Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.Cancelled, 10000));
 				}
@@ -142,7 +142,7 @@ namespace CarinaStudio.AutoUpdate
 				})
 				{
 					Assert.IsTrue(updater.Start());
-					Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.Succeeded, 10000));
+					Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.Succeeded, 60000));
 					Assert.IsFalse(updater.Cancel());
 				}
 
@@ -242,7 +242,7 @@ namespace CarinaStudio.AutoUpdate
 				})
 				{
 					Assert.IsTrue(updater.Start());
-					Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.InstallingPackage, 10000));
+					Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.InstallingPackage, 60000));
 					updater.Dispose();
 					Assert.AreEqual(UpdaterState.Disposed, updater.State);
 				}
@@ -308,6 +308,58 @@ namespace CarinaStudio.AutoUpdate
 
 
 		/// <summary>
+		/// Test for <see cref="Updater.Progress"/>.
+		/// </summary>
+		[Test]
+		public void ProgressReportingTest()
+		{
+			this.TestOnApplicationThread(async () =>
+			{
+				// prepare base application
+				var baseAppDirectory = this.GenerateRandomApplication();
+				var baseAppFilePaths = this.CollectFilePaths(baseAppDirectory);
+
+				// prepare update package
+				var packageDirectory = this.GenerateRandomApplication();
+				var packageFilePaths = this.CollectFilePaths(packageDirectory);
+				var packageFilePath = this.GeneratePackageFile(packageDirectory);
+				this.remotePackageFilePath = packageFilePath;
+
+				// check progress reported when downloading package
+				using var updater = new Updater()
+				{
+					ApplicationDirectoryPath = baseAppDirectory,
+					PackageInstaller = new ZipPackageInstaller(),
+					PackageResolver = new DummyPackageResolver() { Source = new MemoryStreamProvider() },
+				};
+				var prevProgress = updater.Progress;
+				var hasIncrementalProgressChange = false;
+				var propertyChangedHandler = new PropertyChangedEventHandler((_, e) =>
+				{
+					if (e.PropertyName == nameof(Updater.Progress))
+					{
+						var progress = updater.Progress;
+						if (double.IsFinite(progress))
+						{
+							Assert.IsTrue(double.IsNaN(prevProgress) || prevProgress < progress);
+							hasIncrementalProgressChange = true;
+						}
+						prevProgress = progress;
+					}
+				});
+				Assert.IsTrue(updater.Start());
+				Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.DownloadingPackage, 5000));
+				Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.Progress), 0.0, 5000));
+				updater.PropertyChanged += propertyChangedHandler;
+				Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.InstallingPackage, 60000));
+				updater.PropertyChanged -= propertyChangedHandler;
+				Assert.IsTrue(hasIncrementalProgressChange);
+				Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.Succeeded, 10000));
+			});
+		}
+
+
+		/// <summary>
 		/// Setup HTTP listener.
 		/// </summary>
 		[OneTimeSetUp]
@@ -339,15 +391,37 @@ namespace CarinaStudio.AutoUpdate
 					}) ?? new byte[0];
 
 					// response
-					context.Response.Let(response =>
+					using (var response = context.Response)
 					{
-						response.ContentLength64 = updatePackage.Length;
-						response.ContentEncoding = Encoding.UTF8;
+						var offset = 0;
+						var chunkSize = updatePackage.Length / 30;
+						var stopWatch = new Stopwatch().Also(it => it.Start());
 						using var stream = response.OutputStream;
-						Thread.Sleep(3000);
-						stream.Write(updatePackage, 0, updatePackage.Length);
-						stream.Flush();
-					});
+						response.ContentLength64 = updatePackage.Length;
+						while (offset < updatePackage.Length)
+						{
+							try
+							{
+								if (offset + chunkSize >= updatePackage.Length)
+								{
+									var delay = (3000 - stopWatch.ElapsedMilliseconds);
+									if (delay > 0)
+										Thread.Sleep((int)delay);
+									stream.Write(updatePackage, offset, updatePackage.Length - offset);
+									offset = updatePackage.Length;
+								}
+								else
+								{
+									stream.Write(updatePackage, offset, chunkSize);
+									offset += chunkSize;
+								}
+								stream.Flush();
+							}
+							catch
+							{ }
+							Thread.Sleep(100);
+						}
+					}
 				}
 			});
 		}
