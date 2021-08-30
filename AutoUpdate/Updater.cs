@@ -301,6 +301,17 @@ namespace CarinaStudio.AutoUpdate
 			}
 
 			// download package
+			var downloadedSize = 0L;
+			var reportProgressAction = new ScheduledAction(() =>
+			{
+				if (this.cancellationTokenSource.IsCancellationRequested)
+					return;
+				this.DownloadedPackageSize = downloadedSize;
+				this.OnPropertyChanged(nameof(DownloadedPackageSize));
+				var packageSize = this.PackageSize.GetValueOrDefault();
+				if (packageSize > 0)
+					this.ReportProgress((double)downloadedSize / packageSize);
+			});
 			try
 			{
 				await Task.Run(() =>
@@ -332,24 +343,18 @@ namespace CarinaStudio.AutoUpdate
 
 					// download
 					using var packageFileStream = new FileStream(packageFilePath, FileMode.Create, FileAccess.Write);
-					var downloadedSize = 0L;
 					var buffer = new byte[65536];
 					var readCount = downloadStream.Read(buffer, 0, buffer.Length);
 					while (readCount > 0)
 					{
 						downloadedSize += readCount;
-						this.SynchronizationContext.Post(() =>
-						{
-							this.DownloadedPackageSize = downloadedSize;
-							this.OnPropertyChanged(nameof(DownloadedPackageSize));
-						});
-						if (packageSize > 0)
-							this.ReportProgress((double)downloadedSize / packageSize);
+						reportProgressAction.Schedule(100);
 						packageFileStream.Write(buffer, 0, readCount);
 						if (this.cancellationTokenSource.IsCancellationRequested)
 							throw new TaskCanceledException();
 						readCount = downloadStream.Read(buffer, 0, buffer.Length);
 					}
+					reportProgressAction.Reschedule();
 				});
 			}
 			catch (Exception ex)
