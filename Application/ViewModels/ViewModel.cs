@@ -405,4 +405,25 @@ namespace CarinaStudio.ViewModels
 			}
 		}
 	}
+
+
+	/// <summary>
+	/// Base class for view-model.
+	/// </summary>
+	/// <typeparam name="TApplication">Type of application.</typeparam>
+	public abstract class ViewModel<TApplication> : ViewModel, IApplicationObject<TApplication> where TApplication : IApplication
+	{
+		/// <summary>
+		/// Initialize new <see cref="ViewModel"/> instance.
+		/// </summary>
+		/// <param name="app"><see cref="IApplication"/> which view-model belongs to.</param>
+		protected ViewModel(TApplication app) : base(app)
+		{ }
+
+
+		/// <summary>
+		/// Get <see cref="IApplication"/> which view-model belongs to.
+		/// </summary>
+		public new TApplication Application { get => (TApplication)base.Application; }
+	}
 }
