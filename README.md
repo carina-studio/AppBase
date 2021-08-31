@@ -3,7 +3,7 @@
 [![](https://img.shields.io/github/release-date-pre/carina-studio/AppBase)](https://github.com/carina-studio/AppBase/releases) 
 
 # 👋Introduction of AppBase 
-**AppBase** is a set of libraries designed for .NET based application. Currently there are 5 packages providing the following functions:
+**AppBase** is a set of libraries designed for .NET based application. Currently there are 6 packages providing the following functions:
 
 📦**CarinaStudio.AppBase.Core**
 - Extensions for ```System.Object``` to make your code more elegant and clear. ([Learn more](https://carina-studio.github.io/AppBase/articles/object_extensions.html))
@@ -27,6 +27,9 @@
 - ```IApplication``` to provide abstract interface to application instance no matter what UI framework you use.
 - ```ViewModel``` to provide base implementation of view-model including observable properties, logger, etc.
 
+📦**CarinaStudio.AppBase.Application.Avalonia**
+- Basic implementation of ```IApplication``` based-on ```Avalonia.Application```.
+
 📦**CarinaStudio.AppBase.AutoUpdate**
 - ```Updater``` to perform resolving, downloading and installing flow of application.
 - Use ```UpdatingSession``` as view-model of ```Updater``` to build UI for auto-update quickly.
@@ -41,6 +44,7 @@ AppBase has been uploaded to **NuGet**, you can find it on:
 - [https://www.nuget.org/packages/CarinaStudio.AppBase.Core/](https://www.nuget.org/packages/CarinaStudio.AppBase.Core/)
 - [https://www.nuget.org/packages/CarinaStudio.AppBase.Configuration/](https://www.nuget.org/packages/CarinaStudio.AppBase.Configuration/)
 - [https://www.nuget.org/packages/CarinaStudio.AppBase.Application/](https://www.nuget.org/packages/CarinaStudio.AppBase.Application/)
+- [https://www.nuget.org/packages/CarinaStudio.AppBase.Application.Avalonia/](https://www.nuget.org/packages/CarinaStudio.AppBase.Application.Avalonia/)
 - [https://www.nuget.org/packages/CarinaStudio.AppBase.AutoUpdate/](https://www.nuget.org/packages/CarinaStudio.AppBase.AutoUpdate/)
 - [https://www.nuget.org/packages/CarinaStudio.AppBase.Tests/](https://www.nuget.org/packages/CarinaStudio.AppBase.Tests/)
 
@@ -49,6 +53,7 @@ You can also install by Package Manager command:
 Install-Package CarinaStudio.AppBase.Core
 Install-Package CarinaStudio.AppBase.Configuration
 Install-Package CarinaStudio.AppBase.Application
+Install-Package CarinaStudio.AppBase.Application.Avalonia
 Install-Package CarinaStudio.AppBase.AutoUpdate
 Install-Package CarinaStudio.AppBase.Tests
 ```
