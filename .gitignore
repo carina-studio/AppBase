@@ -5,6 +5,7 @@ PublishProfiles
 /Core/CarinaStudio.AppBase.Core.xml
 /Configuration/CarinaStudio.AppBase.Configuration.xml
 /Application/CarinaStudio.AppBase.Application.xml
+/Application.Avalonia/CarinaStudio.AppBase.Application.Avalonia.xml
 /AutoUpdate/CarinaStudio.AppBase.AutoUpdate.xml
 /Tests/CarinaStudio.AppBase.Tests.xml
 /Core.Tests/Collections/~$SortedListTests.xlsx
