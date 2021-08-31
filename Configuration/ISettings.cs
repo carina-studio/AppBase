@@ -146,7 +146,7 @@ namespace CarinaStudio.Configuration
 
 
 		/// <summary>
-		/// Check whether type of value of given setting is correct or not. You can get raw value by calling <see cref="GetRawValue(SettingKey)"/> if type is incorrect.
+		/// Check whether type of value of given setting is correct or not. You can get raw value by calling <see cref="ISettings.GetRawValue(SettingKey)"/> if type is incorrect.
 		/// </summary>
 		/// <param name="settings"><see cref="ISettings"/>.</param>
 		/// <param name="key">Key of setting.</param>
