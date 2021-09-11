@@ -422,6 +422,14 @@ namespace CarinaStudio.ViewModels
 
 
 		/// <summary>
+		/// Initialize new <see cref="ViewModel"/> instance.
+		/// </summary>
+		/// <param name="owner">Owner view-model</param>
+		protected ViewModel(ViewModel<TApplication> owner) : base(owner)
+		{ }
+
+
+		/// <summary>
 		/// Get <see cref="IApplication"/> which view-model belongs to.
 		/// </summary>
 		public new TApplication Application { get => (TApplication)base.Application; }
