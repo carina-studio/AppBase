@@ -82,7 +82,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 				});
 				if (string.IsNullOrEmpty(osName))
 					throw new ArgumentException("Unknown operating system.");
-				var archName = RuntimeInformation.ProcessArchitecture.ToString();
+				var archName = RuntimeInformation.OSArchitecture.ToString();
 
 				// find package URI
 				if (!rootNode.HasChildNodes)
