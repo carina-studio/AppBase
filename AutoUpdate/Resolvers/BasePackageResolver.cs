@@ -95,7 +95,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 		/// <summary>
 		/// Get or set source <see cref="IStreamProvider"/> to provide data of package manifest to be resolved.
 		/// </summary>
-		public IStreamProvider? Source
+		public virtual IStreamProvider? Source
 		{
 			get => this.source;
 			set
