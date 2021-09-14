@@ -5,6 +5,7 @@ using System;
 using System.ComponentModel;
 using System.IO;
 using System.Net;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -737,9 +738,15 @@ namespace CarinaStudio.AutoUpdate
 				return;
 			}
 
-			// install package
-			if (this.ChangeState(UpdaterState.InstallingPackage))
-				await this.InstallPackageAsync(packageFilePath, backupDirectory);
+			// verify and install package
+			var packageVerified = false;
+			var packageInstalled = false;
+			if (this.ChangeState(UpdaterState.VerifyingPackage))
+			{
+				packageVerified = await this.VerifyPackage(packageFilePath, this.packageResolver?.MD5, this.packageResolver?.SHA256, this.packageResolver?.SHA512);
+				if (packageVerified && this.ChangeState(UpdaterState.InstallingPackage))
+					packageInstalled = await this.InstallPackageAsync(packageFilePath, backupDirectory);
+			}
 
 			// delete temp files
 			_ = Task.Run(() =>
@@ -749,7 +756,12 @@ namespace CarinaStudio.AutoUpdate
 			});
 
 			// complete
-			this.CompleteUpdating(null);
+			if (!packageVerified)
+				this.CompleteUpdating(new Exception("Package verification failed."));
+			else if (!packageInstalled)
+				this.CompleteUpdating(new Exception("Package installation failed."));
+			else
+				this.CompleteUpdating(null);
 		}
 
 
@@ -758,6 +770,98 @@ namespace CarinaStudio.AutoUpdate
 		{
 			if (this.state != UpdaterState.Initializing)
 				throw new InvalidOperationException($"Cannot perform oprtation when state is {this.state}.");
+		}
+
+
+		// Verify package.
+		async Task<bool> VerifyPackage(string packageFileName, string? md5, string? sha256, string? sha512)
+		{
+			// check state
+			if (this.state != UpdaterState.VerifyingPackage)
+				return false;
+			if (this.cancellationTokenSource.IsCancellationRequested)
+				return false;
+
+			// prepare comparison
+			bool compareHash(string hash, byte[] hashBytes)
+			{
+				if (hash.Length != hashBytes.Length * 2)
+					return false;
+				var hashCheckingIndex = hash.Length - 2;
+				for (var i = hashBytes.Length - 1; i >= 0; --i, hashCheckingIndex -= 2)
+				{
+					var byteString = hashBytes[i].ToString("X2");
+					if (char.ToUpper(hash[hashCheckingIndex]) != byteString[0] || char.ToUpper(hash[hashCheckingIndex + 1]) != byteString[1])
+						return false;
+				}
+				return true;
+			}
+
+			// verify with MD5
+			if (md5 != null)
+			{
+				var verified = await Task.Run(() =>
+				{
+					try
+                    {
+						using var hashAlgorithm = MD5.Create();
+						using var stream = new FileStream(packageFileName, FileMode.Open, FileAccess.Read);
+						var hashBytes = hashAlgorithm.ComputeHash(stream);
+						return compareHash(md5, hashBytes);
+                    }
+					catch
+                    {
+						return false;
+                    }
+				});
+				if (!verified)
+					return false;
+			}
+
+			// verify with SHA256
+			if (sha256 != null)
+			{
+				var verified = await Task.Run(() =>
+				{
+					try
+					{
+						using var hashAlgorithm = SHA256.Create();
+						using var stream = new FileStream(packageFileName, FileMode.Open, FileAccess.Read);
+						var hashBytes = hashAlgorithm.ComputeHash(stream);
+						return compareHash(sha256, hashBytes);
+					}
+					catch
+					{
+						return false;
+					}
+				});
+				if (!verified)
+					return false;
+			}
+
+			// verify with SHA512
+			if (sha512 != null)
+			{
+				var verified = await Task.Run(() =>
+				{
+					try
+					{
+						using var hashAlgorithm = SHA512.Create();
+						using var stream = new FileStream(packageFileName, FileMode.Open, FileAccess.Read);
+						var hashBytes = hashAlgorithm.ComputeHash(stream);
+						return compareHash(sha512, hashBytes);
+					}
+					catch
+					{
+						return false;
+					}
+				});
+				if (!verified)
+					return false;
+			}
+
+			// complete
+			return true;
 		}
 	}
 
@@ -787,6 +891,10 @@ namespace CarinaStudio.AutoUpdate
 		/// Downloading package.
 		/// </summary>
 		DownloadingPackage,
+		/// <summary>
+		/// Verifying downloaded package.
+		/// </summary>
+		VerifyingPackage,
 		/// <summary>
 		/// Installing package.
 		/// </summary>

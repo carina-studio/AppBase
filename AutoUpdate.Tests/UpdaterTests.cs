@@ -10,6 +10,8 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -24,6 +26,27 @@ namespace CarinaStudio.AutoUpdate
 		// Dummy package resolver.
 		class DummyPackageResolver : BasePackageResolver
 		{
+			public DummyPackageResolver(string packageFilePath)
+            {
+				using var stream = new FileStream(packageFilePath, FileMode.Open, FileAccess.Read);
+				using (var hashAlgorithm = System.Security.Cryptography.MD5.Create())
+					this.MD5 = ComputeHash(stream, hashAlgorithm);
+				using (var hashAlgorithm = System.Security.Cryptography.SHA256.Create())
+					this.SHA256 = ComputeHash(stream, hashAlgorithm);
+				using (var hashAlgorithm = System.Security.Cryptography.SHA512.Create())
+					this.SHA512 = ComputeHash(stream, hashAlgorithm);
+			}
+
+			static string ComputeHash(FileStream stream, HashAlgorithm hashAlgorithm)
+			{
+				var bytes = hashAlgorithm.ComputeHash(stream);
+				var hashBuilder = new StringBuilder();
+				for (var i = 0; i < bytes.Length; ++i)
+					hashBuilder.AppendFormat("{0:X2}", bytes[i]);
+				stream.Position = 0;
+				return hashBuilder.ToString();
+			}
+
 			protected override async Task PerformOperationAsync(CancellationToken cancellationToken)
 			{
 				await Task.Delay(1000, cancellationToken);
@@ -68,7 +91,7 @@ namespace CarinaStudio.AutoUpdate
 				{
 					ApplicationDirectoryPath = baseAppDirectory,
 					PackageInstaller = new ZipPackageInstaller(),
-					PackageResolver = new DummyPackageResolver() { Source = new MemoryStreamProvider() },
+					PackageResolver = new DummyPackageResolver(packageFilePath) { Source = new MemoryStreamProvider() },
 				})
 				{
 					Assert.IsFalse(updater.Cancel());
@@ -85,7 +108,7 @@ namespace CarinaStudio.AutoUpdate
 				{
 					ApplicationDirectoryPath = baseAppDirectory,
 					PackageInstaller = new ZipPackageInstaller(),
-					PackageResolver = new DummyPackageResolver() { Source = new MemoryStreamProvider() },
+					PackageResolver = new DummyPackageResolver(packageFilePath) { Source = new MemoryStreamProvider() },
 				})
 				{
 					Assert.IsTrue(updater.Start());
@@ -103,7 +126,7 @@ namespace CarinaStudio.AutoUpdate
 				{
 					ApplicationDirectoryPath = baseAppDirectory,
 					PackageInstaller = new ZipPackageInstaller(),
-					PackageResolver = new DummyPackageResolver() { Source = new MemoryStreamProvider() },
+					PackageResolver = new DummyPackageResolver(packageFilePath) { Source = new MemoryStreamProvider() },
 				})
 				{
 					Assert.IsTrue(updater.Start());
@@ -121,7 +144,7 @@ namespace CarinaStudio.AutoUpdate
 				{
 					ApplicationDirectoryPath = baseAppDirectory,
 					PackageInstaller = new ZipPackageInstaller(),
-					PackageResolver = new DummyPackageResolver() { Source = new MemoryStreamProvider() },
+					PackageResolver = new DummyPackageResolver(packageFilePath) { Source = new MemoryStreamProvider() },
 				})
 				{
 					Assert.IsTrue(updater.Start());
@@ -138,7 +161,7 @@ namespace CarinaStudio.AutoUpdate
 				{
 					ApplicationDirectoryPath = baseAppDirectory,
 					PackageInstaller = new ZipPackageInstaller(),
-					PackageResolver = new DummyPackageResolver() { Source = new MemoryStreamProvider() },
+					PackageResolver = new DummyPackageResolver(packageFilePath) { Source = new MemoryStreamProvider() },
 				})
 				{
 					Assert.IsTrue(updater.Start());
@@ -185,7 +208,7 @@ namespace CarinaStudio.AutoUpdate
 				{
 					ApplicationDirectoryPath = baseAppDirectory,
 					PackageInstaller = new ZipPackageInstaller(),
-					PackageResolver = new DummyPackageResolver() { Source = new MemoryStreamProvider() },
+					PackageResolver = new DummyPackageResolver(packageFilePath) { Source = new MemoryStreamProvider() },
 				})
 				{
 					Assert.IsFalse(updater.Cancel());
@@ -202,7 +225,7 @@ namespace CarinaStudio.AutoUpdate
 				{
 					ApplicationDirectoryPath = baseAppDirectory,
 					PackageInstaller = new ZipPackageInstaller(),
-					PackageResolver = new DummyPackageResolver() { Source = new MemoryStreamProvider() },
+					PackageResolver = new DummyPackageResolver(packageFilePath) { Source = new MemoryStreamProvider() },
 				})
 				{
 					Assert.IsTrue(updater.Start());
@@ -220,7 +243,7 @@ namespace CarinaStudio.AutoUpdate
 				{
 					ApplicationDirectoryPath = baseAppDirectory,
 					PackageInstaller = new ZipPackageInstaller(),
-					PackageResolver = new DummyPackageResolver() { Source = new MemoryStreamProvider() },
+					PackageResolver = new DummyPackageResolver(packageFilePath) { Source = new MemoryStreamProvider() },
 				})
 				{
 					Assert.IsTrue(updater.Start());
@@ -238,7 +261,7 @@ namespace CarinaStudio.AutoUpdate
 				{
 					ApplicationDirectoryPath = baseAppDirectory,
 					PackageInstaller = new ZipPackageInstaller(),
-					PackageResolver = new DummyPackageResolver() { Source = new MemoryStreamProvider() },
+					PackageResolver = new DummyPackageResolver(packageFilePath) { Source = new MemoryStreamProvider() },
 				})
 				{
 					Assert.IsTrue(updater.Start());
@@ -276,12 +299,12 @@ namespace CarinaStudio.AutoUpdate
 				{
 					ApplicationDirectoryPath = baseAppDirectory,
 					PackageInstaller = new ZipPackageInstaller(),
-					PackageResolver = new DummyPackageResolver() { Source = new MemoryStreamProvider() },
+					PackageResolver = new DummyPackageResolver(packageFilePath) { Source = new MemoryStreamProvider() },
 				};
 				Assert.IsTrue(updater.Start());
 				Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.ResolvingPackage, 1000));
 				Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.DownloadingPackage, 5000));
-				Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.InstallingPackage, 60000));
+				Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.VerifyingPackage, 60000));
 				Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.Failed, 10000));
 
 				// verify installed files
@@ -330,7 +353,7 @@ namespace CarinaStudio.AutoUpdate
 				{
 					ApplicationDirectoryPath = baseAppDirectory,
 					PackageInstaller = new ZipPackageInstaller(),
-					PackageResolver = new DummyPackageResolver() { Source = new MemoryStreamProvider() },
+					PackageResolver = new DummyPackageResolver(packageFilePath) { Source = new MemoryStreamProvider() },
 				};
 				var prevProgress = updater.Progress;
 				var hasIncrementalProgressChange = false;
@@ -458,12 +481,13 @@ namespace CarinaStudio.AutoUpdate
 				{
 					ApplicationDirectoryPath = baseAppDirectory,
 					PackageInstaller = new ZipPackageInstaller(),
-					PackageResolver = new DummyPackageResolver() { Source = new MemoryStreamProvider() },
+					PackageResolver = new DummyPackageResolver(packageFilePath) { Source = new MemoryStreamProvider() },
 				};
 				Assert.IsTrue(updater.Start());
 				Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.ResolvingPackage, 1000));
 				Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.DownloadingPackage, 5000));
-				Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.InstallingPackage, 60000));
+				Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.VerifyingPackage, 60000));
+				Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.InstallingPackage, 5000));
 				Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.Succeeded, 10000));
 
 				// verify installed files

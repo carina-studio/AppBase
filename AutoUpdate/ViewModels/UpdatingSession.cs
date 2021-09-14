@@ -73,6 +73,10 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 		/// </summary>
 		public static readonly ObservableProperty<bool> IsUpdatingSucceededProperty = ObservableProperty.Register<UpdatingSession, bool>(nameof(IsUpdatingSucceeded));
 		/// <summary>
+		/// Property of <see cref="IsVerifyingPackage"/>
+		/// </summary>
+		public static readonly ObservableProperty<bool> IsVerifyingPackageProperty = ObservableProperty.Register<UpdatingSession, bool>(nameof(IsVerifyingPackage));
+		/// <summary>
 		/// Property of <see cref="Message"/>
 		/// </summary>
 		public static readonly ObservableProperty<string?> MessageProperty = ObservableProperty.Register<UpdatingSession, string?>(nameof(Message));
@@ -277,6 +281,12 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 
 
 		/// <summary>
+		/// Check whether downloaded update package is being verified or not.
+		/// </summary>
+		public bool IsVerifyingPackage { get => this.GetValue(IsVerifyingPackageProperty); }
+
+
+		/// <summary>
 		/// Get message which describes status of updating.
 		/// </summary>
 		public string? Message { get => this.GetValue(MessageProperty); }
@@ -345,6 +355,7 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 			this.SetValue(IsInstallingPackageProperty, this.updater.State == UpdaterState.InstallingPackage);
 			this.SetValue(IsResolvingPackageProperty, this.updater.State == UpdaterState.ResolvingPackage);
 			this.SetValue(IsRestoringApplicationProperty, this.updater.State == UpdaterState.RestoringApplication);
+			this.SetValue(IsVerifyingPackageProperty, this.updater.State == UpdaterState.VerifyingPackage);
 			switch (this.updater.State)
 			{
 				case UpdaterState.Cancelled:
