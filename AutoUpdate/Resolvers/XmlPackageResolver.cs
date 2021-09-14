@@ -35,7 +35,13 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 			var packageVersion = (Version?)null;
 			var pageUri = (Uri?)null;
 			var packageUri = (Uri?)null;
+			var md5 = (string?)null;
+			var sha256 = (string?)null;
+			var sha512 = (string?)null;
 			var genericPackageUri = (Uri?)null;
+			var genericMd5 = (string?)null;
+			var genericSha256 = (string?)null;
+			var genericSha512 = (string?)null;
 			await Task.Run(() =>
 			{
 				// parse as XML document
@@ -113,10 +119,18 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 
 							// select package
 							if (osAttribute == null && archArrtibute == null)
+							{
 								genericPackageUri = uri;
+								packageNode.Attributes["MD5"]?.Let(attr => genericMd5 = attr.Value);
+								packageNode.Attributes["SHA256"]?.Let(attr => genericSha256 = attr.Value);
+								packageNode.Attributes["SHA512"]?.Let(attr => genericSha512 = attr.Value);
+							}
 							else if (isOsMatched && isArchMatched)
 							{
 								packageUri = uri;
+								packageNode.Attributes["MD5"]?.Let(attr => md5 = attr.Value);
+								packageNode.Attributes["SHA256"]?.Let(attr => sha256 = attr.Value);
+								packageNode.Attributes["SHA512"]?.Let(attr => sha512 = attr.Value);
 								break;
 							}
 						}
@@ -134,7 +148,22 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 			this.ApplicationName = appName;
 			this.PageUri = pageUri;
 			this.PackageVersion = packageVersion;
-			this.PackageUri = packageUri ?? genericPackageUri ?? throw new ArgumentException("Package URI not found.");
+			if (packageUri != null)
+			{
+				this.PackageUri = packageUri;
+				this.MD5 = md5;
+				this.SHA256 = sha256;
+				this.SHA512 = sha512;
+			}
+			else if (genericPackageUri != null)
+			{
+				this.PackageUri = genericPackageUri;
+				this.MD5 = genericMd5;
+				this.SHA256 = genericSha256;
+				this.SHA512 = genericSha512;
+			}
+			else
+				throw new ArgumentException("Package URI not found.");
 		}
 	}
 }

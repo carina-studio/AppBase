@@ -11,9 +11,12 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 	{
 		// Fields.
 		string? applicationName;
+		string? md5;
 		Uri? packageUri;
 		Version? packageVersion;
 		Uri? pageUri;
+		string? sha256;
+		string? sha512;
 		IStreamProvider? source;
 
 
@@ -37,6 +40,23 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					return;
 				this.applicationName = value;
 				this.OnPropertyChanged(nameof(ApplicationName));
+			}
+		}
+
+
+		/// <summary>
+		/// Get MD5 hash code of update package.
+		/// </summary>
+		public string? MD5
+        {
+			get => this.md5;
+			protected set
+			{
+				this.VerifyAccess();
+				if (this.md5 == value)
+					return;
+				this.md5 = value;
+				this.OnPropertyChanged(nameof(MD5));
 			}
 		}
 
@@ -88,6 +108,40 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					return;
 				this.pageUri = value;
 				this.OnPropertyChanged(nameof(PageUri));
+			}
+		}
+
+
+		/// <summary>
+		/// Get SHA256 hash code of update package.
+		/// </summary>
+		public string? SHA256
+        {
+			get => this.sha256;
+			protected set
+			{
+				this.VerifyAccess();
+				if (this.sha256 == value)
+					return;
+				this.sha256 = value;
+				this.OnPropertyChanged(nameof(SHA256));
+			}
+		}
+
+
+		/// <summary>
+		/// Get SHA512 hash code of update package.
+		/// </summary>
+		public string? SHA512
+        {
+			get => this.sha512;
+			protected set
+			{
+				this.VerifyAccess();
+				if (this.sha512 == value)
+					return;
+				this.sha512 = value;
+				this.OnPropertyChanged(nameof(SHA512));
 			}
 		}
 

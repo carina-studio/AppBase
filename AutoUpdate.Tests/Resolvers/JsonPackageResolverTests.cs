@@ -39,6 +39,9 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					jsonWriter.WriteStartObject();
 					packageInfo.OperatingSystem?.Let(it => jsonWriter.WriteString("OperatingSystem", it));
 					packageInfo.Architecture?.Let(it => jsonWriter.WriteString("Architecture", it.ToString()));
+					packageInfo.MD5?.Let(it => jsonWriter.WriteString("MD5", it));
+					packageInfo.SHA256?.Let(it => jsonWriter.WriteString("SHA256", it));
+					packageInfo.SHA512?.Let(it => jsonWriter.WriteString("SHA512", it));
 					packageInfo.Uri?.Let(it => jsonWriter.WriteString("Uri", it.ToString()));
 					jsonWriter.WriteEndObject();
 				}

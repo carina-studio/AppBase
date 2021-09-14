@@ -22,9 +22,21 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 			/// </summary>
 			public Architecture? Architecture { get; set; }
 			/// <summary>
+			/// MD5 of update package.
+			/// </summary>
+			public string? MD5 { get; set; }
+			/// <summary>
 			/// Get or set operating system.
 			/// </summary>
 			public string? OperatingSystem { get; set; }
+			/// <summary>
+			/// SHA256 of update package.
+			/// </summary>
+			public string? SHA256 { get; set; }
+			/// <summary>
+			/// SHA512 of update package.
+			/// </summary>
+			public string? SHA512 { get; set; }
 			/// <summary>
 			/// Get or set URI of package.
 			/// </summary>
@@ -151,31 +163,46 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					new PackageInfo()
 					{
 						Architecture = Architecture.X86,
+						MD5 = "MD5-Windows-X86",
 						OperatingSystem = "Windows",
+						SHA256 = "SHA256-Windows-X86",
+						SHA512 = "SHA512-Windows-X86",
 						Uri = new Uri("https://localhost/packages/Windows-X86.zip"),
 					},
 					new PackageInfo()
 					{
 						Architecture = Architecture.X64,
+						MD5 = "MD5-Windows-X64",
 						OperatingSystem = "Windows",
+						SHA256 = "SHA256-Windows-X64",
+						SHA512 = "SHA512-Windows-X64",
 						Uri = new Uri("https://localhost/packages/Windows-X64.zip"),
 					},
 					new PackageInfo()
 					{
 						Architecture = Architecture.X64,
+						MD5 = "MD5-Linux-X64",
 						OperatingSystem = "Linux",
+						SHA256 = "SHA256-Linux-X64",
+						SHA512 = "SHA512-Linux-X64",
 						Uri = new Uri("https://localhost/packages/Linux-X64.zip"),
 					},
 					new PackageInfo()
 					{
 						Architecture = Architecture.Arm64,
+						MD5 = "MD5-Linux-Arm64",
 						OperatingSystem = "Linux",
+						SHA256 = "SHA256-Linux-Arm64",
+						SHA512 = "SHA512-Linux-Arm64",
 						Uri = new Uri("https://localhost/packages/Linux-Arm64.zip"),
 					},
 					new PackageInfo()
 					{
 						Architecture = Architecture.X64,
+						MD5 = "MD5-OSX-X64",
 						OperatingSystem = "OSX",
+						SHA256 = "SHA256-OSX-X64",
+						SHA512 = "SHA512-OSX-X64",
 						Uri = new Uri("https://localhost/packages/OSX-X64.zip"),
 					},
 				};
@@ -183,6 +210,9 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 				// check current operating system and platform
 				this.GetEnvironment(out var osName, out var architecture);
 				var expectedPackageUri = new Uri($"https://localhost/packages/{osName}-{architecture}.zip");
+				var expectedMD5 = $"MD5-{osName}-{architecture}";
+				var expectedSHA256 = $"SHA256-{osName}-{architecture}";
+				var expectedSHA512 = $"SHA512-{osName}-{architecture}";
 
 				// resolve package info
 				var packageManifest = this.GeneratePackageManifest(appName, version, pageUri, packageInfos);
@@ -191,7 +221,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					Assert.IsTrue(packageResolver.Start());
 					Assert.IsTrue(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Succeeded, 10000));
 					Assert.IsNull(packageResolver.Exception);
-					this.VerifyResolvedPackage(packageResolver, appName, version, pageUri, expectedPackageUri);
+					this.VerifyResolvedPackage(packageResolver, appName, version, pageUri, expectedPackageUri, expectedMD5, expectedSHA256, expectedSHA512);
 				}
 
 				// resolve package info without application name
@@ -201,7 +231,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					Assert.IsTrue(packageResolver.Start());
 					Assert.IsTrue(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Succeeded, 10000));
 					Assert.IsNull(packageResolver.Exception);
-					this.VerifyResolvedPackage(packageResolver, null, version, pageUri, expectedPackageUri);
+					this.VerifyResolvedPackage(packageResolver, null, version, pageUri, expectedPackageUri, expectedMD5, expectedSHA256, expectedSHA512);
 				}
 
 				// resolve package info without version
@@ -211,7 +241,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					Assert.IsTrue(packageResolver.Start());
 					Assert.IsTrue(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Succeeded, 10000));
 					Assert.IsNull(packageResolver.Exception);
-					this.VerifyResolvedPackage(packageResolver, appName, null, pageUri, expectedPackageUri);
+					this.VerifyResolvedPackage(packageResolver, appName, null, pageUri, expectedPackageUri, expectedMD5, expectedSHA256, expectedSHA512);
 				}
 
 				// resolve package info without package list
@@ -233,12 +263,18 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 
 
 		// Verify fields in resolved package info.
-		void VerifyResolvedPackage(IPackageResolver packageResolver, string? appName, Version? version, Uri? pageUri, Uri? packageUri)
+		void VerifyResolvedPackage(IPackageResolver packageResolver, string? appName, Version? version, Uri? pageUri, Uri? packageUri, string? md5 = null, string? sha256 = null, string? sha512 = null)
 		{
 			Assert.AreEqual(appName, packageResolver.ApplicationName);
 			Assert.AreEqual(version, packageResolver.PackageVersion);
 			Assert.AreEqual(pageUri, packageResolver.PageUri);
 			Assert.AreEqual(packageUri, packageResolver.PackageUri);
+			if (md5 != null)
+				Assert.AreEqual(md5, packageResolver.MD5.AsNonNull());
+			if (sha256 != null)
+				Assert.AreEqual(sha256, packageResolver.SHA256.AsNonNull());
+			if (sha512 != null)
+				Assert.AreEqual(sha512, packageResolver.SHA512.AsNonNull());
 		}
 	}
 }

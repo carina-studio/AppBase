@@ -35,7 +35,10 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 			{
 				xmlWriter.WriteStartElement("Package");
 				packageInfo.Architecture?.Let(it => xmlWriter.WriteAttributeString("Architecture", it.ToString()));
+				packageInfo.MD5?.Let(it => xmlWriter.WriteAttributeString("MD5", it));
 				packageInfo.OperatingSystem?.Let(it => xmlWriter.WriteAttributeString("OperatingSystem", it));
+				packageInfo.SHA256?.Let(it => xmlWriter.WriteAttributeString("SHA256", it));
+				packageInfo.SHA512?.Let(it => xmlWriter.WriteAttributeString("SHA512", it));
 				packageInfo.Uri?.Let(it => xmlWriter.WriteAttributeString("Uri", it.ToString()));
 				xmlWriter.WriteEndElement();
 			}

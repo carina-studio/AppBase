@@ -37,7 +37,13 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 			var packageVersion = (Version?)null;
 			var pageUri = (Uri?)null;
 			var packageUri = (Uri?)null;
+			var md5 = (string?)null;
+			var sha256 = (string?)null;
+			var sha512 = (string?)null;
 			var genericPackageUri = (Uri?)null;
+			var genericMd5 = (string?)null;
+			var genericSha256 = (string?)null;
+			var genericSha512 = (string?)null;
 			await Task.Run(() =>
 			{
 				// parse as JSON document
@@ -111,10 +117,24 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 
 					// select package
 					if (!hasOsProperty && !hasArchProperty)
+					{
 						genericPackageUri = uri;
+						if (jsonPackageElement.TryGetProperty("MD5", out jsonValue) && jsonValue.ValueKind == JsonValueKind.String)
+							genericMd5 = jsonValue.GetString();
+						if (jsonPackageElement.TryGetProperty("SHA256", out jsonValue) && jsonValue.ValueKind == JsonValueKind.String)
+							genericSha256 = jsonValue.GetString();
+						if (jsonPackageElement.TryGetProperty("SHA512", out jsonValue) && jsonValue.ValueKind == JsonValueKind.String)
+							genericSha512 = jsonValue.GetString();
+					}
 					else if (isOsMatched && isArchMatched)
 					{
 						packageUri = uri;
+						if (jsonPackageElement.TryGetProperty("MD5", out jsonValue) && jsonValue.ValueKind == JsonValueKind.String)
+							md5 = jsonValue.GetString();
+						if (jsonPackageElement.TryGetProperty("SHA256", out jsonValue) && jsonValue.ValueKind == JsonValueKind.String)
+							sha256 = jsonValue.GetString();
+						if (jsonPackageElement.TryGetProperty("SHA512", out jsonValue) && jsonValue.ValueKind == JsonValueKind.String)
+							sha512 = jsonValue.GetString();
 						return;
 					}
 				}
@@ -126,7 +146,22 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 			this.ApplicationName = appName;
 			this.PageUri = pageUri;
 			this.PackageVersion = packageVersion;
-			this.PackageUri = packageUri ?? genericPackageUri ?? throw new ArgumentException("Package URI not found.");
+			if (packageUri != null)
+			{
+				this.PackageUri = packageUri;
+				this.MD5 = md5;
+				this.SHA256 = sha256;
+				this.SHA512 = sha512;
+			}
+			else if (genericPackageUri != null)
+			{
+				this.PackageUri = genericPackageUri;
+				this.MD5 = genericMd5;
+				this.SHA256 = genericSha256;
+				this.SHA512 = genericSha512;
+			}
+			else
+				throw new ArgumentException("Package URI not found.");
 		}
 	}
 #endif

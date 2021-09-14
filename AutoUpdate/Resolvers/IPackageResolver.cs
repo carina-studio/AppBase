@@ -15,6 +15,12 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 
 
 		/// <summary>
+		/// Get MD5 hash code of update package.
+		/// </summary>
+		string? MD5 { get; }
+
+
+		/// <summary>
 		/// Get resolved URI to download update package.
 		/// </summary>
 		Uri? PackageUri { get; }
@@ -30,6 +36,18 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 		/// Get resolved URI of web page.
 		/// </summary>
 		Uri? PageUri { get; }
+
+
+		/// <summary>
+		/// Get SHA256 hash code of update package.
+		/// </summary>
+		string? SHA256 { get; }
+
+
+		/// <summary>
+		/// Get SHA512 hash code of update package.
+		/// </summary>
+		string? SHA512 { get; }
 
 
 		/// <summary>
