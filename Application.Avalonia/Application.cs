@@ -43,6 +43,12 @@ namespace CarinaStudio
 
 
 		/// <summary>
+		/// Get <see cref="Application"/> instance for current process.
+		/// </summary>
+		public static new Application Current { get => (Application)Avalonia.Application.Current; }
+
+
+		/// <summary>
 		/// Get string from resources according to given key and current settings or system language.
 		/// </summary>
 		/// <param name="key">Key of string to get.</param>

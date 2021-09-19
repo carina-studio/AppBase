@@ -411,7 +411,7 @@ namespace CarinaStudio.ViewModels
 	/// Base class for view-model.
 	/// </summary>
 	/// <typeparam name="TApplication">Type of application.</typeparam>
-	public abstract class ViewModel<TApplication> : ViewModel, IApplicationObject<TApplication> where TApplication : IApplication
+	public abstract class ViewModel<TApplication> : ViewModel, IApplicationObject<TApplication> where TApplication : class, IApplication
 	{
 		/// <summary>
 		/// Initialize new <see cref="ViewModel"/> instance.

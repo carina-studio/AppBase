@@ -51,12 +51,14 @@ namespace CarinaStudio.Windows.Input
 		}
 
 
+#pragma warning disable CS8600
 #pragma warning disable CS8604
 		/// <summary>
 		/// Execute command.
 		/// </summary>
 		/// <param name="parameter">Parameter.</param>
 		public override void Execute(object? parameter) => this.action((TParam)parameter);
+#pragma warning restore CS8600
 #pragma warning restore CS8604
 	}
 }
