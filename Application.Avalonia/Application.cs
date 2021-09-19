@@ -116,7 +116,7 @@ namespace CarinaStudio
 		/// </summary>
 		public event EventHandler? StringsUpdated;
 
-		
+
 		// Implementations.
 		event PropertyChangedEventHandler? INotifyPropertyChanged.PropertyChanged
 		{
