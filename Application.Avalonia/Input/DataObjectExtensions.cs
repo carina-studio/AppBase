@@ -6,7 +6,7 @@ namespace CarinaStudio.Input
 	/// <summary>
 	/// Extensions for <see cref="IDataObject"/>.
 	/// </summary>
-	static class DataObjectExtensions
+	public static class DataObjectExtensions
 	{
 		/// <summary>
 		/// Check whether at least one file name is contained in <see cref="IDataObject"/> or not.
