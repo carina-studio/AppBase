@@ -58,6 +58,10 @@ namespace CarinaStudio.Controls
 			// notify owner window
 			this.ownerWindow = (this.Owner as Window<TApp>)?.Also(it => it.OnDialogOpened(this));
 
+			// use icon from owner window
+			if (this.Icon == null)
+				this.Icon = this.ownerWindow?.Icon;
+
 			// [workaround] move to center of owner for Linux
 			if (this.WindowStartupLocation == WindowStartupLocation.CenterOwner && RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
