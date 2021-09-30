@@ -8,11 +8,10 @@ namespace CarinaStudio.Controls
 	/// <summary>
 	/// Base class of window of dialog.
 	/// </summary>
-	/// <typeparam name="TApp">Type of application.</typeparam>
-	public abstract class Dialog<TApp> : Window<TApp> where TApp : class, IApplication
+	public abstract class Dialog : Window
 	{
 		// Fields.
-		Window<TApp>? ownerWindow;
+		Window? ownerWindow;
 
 
 		/// <summary>
@@ -56,7 +55,7 @@ namespace CarinaStudio.Controls
 			base.OnOpened(e);
 
 			// notify owner window
-			this.ownerWindow = (this.Owner as Window<TApp>)?.Also(it => it.OnDialogOpened(this));
+			this.ownerWindow = (this.Owner as Window)?.Also(it => it.OnDialogOpened(this));
 
 			// use icon from owner window
 			if (this.Icon == null)
@@ -77,6 +76,22 @@ namespace CarinaStudio.Controls
 					});
 				});
 			}
+		}
+	}
+
+
+	/// <summary>
+	/// Base class of window of dialog.
+	/// </summary>
+	/// <typeparam name="TApp">Type of application.</typeparam>
+	public abstract class Dialog<TApp> : Dialog where TApp : class, IApplication
+	{
+		/// <summary>
+		/// Get application instance.
+		/// </summary>
+		public new TApp Application
+        {
+			get => (base.Application as TApp) ?? throw new ArgumentException($"Application doesn't implement {typeof(TApp)} interface.");
 		}
 	}
 }

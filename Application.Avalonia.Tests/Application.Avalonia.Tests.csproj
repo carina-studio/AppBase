@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <RootNamespace>CarinaStudio</RootNamespace>
+    <StartupObject>CarinaStudio.App</StartupObject>
+  </PropertyGroup>
+  <ItemGroup>
+    <AvaloniaResource Include="AppIcon.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="0.10.7" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.10.7" />
+    <PackageReference Include="Avalonia.Diagnostics" Version="0.10.7" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0" />
+   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Application.Avalonia\Application.Avalonia.csproj" />
+    <ProjectReference Include="..\Application\Application.csproj" />
+    <ProjectReference Include="..\Configuration\Configuration.csproj" />
+    <ProjectReference Include="..\Core\Core.csproj" />
+  </ItemGroup>
+</Project>

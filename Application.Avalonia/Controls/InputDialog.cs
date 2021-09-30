@@ -9,15 +9,14 @@ using System.Windows.Input;
 namespace CarinaStudio.Controls
 {
     /// <summary>
-    /// <see cref="Dialog{TApp}"/> which takes user input.
+    /// <see cref="Dialog"/> which takes user input.
     /// </summary>
-    /// <typeparam name="TApp">Type of application.</typeparam>
-    public abstract class InputDialog<TApp> : Dialog<TApp> where TApp : class, IApplication
+    public abstract class InputDialog : Dialog
     {
         /// <summary>
 		/// Property of <see cref="IsValidInput"/>.
 		/// </summary>
-		public static readonly AvaloniaProperty<bool> IsValidInputProperty = AvaloniaProperty.Register<InputDialog<TApp>, bool>(nameof(IsValidInput));
+		public static readonly AvaloniaProperty<bool> IsValidInputProperty = AvaloniaProperty.Register<InputDialog, bool>(nameof(IsValidInput));
 
 
         // Fields.
@@ -133,5 +132,21 @@ namespace CarinaStudio.Controls
         /// </summary>
         /// <returns>True if input is valid.</returns>
         protected virtual bool OnValidateInput() => true;
+    }
+
+
+    /// <summary>
+    /// <see cref="Dialog{TApp}"/> which takes user input.
+    /// </summary>
+    /// <typeparam name="TApp">Type of application.</typeparam>
+    public abstract class InputDialog<TApp> : InputDialog where TApp : class, IApplication
+    {
+        /// <summary>
+		/// Get application instance.
+		/// </summary>
+		public new TApp Application
+        {
+            get => (base.Application as TApp) ?? throw new ArgumentException($"Application doesn't implement {typeof(TApp)} interface.");
+        }
     }
 }

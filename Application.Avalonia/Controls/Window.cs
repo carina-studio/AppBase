@@ -1,5 +1,4 @@
 ﻿using Avalonia;
-using Avalonia.Controls;
 using CarinaStudio.Collections;
 using CarinaStudio.Configuration;
 using CarinaStudio.Threading;
@@ -11,10 +10,9 @@ using System.Threading;
 namespace CarinaStudio.Controls
 {
 	/// <summary>
-	/// <see cref="Window"/> which implements <see cref="IApplicationObject{TApplication}"/>.
+	/// <see cref="Avalonia.Controls.Window"/> which implements <see cref="IApplicationObject"/>.
 	/// </summary>
-	/// <typeparam name="TApp">Type of application.</typeparam>
-	public abstract class Window<TApp> : Window, IApplicationObject<TApp> where TApp : class, IApplication
+	public abstract class Window : Avalonia.Controls.Window, IApplicationObject
 	{
 		/// <summary>
 		/// Property of <see cref="HasDialogs"/>.
@@ -31,7 +29,7 @@ namespace CarinaStudio.Controls
 
 
 		// Fields.
-		readonly List<Dialog<TApp>> dialogs = new List<Dialog<TApp>>();
+		readonly List<Dialog> dialogs = new List<Dialog>();
 
 
 		/// <summary>
@@ -52,7 +50,7 @@ namespace CarinaStudio.Controls
 		/// <summary>
 		/// Get application instance.
 		/// </summary>
-		public virtual TApp Application { get; } = (CarinaStudio.Application.Current as TApp) ?? throw new ArgumentException($"Application doesn't implement {typeof(TApp)} interface.");
+		public IApplication Application { get; } = CarinaStudio.Application.Current;
 
 
 		/// <summary>
@@ -95,7 +93,7 @@ namespace CarinaStudio.Controls
 		/// Called when dialog closed.
 		/// </summary>
 		/// <param name="dialog">Closed dialog.</param>
-		internal protected virtual void OnDialogClosed(Dialog<TApp> dialog)
+		internal protected virtual void OnDialogClosed(Dialog dialog)
 		{
 			if (this.dialogs.Remove(dialog) && this.dialogs.IsEmpty())
 				this.SetValue<bool>(HasDialogsProperty, false);
@@ -106,7 +104,7 @@ namespace CarinaStudio.Controls
 		/// Called when dialog opened.
 		/// </summary>
 		/// <param name="dialog">Opened dialog.</param>
-		internal protected virtual void OnDialogOpened(Dialog<TApp> dialog)
+		internal protected virtual void OnDialogOpened(Dialog dialog)
 		{
 			this.dialogs.Add(dialog);
 			if (this.dialogs.Count == 1)
@@ -141,9 +139,21 @@ namespace CarinaStudio.Controls
 		/// Get <see cref="SynchronizationContext"/>.
 		/// </summary>
 		public SynchronizationContext SynchronizationContext { get => this.Application.SynchronizationContext; }
+	}
 
 
-		// Interface implementation.
-		IApplication IApplicationObject.Application { get => this.Application; }
+	/// <summary>
+	/// <see cref="Avalonia.Controls.Window"/> which implements <see cref="IApplicationObject{TApplication}"/>.
+	/// </summary>
+	/// <typeparam name="TApp">Type of application.</typeparam>
+	public abstract class Window<TApp> : Window, IApplicationObject<TApp> where TApp : class, IApplication
+    {
+		/// <summary>
+		/// Get application instance.
+		/// </summary>
+		public new TApp Application
+		{
+			get => (base.Application as TApp) ?? throw new ArgumentException($"Application doesn't implement {typeof(TApp)} interface.");
+		}
 	}
 }
