@@ -33,7 +33,7 @@ namespace CarinaStudio
 		/// <summary>
 		/// Get <see cref="Assembly"/> of application.
 		/// </summary>
-		public virtual Assembly Assembly { get; } = Assembly.GetExecutingAssembly();
+		public virtual Assembly Assembly { get; } = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
 
 
 		/// <summary>
