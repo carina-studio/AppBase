@@ -73,7 +73,7 @@ namespace CarinaStudio
 				{
 					if (isOpeningFileManagerSupported.HasValue)
 						return isOpeningFileManagerSupported.Value;
-					if (IsWindows)
+					if (IsWindows || IsMacOS)
 						isOpeningFileManagerSupported = true;
 					else if (IsLinux)
 						isOpeningFileManagerSupported = IsGnome;
@@ -164,10 +164,10 @@ namespace CarinaStudio
 			{
 				process.StartInfo.Let(it =>
 				{
+					it.FileName = "open";
 					it.Arguments = isDirectory
-						? $"\"{path}\""
-						: $"-R \"{path}\"";
-					it.Verb = "open";
+						? $"-a finder \"{path}\""
+						: $"-a finder -R \"{path}\"";
 				});
 			}
 			else if (IsGnome)
