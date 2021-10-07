@@ -425,7 +425,7 @@ namespace CarinaStudio.ViewModels
 		/// Initialize new <see cref="ViewModel"/> instance.
 		/// </summary>
 		/// <param name="owner">Owner view-model</param>
-		protected ViewModel(ViewModel<TApplication> owner) : base(owner)
+		protected ViewModel(ViewModel owner) : base(owner)
 		{ }
 
 
