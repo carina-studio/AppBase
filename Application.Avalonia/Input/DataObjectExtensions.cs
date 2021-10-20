@@ -19,5 +19,32 @@ namespace CarinaStudio.Input
 				return true;
 			return false;
 		}) ?? false;
+
+
+		/// <summary>
+		/// Get the only file name contained in <see cref="IDataObject"/>.
+		/// </summary>
+		/// <param name="data"><see cref="IDataObject"/>.</param>
+		/// <param name="fileName">File name contained in <see cref="IDataObject"/>.</param>
+		/// <returns>True if only one file name contained in <see cref="IDataObject"/>, or false if no file name or more than one file names are contained.</returns>
+		public static bool TryGetSingleFileName(this IDataObject data, out string? fileName)
+		{
+			fileName = data.GetFileNames()?.Let(it =>
+			{
+				var fileName = (string?)null;
+				foreach (var candidate in it)
+				{
+					if (candidate != null)
+					{
+						if (fileName == null)
+							fileName = candidate;
+						else
+							return null;
+					}
+				}
+				return fileName;
+			});
+			return (fileName != null);
+		}
 	}
 }
