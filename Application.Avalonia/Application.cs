@@ -49,6 +49,25 @@ namespace CarinaStudio
 
 
 		/// <summary>
+		/// Get <see cref="Application"/> instance for current process, or null if <see cref="Application"/> is not ready yet.
+		/// </summary>
+		public static Application? CurrentOrNull 
+		{
+			get
+            {
+				try
+                {
+					return Current;
+                }
+				catch
+                {
+					return null;
+                }
+            }
+		}
+
+
+		/// <summary>
 		/// Get string from resources according to given key and current settings or system language.
 		/// </summary>
 		/// <param name="key">Key of string to get.</param>
