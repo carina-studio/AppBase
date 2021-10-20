@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
@@ -9,6 +10,126 @@ namespace CarinaStudio
 	/// </summary>
 	public static class ObjectExtensions
 	{
+		// Adapter of weak event handler.
+		class WeakEventHandlerAdapter : IDisposable
+		{
+			// Fields.
+			readonly EventInfo eventInfo;
+			readonly EventHandler handlerEntry;
+			readonly WeakReference<EventHandler> handlerRef;
+			volatile bool isDisposed;
+			readonly object target;
+
+			// Constructor.
+			public WeakEventHandlerAdapter(object target, string eventName, EventHandler handler)
+			{
+				this.eventInfo = target.GetType().GetEvent(eventName) ?? throw new ArgumentException($"Cannot find event '{eventName}' in {target.GetType().Name}.");
+				this.handlerEntry = this.OnEventReceived;
+				this.handlerRef = new WeakReference<EventHandler>(handler);
+				this.target = target;
+				this.eventInfo.AddEventHandler(target, this.handlerEntry);
+			}
+
+			// Dispose.
+			public void Dispose()
+			{
+				lock (this)
+				{
+					if (this.isDisposed)
+						return;
+					this.isDisposed = true;
+				}
+				this.eventInfo.RemoveEventHandler(target, this.handlerEntry);
+			}
+
+			// Entry of event handler.
+			void OnEventReceived(object? sender, EventArgs e)
+			{
+				if (this.handlerRef.TryGetTarget(out var handler) && handler != null)
+					handler(sender, e);
+				else
+				{
+					var syncContext = SynchronizationContext.Current;
+					if (syncContext != null)
+						syncContext.Post(_ => this.Dispose(), null);
+					else
+						this.Dispose();
+				}
+			}
+		}
+
+
+		// Adapter of weak event handler.
+		class WeakEventHandlerAdapter<TArgs> : IDisposable where TArgs : EventArgs
+		{
+			// Fields.
+			readonly EventInfo eventInfo;
+			readonly EventHandler<TArgs> handlerEntry;
+			readonly WeakReference<EventHandler<TArgs>> handlerRef;
+			volatile bool isDisposed;
+			readonly object target;
+
+			// Constructor.
+			public WeakEventHandlerAdapter(object target, string eventName, EventHandler<TArgs> handler)
+			{
+				this.eventInfo = target.GetType().GetEvent(eventName) ?? throw new ArgumentException($"Cannot find event '{eventName}' in {target.GetType().Name}.");
+				this.handlerEntry = this.OnEventReceived;
+				this.handlerRef = new WeakReference<EventHandler<TArgs>>(handler);
+				this.target = target;
+				this.eventInfo.AddEventHandler(target, this.handlerEntry);
+			}
+
+			// Dispose.
+			public void Dispose()
+			{
+				lock (this)
+				{
+					if (this.isDisposed)
+						return;
+					this.isDisposed = true;
+				}
+				this.eventInfo.RemoveEventHandler(target, this.handlerEntry);
+			}
+
+			// Entry of event handler.
+			void OnEventReceived(object? sender, TArgs e)
+			{
+				if (this.handlerRef.TryGetTarget(out var handler) && handler != null)
+					handler(sender, e);
+				else
+				{
+					var syncContext = SynchronizationContext.Current;
+					if (syncContext != null)
+						syncContext.Post(_ => this.Dispose(), null);
+					else
+						this.Dispose();
+				}
+			}
+		}
+
+
+		/// <summary>
+		/// Add weak event handler.
+		/// </summary>
+		/// <param name="target"><see cref="object"/>.</param>
+		/// <param name="eventName">Name of event.</param>
+		/// <param name="handler">Event handler.</param>
+		/// <returns><see cref="IDisposable"/> which represents added weak event handler. You can call <see cref="IDisposable.Dispose"/> to remove weak event handler explicitly.</returns>
+		public static IDisposable AddWeakEventHandler(this object target, string eventName, EventHandler handler) =>
+			new WeakEventHandlerAdapter(target, eventName, handler);
+
+
+		/// <summary>
+		/// Add weak event handler.
+		/// </summary>
+		/// <param name="target"><see cref="object"/>.</param>
+		/// <param name="eventName">Name of event.</param>
+		/// <param name="handler">Event handler.</param>
+		/// <returns><see cref="IDisposable"/> which represents added weak event handler. You can call <see cref="IDisposable.Dispose"/> to remove weak event handler explicitly.</returns>
+		public static IDisposable AddWeakEventHandler<TArgs>(this object target, string eventName, EventHandler<TArgs> handler) where TArgs : EventArgs =>
+			new WeakEventHandlerAdapter<TArgs>(target, eventName, handler);
+
+
 		/// <summary>
 		/// Perform action on the given value, and return it.
 		/// </summary>
