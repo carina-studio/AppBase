@@ -67,13 +67,13 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 				}) ?? throw new XmlException("Node of package manifest not fount.");
 
 				// get name
-				rootNode.Attributes["Name"]?.Let(it => appName = it.Value);
+				rootNode.Attributes?["Name"]?.Let(it => appName = it.Value);
 
 				// get version
-				rootNode.Attributes["Version"]?.Let(it => Version.TryParse(it.Value, out packageVersion));
+				rootNode.Attributes?["Version"]?.Let(it => Version.TryParse(it.Value, out packageVersion));
 
 				// get page URI
-				rootNode.Attributes["PageUri"]?.Let(it => Uri.TryCreate(it.Value, UriKind.Absolute, out pageUri));
+				rootNode.Attributes?["PageUri"]?.Let(it => Uri.TryCreate(it.Value, UriKind.Absolute, out pageUri));
 
 				// check platform
 				var osName = Global.Run(() =>
@@ -101,7 +101,10 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 						if (packageNode.NodeType == XmlNodeType.Element && packageNode.Name == "Package")
 						{
 							// get URI
-							var uri = packageNode.Attributes["Uri"]?.Let(it =>
+							var packageAttrs = packageNode.Attributes;
+							if (packageAttrs == null)
+								continue;
+							var uri = packageAttrs["Uri"]?.Let(it =>
 							{
 								Uri.TryCreate(it.Value, UriKind.Absolute, out var uri);
 								return uri;
@@ -110,27 +113,27 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 								continue;
 
 							// check operating system
-							var osAttribute = packageNode.Attributes["OperatingSystem"];
+							var osAttribute = packageAttrs["OperatingSystem"];
 							var isOsMatched = osAttribute != null && osAttribute.Value == osName;
 
 							// check architecture
-							var archArrtibute = packageNode.Attributes["Architecture"];
+							var archArrtibute = packageAttrs["Architecture"];
 							var isArchMatched = archArrtibute != null && archArrtibute.Value == archName;
 
 							// select package
 							if (osAttribute == null && archArrtibute == null)
 							{
 								genericPackageUri = uri;
-								packageNode.Attributes["MD5"]?.Let(attr => genericMd5 = attr.Value);
-								packageNode.Attributes["SHA256"]?.Let(attr => genericSha256 = attr.Value);
-								packageNode.Attributes["SHA512"]?.Let(attr => genericSha512 = attr.Value);
+								packageAttrs["MD5"]?.Let(attr => genericMd5 = attr.Value);
+								packageAttrs["SHA256"]?.Let(attr => genericSha256 = attr.Value);
+								packageAttrs["SHA512"]?.Let(attr => genericSha512 = attr.Value);
 							}
 							else if (isOsMatched && isArchMatched)
 							{
 								packageUri = uri;
-								packageNode.Attributes["MD5"]?.Let(attr => md5 = attr.Value);
-								packageNode.Attributes["SHA256"]?.Let(attr => sha256 = attr.Value);
-								packageNode.Attributes["SHA512"]?.Let(attr => sha512 = attr.Value);
+								packageAttrs["MD5"]?.Let(attr => md5 = attr.Value);
+								packageAttrs["SHA256"]?.Let(attr => sha256 = attr.Value);
+								packageAttrs["SHA512"]?.Let(attr => sha512 = attr.Value);
 								break;
 							}
 						}

@@ -114,7 +114,7 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 		protected UpdatingSession(IApplication app) : base(app)
 		{
 			// attach to updater
-			this.updater.PropertyChanged += (_, e) => this.OnUpdaterPropertyChanged(e.PropertyName);
+			this.updater.PropertyChanged += (_, e) => this.OnUpdaterPropertyChanged(e.PropertyName ?? "");
 
 			// create commands
 			this.CancelUpdatingCommand = new Command(() => this.updater.Cancel(), this.canCancelUpdating);
