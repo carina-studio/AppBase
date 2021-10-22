@@ -1,7 +1,8 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using CarinaStudio.Threading;
 using System;
-using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 namespace CarinaStudio.Controls
 {
@@ -10,8 +11,15 @@ namespace CarinaStudio.Controls
 	/// </summary>
 	public abstract class Dialog : Window
 	{
+		// Constants.
+		const int SizeCorrectionTimeout = 1000;
+
+
 		// Fields.
+		double? desiredWidth;
+		long openedTime;
 		Window? ownerWindow;
+		readonly Stopwatch stopWatch = new Stopwatch().Also(it => it.Start());
 
 
 		/// <summary>
@@ -21,22 +29,42 @@ namespace CarinaStudio.Controls
 		{ }
 
 
-		/// <summary>
-		/// Called when window closed.
-		/// </summary>
-		/// <param name="e">Event data.</param>
+		/// <inheritdoc/>
+        protected override Size MeasureOverride(Size availableSize)
+        {
+			// keep desired size in first measuring
+			if (!this.desiredWidth.HasValue)
+				this.desiredWidth = this.Width;
+
+			// call base
+            var size = base.MeasureOverride(availableSize);
+
+			// [Workaround] Restore to desired size on Linux to prevent incorrect window size when 'AVALONIA_SCREEN_SCALE_FACTORS' is set
+			if (Platform.IsLinux && double.IsFinite(this.desiredWidth.Value))
+			{
+				if (this.openedTime <= 0 || (this.stopWatch.ElapsedMilliseconds - this.openedTime) <= SizeCorrectionTimeout)
+				{
+					if (size.Width < this.desiredWidth.Value)
+						size = new Size(this.desiredWidth.Value, size.Height);
+				}
+			}
+
+			// complete
+			return size;
+        }
+
+
+		/// <inheritdoc/>
 		protected override void OnClosed(EventArgs e)
 		{
+			this.stopWatch.Stop();
 			this.ownerWindow?.OnDialogClosed(this);
 			this.ownerWindow = null;
 			base.OnClosed(e);
 		}
 
 
-		/// <summary>
-		/// Called when key up.
-		/// </summary>
-		/// <param name="e">Event data.</param>
+		/// <inheritdoc/>
 		protected override void OnKeyUp(Avalonia.Input.KeyEventArgs e)
 		{
 			base.OnKeyUp(e);
@@ -45,12 +73,12 @@ namespace CarinaStudio.Controls
 		}
 
 
-		/// <summary>
-		/// Called when window opened.
-		/// </summary>
-		/// <param name="e">Event data.</param>
+		/// <inheritdoc/>
 		protected override void OnOpened(EventArgs e)
 		{
+			// keep time
+			this.openedTime = this.stopWatch.ElapsedMilliseconds;
+
 			// call base
 			base.OnOpened(e);
 
@@ -62,18 +90,20 @@ namespace CarinaStudio.Controls
 				this.Icon = this.ownerWindow?.Icon;
 
 			// [workaround] move to center of owner for Linux
-			if (this.WindowStartupLocation == WindowStartupLocation.CenterOwner && RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+			if (this.WindowStartupLocation == WindowStartupLocation.CenterOwner && Platform.IsLinux)
 			{
-				(this.Owner as Window)?.Let((owner) =>
+				this.ownerWindow?.Let(owner =>
 				{
-					this.WindowStartupLocation = WindowStartupLocation.Manual;
-					this.Position = owner.Position.Let((position) =>
+					var position = owner.Position.Let((position) =>
 					{
 						var screenScale = owner.Screens.ScreenFromVisual(owner).PixelDensity;
 						var offsetX = (int)((owner.Width - this.Width) / 2 * screenScale);
 						var offsetY = (int)((owner.Height - this.Height) / 2 * screenScale);
 						return new PixelPoint(position.X + offsetX, position.Y + offsetY);
 					});
+					this.WindowStartupLocation = WindowStartupLocation.Manual;
+					this.SynchronizationContext.Post(() => this.Position = position);
+					this.SynchronizationContext.PostDelayed(() => this.Position = position, 100);
 				});
 			}
 		}
