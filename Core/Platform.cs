@@ -3,6 +3,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CarinaStudio
@@ -13,9 +15,59 @@ namespace CarinaStudio
     public static class Platform
     {
 		// Fields.
+		static readonly Regex frameworkVersionRegex = new Regex("^(?<Version>[\\d]+(\\.[\\d]+)*)");
 		static bool? isGnome;
 		static bool? isOpeningFileManagerSupported;
 		static LinuxDistribution? linuxDistribution;
+
+
+		/// <summary>
+		/// Get version of .NET installed on device.
+		/// </summary>
+		/// <returns>Installed .NET version, or null if .NET is not installed on device.</returns>
+		public static Version? GetInstalledFrameworkVersion()
+        {
+			try
+			{
+				var str = Global.Run(() =>
+				{
+					using var process = Process.Start(new ProcessStartInfo()
+					{
+						Arguments = "--version",
+						CreateNoWindow = true,
+						FileName = "dotnet",
+						RedirectStandardOutput = true,
+						UseShellExecute = false,
+					});
+					if (process != null)
+						return process.StandardOutput.ReadLine();
+					return "";
+				});
+				var match = frameworkVersionRegex.Match(str);
+				if (match.Success && Version.TryParse(match.Groups["Version"].Value, out var version))
+					return version;
+			}
+			catch
+			{ }
+			return null;
+		}
+
+
+		/// <summary>
+		/// Get version of .NET installed on device.
+		/// </summary>
+		/// <returns>Task of checking version. The result will be null if .NET is not installed on device.</returns>
+		public static Task<Version?> GetInstalledFrameworkVersionAsync() =>
+			GetInstalledFrameworkVersionAsync(new CancellationToken());
+
+
+		/// <summary>
+		/// Get version of .NET installed on device.
+		/// </summary>
+		/// <param name="cancellationToken">Cancellation token.</param>
+		/// <returns>Task of checking version. The result will be null if .NET is not installed on device.</returns>
+		public static async Task<Version?> GetInstalledFrameworkVersionAsync(CancellationToken cancellationToken) =>
+			await Task.Run(() => GetInstalledFrameworkVersion(), cancellationToken);
 
 
 		/// <summary>
