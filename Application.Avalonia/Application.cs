@@ -13,7 +13,7 @@ namespace CarinaStudio
 	/// <summary>
 	/// Base implementation of <see cref="IApplication"/> based-on <see cref="Avalonia.Application"/>.
 	/// </summary>
-	public abstract class Application : Avalonia.Application, IApplication
+	public abstract class Application : Avalonia.Application, IAvaloniaApplication
 	{
 		// Fields.
 		PropertyChangedEventHandler? propertyChangedHandlers;
