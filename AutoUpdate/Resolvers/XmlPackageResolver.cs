@@ -38,6 +38,10 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 			var md5 = (string?)null;
 			var sha256 = (string?)null;
 			var sha512 = (string?)null;
+			var selfContainedPackageUri = (Uri?)null;
+			var selfContainedMd5 = (string?)null;
+			var selfContainedSha256 = (string?)null;
+			var selfContainedSha512 = (string?)null;
 			var genericPackageUri = (Uri?)null;
 			var genericMd5 = (string?)null;
 			var genericSha256 = (string?)null;
@@ -90,6 +94,9 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					throw new ArgumentException("Unknown operating system.");
 				var archName = RuntimeInformation.OSArchitecture.ToString();
 
+				// check installed .NET version
+				var installedFrameworkVersion = Platform.GetInstalledFrameworkVersion();
+
 				// find package URI
 				if (!rootNode.HasChildNodes)
 					throw new XmlException("Package not fount.");
@@ -120,21 +127,39 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 							var archArrtibute = packageAttrs["Architecture"];
 							var isArchMatched = archArrtibute != null && archArrtibute.Value == archName;
 
+							// check framework version
+							var frameworkVersionAttr = packageAttrs["FrameworkVersion"];
+							var isFrameworkMatched = frameworkVersionAttr == null
+								|| (Version.TryParse(frameworkVersionAttr.Value, out var version) 
+									&& installedFrameworkVersion != null 
+									&& version <= installedFrameworkVersion);
+
 							// select package
-							if (osAttribute == null && archArrtibute == null)
+							if (osAttribute == null && archArrtibute == null && frameworkVersionAttr == null)
 							{
 								genericPackageUri = uri;
 								packageAttrs["MD5"]?.Let(attr => genericMd5 = attr.Value);
 								packageAttrs["SHA256"]?.Let(attr => genericSha256 = attr.Value);
 								packageAttrs["SHA512"]?.Let(attr => genericSha512 = attr.Value);
 							}
-							else if (isOsMatched && isArchMatched)
+							else if (isOsMatched && isArchMatched && isFrameworkMatched)
 							{
-								packageUri = uri;
-								packageAttrs["MD5"]?.Let(attr => md5 = attr.Value);
-								packageAttrs["SHA256"]?.Let(attr => sha256 = attr.Value);
-								packageAttrs["SHA512"]?.Let(attr => sha512 = attr.Value);
-								break;
+								if (this.SelfContainedPackageOnly && frameworkVersionAttr != null)
+									continue;
+								if (frameworkVersionAttr == null)
+								{
+									selfContainedPackageUri = uri;
+									packageAttrs["MD5"]?.Let(attr => selfContainedMd5 = attr.Value);
+									packageAttrs["SHA256"]?.Let(attr => selfContainedSha256 = attr.Value);
+									packageAttrs["SHA512"]?.Let(attr => selfContainedSha512 = attr.Value);
+								}
+								else
+								{
+									packageUri = uri;
+									packageAttrs["MD5"]?.Let(attr => md5 = attr.Value);
+									packageAttrs["SHA256"]?.Let(attr => sha256 = attr.Value);
+									packageAttrs["SHA512"]?.Let(attr => sha512 = attr.Value);
+								}
 							}
 						}
 					}
@@ -157,6 +182,13 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 				this.MD5 = md5;
 				this.SHA256 = sha256;
 				this.SHA512 = sha512;
+			}
+			else if (selfContainedPackageUri != null)
+			{
+				this.PackageUri = selfContainedPackageUri;
+				this.MD5 = selfContainedMd5;
+				this.SHA256 = selfContainedSha256;
+				this.SHA512 = selfContainedSha512;
 			}
 			else if (genericPackageUri != null)
 			{

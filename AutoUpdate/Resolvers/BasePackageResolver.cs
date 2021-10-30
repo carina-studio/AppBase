@@ -15,6 +15,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 		Uri? packageUri;
 		Version? packageVersion;
 		Uri? pageUri;
+		bool selfContainedPackageOnly;
 		string? sha256;
 		string? sha512;
 		IStreamProvider? source;
@@ -108,6 +109,23 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					return;
 				this.pageUri = value;
 				this.OnPropertyChanged(nameof(PageUri));
+			}
+		}
+
+
+		/// <inheritdoc/>
+		public bool SelfContainedPackageOnly
+		{
+			get => this.selfContainedPackageOnly;
+			set
+			{
+				this.VerifyAccess();
+				this.VerifyDisposed();
+				this.VerifyInitializing();
+				if (this.selfContainedPackageOnly == value)
+					return;
+				this.selfContainedPackageOnly = value;
+				this.OnPropertyChanged(nameof(SelfContainedPackageOnly));
 			}
 		}
 

@@ -39,6 +39,12 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 
 
 		/// <summary>
+		/// Get or set whether only self-contained package can be selected or not.
+		/// </summary>
+		bool SelfContainedPackageOnly { get; set; }
+
+
+		/// <summary>
 		/// Get SHA256 hash code of update package.
 		/// </summary>
 		string? SHA256 { get; }

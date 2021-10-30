@@ -22,6 +22,10 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 			/// </summary>
 			public Architecture? Architecture { get; set; }
 			/// <summary>
+			/// Get or set version of target framework.
+			/// </summary>
+			public Version? FrameworkVersion { get; set; }
+			/// <summary>
 			/// MD5 of update package.
 			/// </summary>
 			public string? MD5 { get; set; }
@@ -158,11 +162,22 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 				var appName = Tests.Random.GenerateRandomString(8);
 				var version = new Version(1, 2, 3, 4);
 				var pageUri = new Uri("https://localhost/Package.htm");
+				var frameworkVersion = Environment.Version;
 				var packageInfos = new List<PackageInfo>()
 				{
 					new PackageInfo()
 					{
 						Architecture = Architecture.X86,
+						MD5 = "MD5-Windows-X86-SelfContained",
+						OperatingSystem = "Windows",
+						SHA256 = "SHA256-Windows-X86-SelfContained",
+						SHA512 = "SHA512-Windows-X86-SelfContained",
+						Uri = new Uri("https://localhost/packages/Windows-X86-SelfContained.zip"),
+					},
+					new PackageInfo()
+					{
+						Architecture = Architecture.X86,
+						FrameworkVersion = frameworkVersion,
 						MD5 = "MD5-Windows-X86",
 						OperatingSystem = "Windows",
 						SHA256 = "SHA256-Windows-X86",
@@ -171,7 +186,27 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					},
 					new PackageInfo()
 					{
+						Architecture = Architecture.X86,
+						FrameworkVersion = new Version(999, 0),
+						MD5 = "MD5-Windows-X86-Invalid",
+						OperatingSystem = "Windows",
+						SHA256 = "SHA256-Windows-X86-Invalid",
+						SHA512 = "SHA512-Windows-X86-Invalid",
+						Uri = new Uri("https://localhost/packages/Windows-X86-Invalid.zip"),
+					},
+					new PackageInfo()
+					{
 						Architecture = Architecture.X64,
+						MD5 = "MD5-Windows-X64-SelfContained",
+						OperatingSystem = "Windows",
+						SHA256 = "SHA256-Windows-X64-SelfContained",
+						SHA512 = "SHA512-Windows-X64-SelfContained",
+						Uri = new Uri("https://localhost/packages/Windows-X64-SelfContained.zip"),
+					},
+					new PackageInfo()
+					{
+						Architecture = Architecture.X64,
+						FrameworkVersion = frameworkVersion,
 						MD5 = "MD5-Windows-X64",
 						OperatingSystem = "Windows",
 						SHA256 = "SHA256-Windows-X64",
@@ -181,6 +216,26 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					new PackageInfo()
 					{
 						Architecture = Architecture.X64,
+						FrameworkVersion = new Version(999, 0),
+						MD5 = "MD5-Windows-X64-Invalid",
+						OperatingSystem = "Windows",
+						SHA256 = "SHA256-Windows-X64-Invalid",
+						SHA512 = "SHA512-Windows-X64-Invalid",
+						Uri = new Uri("https://localhost/packages/Windows-X64-Invalid.zip"),
+					},
+					new PackageInfo()
+					{
+						Architecture = Architecture.X64,
+						MD5 = "MD5-Linux-X64-SelfContained",
+						OperatingSystem = "Linux",
+						SHA256 = "SHA256-Linux-X64-SelfContained",
+						SHA512 = "SHA512-Linux-X64-SelfContained",
+						Uri = new Uri("https://localhost/packages/Linux-X64-SelfContained.zip"),
+					},
+					new PackageInfo()
+					{
+						Architecture = Architecture.X64,
+						FrameworkVersion = frameworkVersion,
 						MD5 = "MD5-Linux-X64",
 						OperatingSystem = "Linux",
 						SHA256 = "SHA256-Linux-X64",
@@ -189,7 +244,27 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					},
 					new PackageInfo()
 					{
+						Architecture = Architecture.X64,
+						FrameworkVersion = new Version(999, 0),
+						MD5 = "MD5-Linux-X64-Invalid",
+						OperatingSystem = "Linux",
+						SHA256 = "SHA256-Linux-X64-Invalid",
+						SHA512 = "SHA512-Linux-X64-Invalid",
+						Uri = new Uri("https://localhost/packages/Linux-X64-Invalid.zip"),
+					},
+					new PackageInfo()
+					{
 						Architecture = Architecture.Arm64,
+						MD5 = "MD5-Linux-Arm64-SelfContained",
+						OperatingSystem = "Linux",
+						SHA256 = "SHA256-Linux-Arm64-SelfContained",
+						SHA512 = "SHA512-Linux-Arm64-SelfContained",
+						Uri = new Uri("https://localhost/packages/Linux-Arm64-SelfContained.zip"),
+					},
+					new PackageInfo()
+					{
+						Architecture = Architecture.Arm64,
+						FrameworkVersion = frameworkVersion,
 						MD5 = "MD5-Linux-Arm64",
 						OperatingSystem = "Linux",
 						SHA256 = "SHA256-Linux-Arm64",
@@ -198,24 +273,68 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					},
 					new PackageInfo()
 					{
+						Architecture = Architecture.Arm64,
+						FrameworkVersion = new Version(999, 0),
+						MD5 = "MD5-Linux-Arm64-Invalid",
+						OperatingSystem = "Linux",
+						SHA256 = "SHA256-Linux-Arm64-Invalid",
+						SHA512 = "SHA512-Linux-Arm64-Invalid",
+						Uri = new Uri("https://localhost/packages/Linux-Arm64-Invalid.zip"),
+					},
+					new PackageInfo()
+					{
 						Architecture = Architecture.X64,
+						MD5 = "MD5-OSX-X64-SelfContained",
+						OperatingSystem = "OSX",
+						SHA256 = "SHA256-OSX-X64-SelfContained",
+						SHA512 = "SHA512-OSX-X64-SelfContained",
+						Uri = new Uri("https://localhost/packages/OSX-X64-SelfContained.zip"),
+					},
+					new PackageInfo()
+					{
+						Architecture = Architecture.X64,
+						FrameworkVersion = frameworkVersion,
 						MD5 = "MD5-OSX-X64",
 						OperatingSystem = "OSX",
 						SHA256 = "SHA256-OSX-X64",
 						SHA512 = "SHA512-OSX-X64",
 						Uri = new Uri("https://localhost/packages/OSX-X64.zip"),
 					},
+					new PackageInfo()
+					{
+						Architecture = Architecture.X64,
+						FrameworkVersion = new Version(999, 0),
+						MD5 = "MD5-OSX-X64-Invalid",
+						OperatingSystem = "OSX",
+						SHA256 = "SHA256-OSX-X64-Invalid",
+						SHA512 = "SHA512-OSX-X64-Invalid",
+						Uri = new Uri("https://localhost/packages/OSX-X64-Invalid.zip"),
+					},
 				};
 
 				// check current operating system and platform
 				this.GetEnvironment(out var osName, out var architecture);
-				var expectedPackageUri = new Uri($"https://localhost/packages/{osName}-{architecture}.zip");
-				var expectedMD5 = $"MD5-{osName}-{architecture}";
-				var expectedSHA256 = $"SHA256-{osName}-{architecture}";
-				var expectedSHA512 = $"SHA512-{osName}-{architecture}";
+				var expectedPackageUri = new Uri($"https://localhost/packages/{osName}-{architecture}-SelfContained.zip");
+				var expectedMD5 = $"MD5-{osName}-{architecture}-SelfContained";
+				var expectedSHA256 = $"SHA256-{osName}-{architecture}-SelfContained";
+				var expectedSHA512 = $"SHA512-{osName}-{architecture}-SelfContained";
+
+				// resolve package info with self-contained package only
+				var packageManifest = this.GeneratePackageManifest(appName, version, pageUri, packageInfos);
+				using (var packageResolver = this.CreateInstance(packageManifest))
+				{
+					packageResolver.SelfContainedPackageOnly = true;
+					Assert.IsTrue(packageResolver.Start());
+					Assert.IsTrue(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Succeeded, 10000));
+					Assert.IsNull(packageResolver.Exception);
+					this.VerifyResolvedPackage(packageResolver, appName, version, pageUri, expectedPackageUri, expectedMD5, expectedSHA256, expectedSHA512);
+				}
 
 				// resolve package info
-				var packageManifest = this.GeneratePackageManifest(appName, version, pageUri, packageInfos);
+				expectedPackageUri = new Uri($"https://localhost/packages/{osName}-{architecture}.zip");
+				expectedMD5 = $"MD5-{osName}-{architecture}";
+				expectedSHA256 = $"SHA256-{osName}-{architecture}";
+				expectedSHA512 = $"SHA512-{osName}-{architecture}";
 				using (var packageResolver = this.CreateInstance(packageManifest))
 				{
 					Assert.IsTrue(packageResolver.Start());

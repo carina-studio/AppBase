@@ -40,6 +40,10 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 			var md5 = (string?)null;
 			var sha256 = (string?)null;
 			var sha512 = (string?)null;
+			var selfContainedPackageUri = (Uri?)null;
+			var selfContainedMd5 = (string?)null;
+			var selfContainedSha256 = (string?)null;
+			var selfContainedSha512 = (string?)null;
 			var genericPackageUri = (Uri?)null;
 			var genericMd5 = (string?)null;
 			var genericSha256 = (string?)null;
@@ -88,6 +92,9 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					throw new ArgumentException("Unknown operating system.");
 				var archName = RuntimeInformation.OSArchitecture.ToString();
 
+				// check installed .NET version
+				var installedFrameworkVersion = Platform.GetInstalledFrameworkVersion();
+
 				// find package URI
 				if (!rootObject.TryGetProperty("Packages", out var jsonPackageListElement))
 					throw new ArgumentException("No packages list found.");
@@ -115,8 +122,15 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					var hasArchProperty = jsonPackageElement.TryGetProperty("Architecture", out jsonValue);
 					var isArchMatched = (hasArchProperty && jsonValue.ValueKind == JsonValueKind.String && jsonValue.GetString() == archName);
 
+					// check framework version
+					var hasFrameworkProperty = jsonPackageElement.TryGetProperty("FrameworkVersion", out jsonValue);
+					var frameworkVersion = hasFrameworkProperty && jsonValue.ValueKind == JsonValueKind.String
+						? (Version.TryParse(jsonValue.GetString(), out var version) ? version : null)
+						: null;
+					var isFrameworkMatched = frameworkVersion == null || (installedFrameworkVersion != null && frameworkVersion <= installedFrameworkVersion);
+
 					// select package
-					if (!hasOsProperty && !hasArchProperty)
+					if (!hasOsProperty && !hasArchProperty && !hasFrameworkProperty)
 					{
 						genericPackageUri = uri;
 						if (jsonPackageElement.TryGetProperty("MD5", out jsonValue) && jsonValue.ValueKind == JsonValueKind.String)
@@ -126,16 +140,30 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 						if (jsonPackageElement.TryGetProperty("SHA512", out jsonValue) && jsonValue.ValueKind == JsonValueKind.String)
 							genericSha512 = jsonValue.GetString();
 					}
-					else if (isOsMatched && isArchMatched)
+					else if (isOsMatched && isArchMatched && isFrameworkMatched)
 					{
-						packageUri = uri;
-						if (jsonPackageElement.TryGetProperty("MD5", out jsonValue) && jsonValue.ValueKind == JsonValueKind.String)
-							md5 = jsonValue.GetString();
-						if (jsonPackageElement.TryGetProperty("SHA256", out jsonValue) && jsonValue.ValueKind == JsonValueKind.String)
-							sha256 = jsonValue.GetString();
-						if (jsonPackageElement.TryGetProperty("SHA512", out jsonValue) && jsonValue.ValueKind == JsonValueKind.String)
-							sha512 = jsonValue.GetString();
-						return;
+						if (this.SelfContainedPackageOnly && frameworkVersion != null)
+							continue;
+						if (frameworkVersion == null)
+						{
+							selfContainedPackageUri = uri;
+							if (jsonPackageElement.TryGetProperty("MD5", out jsonValue) && jsonValue.ValueKind == JsonValueKind.String)
+								selfContainedMd5 = jsonValue.GetString();
+							if (jsonPackageElement.TryGetProperty("SHA256", out jsonValue) && jsonValue.ValueKind == JsonValueKind.String)
+								selfContainedSha256 = jsonValue.GetString();
+							if (jsonPackageElement.TryGetProperty("SHA512", out jsonValue) && jsonValue.ValueKind == JsonValueKind.String)
+								selfContainedSha512 = jsonValue.GetString();
+						}
+						else
+						{
+							packageUri = uri;
+							if (jsonPackageElement.TryGetProperty("MD5", out jsonValue) && jsonValue.ValueKind == JsonValueKind.String)
+								md5 = jsonValue.GetString();
+							if (jsonPackageElement.TryGetProperty("SHA256", out jsonValue) && jsonValue.ValueKind == JsonValueKind.String)
+								sha256 = jsonValue.GetString();
+							if (jsonPackageElement.TryGetProperty("SHA512", out jsonValue) && jsonValue.ValueKind == JsonValueKind.String)
+								sha512 = jsonValue.GetString();
+						}
 					}
 				}
 			});
@@ -152,6 +180,13 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 				this.MD5 = md5;
 				this.SHA256 = sha256;
 				this.SHA512 = sha512;
+			}
+			else if (selfContainedPackageUri != null)
+			{
+				this.PackageUri = selfContainedPackageUri;
+				this.MD5 = selfContainedMd5;
+				this.SHA256 = selfContainedSha256;
+				this.SHA512 = selfContainedSha512;
 			}
 			else if (genericPackageUri != null)
 			{
