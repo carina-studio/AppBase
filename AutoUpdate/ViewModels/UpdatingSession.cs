@@ -104,6 +104,7 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 		readonly MutableObservableBoolean canCancelUpdating = new MutableObservableBoolean();
 		readonly MutableObservableBoolean canStartUpdating = new MutableObservableBoolean(true);
 		IStreamProvider? packageManifestSource;
+		bool selfContainedPackageOnly;
 		readonly Updater updater = new Updater();
 
 
@@ -412,6 +413,26 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 		public double ProgressPercentage { get => this.GetValue(ProgressPercentageProperty); }
 
 
+		/// <summary>
+		/// Get or set whether only self-contained update package can be selected or not.
+		/// </summary>
+		public bool SelfContainedPackageOnly
+		{
+			get => this.selfContainedPackageOnly;
+			set
+			{
+				this.VerifyAccess();
+				this.VerifyDisposed();
+				if (this.updater.State != UpdaterState.Initializing)
+					throw new InvalidOperationException();
+				if (this.selfContainedPackageOnly == value)
+					return;
+				this.selfContainedPackageOnly = value;
+				this.OnPropertyChanged(nameof(SelfContainedPackageOnly));
+			}
+		}
+
+
 		// Start updating.
 		void StartUpdating()
 		{
@@ -437,7 +458,10 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 			// prepare updater
 			this.updater.ApplicationDirectoryPath = applicationDirectoryPath;
 			this.updater.PackageInstaller = new ZipPackageInstaller();
-			this.updater.PackageResolver = this.CreatePackageResolver(this.packageManifestSource);
+			this.updater.PackageResolver = this.CreatePackageResolver(this.packageManifestSource).Also(it =>
+			{
+				it.SelfContainedPackageOnly = this.selfContainedPackageOnly;
+			});
 
 			// start
 			this.Logger.LogDebug("Start updating");
