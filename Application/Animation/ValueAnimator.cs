@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CarinaStudio.Threading;
+using System;
 
 namespace CarinaStudio.Animation
 {
@@ -8,10 +9,38 @@ namespace CarinaStudio.Animation
     /// <typeparam name="T">Type of value to animate.</typeparam>
     public abstract class ValueAnimator<T> : Animator
     {
+        // Fields.
+        T endValue;
+        T startValue;
+
+
         /// <summary>
         /// Initialize new <see cref="ValueAnimator{T}"/> instance.
         /// </summary>
-        protected ValueAnimator() => this.Value = this.GenerateValue(0);
+        /// <param name="startValue">Start value.</param>
+        /// <param name="endValue">End value.</param>
+        protected ValueAnimator(T startValue, T endValue)
+        {
+            this.endValue = endValue;
+            this.startValue = startValue;
+            this.Value = this.GenerateValue(0);
+        }
+
+
+        /// <summary>
+        /// Get or set value when animation completed.
+        /// </summary>
+        public T EndValue
+        {
+            get => this.endValue;
+            set
+            {
+                this.VerifyAccess();
+                this.endValue = value;
+                if (this.IsStarted)
+                    this.OnProgressChanged(EventArgs.Empty);
+            }
+        }
 
 
         /// <summary>
@@ -43,6 +72,24 @@ namespace CarinaStudio.Animation
         {
             this.Value = this.GenerateValue(this.Progress);
             base.OnProgressChanged(e);
+        }
+
+
+        /// <summary>
+        /// Get or set value when starting animation.
+        /// </summary>
+        public T StartValue
+        {
+            get => this.startValue;
+            set
+            {
+                this.VerifyAccess();
+                this.startValue = value;
+                if (this.IsStarted)
+                    this.OnProgressChanged(EventArgs.Empty);
+                else
+                    this.Value = this.GenerateValue(0);
+            }
         }
 
 
