@@ -11,6 +11,7 @@ namespace CarinaStudio
 		static void Main(string[] args)
 		{
 			var version = Platform.GetInstalledFrameworkVersion();
+			var windowsVersion = Platform.WindowsVersion;
 
 			/*
 			var testFixure = new Collections.SortedObservableListTests();

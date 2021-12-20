@@ -19,6 +19,7 @@ namespace CarinaStudio
 		static bool? isGnome;
 		static bool? isOpeningFileManagerSupported;
 		static LinuxDistribution? linuxDistribution;
+		static WindowsVersion? windowsVersion;
 
 
 		/// <summary>
@@ -141,6 +142,24 @@ namespace CarinaStudio
 		/// Check whether current operating system is Windows of not.
 		/// </summary>
 		public static bool IsWindows { get; } = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
+
+		/// <summary>
+		/// Check whether the version of Windows is Windows 10+ or not.
+		/// </summary>
+		public static bool IsWindows10OrAbove { get => WindowsVersion >= WindowsVersion.Windows10; }
+
+
+		/// <summary>
+		/// Check whether the version of Windows is Windows 11+ or not.
+		/// </summary>
+		public static bool IsWindows11OrAbove { get => WindowsVersion >= WindowsVersion.Windows11; }
+
+
+		/// <summary>
+		/// Check whether the version of Windows is Windows 8+ or not.
+		/// </summary>
+		public static bool IsWindows8OrAbove { get => WindowsVersion >= WindowsVersion.Windows8; }
 
 
 		/// <summary>
@@ -274,6 +293,53 @@ namespace CarinaStudio
 			catch
 			{
 				return false;
+			}
+		}
+
+
+		/// <summary>
+		/// Get version of Windows currently running on.
+		/// </summary>
+		public static WindowsVersion WindowsVersion
+		{
+			get
+			{
+				if (windowsVersion.HasValue)
+					return windowsVersion.GetValueOrDefault();
+				lock (typeof(Platform))
+				{
+					if (windowsVersion.HasValue)
+						return windowsVersion.GetValueOrDefault();
+					if (IsWindows)
+					{
+						windowsVersion = Environment.OSVersion.Version.Let(version =>
+						{
+							return version.Major switch
+							{
+								6 => version.Minor.Let(it =>
+								{
+									if (it >= 2)
+										return WindowsVersion.Windows8;
+									if (it == 1)
+										return WindowsVersion.Windows7;
+									return WindowsVersion.Unknown;
+								}),
+								10 => version.Build.Let(it =>
+								{
+									if (version.Minor > 0)
+										return WindowsVersion.Above;
+									if (it < 22000)
+										return WindowsVersion.Windows10;
+									return WindowsVersion.Windows11;
+								}),
+								_ => version.Major > 10 ? WindowsVersion.Above : WindowsVersion.Unknown,
+							};
+						});
+					}
+					else
+						windowsVersion = WindowsVersion.Unknown;
+				}
+				return windowsVersion.GetValueOrDefault();
 			}
 		}
 	}
