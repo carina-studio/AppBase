@@ -10,7 +10,7 @@ namespace CarinaStudio
 		// Program entry.
 		static void Main(string[] args)
 		{
-			var version = Platform.GetInstalledFrameworkVersion();
+			var version = Platform.GetInstalledRuntimeVersion();
 			var windowsVersion = Platform.WindowsVersion;
 
 			/*

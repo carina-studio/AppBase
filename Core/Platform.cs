@@ -15,38 +15,60 @@ namespace CarinaStudio
     public static class Platform
     {
 		// Fields.
-		static readonly Regex frameworkVersionRegex = new Regex("^(?<Version>[\\d]+(\\.[\\d]+)*)");
 		static bool? isGnome;
 		static bool? isOpeningFileManagerSupported;
 		static LinuxDistribution? linuxDistribution;
+		static readonly Regex runtimeVersionRegex = new Regex("^(?<Runtime>[^\\s]+)[\\s]+(?<Version>[\\d]+(\\.[\\d]+)*)(?<VersionPostfix>\\-.+)?");
 		static WindowsVersion? windowsVersion;
 
 
 		/// <summary>
-		/// Get version of .NET installed on device.
+		/// Get the latest version of .NET Runtime installed on device.
 		/// </summary>
-		/// <returns>Installed .NET version, or null if .NET is not installed on device.</returns>
-		public static Version? GetInstalledFrameworkVersion()
+		/// <param name="stableVersionOnly">True to include stable version only.</param>
+		/// <returns>Installed .NET Runtime version, or null if .NET Runtime is not installed on device.</returns>
+		public static Version? GetInstalledRuntimeVersion(bool stableVersionOnly = true)
         {
 			try
 			{
-				var str = Global.Run(() =>
+				using var process = Process.Start(new ProcessStartInfo()
 				{
-					using var process = Process.Start(new ProcessStartInfo()
-					{
-						Arguments = "--version",
-						CreateNoWindow = true,
-						FileName = "dotnet",
-						RedirectStandardOutput = true,
-						UseShellExecute = false,
-					});
-					if (process != null)
-						return process.StandardOutput.ReadLine();
-					return "";
+					Arguments = "--list-runtimes",
+					CreateNoWindow = true,
+					FileName = "dotnet",
+					RedirectStandardOutput = true,
+					UseShellExecute = false,
 				});
-				var match = frameworkVersionRegex.Match(str);
-				if (match.Success && Version.TryParse(match.Groups["Version"].Value, out var version))
-					return version;
+				if (process != null)
+				{
+					var latestVersion = (Version?)null;
+					var targetRuntine = IsWindows ? "Microsoft.WindowsDesktop.App" : "Microsoft.NETCore.App";
+					var line = process.StandardOutput.ReadLine();
+					while (line != null)
+					{
+						try
+						{
+							var match = runtimeVersionRegex.Match(line);
+							if (match.Success)
+							{
+								if (match.Groups["Runtime"].Value != targetRuntine)
+									continue;
+								if (match.Groups["VersionPostfix"].Success && stableVersionOnly)
+									continue;
+								if (Version.TryParse(match.Groups["Version"].Value, out var version))
+                                {
+									if (latestVersion == null || latestVersion < version)
+										latestVersion = version;
+                                }
+							}
+						}
+						finally
+						{
+							line = process.StandardOutput.ReadLine();
+						}
+					}
+					return latestVersion;
+				}
 			}
 			catch
 			{ }
@@ -55,20 +77,22 @@ namespace CarinaStudio
 
 
 		/// <summary>
-		/// Get version of .NET installed on device.
+		/// Get the latest version of .NET Runtime installed on device
 		/// </summary>
-		/// <returns>Task of checking version. The result will be null if .NET is not installed on device.</returns>
-		public static Task<Version?> GetInstalledFrameworkVersionAsync() =>
-			GetInstalledFrameworkVersionAsync(new CancellationToken());
+		/// <param name="stableVersionOnly">True to include stable version only.</param>
+		/// <returns>Task of getting version. The result will be null if .NET Runtime is not installed on device.</returns>
+		public static Task<Version?> GetInstalledRuntimeVersionAsync(bool stableVersionOnly = true) =>
+			GetInstalledRuntimeVersionAsync(stableVersionOnly, new CancellationToken());
 
 
 		/// <summary>
-		/// Get version of .NET installed on device.
+		/// Get the latest version of .NET Runtime installed on device
 		/// </summary>
 		/// <param name="cancellationToken">Cancellation token.</param>
-		/// <returns>Task of checking version. The result will be null if .NET is not installed on device.</returns>
-		public static async Task<Version?> GetInstalledFrameworkVersionAsync(CancellationToken cancellationToken) =>
-			await Task.Run(() => GetInstalledFrameworkVersion(), cancellationToken);
+		/// <param name="stableVersionOnly">True to include stable version only.</param>
+		/// <returns>Task of getting version. The result will be null if .NET Runtime is not installed on device.</returns>
+		public static async Task<Version?> GetInstalledRuntimeVersionAsync(bool stableVersionOnly, CancellationToken cancellationToken) =>
+			await Task.Run(() => GetInstalledRuntimeVersion(stableVersionOnly), cancellationToken);
 
 
 		/// <summary>
