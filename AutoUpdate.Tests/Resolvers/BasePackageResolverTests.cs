@@ -22,10 +22,6 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 			/// </summary>
 			public Architecture? Architecture { get; set; }
 			/// <summary>
-			/// Get or set version of target framework.
-			/// </summary>
-			public Version? FrameworkVersion { get; set; }
-			/// <summary>
 			/// MD5 of update package.
 			/// </summary>
 			public string? MD5 { get; set; }
@@ -33,6 +29,10 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 			/// Get or set operating system.
 			/// </summary>
 			public string? OperatingSystem { get; set; }
+			/// <summary>
+			/// Get or set version of target runtime.
+			/// </summary>
+			public Version? RuntimeVersion { get; set; }
 			/// <summary>
 			/// SHA256 of update package.
 			/// </summary>
@@ -162,7 +162,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 				var appName = Tests.Random.GenerateRandomString(8);
 				var version = new Version(1, 2, 3, 4);
 				var pageUri = new Uri("https://localhost/Package.htm");
-				var frameworkVersion = Environment.Version;
+				var RuntimeVersion = Environment.Version;
 				var packageInfos = new List<PackageInfo>()
 				{
 					new PackageInfo()
@@ -177,7 +177,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					new PackageInfo()
 					{
 						Architecture = Architecture.X86,
-						FrameworkVersion = frameworkVersion,
+						RuntimeVersion = RuntimeVersion,
 						MD5 = "MD5-Windows-X86",
 						OperatingSystem = "Windows",
 						SHA256 = "SHA256-Windows-X86",
@@ -187,7 +187,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					new PackageInfo()
 					{
 						Architecture = Architecture.X86,
-						FrameworkVersion = new Version(999, 0),
+						RuntimeVersion = new Version(999, 0),
 						MD5 = "MD5-Windows-X86-Invalid",
 						OperatingSystem = "Windows",
 						SHA256 = "SHA256-Windows-X86-Invalid",
@@ -206,7 +206,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					new PackageInfo()
 					{
 						Architecture = Architecture.X64,
-						FrameworkVersion = frameworkVersion,
+						RuntimeVersion = RuntimeVersion,
 						MD5 = "MD5-Windows-X64",
 						OperatingSystem = "Windows",
 						SHA256 = "SHA256-Windows-X64",
@@ -216,7 +216,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					new PackageInfo()
 					{
 						Architecture = Architecture.X64,
-						FrameworkVersion = new Version(999, 0),
+						RuntimeVersion = new Version(999, 0),
 						MD5 = "MD5-Windows-X64-Invalid",
 						OperatingSystem = "Windows",
 						SHA256 = "SHA256-Windows-X64-Invalid",
@@ -235,7 +235,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					new PackageInfo()
 					{
 						Architecture = Architecture.X64,
-						FrameworkVersion = frameworkVersion,
+						RuntimeVersion = RuntimeVersion,
 						MD5 = "MD5-Linux-X64",
 						OperatingSystem = "Linux",
 						SHA256 = "SHA256-Linux-X64",
@@ -245,7 +245,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					new PackageInfo()
 					{
 						Architecture = Architecture.X64,
-						FrameworkVersion = new Version(999, 0),
+						RuntimeVersion = new Version(999, 0),
 						MD5 = "MD5-Linux-X64-Invalid",
 						OperatingSystem = "Linux",
 						SHA256 = "SHA256-Linux-X64-Invalid",
@@ -264,7 +264,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					new PackageInfo()
 					{
 						Architecture = Architecture.Arm64,
-						FrameworkVersion = frameworkVersion,
+						RuntimeVersion = RuntimeVersion,
 						MD5 = "MD5-Linux-Arm64",
 						OperatingSystem = "Linux",
 						SHA256 = "SHA256-Linux-Arm64",
@@ -274,7 +274,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					new PackageInfo()
 					{
 						Architecture = Architecture.Arm64,
-						FrameworkVersion = new Version(999, 0),
+						RuntimeVersion = new Version(999, 0),
 						MD5 = "MD5-Linux-Arm64-Invalid",
 						OperatingSystem = "Linux",
 						SHA256 = "SHA256-Linux-Arm64-Invalid",
@@ -293,7 +293,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					new PackageInfo()
 					{
 						Architecture = Architecture.X64,
-						FrameworkVersion = frameworkVersion,
+						RuntimeVersion = RuntimeVersion,
 						MD5 = "MD5-OSX-X64",
 						OperatingSystem = "OSX",
 						SHA256 = "SHA256-OSX-X64",
@@ -303,7 +303,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					new PackageInfo()
 					{
 						Architecture = Architecture.X64,
-						FrameworkVersion = new Version(999, 0),
+						RuntimeVersion = new Version(999, 0),
 						MD5 = "MD5-OSX-X64-Invalid",
 						OperatingSystem = "OSX",
 						SHA256 = "SHA256-OSX-X64-Invalid",

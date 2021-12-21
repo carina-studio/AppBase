@@ -92,8 +92,8 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					throw new ArgumentException("Unknown operating system.");
 				var archName = RuntimeInformation.OSArchitecture.ToString();
 
-				// check installed .NET version
-				var installedFrameworkVersion = Platform.GetInstalledFrameworkVersion();
+				// check installed runtime version
+				var installedRuntimeVersion = Platform.GetInstalledRuntimeVersion();
 
 				// find package URI
 				if (!rootObject.TryGetProperty("Packages", out var jsonPackageListElement))
@@ -122,15 +122,15 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					var hasArchProperty = jsonPackageElement.TryGetProperty("Architecture", out jsonValue);
 					var isArchMatched = (hasArchProperty && jsonValue.ValueKind == JsonValueKind.String && jsonValue.GetString() == archName);
 
-					// check framework version
-					var hasFrameworkProperty = jsonPackageElement.TryGetProperty("FrameworkVersion", out jsonValue);
-					var frameworkVersion = hasFrameworkProperty && jsonValue.ValueKind == JsonValueKind.String
+					// check runtime version
+					var hasRuntimeProperty = jsonPackageElement.TryGetProperty("RuntimeVersion", out jsonValue);
+					var runtimeVersion = hasRuntimeProperty && jsonValue.ValueKind == JsonValueKind.String
 						? (Version.TryParse(jsonValue.GetString(), out var version) ? version : null)
 						: null;
-					var isFrameworkMatched = frameworkVersion == null || (installedFrameworkVersion != null && frameworkVersion <= installedFrameworkVersion);
+					var isRuntimeMatched = runtimeVersion == null || (installedRuntimeVersion != null && runtimeVersion <= installedRuntimeVersion);
 
 					// select package
-					if (!hasOsProperty && !hasArchProperty && !hasFrameworkProperty)
+					if (!hasOsProperty && !hasArchProperty && !hasRuntimeProperty)
 					{
 						genericPackageUri = uri;
 						if (jsonPackageElement.TryGetProperty("MD5", out jsonValue) && jsonValue.ValueKind == JsonValueKind.String)
@@ -140,11 +140,11 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 						if (jsonPackageElement.TryGetProperty("SHA512", out jsonValue) && jsonValue.ValueKind == JsonValueKind.String)
 							genericSha512 = jsonValue.GetString();
 					}
-					else if (isOsMatched && isArchMatched && isFrameworkMatched)
+					else if (isOsMatched && isArchMatched && isRuntimeMatched)
 					{
-						if (this.SelfContainedPackageOnly && frameworkVersion != null)
+						if (this.SelfContainedPackageOnly && runtimeVersion != null)
 							continue;
-						if (frameworkVersion == null)
+						if (runtimeVersion == null)
 						{
 							selfContainedPackageUri = uri;
 							if (jsonPackageElement.TryGetProperty("MD5", out jsonValue) && jsonValue.ValueKind == JsonValueKind.String)

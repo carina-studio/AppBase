@@ -94,8 +94,8 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					throw new ArgumentException("Unknown operating system.");
 				var archName = RuntimeInformation.OSArchitecture.ToString();
 
-				// check installed .NET version
-				var installedFrameworkVersion = Platform.GetInstalledFrameworkVersion();
+				// check installed runtime version
+				var installedRuntimeVersion = Platform.GetInstalledRuntimeVersion();
 
 				// find package URI
 				if (!rootNode.HasChildNodes)
@@ -127,26 +127,26 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 							var archArrtibute = packageAttrs["Architecture"];
 							var isArchMatched = archArrtibute != null && archArrtibute.Value == archName;
 
-							// check framework version
-							var frameworkVersionAttr = packageAttrs["FrameworkVersion"];
-							var isFrameworkMatched = frameworkVersionAttr == null
-								|| (Version.TryParse(frameworkVersionAttr.Value, out var version) 
-									&& installedFrameworkVersion != null 
-									&& version <= installedFrameworkVersion);
+							// check runtime version
+							var runtimeVersionAttr = packageAttrs["RuntimeVersion"];
+							var isruntimeMatched = runtimeVersionAttr == null
+								|| (Version.TryParse(runtimeVersionAttr.Value, out var version) 
+									&& installedRuntimeVersion != null 
+									&& version <= installedRuntimeVersion);
 
 							// select package
-							if (osAttribute == null && archArrtibute == null && frameworkVersionAttr == null)
+							if (osAttribute == null && archArrtibute == null && runtimeVersionAttr == null)
 							{
 								genericPackageUri = uri;
 								packageAttrs["MD5"]?.Let(attr => genericMd5 = attr.Value);
 								packageAttrs["SHA256"]?.Let(attr => genericSha256 = attr.Value);
 								packageAttrs["SHA512"]?.Let(attr => genericSha512 = attr.Value);
 							}
-							else if (isOsMatched && isArchMatched && isFrameworkMatched)
+							else if (isOsMatched && isArchMatched && isruntimeMatched)
 							{
-								if (this.SelfContainedPackageOnly && frameworkVersionAttr != null)
+								if (this.SelfContainedPackageOnly && runtimeVersionAttr != null)
 									continue;
-								if (frameworkVersionAttr == null)
+								if (runtimeVersionAttr == null)
 								{
 									selfContainedPackageUri = uri;
 									packageAttrs["MD5"]?.Let(attr => selfContainedMd5 = attr.Value);
