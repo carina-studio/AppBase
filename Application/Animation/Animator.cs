@@ -18,8 +18,8 @@ namespace CarinaStudio.Animation
         // Fields.
         readonly ScheduledAction animateAction;
         long completionTime;
-        int duration;
-        int interval = 16;
+        TimeSpan duration;
+        TimeSpan interval = TimeSpan.FromMilliseconds(16);
         long nextAnimationTime;
         long prevAnimationTime;
         long startTime = -1;
@@ -42,7 +42,7 @@ namespace CarinaStudio.Animation
         {
             // calculate original progress
             var currentTime = Stopwatch.ElapsedMilliseconds;
-            var progress = ((double)currentTime - this.startTime) / this.duration;
+            var progress = ((double)currentTime - this.startTime) / this.duration.TotalMilliseconds;
 
             // complete animation
             if (progress >= 1)
@@ -62,7 +62,7 @@ namespace CarinaStudio.Animation
             while (this.nextAnimationTime <= currentTime)
             {
                 this.prevAnimationTime = this.nextAnimationTime;
-                this.nextAnimationTime += this.interval;
+                this.nextAnimationTime += (long)this.interval.TotalMilliseconds;
             }
             this.nextAnimationTime = Math.Min(this.completionTime, this.nextAnimationTime);
             this.ScheduleNextAnimating();
@@ -118,22 +118,22 @@ namespace CarinaStudio.Animation
 
 
         /// <summary>
-        /// Get duration of current animation in milliseconds.
+        /// Get or set duration of animation.
         /// </summary>
-        public int Duration
+        public TimeSpan Duration
         {
             get => this.duration;
             set
             {
                 this.VerifyAccess();
-                if (value < 0)
+                if (value.TotalMilliseconds < 0)
                     throw new ArgumentOutOfRangeException();
                 if (value == this.duration)
                     return;
                 this.duration = value;
                 if (this.IsStarted)
                 {
-                    this.completionTime = this.startTime + duration;
+                    this.completionTime = this.startTime + (long)duration.TotalMilliseconds;
                     this.nextAnimationTime = Math.Min(this.completionTime, this.nextAnimationTime);
                     this.ScheduleNextAnimating();
                 }
@@ -148,22 +148,22 @@ namespace CarinaStudio.Animation
 
 
         /// <summary>
-        /// Get or set interval between progress updating in milliseconds. Default value is 16.
+        /// Get or set interval between progress updating. Default value is 16 milliseconds.
         /// </summary>
-        public int Interval
+        public TimeSpan Interval
         {
             get => this.interval;
             set
             {
                 this.VerifyAccess();
-                if (value <= 0)
+                if (value.TotalMilliseconds <= 0)
                     throw new ArgumentOutOfRangeException();
                 if (value == this.interval)
                     return;
                 this.interval = value;
                 if (this.IsStarted)
                 {
-                    this.nextAnimationTime = Math.Min(this.completionTime, this.prevAnimationTime + value);
+                    this.nextAnimationTime = Math.Min(this.completionTime, this.prevAnimationTime + (long)value.TotalMilliseconds);
                     this.ScheduleNextAnimating();
                 }
             }
@@ -230,9 +230,9 @@ namespace CarinaStudio.Animation
 
             // start animation
             this.startTime = Stopwatch.ElapsedMilliseconds;
-            this.completionTime = this.startTime + this.duration;
+            this.completionTime = this.startTime + (long)this.duration.TotalMilliseconds;
             this.prevAnimationTime = this.startTime;
-            this.nextAnimationTime = this.startTime + this.interval;
+            this.nextAnimationTime = this.startTime + (long)this.interval.TotalMilliseconds;
             this.animateAction.Reschedule();
         }
 
@@ -240,23 +240,23 @@ namespace CarinaStudio.Animation
         /// <summary>
         /// Start new animation with default interval.
         /// </summary>
-        /// <param name="duration">Duration in milliseconds.</param>
+        /// <param name="duration">Duration.</param>
         /// <param name="progressChangedAction">Action when progress changed.</param>
         /// <param name="completedAction">Action when completed.</param>
         /// <returns><see cref="Animator"/> which handles the animation.</returns>
-        public static Animator Start(int duration, Action<double> progressChangedAction, Action? completedAction = null) =>
+        public static Animator Start(TimeSpan duration, Action<double> progressChangedAction, Action? completedAction = null) =>
             Start(duration, Interpolators.Default, progressChangedAction, completedAction);
 
 
         /// <summary>
         /// Start new animation with default interval.
         /// </summary>
-        /// <param name="duration">Duration in milliseconds.</param>
+        /// <param name="duration">Duration.</param>
         /// <param name="interpolator">Interpolator.</param>
         /// <param name="progressChangedAction">Action when progress changed.</param>
         /// <param name="completedAction">Action when completed.</param>
         /// <returns><see cref="Animator"/> which handles the animation.</returns>
-        public static Animator Start(int duration, Func<double, double> interpolator, Action<double> progressChangedAction, Action? completedAction = null) => new Animator().Also(it =>
+        public static Animator Start(TimeSpan duration, Func<double, double> interpolator, Action<double> progressChangedAction, Action? completedAction = null) => new Animator().Also(it =>
         {
             it.Duration = duration;
             if (completedAction != null)
@@ -295,33 +295,33 @@ namespace CarinaStudio.Animation
         /// <summary>
         /// Start new animation with default interval.
         /// </summary>
-        /// <param name="duration">Duration in milliseconds.</param>
+        /// <param name="duration">Duration.</param>
         /// <param name="progressChangedAction">Action when progress changed.</param>
         /// <returns><see cref="Animator"/> which handles the animation.</returns>
-        public static Task StartAndWaitForCompletionAsync(int duration, Action<double> progressChangedAction) =>
+        public static Task StartAndWaitForCompletionAsync(TimeSpan duration, Action<double> progressChangedAction) =>
             StartAndWaitForCompletionAsync(duration, Interpolators.Default, progressChangedAction, new CancellationToken());
 
 
         /// <summary>
         /// Start new animation with default interval.
         /// </summary>
-        /// <param name="duration">Duration in milliseconds.</param>
+        /// <param name="duration">Duration.</param>
         /// <param name="progressChangedAction">Action when progress changed.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns><see cref="Animator"/> which handles the animation.</returns>
-        public static Task StartAndWaitForCompletionAsync(int duration, Action<double> progressChangedAction, CancellationToken cancellationToken) =>
+        public static Task StartAndWaitForCompletionAsync(TimeSpan duration, Action<double> progressChangedAction, CancellationToken cancellationToken) =>
             StartAndWaitForCompletionAsync(duration, Interpolators.Default, progressChangedAction, cancellationToken);
 
 
         /// <summary>
         /// Start new animation with default interval.
         /// </summary>
-        /// <param name="duration">Duration in milliseconds.</param>
+        /// <param name="duration">Duration.</param>
         /// <param name="interpolator">Interpolator.</param>
         /// <param name="progressChangedAction">Action when progress changed.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns><see cref="Animator"/> which handles the animation.</returns>
-        public static Task StartAndWaitForCompletionAsync(int duration, Func<double, double> interpolator, Action<double> progressChangedAction, CancellationToken cancellationToken) => new Animator().Also(it =>
+        public static Task StartAndWaitForCompletionAsync(TimeSpan duration, Func<double, double> interpolator, Action<double> progressChangedAction, CancellationToken cancellationToken) => new Animator().Also(it =>
         {
             it.Duration = duration;
             it.Interpolator = interpolator;

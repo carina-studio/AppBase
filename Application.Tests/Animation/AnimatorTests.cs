@@ -33,7 +33,7 @@ namespace CarinaStudio.Animation
 
                 // check interval and progress change
                 var startTime = stopwatch.ElapsedMilliseconds;
-                await Animator.StartAndWaitForCompletionAsync(1000, (progress) =>
+                await Animator.StartAndWaitForCompletionAsync(TimeSpan.FromSeconds(1), (progress) =>
                 {
                     Assert.GreaterOrEqual(progress, prevProgress);
                     prevProgress = progress;
@@ -50,7 +50,7 @@ namespace CarinaStudio.Animation
                 prevProgress = 1;
                 progressUpdateCount = 0;
                 startTime = stopwatch.ElapsedMilliseconds;
-                await Animator.StartAndWaitForCompletionAsync(1000, Interpolators.Inverted, (progress) =>
+                await Animator.StartAndWaitForCompletionAsync(TimeSpan.FromSeconds(1), Interpolators.Inverted, (progress) =>
                 {
                     Assert.LessOrEqual(progress, prevProgress);
                     prevProgress = progress;
@@ -87,7 +87,7 @@ namespace CarinaStudio.Animation
                 {
                     isCompletedCalled = true;
                 };
-                animator.Duration = 1000;
+                animator.Duration = TimeSpan.FromSeconds(1);
                 animator.ProgressChanged += (_, e) =>
                 {
                     latestProgress = animator.Progress;
@@ -148,9 +148,9 @@ namespace CarinaStudio.Animation
                 // change duration in animation
                 var stopwatch = new Stopwatch().Also(it => it.Start());
                 var startTime = stopwatch.ElapsedMilliseconds;
-                var animator = Animator.Start(1000, p => { });
+                var animator = Animator.Start(TimeSpan.FromSeconds(1), p => { });
                 await Task.Delay(500);
-                animator.Duration = 2000;
+                animator.Duration = TimeSpan.FromSeconds(2);
                 await animator.WaitForCompletionAsync();
                 var actualDuration = (stopwatch.ElapsedMilliseconds - startTime);
                 Assert.IsFalse(animator.IsStarted);
@@ -159,7 +159,7 @@ namespace CarinaStudio.Animation
 
                 // change interval in animation
                 var progressUpdateCount = 0;
-                animator.Duration = 3000;
+                animator.Duration = TimeSpan.FromSeconds(3);
                 animator.ProgressChanged += (_, e) =>
                 {
                     ++progressUpdateCount;
@@ -169,7 +169,7 @@ namespace CarinaStudio.Animation
                 await Task.Delay(1000);
                 var firstActualDuration = (stopwatch.ElapsedMilliseconds - startTime);
                 var firstProgressUpdateCount = progressUpdateCount;
-                animator.Interval = 100;
+                animator.Interval = TimeSpan.FromMilliseconds(100);
                 await animator.WaitForCompletionAsync();
                 var secondActualDuration = (stopwatch.ElapsedMilliseconds - startTime) - firstActualDuration;
                 var expectedProgressCount = firstProgressUpdateCount + (secondActualDuration / 100);
