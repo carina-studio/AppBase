@@ -62,7 +62,7 @@ namespace CarinaStudio.Animation
         /// <inheritdoc/>
         protected override void OnCompleted(EventArgs e)
         {
-            this.Value = this.GenerateValue(this.Progress);
+            this.Value = this.endValue;
             base.OnCompleted(e);
         }
 
