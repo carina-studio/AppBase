@@ -90,21 +90,39 @@ namespace CarinaStudio.Controls
 				this.Icon = this.ownerWindow?.Icon;
 
 			// [workaround] move to center of owner for Linux
-			if (this.WindowStartupLocation == WindowStartupLocation.CenterOwner && Platform.IsLinux)
+			if (Platform.IsLinux)
 			{
-				this.ownerWindow?.Let(owner =>
+				switch (this.WindowStartupLocation)
 				{
-					var position = owner.Position.Let((position) =>
-					{
-						var screenScale = owner.Screens.ScreenFromVisual(owner).PixelDensity;
-						var offsetX = (int)((owner.Width - this.Width) / 2 * screenScale);
-						var offsetY = (int)((owner.Height - this.Height) / 2 * screenScale);
-						return new PixelPoint(position.X + offsetX, position.Y + offsetY);
-					});
-					this.WindowStartupLocation = WindowStartupLocation.Manual;
-					this.SynchronizationContext.Post(() => this.Position = position);
-					this.SynchronizationContext.PostDelayed(() => this.Position = position, 100);
-				});
+					case WindowStartupLocation.CenterScreen:
+						this.Screens.ScreenFromVisual(this).Let(screen =>
+						{
+							var screenBounds = screen.Bounds;
+							var pixelDensity = screen.PixelDensity;
+							var width = this.Width * pixelDensity;
+							var height = this.Height * pixelDensity;
+							var position = new PixelPoint((int)((screenBounds.Width - width) / 2), (int)((screenBounds.Height - height) / 2));
+							this.WindowStartupLocation = WindowStartupLocation.Manual;
+							this.SynchronizationContext.Post(() => this.Position = position);
+							this.SynchronizationContext.PostDelayed(() => this.Position = position, 100);
+						});
+						break;
+					case WindowStartupLocation.CenterOwner:
+						this.ownerWindow?.Let(owner =>
+						{
+							var position = owner.Position.Let((position) =>
+							{
+								var screenScale = owner.Screens.ScreenFromVisual(owner).PixelDensity;
+								var offsetX = (int)((owner.Width - this.Width) / 2 * screenScale);
+								var offsetY = (int)((owner.Height - this.Height) / 2 * screenScale);
+								return new PixelPoint(position.X + offsetX, position.Y + offsetY);
+							});
+							this.WindowStartupLocation = WindowStartupLocation.Manual;
+							this.SynchronizationContext.Post(() => this.Position = position);
+							this.SynchronizationContext.PostDelayed(() => this.Position = position, 100);
+						});
+						break;
+				}
 			}
 		}
 	}

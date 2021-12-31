@@ -7,6 +7,7 @@
 		CanResize="False"
 		Height="300"
         Title="TestDialog"
-		Width="400">
+		Width="400"
+		WindowStartupLocation="CenterScreen">
   Welcome to Avalonia!
 </Window>
