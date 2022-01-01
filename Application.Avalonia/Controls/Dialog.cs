@@ -89,15 +89,16 @@ namespace CarinaStudio.Controls
 			if (this.Icon == null)
 				this.Icon = this.ownerWindow?.Icon;
 
-			// [workaround] move to center of owner for Linux
-			if (Platform.IsLinux)
+			// [workaround] move to center of owner or screen
+			switch (this.WindowStartupLocation)
 			{
-				switch (this.WindowStartupLocation)
-				{
-					case WindowStartupLocation.CenterScreen:
+				case WindowStartupLocation.CenterScreen:
+					if ((Platform.IsWindows && (this.ownerWindow == null || this.ownerWindow.WindowState == WindowState.Maximized))
+						|| Platform.IsLinux)
+					{
 						this.Screens.ScreenFromVisual(this).Let(screen =>
 						{
-							var screenBounds = screen.Bounds;
+							var screenBounds = screen.WorkingArea;
 							var pixelDensity = screen.PixelDensity;
 							var width = this.Width * pixelDensity;
 							var height = this.Height * pixelDensity;
@@ -106,8 +107,11 @@ namespace CarinaStudio.Controls
 							this.SynchronizationContext.Post(() => this.Position = position);
 							this.SynchronizationContext.PostDelayed(() => this.Position = position, 100);
 						});
-						break;
-					case WindowStartupLocation.CenterOwner:
+					}
+					break;
+				case WindowStartupLocation.CenterOwner:
+					if (Platform.IsLinux)
+					{
 						this.ownerWindow?.Let(owner =>
 						{
 							var position = owner.Position.Let((position) =>
@@ -121,8 +125,8 @@ namespace CarinaStudio.Controls
 							this.SynchronizationContext.Post(() => this.Position = position);
 							this.SynchronizationContext.PostDelayed(() => this.Position = position, 100);
 						});
-						break;
-				}
+					}
+					break;
 			}
 		}
 	}
