@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<AssemblyVersion>0.33.0.1231</AssemblyVersion>
-		<Version>0.33.0.1231</Version>
+		<AssemblyVersion>0.33.1.101</AssemblyVersion>
+		<Version>0.33.1.101</Version>
 		<TargetFrameworks>netcoreapp3.1;netstandard2.1;net5.0</TargetFrameworks>
 		<RootNamespace>CarinaStudio.AutoUpdate</RootNamespace>
 		<AssemblyName>CarinaStudio.AppBase.AutoUpdate</AssemblyName>
