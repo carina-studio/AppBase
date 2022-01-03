@@ -158,6 +158,7 @@ namespace CarinaStudio.Net
 				throw new ArgumentException("Invalid access to stream.");
 
 			// create request
+#pragma warning disable SYSLIB0014
 			var request = WebRequest.Create(this.RequestUri).Also(it =>
 			{
 				if (this.credentials != null)
@@ -167,6 +168,7 @@ namespace CarinaStudio.Net
 			});
 			if (isWriteNeeded)
 				return (Stream)new RequestStream(request);
+#pragma warning restore SYSLIB0014
 
 			// cancellation check
 			if (token.IsCancellationRequested)
