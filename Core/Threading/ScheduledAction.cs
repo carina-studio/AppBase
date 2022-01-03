@@ -139,6 +139,22 @@ namespace CarinaStudio.Threading
 
 
 		/// <summary>
+		/// Reschedule execution. It will replace the previous scheduling.
+		/// </summary>
+		/// <param name="delay">Delay time.</param>
+		public void Reschedule(TimeSpan delay)
+		{
+			var delayMillis = (long)delay.TotalMilliseconds;
+			if (delayMillis > int.MaxValue)
+				this.Reschedule(int.MaxValue);
+			else if (delayMillis <= 0)
+				this.Reschedule(0);
+			else
+				this.Reschedule((int)delayMillis);
+		}
+
+
+		/// <summary>
 		/// Schedule execution. It won't be scheduled again if execution is already scheduled.
 		/// </summary>
 		/// <param name="delayMillis">Delay time in milliseconds.</param>
@@ -155,6 +171,22 @@ namespace CarinaStudio.Threading
 				this.ExecuteAction(token);
 			}, null, delayMillis);
 			this.token = token;
+		}
+
+
+		/// <summary>
+		/// Schedule execution. It won't be scheduled again if execution is already scheduled.
+		/// </summary>
+		/// <param name="delay">Delay time.</param>
+		public void Schedule(TimeSpan delay)
+        {
+			var delayMillis = (long)delay.TotalMilliseconds;
+			if (delayMillis > int.MaxValue)
+				this.Schedule(int.MaxValue);
+			else if (delayMillis <= 0)
+				this.Schedule(0);
+			else
+				this.Schedule((int)delayMillis);
 		}
 
 
