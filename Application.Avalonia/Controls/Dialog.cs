@@ -102,7 +102,7 @@ namespace CarinaStudio.Controls
 							var pixelDensity = screen.PixelDensity;
 							var width = this.Width * pixelDensity;
 							var height = this.Height * pixelDensity;
-							var position = new PixelPoint((int)((screenBounds.Width - width) / 2), (int)((screenBounds.Height - height) / 2));
+							var position = new PixelPoint((int)(screenBounds.X + (screenBounds.Width - width) / 2), (int)(screenBounds.Y + (screenBounds.Height - height) / 2));
 							this.WindowStartupLocation = WindowStartupLocation.Manual;
 							this.SynchronizationContext.Post(() => this.Position = position);
 							this.SynchronizationContext.PostDelayed(() => this.Position = position, 100);
