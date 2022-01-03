@@ -150,10 +150,8 @@ namespace CarinaStudio
 				{
 					if (isOpeningFileManagerSupported.HasValue)
 						return isOpeningFileManagerSupported.Value;
-					if (IsWindows || IsMacOS)
+					if (IsWindows || IsMacOS || IsLinux)
 						isOpeningFileManagerSupported = true;
-					else if (IsLinux)
-						isOpeningFileManagerSupported = IsGnome;
 					else
 						isOpeningFileManagerSupported = false;
 				}
@@ -273,6 +271,14 @@ namespace CarinaStudio
 					it.Arguments = $"--browser \"{path}\"";
 				});
 			}
+			else if (IsLinux)
+			{
+				process.StartInfo.Let(it =>
+				{
+					it.FileName = "xdg-open";
+					it.Arguments = isDirectory ? path : Path.GetDirectoryName(path);
+				});
+			}
 			else
 				return;
 			try
@@ -280,7 +286,22 @@ namespace CarinaStudio
 				process.Start();
 			}
 			catch
-			{ }
+			{ 
+				// Fallback to xdg-open on Gnome
+				if (IsGnome)
+				{
+					try
+					{
+						Process.Start(new ProcessStartInfo()
+						{
+							FileName = "xdg-open",
+							Arguments = isDirectory ? path : Path.GetDirectoryName(path),
+						});
+					}
+					catch
+					{ }
+				}
+			}
 		});
 
 

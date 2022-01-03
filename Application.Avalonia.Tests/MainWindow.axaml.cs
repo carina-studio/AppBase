@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using System;
 
 namespace CarinaStudio
 {
@@ -22,7 +23,8 @@ namespace CarinaStudio
 
         void Test()
         {
-            new TestDialog().ShowDialog(this);
+            //new TestDialog().ShowDialog(this);
+            Platform.OpenFileManager(Environment.CurrentDirectory);
         }
     }
 }
