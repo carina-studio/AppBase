@@ -276,7 +276,7 @@ namespace CarinaStudio
 				process.StartInfo.Let(it =>
 				{
 					it.FileName = "xdg-open";
-					it.Arguments = isDirectory ? path : Path.GetDirectoryName(path);
+					it.Arguments = isDirectory ? path : (Path.GetDirectoryName(path) ?? "");
 				});
 			}
 			else
@@ -295,7 +295,7 @@ namespace CarinaStudio
 						Process.Start(new ProcessStartInfo()
 						{
 							FileName = "xdg-open",
-							Arguments = isDirectory ? path : Path.GetDirectoryName(path),
+							Arguments = isDirectory ? path : (Path.GetDirectoryName(path) ?? ""),
 						});
 					}
 					catch
