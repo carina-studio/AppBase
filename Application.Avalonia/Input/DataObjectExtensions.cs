@@ -22,6 +22,27 @@ namespace CarinaStudio.Input
 
 
 		/// <summary>
+		/// Try getting the data with given format and type.
+		/// </summary>
+		/// <typeparam name="T">Type of data.</typeparam>
+		/// <param name="dataObject"><see cref="IDataObject"/>.</param>
+		/// <param name="format">Format.</param>
+		/// <param name="data">Data.</param>
+		/// <returns>True if data got successfully.</returns>
+		public static bool TryGetData<T>(this IDataObject dataObject, string format, out T? data) where T : class
+		{
+			var rawData = dataObject.Get(format);
+			if (rawData != null && typeof(T).IsAssignableFrom(rawData.GetType()))
+			{
+				data = (T)rawData;
+				return true;
+			}
+			data = default(T);
+			return false;
+		}
+
+
+		/// <summary>
 		/// Get the only file name contained in <see cref="IDataObject"/>.
 		/// </summary>
 		/// <param name="data"><see cref="IDataObject"/>.</param>
@@ -45,6 +66,27 @@ namespace CarinaStudio.Input
 				return fileName;
 			});
 			return (fileName != null);
+		}
+
+
+		/// <summary>
+		/// Try getting the value type data with given format and type.
+		/// </summary>
+		/// <typeparam name="T">Type of data.</typeparam>
+		/// <param name="dataObject"><see cref="IDataObject"/>.</param>
+		/// <param name="format">Format.</param>
+		/// <param name="value">Value.</param>
+		/// <returns>True if value got successfully.</returns>
+		public static bool TryGetValue<T>(this IDataObject dataObject, string format, out T value) where T : struct
+		{
+			var rawData = dataObject.Get(format);
+			if (rawData != null && rawData is T)
+			{
+				value = (T)rawData;
+				return true;
+			}
+			value = default(T);
+			return false;
 		}
 	}
 }
