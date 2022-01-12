@@ -2,7 +2,7 @@
 using Avalonia.VisualTree;
 using System;
 
-namespace CarinaStudio.VIsualTree
+namespace CarinaStudio.VisualTree
 {
     /// <summary>
     /// Extensions for <see cref="IVisual"/>.
