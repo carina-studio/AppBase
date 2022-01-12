@@ -8,21 +8,37 @@ namespace CarinaStudio.Animation
     public static class Interpolators
     {
         /// <summary>
-        /// Acceleration with factor 1.
+        /// Acceleration with factor 2.
         /// </summary>
-        public static readonly Func<double, double> Acceleration = CreateAccelerationInterpolator(1);
+        public static readonly Func<double, double> Acceleration = CreateAccelerationInterpolator(2);
         /// <summary>
         /// Default intepolator which outputs the input value directly.
         /// </summary>
         public static readonly Func<double, double> Default = p => p;
         /// <summary>
-        /// Deceleration with factor 1.
+        /// Deceleration with factor 2.
         /// </summary>
-        public static readonly Func<double, double> Deleceleration = CreateDecelerationInterpolator(1);
+        public static readonly Func<double, double> Deceleration = CreateDecelerationInterpolator(2);
+        /// <summary>
+        /// Acceleration with factor 3.
+        /// </summary>
+        public static readonly Func<double, double> FastAcceleration = CreateAccelerationInterpolator(3);
+        /// <summary>
+        /// Deceleration with factor 3.
+        /// </summary>
+        public static readonly Func<double, double> FastDeceleration = CreateDecelerationInterpolator(3);
         /// <summary>
         /// Intepolator which inverts the input value.
         /// </summary>
         public static readonly Func<double, double> Inverted = p => (1 - p);
+        /// <summary>
+        /// Acceleration with factor 1.
+        /// </summary>
+        public static readonly Func<double, double> SlowAcceleration = CreateAccelerationInterpolator(1);
+        /// <summary>
+        /// Deceleration with factor 1.
+        /// </summary>
+        public static readonly Func<double, double> SlowDeceleration = CreateDecelerationInterpolator(1);
 
 
         /// <summary>

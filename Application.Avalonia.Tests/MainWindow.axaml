@@ -13,6 +13,15 @@
 			<TextBlock Text="HasDialogs: " VerticalAlignment="Center"/>
 			<TextBlock Text="{Binding $parent[Window].HasDialogs}" VerticalAlignment="Center"/>
 		</StackPanel>
+
+		<Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Left" Margin="5" Width="150">
+			<Rectangle Name="rect" Fill="Blue" Height="25" HorizontalAlignment="Left" Width="50">
+				<Rectangle.RenderTransform>
+					<TranslateTransform/>
+				</Rectangle.RenderTransform>
+			</Rectangle>
+		</Border>
+
 	</StackPanel>
 	
 </Window>
