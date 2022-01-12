@@ -16,6 +16,10 @@ namespace CarinaStudio.ViewModels
 	public abstract class ViewModel : BaseDisposable, IApplicationObject, INotifyPropertyChanged
 	{
 		/// <summary>
+		/// Property of <see cref="HasNecessaryTasks"/>.
+		/// </summary>
+		public static readonly ObservableProperty<bool> HasNecessaryTasksProperty = ObservableProperty.Register<ViewModel, bool>(nameof(HasNecessaryTasks));
+		/// <summary>
 		/// Property of <see cref="Owner"/>.
 		/// </summary>
 		public static readonly ObservableProperty<ViewModel?> OwnerProperty = ObservableProperty.Register<ViewModel, ViewModel?>(nameof(Owner));
@@ -161,7 +165,7 @@ namespace CarinaStudio.ViewModels
 		/// <summary>
 		/// Check whether at least one necessary task is not completed yet or not.
 		/// </summary>
-		public bool HasNecessaryTasks { get => this.waitingNecessaryTasks.IsNotEmpty(); }
+		public bool HasNecessaryTasks { get => this.GetValue(HasNecessaryTasksProperty); }
 
 
 		/// <summary>
@@ -379,6 +383,8 @@ namespace CarinaStudio.ViewModels
 			this.VerifyAccess();
 			this.VerifyDisposed();
 			this.waitingNecessaryTasks.Add(task);
+			if (this.waitingNecessaryTasks.Count == 1)
+				this.SetValue(HasNecessaryTasksProperty, true);
 			try
 			{
 				await task;
@@ -386,6 +392,8 @@ namespace CarinaStudio.ViewModels
 			finally
 			{
 				this.waitingNecessaryTasks.Remove(task);
+				if (this.waitingNecessaryTasks.IsEmpty())
+					this.SetValue(HasNecessaryTasksProperty, false);
 			}
 		}
 
@@ -422,6 +430,8 @@ namespace CarinaStudio.ViewModels
 					this.waitingNecessaryTasks.Remove(task);
 				}
 			}
+			if (this.waitingNecessaryTasks.IsEmpty())
+				this.SetValue(HasNecessaryTasksProperty, false);
 		}
 	}
 
