@@ -33,7 +33,7 @@ namespace CarinaStudio.Animation
 
                 // check interval and progress change
                 var startTime = stopwatch.ElapsedMilliseconds;
-                await Animator.StartAndWaitForCompletionAsync(TimeSpan.FromSeconds(1), (progress) =>
+                await Animator.StartAndWaitForCompletionAsync(TimeSpan.FromSeconds(1), TimeSpan.FromMilliseconds(16), (progress) =>
                 {
                     Assert.GreaterOrEqual(progress, prevProgress);
                     prevProgress = progress;
@@ -45,12 +45,27 @@ namespace CarinaStudio.Animation
                 Assert.Less(actualDuration, 1100);
                 Assert.GreaterOrEqual(progressUpdateCount, 54);
                 Assert.LessOrEqual(progressUpdateCount, 66);
+                prevProgress = 0;
+                progressUpdateCount = 0;
+                startTime = stopwatch.ElapsedMilliseconds;
+                await Animator.StartAndWaitForCompletionAsync(TimeSpan.FromSeconds(1), TimeSpan.FromMilliseconds(33), (progress) =>
+                {
+                    Assert.GreaterOrEqual(progress, prevProgress);
+                    prevProgress = progress;
+                    ++progressUpdateCount;
+                });
+                actualDuration = (stopwatch.ElapsedMilliseconds - startTime);
+                Assert.GreaterOrEqual(prevProgress, 0.9);
+                Assert.GreaterOrEqual(actualDuration, 1000);
+                Assert.Less(actualDuration, 1100);
+                Assert.GreaterOrEqual(progressUpdateCount, 27);
+                Assert.LessOrEqual(progressUpdateCount, 33);
 
                 // check interpolator
                 prevProgress = 1;
                 progressUpdateCount = 0;
                 startTime = stopwatch.ElapsedMilliseconds;
-                await Animator.StartAndWaitForCompletionAsync(TimeSpan.FromSeconds(1), Interpolators.Inverted, (progress) =>
+                await Animator.StartAndWaitForCompletionAsync(TimeSpan.FromSeconds(1), TimeSpan.FromMilliseconds(16), Interpolators.Inverted, (progress) =>
                 {
                     Assert.LessOrEqual(progress, prevProgress);
                     prevProgress = progress;

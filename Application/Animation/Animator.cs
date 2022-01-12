@@ -11,6 +11,12 @@ namespace CarinaStudio.Animation
     /// </summary>
     public class Animator : IThreadDependent
     {
+        /// <summary>
+        /// Default value of <see cref="Interval"/>.
+        /// </summary>
+        public static readonly TimeSpan DefaultInterval = TimeSpan.FromMilliseconds(8);
+
+
         // Static fields.
         static readonly Stopwatch Stopwatch = new Stopwatch().Also(it => it.Start());
 
@@ -19,7 +25,7 @@ namespace CarinaStudio.Animation
         readonly ScheduledAction animateAction;
         long completionTime;
         TimeSpan duration;
-        TimeSpan interval = TimeSpan.FromMilliseconds(16);
+        TimeSpan interval = DefaultInterval;
         long nextAnimationTime;
         long prevAnimationTime;
         long startTime = -1;
@@ -148,7 +154,7 @@ namespace CarinaStudio.Animation
 
 
         /// <summary>
-        /// Get or set interval between progress updating. Default value is 16 milliseconds.
+        /// Get or set interval between progress updating. Default value is <see cref="DefaultInterval"/>.
         /// </summary>
         public TimeSpan Interval
         {
@@ -299,7 +305,18 @@ namespace CarinaStudio.Animation
         /// <param name="progressChangedAction">Action when progress changed.</param>
         /// <returns><see cref="Animator"/> which handles the animation.</returns>
         public static Task StartAndWaitForCompletionAsync(TimeSpan duration, Action<double> progressChangedAction) =>
-            StartAndWaitForCompletionAsync(duration, Interpolators.Default, progressChangedAction, new CancellationToken());
+            StartAndWaitForCompletionAsync(duration, DefaultInterval, Interpolators.Default, progressChangedAction, new CancellationToken());
+
+
+        /// <summary>
+        /// Start new animation with default interval.
+        /// </summary>
+        /// <param name="duration">Duration.</param>
+        /// <param name="interval">Interval between progress updating.</param>
+        /// <param name="progressChangedAction">Action when progress changed.</param>
+        /// <returns><see cref="Animator"/> which handles the animation.</returns>
+        public static Task StartAndWaitForCompletionAsync(TimeSpan duration, TimeSpan interval, Action<double> progressChangedAction) =>
+            StartAndWaitForCompletionAsync(duration, interval, Interpolators.Default, progressChangedAction, new CancellationToken());
 
 
         /// <summary>
@@ -310,7 +327,19 @@ namespace CarinaStudio.Animation
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns><see cref="Animator"/> which handles the animation.</returns>
         public static Task StartAndWaitForCompletionAsync(TimeSpan duration, Action<double> progressChangedAction, CancellationToken cancellationToken) =>
-            StartAndWaitForCompletionAsync(duration, Interpolators.Default, progressChangedAction, cancellationToken);
+            StartAndWaitForCompletionAsync(duration, DefaultInterval, Interpolators.Default, progressChangedAction, cancellationToken);
+
+
+        /// <summary>
+        /// Start new animation with default interval.
+        /// </summary>
+        /// <param name="duration">Duration.</param>
+        /// <param name="interval">Interval between progress updating.</param>
+        /// <param name="progressChangedAction">Action when progress changed.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns><see cref="Animator"/> which handles the animation.</returns>
+        public static Task StartAndWaitForCompletionAsync(TimeSpan duration, TimeSpan interval, Action<double> progressChangedAction, CancellationToken cancellationToken) =>
+            StartAndWaitForCompletionAsync(duration, interval, Interpolators.Default, progressChangedAction, cancellationToken);
 
 
         /// <summary>
@@ -321,10 +350,24 @@ namespace CarinaStudio.Animation
         /// <param name="progressChangedAction">Action when progress changed.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns><see cref="Animator"/> which handles the animation.</returns>
-        public static Task StartAndWaitForCompletionAsync(TimeSpan duration, Func<double, double> interpolator, Action<double> progressChangedAction, CancellationToken cancellationToken) => new Animator().Also(it =>
+        public static Task StartAndWaitForCompletionAsync(TimeSpan duration, Func<double, double> interpolator, Action<double> progressChangedAction, CancellationToken cancellationToken) =>
+            StartAndWaitForCompletionAsync(duration, DefaultInterval, interpolator, progressChangedAction, cancellationToken);
+
+
+        /// <summary>
+        /// Start new animation with default interval.
+        /// </summary>
+        /// <param name="duration">Duration.</param>
+        /// <param name="interval">Interval between progress updating.</param>
+        /// <param name="interpolator">Interpolator.</param>
+        /// <param name="progressChangedAction">Action when progress changed.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns><see cref="Animator"/> which handles the animation.</returns>
+        public static Task StartAndWaitForCompletionAsync(TimeSpan duration, TimeSpan interval, Func<double, double> interpolator, Action<double> progressChangedAction, CancellationToken cancellationToken) => new Animator().Also(it =>
         {
             it.Duration = duration;
             it.Interpolator = interpolator;
+            it.Interval = interval;
             it.ProgressChanged += (_, e) => progressChangedAction(it.Progress);
             it.Start();
         }).StartAndWaitForCompletionAsync(cancellationToken);
