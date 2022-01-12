@@ -11,7 +11,7 @@
     <Copyright>©2021 Carina Studio</Copyright>
     <Nullable>enable</Nullable>
     <PackageId>CarinaStudio.AppBase.Tests</PackageId>
-    <Description>AppBase is a base library set for .NET application. CarinaStudio.AppBase.Tests provides helper classes ans methods for unit test.</Description>
+    <Description>AppBase is a base library set for .NET application. CarinaStudio.AppBase.Tests provides helper classes and methods for unit test.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://carina-studio.github.io/AppBase/</PackageProjectUrl>
   </PropertyGroup>
