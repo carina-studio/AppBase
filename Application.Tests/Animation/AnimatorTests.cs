@@ -77,6 +77,29 @@ namespace CarinaStudio.Animation
                 Assert.Less(actualDuration, 1100);
                 Assert.GreaterOrEqual(progressUpdateCount, 54);
                 Assert.LessOrEqual(progressUpdateCount, 66);
+
+                // check delay
+                prevProgress = 0;
+                progressUpdateCount = 0;
+                startTime = stopwatch.ElapsedMilliseconds;
+                await new Animator().Also(it =>
+                {
+                    it.Delay = TimeSpan.FromMilliseconds(1234);
+                    it.Duration = TimeSpan.FromSeconds(1);
+                    it.Interval = TimeSpan.FromMilliseconds(16);
+                    it.ProgressChanged += (_, e) =>
+                    {
+                        Assert.GreaterOrEqual(it.Progress, prevProgress);
+                        prevProgress = it.Progress;
+                        ++progressUpdateCount;
+                    };
+                }).StartAndWaitForCompletionAsync();
+                actualDuration = (stopwatch.ElapsedMilliseconds - startTime);
+                Assert.GreaterOrEqual(prevProgress, 0.9);
+                Assert.GreaterOrEqual(actualDuration, 2234);
+                Assert.Less(actualDuration, 2334);
+                Assert.GreaterOrEqual(progressUpdateCount, 54);
+                Assert.LessOrEqual(progressUpdateCount, 66);
             });
         }
 
@@ -191,6 +214,34 @@ namespace CarinaStudio.Animation
                 Assert.IsFalse(animator.IsStarted);
                 Assert.GreaterOrEqual(progressUpdateCount, expectedProgressCount * 0.9);
                 Assert.LessOrEqual(progressUpdateCount, expectedProgressCount * 1.1);
+
+                // change delay in animation
+                startTime = stopwatch.ElapsedMilliseconds;
+                animator = new Animator().Also(it =>
+                {
+                    it.Delay = TimeSpan.FromMilliseconds(1000);
+                    it.Duration = TimeSpan.FromSeconds(1);
+                    it.Start();
+                });
+                await Task.Delay(300);
+                animator.Delay = TimeSpan.FromMilliseconds(800);
+                await animator.WaitForCompletionAsync();
+                actualDuration = (stopwatch.ElapsedMilliseconds - startTime);
+                Assert.GreaterOrEqual(actualDuration, 1620);
+                Assert.LessOrEqual(actualDuration, 1980);
+                startTime = stopwatch.ElapsedMilliseconds;
+                animator = new Animator().Also(it =>
+                {
+                    it.Delay = TimeSpan.FromMilliseconds(500);
+                    it.Duration = TimeSpan.FromSeconds(1);
+                    it.Start();
+                });
+                await Task.Delay(800);
+                animator.Delay = TimeSpan.FromMilliseconds(1000);
+                await animator.WaitForCompletionAsync();
+                actualDuration = (stopwatch.ElapsedMilliseconds - startTime);
+                Assert.GreaterOrEqual(actualDuration, 1800);
+                Assert.LessOrEqual(actualDuration, 2200);
             });
         }
 

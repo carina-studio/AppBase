@@ -39,6 +39,7 @@ namespace CarinaStudio
             animator = new DoubleAnimator(transform.X, transform.X >= 50 ? 0 : 100).Also(it =>
             {
                 it.Completed += (_, e) => transform.X = it.EndValue;
+                it.Delay = TimeSpan.FromMilliseconds(500);
                 it.Duration = TimeSpan.FromSeconds(1);
                 it.Interpolator = Interpolators.Deceleration;
                 it.ProgressChanged += (_, e) => transform.X = it.Value;

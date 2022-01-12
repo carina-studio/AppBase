@@ -24,6 +24,7 @@ namespace CarinaStudio.Animation
         // Fields.
         readonly ScheduledAction animateAction;
         long completionTime;
+        TimeSpan delay = TimeSpan.Zero;
         TimeSpan duration;
         TimeSpan interval = DefaultInterval;
         long nextAnimationTime;
@@ -48,7 +49,7 @@ namespace CarinaStudio.Animation
         {
             // calculate original progress
             var currentTime = Stopwatch.ElapsedMilliseconds;
-            var progress = ((double)currentTime - this.startTime) / this.duration.TotalMilliseconds;
+            var progress = ((double)currentTime - this.startTime - this.delay.TotalMilliseconds) / this.duration.TotalMilliseconds;
 
             // complete animation
             if (progress >= 1)
@@ -124,6 +125,43 @@ namespace CarinaStudio.Animation
 
 
         /// <summary>
+        /// Get or set duration before starting animation.
+        /// </summary>
+        public TimeSpan Delay
+        {
+            get => this.delay;
+            set
+            {
+                this.VerifyAccess();
+                if (value.TotalMilliseconds < 0)
+                    throw new ArgumentOutOfRangeException("Negative delay is not supported.");
+                if (value == this.delay)
+                    return;
+                if (value.TotalMilliseconds > int.MaxValue)
+                    throw new ArgumentOutOfRangeException("Delay in milliseconds greater than Int32.MaxValue is not supported.");
+                this.delay = value;
+                if (this.IsStarted)
+                {
+                    var currentTime = Stopwatch.ElapsedMilliseconds;
+                    var scheduledStartingTime = this.startTime + (long)this.delay.TotalMilliseconds;
+                    this.completionTime = this.startTime + (long)(this.delay + this.duration).TotalMilliseconds;
+                    if (currentTime <= scheduledStartingTime)
+                    {
+                        this.prevAnimationTime = scheduledStartingTime;
+                        this.nextAnimationTime = this.prevAnimationTime + (long)this.interval.TotalMilliseconds;
+                        this.animateAction.Reschedule((int)(scheduledStartingTime - currentTime));
+                    }
+                    else
+                    {
+                        this.nextAnimationTime = Math.Min(this.completionTime, this.nextAnimationTime);
+                        this.ScheduleNextAnimating();
+                    }
+                }
+            }
+        }
+
+
+        /// <summary>
         /// Get or set duration of animation.
         /// </summary>
         public TimeSpan Duration
@@ -133,15 +171,28 @@ namespace CarinaStudio.Animation
             {
                 this.VerifyAccess();
                 if (value.TotalMilliseconds < 0)
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException("Negative duration is not supported.");
                 if (value == this.duration)
                     return;
+                if (value.TotalMilliseconds > int.MaxValue)
+                    throw new ArgumentOutOfRangeException("Duration in milliseconds greater than Int32.MaxValue is not supported.");
                 this.duration = value;
                 if (this.IsStarted)
                 {
-                    this.completionTime = this.startTime + (long)duration.TotalMilliseconds;
-                    this.nextAnimationTime = Math.Min(this.completionTime, this.nextAnimationTime);
-                    this.ScheduleNextAnimating();
+                    var currentTime = Stopwatch.ElapsedMilliseconds;
+                    var scheduledStartingTime = this.startTime + (long)this.delay.TotalMilliseconds;
+                    this.completionTime = this.startTime + (long)(this.delay + this.duration).TotalMilliseconds;
+                    if (currentTime <= scheduledStartingTime)
+                    {
+                        this.prevAnimationTime = scheduledStartingTime;
+                        this.nextAnimationTime = this.prevAnimationTime + (long)this.interval.TotalMilliseconds;
+                        this.animateAction.Reschedule((int)(scheduledStartingTime - currentTime));
+                    }
+                    else
+                    {
+                        this.nextAnimationTime = Math.Min(this.completionTime, this.nextAnimationTime);
+                        this.ScheduleNextAnimating();
+                    }
                 }
             }
         }
@@ -163,9 +214,11 @@ namespace CarinaStudio.Animation
             {
                 this.VerifyAccess();
                 if (value.TotalMilliseconds <= 0)
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException("Negative interval is not supported.");
                 if (value == this.interval)
                     return;
+                if (value.TotalMilliseconds > int.MaxValue)
+                    throw new ArgumentOutOfRangeException("Interval in milliseconds greater than Int32.MaxValue is not supported.");
                 this.interval = value;
                 if (this.IsStarted)
                 {
@@ -236,10 +289,10 @@ namespace CarinaStudio.Animation
 
             // start animation
             this.startTime = Stopwatch.ElapsedMilliseconds;
-            this.completionTime = this.startTime + (long)this.duration.TotalMilliseconds;
-            this.prevAnimationTime = this.startTime;
-            this.nextAnimationTime = this.startTime + (long)this.interval.TotalMilliseconds;
-            this.animateAction.Reschedule();
+            this.completionTime = this.startTime + (long)(this.delay + this.duration).TotalMilliseconds;
+            this.prevAnimationTime = this.startTime + (long)this.delay.TotalMilliseconds;
+            this.nextAnimationTime = this.prevAnimationTime + (long)this.interval.TotalMilliseconds;
+            this.animateAction.Reschedule((int)this.delay.TotalMilliseconds);
         }
 
 
