@@ -15,6 +15,12 @@ namespace CarinaStudio.ViewModels
 	/// </summary>
 	public abstract class ViewModel : BaseDisposable, IApplicationObject, INotifyPropertyChanged
 	{
+		/// <summary>
+		/// Property of <see cref="Owner"/>.
+		/// </summary>
+		public static readonly ObservableProperty<ViewModel?> OwnerProperty = ObservableProperty.Register<ViewModel, ViewModel?>(nameof(Owner));
+
+
 		// Value holder of observable property.
 		class ObservablePropertyValue<T> : ObservableValue<T>
 		{
@@ -68,17 +74,6 @@ namespace CarinaStudio.ViewModels
 
 
 		/// <summary>
-		/// Initialize new <see cref="ViewModel"/> instance.
-		/// </summary>
-		/// <param name="owner">Owner view-model</param>
-		protected ViewModel(ViewModel owner) : this(owner.Application)
-		{
-			this.Owner = owner;
-			owner.OnOwnedViewModelCreated(this);
-		}
-
-
-		/// <summary>
 		/// Get <see cref="IApplication"/> which view-model belongs to.
 		/// </summary>
 		public IApplication Application { get; }
@@ -127,7 +122,7 @@ namespace CarinaStudio.ViewModels
 
 			// notify owner
 			if (disposing)
-				this.Owner?.OnOwnedViewModelDisposed(this);
+				this.Owner?.OnOwnedViewModelRemoved(this);
 		}
 
 
@@ -205,20 +200,29 @@ namespace CarinaStudio.ViewModels
 
 
 		/// <summary>
-		/// Called when <see cref="ViewModel"/> which is owned by this instance has been created.
+		/// Called when owner of the view-model has been changed.
+		/// </summary>
+		/// <param name="prevOwner">Previous owner.</param>
+		/// <param name="newOwner">New owner.</param>
+		protected virtual void OnOwnerChanged(ViewModel? prevOwner, ViewModel? newOwner)
+		{ }
+
+
+		/// <summary>
+		/// Called when <see cref="ViewModel"/> which is owned by this instance has been added.
 		/// </summary>
 		/// <param name="viewModel"><see cref="ViewModel"/>.</param>
-		protected virtual void OnOwnedViewModelCreated(ViewModel viewModel)
+		protected virtual void OnOwnedViewModelAdded(ViewModel viewModel)
 		{
 			this.ownedViewModels.Add(viewModel);
 		}
 
 
 		/// <summary>
-		/// Called when <see cref="ViewModel"/> which is owned by this instance has been disposed.
+		/// Called when <see cref="ViewModel"/> which is owned by this instance has been removed.
 		/// </summary>
 		/// <param name="viewModel"><see cref="ViewModel"/>.</param>
-		protected virtual void OnOwnedViewModelDisposed(ViewModel viewModel)
+		protected virtual void OnOwnedViewModelRemoved(ViewModel viewModel)
 		{
 			this.ownedViewModels.Remove(viewModel);
 		}
@@ -230,7 +234,18 @@ namespace CarinaStudio.ViewModels
 		/// <param name="property">Changed property.</param>
 		/// <param name="oldValue">Old value.</param>
 		/// <param name="newValue">New value.</param>
-		protected virtual void OnPropertyChanged(ObservableProperty property, object? oldValue, object? newValue) => this.OnPropertyChanged(property.Name);
+		protected virtual void OnPropertyChanged(ObservableProperty property, object? oldValue, object? newValue)
+        {
+			if (property == OwnerProperty)
+			{
+				var prevOwner = (oldValue as ViewModel);
+				var newOwner = (newValue as ViewModel);
+				prevOwner?.OnOwnedViewModelRemoved(this);
+				newOwner?.OnOwnedViewModelAdded(this);
+				this.OnOwnerChanged(prevOwner, newOwner);
+			}
+			this.OnPropertyChanged(property.Name);
+		}
 
 
 		/// <summary>
@@ -271,9 +286,13 @@ namespace CarinaStudio.ViewModels
 
 
 		/// <summary>
-		/// Get owner of this view-model.
+		/// Get or set owner of this view-model.
 		/// </summary>
-		public ViewModel? Owner { get; }
+		public ViewModel? Owner
+        {
+			get => this.GetValue(OwnerProperty);
+			set => this.SetValue(OwnerProperty, value);
+        }
 
 
 		/// <summary>
@@ -418,14 +437,6 @@ namespace CarinaStudio.ViewModels
 		/// </summary>
 		/// <param name="app"><see cref="IApplication"/> which view-model belongs to.</param>
 		protected ViewModel(TApplication app) : base(app)
-		{ }
-
-
-		/// <summary>
-		/// Initialize new <see cref="ViewModel"/> instance.
-		/// </summary>
-		/// <param name="owner">Owner view-model</param>
-		protected ViewModel(ViewModel owner) : base(owner)
 		{ }
 
 
