@@ -39,6 +39,7 @@ namespace CarinaStudio.AutoUpdate.Installers
 			// extract files
 			var entryCount = zipArchive.Entries.Count;
 			var extractedEntryCount = 0;
+			var targetRootDirectoryName = Path.GetFileName(targetRootDirectory);
 			this.ReportProgress(0);
 			foreach (var zipEntry in zipArchive.Entries)
 			{
@@ -48,10 +49,18 @@ namespace CarinaStudio.AutoUpdate.Installers
 					'/' => it.Replace('\\', '/'),
 					_ => it,
 				});
+				if (Platform.IsMacOS && zipEntryPath.StartsWith($"{targetRootDirectoryName}/"))
+				{
+					zipEntryPath = zipEntryPath.Substring(targetRootDirectoryName.Length + 1);
+					if (string.IsNullOrEmpty(zipEntryPath))
+						continue;
+				}
 				var targetFileName = Path.Combine(targetRootDirectory, zipEntryPath);
 				var targetDirectory = Path.GetDirectoryName(targetFileName);
 				if (targetDirectory != null)
 					Directory.CreateDirectory(targetDirectory);
+				if (zipEntryPath.EndsWith(Path.DirectorySeparatorChar))
+					continue;
 				zipEntry.ExtractToFile(targetFileName, true);
 				this.ReportInstalledFilePath(targetFileName);
 				this.ReportProgress((double)(++extractedEntryCount) / entryCount);

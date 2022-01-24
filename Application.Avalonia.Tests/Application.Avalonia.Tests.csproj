@@ -18,6 +18,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Application.Avalonia\Application.Avalonia.csproj" />
     <ProjectReference Include="..\Application\Application.csproj" />
+    <ProjectReference Include="..\AutoUpdate\AutoUpdate.csproj" />
     <ProjectReference Include="..\Configuration\Configuration.csproj" />
     <ProjectReference Include="..\Core\Core.csproj" />
   </ItemGroup>
