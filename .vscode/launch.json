@@ -5,11 +5,22 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": ".NET Core Launch (console)",
+            "name": "AutoUpdate.Tests",
             "type": "coreclr",
             "request": "launch",
-            "preLaunchTask": "build",
-            "program": "${workspaceFolder}/Application.Avalonia.Tests/bin/Debug/net5.0/Application.Avalonia.Tests.dll",
+            "preLaunchTask": "build-AutoUpdate.Tests",
+            "program": "${workspaceFolder}/AutoUpdate.Tests/bin/Debug/net6.0/AutoUpdate.Tests.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/AutoUpdate.Tests",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
+            "name": "Application.Avalonia.Tests",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-Application.Avalonia.Tests",
+            "program": "${workspaceFolder}/Application.Avalonia.Tests/bin/Debug/net6.0/Application.Avalonia.Tests.dll",
             "args": [],
             "cwd": "${workspaceFolder}/Application.Avalonia.Tests",
             "console": "internalConsole",

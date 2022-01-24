@@ -1,9 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-		<TargetFramework>netcoreapp3.1</TargetFramework>
+		<TargetFramework>net6.0</TargetFramework>
 		<IsPackable>false</IsPackable>
 		<RootNamespace>CarinaStudio.AutoUpdate</RootNamespace>
+    <StartupObject>CarinaStudio.AutoUpdate.Program</StartupObject>
 		<Nullable>enable</Nullable>
   </PropertyGroup>
 
