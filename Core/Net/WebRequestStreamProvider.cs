@@ -1,4 +1,5 @@
-﻿using CarinaStudio.IO;
+﻿using System.Net.Cache;
+using CarinaStudio.IO;
 using System;
 using System.IO;
 using System.Net;
@@ -58,6 +59,7 @@ namespace CarinaStudio.Net
 
 
 		// Fields.
+		readonly RequestCachePolicy? cachePolicy;
 		readonly ICredentials? credentials;
 		readonly string? method;
 
@@ -68,7 +70,8 @@ namespace CarinaStudio.Net
 		/// <param name="requestUri">Request URI.</param>
 		/// <param name="method">Protocol method.</param>
 		/// <param name="credentials">Crdentials.</param>
-		public WebRequestStreamProvider(Uri requestUri, string? method = null, ICredentials? credentials = null)
+		/// <param name="cachePolicy">Cache policy.</param>
+		public WebRequestStreamProvider(Uri requestUri, string? method = null, ICredentials? credentials = null, RequestCachePolicy? cachePolicy = null)
 		{
 			this.credentials = credentials;
 			this.method = method ?? requestUri.Scheme switch
@@ -161,6 +164,8 @@ namespace CarinaStudio.Net
 #pragma warning disable SYSLIB0014
 			var request = WebRequest.Create(this.RequestUri).Also(it =>
 			{
+				if (this.cachePolicy != null)
+					it.CachePolicy = this.cachePolicy;
 				if (this.credentials != null)
 					it.Credentials = this.credentials;
 				if (this.method != null)
