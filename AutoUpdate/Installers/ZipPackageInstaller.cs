@@ -61,7 +61,9 @@ namespace CarinaStudio.AutoUpdate.Installers
 					Directory.CreateDirectory(targetDirectory);
 				if (zipEntryPath.EndsWith(Path.DirectorySeparatorChar))
 					continue;
-				zipEntry.ExtractToFile(targetFileName, true);
+				if (File.Exists(targetFileName))
+					File.Delete(targetDirectory);
+				zipEntry.ExtractToFile(targetFileName, false);
 				this.ReportInstalledFilePath(targetFileName);
 				this.ReportProgress((double)(++extractedEntryCount) / entryCount);
 				if (cancellationToken.IsCancellationRequested)
