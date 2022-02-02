@@ -1,4 +1,5 @@
 ﻿using CarinaStudio.IO;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,10 +20,11 @@ namespace CarinaStudio.AutoUpdate.Resolvers
         /// <summary>
         /// Initialize new <see cref="FilePackageResolver"/> instance.
         /// </summary>
+        /// <param name="app">Application.</param>
         /// <param name="packageFilePath">Path of package file.</param>
         /// <param name="appName">Application name.</param>
         /// <param name="packageVersion">Version of package.</param>
-        public FilePackageResolver(string packageFilePath, string? appName = null, Version? packageVersion = null) : base()
+        public FilePackageResolver(IApplication app, string packageFilePath, string? appName = null, Version? packageVersion = null) : base(app)
         {
             this.appName = appName;
             this.packageFilePath = packageFilePath;
@@ -38,6 +40,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
         /// <returns>Task of performing operation.</returns>
         protected override Task PerformOperationAsync(CancellationToken cancellationToken)
         {
+            this.Logger.LogTrace($"Use '{this.packageFilePath}'");
             this.ApplicationName = appName;
             this.PackageUri = new Uri($"file:///{this.packageFilePath.Replace('\\', '/')}");
             this.PackageVersion = this.packageVersion;

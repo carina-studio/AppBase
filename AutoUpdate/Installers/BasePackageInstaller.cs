@@ -21,7 +21,8 @@ namespace CarinaStudio.AutoUpdate.Installers
 		/// <summary>
 		/// Initialize new <see cref="BasePackageInstaller"/> instance.
 		/// </summary>
-		protected BasePackageInstaller()
+		/// <param name="app">Application.</param>
+		protected BasePackageInstaller(IApplication app) : base(app)
 		{
 			this.InstalledFilePaths = installedFilePaths.AsReadOnly();
 		}

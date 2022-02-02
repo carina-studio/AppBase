@@ -15,7 +15,7 @@ namespace CarinaStudio.AutoUpdate.Installers
 	class ZipPackageInstallerTests : BasePackageInstallerTests
 	{
 		// Create instance.
-		protected override IPackageInstaller CreateInstance() => new ZipPackageInstaller();
+		protected override IPackageInstaller CreateInstance() => new ZipPackageInstaller(this.Application);
 
 
 		// Create package file.

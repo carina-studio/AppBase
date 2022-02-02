@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.IO;
 using System.IO.Compression;
 using System.Threading;
@@ -12,6 +13,14 @@ namespace CarinaStudio.AutoUpdate.Installers
 	public class ZipPackageInstaller : BasePackageInstaller
 	{
 		/// <summary>
+		/// Initialize new <see cref="ZipPackageInstaller"/> instance.
+		/// </summary>
+		/// <param name="app">Application.</param>
+		public ZipPackageInstaller(IApplication app) : base(app)
+		{ }
+
+
+		/// <summary>
 		/// Perform operation asynchronously.
 		/// </summary>
 		/// <param name="cancellationToken">Cancellation token.</param>
@@ -19,22 +28,33 @@ namespace CarinaStudio.AutoUpdate.Installers
 		protected override Task PerformOperationAsync(CancellationToken cancellationToken) => Task.Run(() =>
 		{
 			// load zip archive
+			this.Logger.LogTrace($"Open ZIP file '{this.PackageFileName}'");
 			using var zipArchive = ZipFile.OpenRead(this.PackageFileName.AsNonNull());
 
 			// cancellation check
 			if (cancellationToken.IsCancellationRequested)
+			{
+				this.Logger.LogWarning("Installation has been cancelled");
 				throw new TaskCanceledException();
+			}
 
 			// create target directory
 			var targetRootDirectory = this.TargetDirectoryPath.AsNonNull();
+			this.Logger.LogDebug($"Install to {targetRootDirectory}");
 			if (File.Exists(targetRootDirectory))
 				throw new ArgumentException($"'{targetRootDirectory}' is a file.");
 			if (!Directory.Exists(targetRootDirectory))
+			{
+				this.Logger.LogDebug($"Create {targetRootDirectory}");
 				Directory.CreateDirectory(targetRootDirectory);
+			}
 
 			// cancellation check
 			if (cancellationToken.IsCancellationRequested)
+			{
+				this.Logger.LogWarning("Installation has been cancelled");
 				throw new TaskCanceledException();
+			}
 
 			// extract files
 			var entryCount = zipArchive.Entries.Count;
@@ -58,16 +78,26 @@ namespace CarinaStudio.AutoUpdate.Installers
 				var targetFileName = Path.Combine(targetRootDirectory, zipEntryPath);
 				var targetDirectory = Path.GetDirectoryName(targetFileName);
 				if (targetDirectory != null)
+				{
+					this.Logger.LogTrace($"Create directory '{targetDirectory}'");
 					Directory.CreateDirectory(targetDirectory);
+				}
 				if (zipEntryPath.EndsWith(Path.DirectorySeparatorChar))
 					continue;
 				if (File.Exists(targetFileName))
-					File.Delete(targetDirectory);
+				{
+					this.Logger.LogTrace($"Delete file '{targetFileName}'");
+					File.Delete(targetFileName);
+				}
+				this.Logger.LogTrace($"Install file '{zipEntryPath}' to '{targetFileName}'");
 				zipEntry.ExtractToFile(targetFileName, false);
 				this.ReportInstalledFilePath(targetFileName);
 				this.ReportProgress((double)(++extractedEntryCount) / entryCount);
 				if (cancellationToken.IsCancellationRequested)
+				{
+					this.Logger.LogWarning("Installation has been cancelled");
 					throw new TaskCanceledException();
+				}
 			}
 		});
 	}

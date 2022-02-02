@@ -13,7 +13,7 @@ namespace CarinaStudio
 
 
         protected override IPackageResolver CreatePackageResolver(IStreamProvider source) =>
-            new JsonPackageResolver() { Source = source };
+            new JsonPackageResolver(this.Application) { Source = source };
 
 
         protected override void OnUpdaterProgressChanged()

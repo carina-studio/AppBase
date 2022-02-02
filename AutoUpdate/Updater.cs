@@ -1,6 +1,7 @@
 ﻿using CarinaStudio.AutoUpdate.Installers;
 using CarinaStudio.AutoUpdate.Resolvers;
 using CarinaStudio.Threading;
+using Microsoft.Extensions.Logging;
 using System;
 using System.ComponentModel;
 using System.IO;
@@ -14,25 +15,26 @@ namespace CarinaStudio.AutoUpdate
 	/// <summary>
 	/// Core object to perform auto/self update.
 	/// </summary>
-	public class Updater : BaseDisposable, INotifyPropertyChanged, IThreadDependent
+	public class Updater : BaseDisposableApplicationObject, INotifyPropertyChanged, IThreadDependent
 	{
 		// Fields.
 		string? applicationDirectoryPath;
 		readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+		readonly ILogger logger;
 		IPackageInstaller? packageInstaller;
 		IPackageResolver? packageResolver;
 		double progress = double.NaN;
 		UpdaterState state = UpdaterState.Initializing;
-		readonly Thread thread;
 		readonly object waitingSyncLock = new object();
 
 
 		/// <summary>
 		/// Initialize new <see cref="Updater"/> instance.
 		/// </summary>
-		public Updater()
+		/// <param name="app">Application.</param>
+		public Updater(IApplication app) : base(app)
 		{
-			this.thread = Thread.CurrentThread;
+			this.logger = app.LoggerFactory.CreateLogger(nameof(Updater));
 		}
 
 
@@ -71,6 +73,8 @@ namespace CarinaStudio.AutoUpdate
 			if (this.cancellationTokenSource.IsCancellationRequested)
 				return null;
 
+			this.logger.LogDebug("Start backing up application");
+
 			// check directory
 			var appDirectory = this.applicationDirectoryPath.AsNonNull();
 
@@ -82,10 +86,12 @@ namespace CarinaStudio.AutoUpdate
 				{
 					var directory = Path.Combine(Path.GetTempPath(), $"CarinaStudio-AutoUpdate-{DateTime.Now.ToBinary()}");
 					Directory.CreateDirectory(directory);
+					this.logger.LogTrace($"Back up application to '{directory}'");
 					return directory;
 				}
 				catch (Exception ex)
 				{
+					this.logger.LogError(ex, $"Unable to create directory to back up application");
 					exception = ex;
 					return null;
 				}
@@ -97,6 +103,7 @@ namespace CarinaStudio.AutoUpdate
 			}
 			if (this.cancellationTokenSource.IsCancellationRequested)
 			{
+				this.logger.LogWarning("Cancelled while backing up application");
 				this.CompleteUpdating(null);
 				return null;
 			}
@@ -116,12 +123,25 @@ namespace CarinaStudio.AutoUpdate
 			// cancellation check
 			if (this.cancellationTokenSource.IsCancellationRequested)
 			{
-				Global.RunWithoutErrorAsync(() => Directory.Delete(backupDirectory, true));
+				this.logger.LogWarning("Cancelled after backing up application");
+				Global.RunWithoutErrorAsync(() => 
+				{
+					this.logger.LogTrace($"Delete back up directory '{backupDirectory}'");
+					try
+					{
+						Directory.Delete(backupDirectory, true);
+					}
+					catch (Exception ex)
+					{
+						this.logger.LogError(ex, $"Failed to delete back up directory '{backupDirectory}'");
+					}
+				});
 				this.CompleteUpdating(null);
 				return null;
 			}
 
 			// complete
+			this.logger.LogDebug("Complete backing up application");
 			return backupDirectory;
 		}
 
@@ -155,17 +175,11 @@ namespace CarinaStudio.AutoUpdate
 		{
 			if (this.state == state)
 				return true;
+			this.logger.LogDebug($"Change state from {this.state} to {state}");
 			this.state = state;
 			this.OnPropertyChanged(nameof(State));
 			return (this.state == state);
 		}
-
-
-		/// <summary>
-		/// Check whether current thread is the thread which object depends on or not.
-		/// </summary>
-		/// <returns>True if current thread is the thread which object depends on.</returns>
-		public bool CheckAccess() => this.thread == Thread.CurrentThread;
 
 
 		// Complete updating process.
@@ -187,14 +201,19 @@ namespace CarinaStudio.AutoUpdate
 			// complete
 			if (this.IsCancelling)
 			{
+				this.logger.LogWarning("Updating cancelled");
 				this.ChangeState(UpdaterState.Cancelled);
 				this.IsCancelling = false;
 				this.OnPropertyChanged(nameof(IsCancelling));
 			}
 			else if (ex == null)
+			{
+				this.logger.LogDebug("Updating succeeded");
 				this.ChangeState(UpdaterState.Succeeded);
+			}
 			else
 			{
+				this.logger.LogError("Updating failed");
 				this.Exception = ex;
 				this.OnPropertyChanged(nameof(Exception));
 				this.ChangeState(UpdaterState.Failed);
@@ -211,40 +230,52 @@ namespace CarinaStudio.AutoUpdate
 		{
 			try
 			{
+				this.logger.LogTrace($"Start copying items in '{srcDirectory}' to '{destDirectory}'");
 				foreach (var srcFilePath in Directory.EnumerateFiles(srcDirectory))
 				{
+					var destFilePath = Path.Combine(destDirectory, Path.GetFileName(srcFilePath));
 					try
 					{
-						var destFilePath = Path.Combine(destDirectory, Path.GetFileName(srcFilePath));
+						this.logger.LogTrace($"Copy '{srcFilePath}' to '{destFilePath}'");
 						File.Copy(srcFilePath, destFilePath, true);
 					}
-					catch
+					catch (Exception ex)
 					{
+						this.logger.LogError(ex, $"Failed to copy '{srcFilePath}' to '{destFilePath}'");
 						if (throwException)
 							throw;
 					}
 					if (cancellationToken.IsCancellationRequested)
+					{
+						this.logger.LogWarning("Items copying has been cancelled");
 						return;
+					}
 				}
 				foreach (var srcSubDirectory in Directory.EnumerateDirectories(srcDirectory))
 				{
+					var destSubDirectory = Path.Combine(destDirectory, Path.GetFileName(srcSubDirectory));
 					try
 					{
-						var destSubDirectory = Path.Combine(destDirectory, Path.GetFileName(srcSubDirectory));
 						Directory.CreateDirectory(destSubDirectory);
 						this.CopyFiles(srcSubDirectory, destSubDirectory, cancellationToken, throwException);
 					}
-					catch
+					catch (Exception ex)
 					{
+						this.logger.LogError(ex, $"Failed to copy items from '{srcSubDirectory}' to '{destSubDirectory}'");
 						if (throwException)
 							throw;
 					}
 					if (cancellationToken.IsCancellationRequested)
+					{
+						this.logger.LogWarning("Items copying has been cancelled");
 						return;
+					}
 				}
+				this.logger.LogTrace($"Complete copying items in '{srcDirectory}' to '{destDirectory}'");
 			}
-			catch
+			catch (Exception ex)
 			{
+				this.logger.LogError(ex, $"Error occurred while copying items in '{srcDirectory}' to '{destDirectory}'");
 				if (throwException)
 					throw;
 			}
@@ -294,9 +325,11 @@ namespace CarinaStudio.AutoUpdate
 			try
 			{
 				packageFilePath = await Task.Run(Path.GetTempFileName);
+				this.logger.LogTrace($"Temp file for downloaded package: {packageFilePath}");
 			}
 			catch (Exception ex)
 			{
+				this.logger.LogError(ex, "Unable to get temp file for downloaded package");
 				this.CompleteUpdating(ex);
 				return null;
 			}
@@ -307,6 +340,7 @@ namespace CarinaStudio.AutoUpdate
 			{
 				if (this.cancellationTokenSource.IsCancellationRequested)
 					return;
+				this.logger.LogTrace($"Size of downloaded package: {downloadedSize}, total: {this.PackageSize.GetValueOrDefault()}");
 				this.DownloadedPackageSize = downloadedSize;
 				this.OnPropertyChanged(nameof(DownloadedPackageSize));
 				var packageSize = this.PackageSize.GetValueOrDefault();
@@ -318,12 +352,16 @@ namespace CarinaStudio.AutoUpdate
 				await Task.Run(() =>
 				{
 					// get response
+					this.logger.LogDebug($"Start downloading package from '{packageUri}'");
 					using var response = WebRequest.Create(packageUri).GetResponse();
 					using var downloadStream = response.GetResponseStream();
 
 					// cancellation check
 					if (this.cancellationTokenSource.IsCancellationRequested)
+					{
+						this.logger.LogWarning("Downloading has been cancelled");
 						throw new TaskCanceledException();
+					}
 
 					// get package size
 					var packageSize = 0L;
@@ -335,6 +373,7 @@ namespace CarinaStudio.AutoUpdate
 					{ }
 					if (packageSize > 0)
 					{
+						this.logger.LogDebug($"Size of package to download: {packageSize}");
 						this.SynchronizationContext.Post(() =>
 						{
 							this.PackageSize = packageSize;
@@ -353,10 +392,14 @@ namespace CarinaStudio.AutoUpdate
 						reportProgressAction.Schedule(100);
 						packageFileStream.Write(buffer, 0, readCount);
 						if (this.cancellationTokenSource.IsCancellationRequested)
+						{
+							this.logger.LogWarning("Downloading has been cancelled");
 							throw new TaskCanceledException();
+						}
 						readCount = downloadStream.Read(buffer, 0, buffer.Length);
 					}
 					reportProgressAction.Reschedule();
+					this.logger.LogDebug($"Complete downloading package from '{packageUri}'");
 				});
 			}
 			catch (Exception ex)
@@ -687,12 +730,6 @@ namespace CarinaStudio.AutoUpdate
 		/// Get current state.
 		/// </summary>
 		public UpdaterState State { get => this.state; }
-
-
-		/// <summary>
-		/// Get <see cref="SynchronizationContext"/>.
-		/// </summary>
-		public SynchronizationContext SynchronizationContext { get; } = SynchronizationContext.Current ?? throw new InvalidOperationException("No SynchronizationContext on current thread.");
 
 
 		// Updating process.

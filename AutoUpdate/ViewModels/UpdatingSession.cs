@@ -105,7 +105,7 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 		readonly MutableObservableBoolean canStartUpdating = new MutableObservableBoolean(true);
 		IStreamProvider? packageManifestSource;
 		bool selfContainedPackageOnly;
-		readonly Updater updater = new Updater();
+		readonly Updater updater;
 
 
 		/// <summary>
@@ -115,6 +115,7 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 		protected UpdatingSession(IApplication app) : base(app)
 		{
 			// attach to updater
+			this.updater = new Updater(app);
 			this.updater.PropertyChanged += (_, e) => this.OnUpdaterPropertyChanged(e.PropertyName ?? "");
 
 			// create commands
@@ -176,7 +177,7 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 		/// <returns><see cref="IPackageResolver"/>.</returns>
 		/// <remarks>Will create <see cref="XmlPackageResolver"/> by default implementation.</remarks>
 		protected virtual IPackageResolver CreatePackageResolver(IStreamProvider source) =>
-			new XmlPackageResolver() { Source = source };
+			new XmlPackageResolver(this.Application) { Source = source };
 
 
 		/// <summary>
@@ -457,7 +458,7 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 
 			// prepare updater
 			this.updater.ApplicationDirectoryPath = applicationDirectoryPath;
-			this.updater.PackageInstaller = new ZipPackageInstaller();
+			this.updater.PackageInstaller = new ZipPackageInstaller(this.Application);
 			this.updater.PackageResolver = this.CreatePackageResolver(this.packageManifestSource).Also(it =>
 			{
 				it.SelfContainedPackageOnly = this.selfContainedPackageOnly;

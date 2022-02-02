@@ -22,6 +22,9 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 		// Dummy package resolver.
 		class DummyPackageResolver : BasePackageResolver
 		{
+			public DummyPackageResolver(IApplication app) : base(app)
+			{ }
+
 			protected override async Task PerformOperationAsync(CancellationToken cancellationToken)
 			{
 				await Task.Delay(1000, cancellationToken);
@@ -36,7 +39,7 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 			public UpdatingSessionImpl(IApplication app) : base(app)
 			{ }
 			protected override IPackageResolver CreatePackageResolver(IStreamProvider source) =>
-				new DummyPackageResolver() { Source = source };
+				new DummyPackageResolver(this.Application) { Source = source };
 		}
 
 

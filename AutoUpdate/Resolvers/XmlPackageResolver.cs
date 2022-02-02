@@ -16,7 +16,8 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 		/// <summary>
 		/// Initialize new <see cref="XmlPackageResolver"/> instance.
 		/// </summary>
-		public XmlPackageResolver()
+		/// <param name="app">Application.</param>
+		public XmlPackageResolver(IApplication app) : base(app)
 		{ }
 
 

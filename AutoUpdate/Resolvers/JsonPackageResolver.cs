@@ -1,4 +1,5 @@
 ﻿using CarinaStudio.IO;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Runtime.InteropServices;
 #if !NETSTANDARD
@@ -18,7 +19,8 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 		/// <summary>
 		/// Initialize new <see cref="JsonPackageResolver"/> instance.
 		/// </summary>
-		public JsonPackageResolver() 
+		/// <param name="app">Application.</param>
+		public JsonPackageResolver(IApplication app) : base(app) 
 		{ }
 
 

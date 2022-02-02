@@ -1,4 +1,5 @@
 ﻿using CarinaStudio.Threading;
+using Microsoft.Extensions.Logging;
 using System;
 using System.ComponentModel;
 using System.Threading;
@@ -9,21 +10,21 @@ namespace CarinaStudio.AutoUpdate
 	/// <summary>
 	/// Base implementation of <see cref="IUpdaterComponent"/>.
 	/// </summary>
-	public abstract class BaseUpdaterComponent : BaseDisposable, IUpdaterComponent
+	public abstract class BaseUpdaterComponent : BaseDisposableApplicationObject, IUpdaterComponent
 	{
 		// Fields.
 		readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 		double progress = double.NaN;
 		UpdaterComponentState state = UpdaterComponentState.Initializing;
-		readonly Thread thread;
 
 
 		/// <summary>
 		/// Initialize new <see cref="BaseUpdaterComponent"/> instance.
 		/// </summary>
-		protected BaseUpdaterComponent()
-		{
-			this.thread = Thread.CurrentThread;
+		/// <param name="app">Application.</param>
+		protected BaseUpdaterComponent(IApplication app) : base(app)
+		{ 
+			this.Logger = app.LoggerFactory.CreateLogger(this.GetType().Name);
 		}
 
 
@@ -61,17 +62,11 @@ namespace CarinaStudio.AutoUpdate
 		{
 			if (this.state == state)
 				return true;
+			this.Logger.LogDebug($"Change state from {this.state} to {state}");
 			this.state = state;
 			this.OnPropertyChanged(nameof(State));
 			return (this.state == state);
 		}
-
-
-		/// <summary>
-		/// Check whether current thread is the thread which object depends on or not.
-		/// </summary>
-		/// <returns>True if current thread is the thread which object depends on.</returns>
-		public bool CheckAccess() => this.thread == Thread.CurrentThread;
 
 
 		/// <summary>
@@ -97,6 +92,12 @@ namespace CarinaStudio.AutoUpdate
 		/// Get <see cref="Exception"/> occurred when performing operation.
 		/// </summary>
 		public Exception? Exception { get; private set; }
+
+
+		/// <summary>
+		/// Get logger.
+		/// </summary>
+		protected ILogger Logger { get; }
 
 
 		/// <summary>
@@ -138,6 +139,7 @@ namespace CarinaStudio.AutoUpdate
 			{ }
 			catch (Exception ex)
 			{
+				this.Logger.LogError(ex, "Error occurred while performing operation");
 				exception = ex;
 			}
 			finally
@@ -239,12 +241,6 @@ namespace CarinaStudio.AutoUpdate
 		/// Get current state.
 		/// </summary>
 		public UpdaterComponentState State { get => this.state; }
-
-
-		/// <summary>
-		/// Get <see cref="SynchronizationContext"/>.
-		/// </summary>
-		public SynchronizationContext SynchronizationContext { get; } = SynchronizationContext.Current ?? throw new InvalidOperationException("No SynchronizationContext on current thread.");
 
 
 		/// <summary>

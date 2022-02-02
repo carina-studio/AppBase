@@ -24,7 +24,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
                 var packageVersion = new Version(1, 2, 3, 4);
 
                 // resolve
-                var resolver = new FilePackageResolver(packageFile, appName, packageVersion);
+                var resolver = new FilePackageResolver(this.Application, packageFile, appName, packageVersion);
                 await resolver.StartAndWaitAsync();
 
                 // check result

@@ -24,7 +24,8 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 		/// <summary>
 		/// Initialize new <see cref="BasePackageResolver"/> instance.
 		/// </summary>
-		public BasePackageResolver()
+		/// <param name="app">Application.</param>
+		public BasePackageResolver(IApplication app) : base(app)
 		{ }
 
 

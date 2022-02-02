@@ -26,7 +26,7 @@ namespace CarinaStudio.AutoUpdate
 		// Dummy package resolver.
 		class DummyPackageResolver : BasePackageResolver
 		{
-			public DummyPackageResolver(string packageFilePath)
+			public DummyPackageResolver(IApplication app, string packageFilePath) : base(app)
             {
 				using var stream = new FileStream(packageFilePath, FileMode.Open, FileAccess.Read);
 				using (var hashAlgorithm = System.Security.Cryptography.MD5.Create())
@@ -87,11 +87,11 @@ namespace CarinaStudio.AutoUpdate
 				this.remotePackageFilePath = packageFilePath;
 
 				// update and cancel immediately
-				using (var updater = new Updater()
+				using (var updater = new Updater(this.Application)
 				{
 					ApplicationDirectoryPath = baseAppDirectory,
-					PackageInstaller = new ZipPackageInstaller(),
-					PackageResolver = new DummyPackageResolver(packageFilePath) { Source = new MemoryStreamProvider() },
+					PackageInstaller = new ZipPackageInstaller(this.Application),
+					PackageResolver = new DummyPackageResolver(this.Application, packageFilePath) { Source = new MemoryStreamProvider() },
 				})
 				{
 					Assert.IsFalse(updater.Cancel());
@@ -104,11 +104,11 @@ namespace CarinaStudio.AutoUpdate
 				Assert.IsTrue(baseAppFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
 
 				// update and cancel when resolving package
-				using (var updater = new Updater()
+				using (var updater = new Updater(this.Application)
 				{
 					ApplicationDirectoryPath = baseAppDirectory,
-					PackageInstaller = new ZipPackageInstaller(),
-					PackageResolver = new DummyPackageResolver(packageFilePath) { Source = new MemoryStreamProvider() },
+					PackageInstaller = new ZipPackageInstaller(this.Application),
+					PackageResolver = new DummyPackageResolver(this.Application, packageFilePath) { Source = new MemoryStreamProvider() },
 				})
 				{
 					Assert.IsTrue(updater.Start());
@@ -122,11 +122,11 @@ namespace CarinaStudio.AutoUpdate
 				Assert.IsTrue(baseAppFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
 
 				// update and cancel when downloading package
-				using (var updater = new Updater()
+				using (var updater = new Updater(this.Application)
 				{
 					ApplicationDirectoryPath = baseAppDirectory,
-					PackageInstaller = new ZipPackageInstaller(),
-					PackageResolver = new DummyPackageResolver(packageFilePath) { Source = new MemoryStreamProvider() },
+					PackageInstaller = new ZipPackageInstaller(this.Application),
+					PackageResolver = new DummyPackageResolver(this.Application, packageFilePath) { Source = new MemoryStreamProvider() },
 				})
 				{
 					Assert.IsTrue(updater.Start());
@@ -140,11 +140,11 @@ namespace CarinaStudio.AutoUpdate
 				Assert.IsTrue(baseAppFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
 
 				// update and cancel when installing package
-				using (var updater = new Updater()
+				using (var updater = new Updater(this.Application)
 				{
 					ApplicationDirectoryPath = baseAppDirectory,
-					PackageInstaller = new ZipPackageInstaller(),
-					PackageResolver = new DummyPackageResolver(packageFilePath) { Source = new MemoryStreamProvider() },
+					PackageInstaller = new ZipPackageInstaller(this.Application),
+					PackageResolver = new DummyPackageResolver(this.Application, packageFilePath) { Source = new MemoryStreamProvider() },
 				})
 				{
 					Assert.IsTrue(updater.Start());
@@ -157,11 +157,11 @@ namespace CarinaStudio.AutoUpdate
 				Assert.IsTrue(baseAppFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
 
 				// update and cancel after completed
-				using (var updater = new Updater()
+				using (var updater = new Updater(this.Application)
 				{
 					ApplicationDirectoryPath = baseAppDirectory,
-					PackageInstaller = new ZipPackageInstaller(),
-					PackageResolver = new DummyPackageResolver(packageFilePath) { Source = new MemoryStreamProvider() },
+					PackageInstaller = new ZipPackageInstaller(this.Application),
+					PackageResolver = new DummyPackageResolver(this.Application, packageFilePath) { Source = new MemoryStreamProvider() },
 				})
 				{
 					Assert.IsTrue(updater.Start());
@@ -204,11 +204,11 @@ namespace CarinaStudio.AutoUpdate
 				this.remotePackageFilePath = packageFilePath;
 
 				// update and dispose immediately
-				using (var updater = new Updater()
+				using (var updater = new Updater(this.Application)
 				{
 					ApplicationDirectoryPath = baseAppDirectory,
-					PackageInstaller = new ZipPackageInstaller(),
-					PackageResolver = new DummyPackageResolver(packageFilePath) { Source = new MemoryStreamProvider() },
+					PackageInstaller = new ZipPackageInstaller(this.Application),
+					PackageResolver = new DummyPackageResolver(this.Application, packageFilePath) { Source = new MemoryStreamProvider() },
 				})
 				{
 					Assert.IsFalse(updater.Cancel());
@@ -221,11 +221,11 @@ namespace CarinaStudio.AutoUpdate
 				Assert.IsTrue(baseAppFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
 
 				// update and dispose when resolving package
-				using (var updater = new Updater()
+				using (var updater = new Updater(this.Application)
 				{
 					ApplicationDirectoryPath = baseAppDirectory,
-					PackageInstaller = new ZipPackageInstaller(),
-					PackageResolver = new DummyPackageResolver(packageFilePath) { Source = new MemoryStreamProvider() },
+					PackageInstaller = new ZipPackageInstaller(this.Application),
+					PackageResolver = new DummyPackageResolver(this.Application, packageFilePath) { Source = new MemoryStreamProvider() },
 				})
 				{
 					Assert.IsTrue(updater.Start());
@@ -239,11 +239,11 @@ namespace CarinaStudio.AutoUpdate
 				Assert.IsTrue(baseAppFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
 
 				// update and dispose when downloading package
-				using (var updater = new Updater()
+				using (var updater = new Updater(this.Application)
 				{
 					ApplicationDirectoryPath = baseAppDirectory,
-					PackageInstaller = new ZipPackageInstaller(),
-					PackageResolver = new DummyPackageResolver(packageFilePath) { Source = new MemoryStreamProvider() },
+					PackageInstaller = new ZipPackageInstaller(this.Application),
+					PackageResolver = new DummyPackageResolver(this.Application, packageFilePath) { Source = new MemoryStreamProvider() },
 				})
 				{
 					Assert.IsTrue(updater.Start());
@@ -257,11 +257,11 @@ namespace CarinaStudio.AutoUpdate
 				Assert.IsTrue(baseAppFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
 
 				// update and dispose when installing package
-				using (var updater = new Updater()
+				using (var updater = new Updater(this.Application)
 				{
 					ApplicationDirectoryPath = baseAppDirectory,
-					PackageInstaller = new ZipPackageInstaller(),
-					PackageResolver = new DummyPackageResolver(packageFilePath) { Source = new MemoryStreamProvider() },
+					PackageInstaller = new ZipPackageInstaller(this.Application),
+					PackageResolver = new DummyPackageResolver(this.Application, packageFilePath) { Source = new MemoryStreamProvider() },
 				})
 				{
 					Assert.IsTrue(updater.Start());
@@ -295,11 +295,11 @@ namespace CarinaStudio.AutoUpdate
 				this.remotePackageFilePath = null;
 
 				// update application
-				using var updater = new Updater()
+				using var updater = new Updater(this.Application)
 				{
 					ApplicationDirectoryPath = baseAppDirectory,
-					PackageInstaller = new ZipPackageInstaller(),
-					PackageResolver = new DummyPackageResolver(packageFilePath) { Source = new MemoryStreamProvider() },
+					PackageInstaller = new ZipPackageInstaller(this.Application),
+					PackageResolver = new DummyPackageResolver(this.Application, packageFilePath) { Source = new MemoryStreamProvider() },
 				};
 				Assert.IsTrue(updater.Start());
 				Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.ResolvingPackage, 1000));
@@ -349,11 +349,11 @@ namespace CarinaStudio.AutoUpdate
 				this.remotePackageFilePath = packageFilePath;
 
 				// check progress reported when downloading package
-				using var updater = new Updater()
+				using var updater = new Updater(this.Application)
 				{
 					ApplicationDirectoryPath = baseAppDirectory,
-					PackageInstaller = new ZipPackageInstaller(),
-					PackageResolver = new DummyPackageResolver(packageFilePath) { Source = new MemoryStreamProvider() },
+					PackageInstaller = new ZipPackageInstaller(this.Application),
+					PackageResolver = new DummyPackageResolver(this.Application, packageFilePath) { Source = new MemoryStreamProvider() },
 				};
 				var prevProgress = updater.Progress;
 				var hasIncrementalProgressChange = false;
@@ -477,11 +477,11 @@ namespace CarinaStudio.AutoUpdate
 				this.remotePackageFilePath = packageFilePath;
 
 				// update application
-				using var updater = new Updater()
+				using var updater = new Updater(this.Application)
 				{
 					ApplicationDirectoryPath = baseAppDirectory,
-					PackageInstaller = new ZipPackageInstaller(),
-					PackageResolver = new DummyPackageResolver(packageFilePath) { Source = new MemoryStreamProvider() },
+					PackageInstaller = new ZipPackageInstaller(this.Application),
+					PackageResolver = new DummyPackageResolver(this.Application, packageFilePath) { Source = new MemoryStreamProvider() },
 				};
 				Assert.IsTrue(updater.Start());
 				Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.ResolvingPackage, 1000));
