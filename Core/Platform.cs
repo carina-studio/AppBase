@@ -110,12 +110,21 @@ namespace CarinaStudio
 						return isGnome.Value;
 					if (IsLinux)
 					{
-						isGnome = LinuxDistribution switch
+						try
 						{
-							LinuxDistribution.Fedora => true,
-							LinuxDistribution.Ubuntu => true,
-							_ => false,
-						};
+							using var process = Process.Start(new ProcessStartInfo()
+							{
+								Arguments = "--version",
+								CreateNoWindow = true,
+								FileName = "gnome-shell",
+								UseShellExecute = false,
+							});
+							isGnome = process != null;
+						}
+						catch
+						{
+							isGnome = false;
+						}
 					}
 					else
 						isGnome = false;
@@ -206,7 +215,7 @@ namespace CarinaStudio
 							{
 								if (data.Contains("(Debian"))
 									return LinuxDistribution.Debian;
-								if (data.Contains("(Fedora"))
+								if (data.Contains("(Fedora") || data.Contains("fedoraproject"))
 									return LinuxDistribution.Fedora;
 								if (data.Contains("(Ubuntu"))
 									return LinuxDistribution.Ubuntu;
