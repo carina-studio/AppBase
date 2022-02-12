@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -436,6 +437,22 @@ namespace CarinaStudio.Configuration
 		/// Default value.
 		/// </summary>
 		public object DefaultValue { get; }
+
+
+		/// <summary>
+		/// Get all public <see cref="SettingKey"/> defined by given type.
+		/// </summary>
+		/// <returns>List of public <see cref="SettingKey"/>.</returns>
+		public static IList<SettingKey> GetDefinedKeys<T>()
+        {
+			var keys = new List<SettingKey>();
+			foreach (var fieldInfo in typeof(T).GetFields(BindingFlags.Public | BindingFlags.Static))
+			{
+				if (fieldInfo.GetValue(null) is SettingKey key)
+					keys.Add(key);
+			}
+			return keys.AsReadOnly();
+        }
 
 
 #pragma warning disable CS1591

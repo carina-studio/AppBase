@@ -30,8 +30,8 @@ namespace CarinaStudio.Configuration
 		public static readonly SettingKey<string[]> StringArrayKey = new SettingKey<string[]>(nameof(StringArrayKey), new string[] { "Hello", "World" });
 		public static readonly SettingKey<TestEnum> EnumKey = new SettingKey<TestEnum>(nameof(EnumKey), TestEnum.Value0);
 		public static readonly SettingKey<TestEnum[]> EnumArrayKey = new SettingKey<TestEnum[]>(nameof(EnumArrayKey), new TestEnum[] { TestEnum.Value0, TestEnum.Value1 });
-		public static readonly IList<SettingKey> AllKeys = typeof(TestSettings).GetFields()
-			.TakeWhile((it) => it.IsStatic && typeof(SettingKey).IsAssignableFrom(it.FieldType))
+		public static readonly IList<SettingKey> AllKeys = typeof(TestSettings).GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+			.TakeWhile((it) => typeof(SettingKey).IsAssignableFrom(it.FieldType))
 			.Select((field, _) => (SettingKey)field.GetValue(null).AsNonNull())
 			.ToList()
 			.AsReadOnly();
