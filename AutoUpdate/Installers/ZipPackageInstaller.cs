@@ -84,13 +84,40 @@ namespace CarinaStudio.AutoUpdate.Installers
 				}
 				if (zipEntryPath.EndsWith(Path.DirectorySeparatorChar))
 					continue;
-				if (File.Exists(targetFileName))
+				var retryCount = 10;
+				while (true)
 				{
-					this.Logger.LogTrace($"Delete file '{targetFileName}'");
-					File.Delete(targetFileName);
+					try
+					{
+						if (File.Exists(targetFileName))
+						{
+							this.Logger.LogTrace($"Delete file '{targetFileName}'");
+							File.Delete(targetFileName);
+						}
+						this.Logger.LogTrace($"Install file '{zipEntryPath}' to '{targetFileName}'");
+						zipEntry.ExtractToFile(targetFileName, false);
+						break;
+					}
+					catch (Exception ex)
+					{
+						if (retryCount > 0)
+						{
+							--retryCount;
+							this.Logger.LogError(ex, $"Unable to install file '{zipEntryPath}' to '{targetFileName}', try again");
+							Thread.Sleep(500);
+						}
+						else
+						{
+							this.Logger.LogError(ex, $"Unable to install file '{zipEntryPath}' to '{targetFileName}'");
+							throw;
+						}
+					}
+					if (cancellationToken.IsCancellationRequested)
+					{
+						this.Logger.LogWarning("Installation has been cancelled");
+						throw new TaskCanceledException();
+					}
 				}
-				this.Logger.LogTrace($"Install file '{zipEntryPath}' to '{targetFileName}'");
-				zipEntry.ExtractToFile(targetFileName, false);
 				this.ReportInstalledFilePath(targetFileName);
 				this.ReportProgress((double)(++extractedEntryCount) / entryCount);
 				if (cancellationToken.IsCancellationRequested)

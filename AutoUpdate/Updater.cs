@@ -233,22 +233,42 @@ namespace CarinaStudio.AutoUpdate
 				this.logger.LogTrace($"Start copying items in '{srcDirectory}' to '{destDirectory}'");
 				foreach (var srcFilePath in Directory.EnumerateFiles(srcDirectory))
 				{
+					var retryCount = 10;
 					var destFilePath = Path.Combine(destDirectory, Path.GetFileName(srcFilePath));
-					try
+					while (true)
 					{
-						this.logger.LogTrace($"Copy '{srcFilePath}' to '{destFilePath}'");
-						File.Copy(srcFilePath, destFilePath, true);
-					}
-					catch (Exception ex)
-					{
-						this.logger.LogError(ex, $"Failed to copy '{srcFilePath}' to '{destFilePath}'");
-						if (throwException)
-							throw;
-					}
-					if (cancellationToken.IsCancellationRequested)
-					{
-						this.logger.LogWarning("Items copying has been cancelled");
-						return;
+						try
+						{
+							this.logger.LogTrace($"Copy '{srcFilePath}' to '{destFilePath}'");
+							if (File.Exists(destFilePath))
+							{
+								this.logger.LogTrace($"Delete destination file '{destFilePath}' first");
+								File.Delete(destFilePath);
+							}
+							File.Copy(srcFilePath, destFilePath, false);
+							break;
+						}
+						catch (Exception ex)
+						{
+							if (retryCount > 0)
+							{
+								--retryCount;
+								this.logger.LogError(ex, $"Failed to copy '{srcFilePath}' to '{destFilePath}', try copy again");
+								Thread.Sleep(500);
+							}
+							else
+							{
+								this.logger.LogError(ex, $"Failed to copy '{srcFilePath}' to '{destFilePath}'");
+								if (throwException)
+									throw;
+								break;
+							}
+						}
+						if (cancellationToken.IsCancellationRequested)
+						{
+							this.logger.LogWarning("Items copying has been cancelled");
+							return;
+						}
 					}
 				}
 				foreach (var srcSubDirectory in Directory.EnumerateDirectories(srcDirectory))
