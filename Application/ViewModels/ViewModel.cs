@@ -312,6 +312,15 @@ namespace CarinaStudio.ViewModels
 
 
 		/// <summary>
+		/// Reset value of given <see cref="ObservableProperty"/> to its default value.
+		/// </summary>
+		/// <typeparam name="T">Type of value.</typeparam>
+		/// <param name="property"><see cref="ObservableProperty"/> to reset.</param>
+		protected void ResetValue<T>(ObservableProperty<T> property) =>
+			this.SetValue(property, property.DefaultValue);
+
+
+		/// <summary>
 		/// Get application user settings.
 		/// </summary>
 		protected ISettings Settings { get; private set; }
