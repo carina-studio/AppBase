@@ -147,6 +147,24 @@ namespace CarinaStudio
 
 
 		/// <summary>
+		/// Check whether current operating system is not Linux of not.
+		/// </summary>
+		public static bool IsNotLinux { get; } = !IsLinux;
+
+
+		/// <summary>
+		/// Check whether current operating system is not macOS of not.
+		/// </summary>
+		public static bool IsNotMacOS { get; } = !IsMacOS;
+
+
+		/// <summary>
+		/// Check whether current operating system is not Windows of not.
+		/// </summary>
+		public static bool IsNotWindows { get; } = !RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
+
+		/// <summary>
 		/// Check whether opening system file manager is supported or not.
 		/// </summary>
 		public static bool IsOpeningFileManagerSupported
@@ -172,7 +190,7 @@ namespace CarinaStudio
 		/// <summary>
 		/// Check whether current operating system is Windows of not.
 		/// </summary>
-		public static bool IsWindows { get; } = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+		public static bool IsWindows { get; } = !IsNotWindows;
 
 
 		/// <summary>
