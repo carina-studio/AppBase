@@ -40,9 +40,8 @@ namespace CarinaStudio
 		{ }
 
 
-#pragma warning disable CS1591
+		/// <inheritdoc/>
 		public override bool Equals([AllowNull] bool value) => this.Value == value;
-#pragma warning restore CS1591
 
 
 		/// <summary>
@@ -88,9 +87,8 @@ namespace CarinaStudio
 		public void Decrease(int value) => this.Value -= value;
 
 
-#pragma warning disable CS1591
+		/// <inheritdoc/>
 		public override bool Equals([AllowNull] int value) => this.Value == value;
-#pragma warning restore CS1591
 
 
 		/// <summary>
@@ -145,9 +143,8 @@ namespace CarinaStudio
 		public void Decrease(long value) => this.Value -= value;
 
 
-#pragma warning disable CS1591
+		/// <inheritdoc/>
 		public override bool Equals([AllowNull] long value) => this.Value == value;
-#pragma warning restore CS1591
 
 
 		/// <summary>
@@ -195,9 +192,8 @@ namespace CarinaStudio
 		{ }
 
 
-#pragma warning disable CS1591
+		/// <inheritdoc/>
 		public override bool Equals(string? value) => this.Value == value;
-#pragma warning restore CS1591
 
 
 		/// <summary>
