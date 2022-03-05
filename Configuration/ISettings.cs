@@ -65,12 +65,14 @@ namespace CarinaStudio.Configuration
 		/// <summary>
 		/// Get setting value as type specified by key, or get default value.
 		/// </summary>
-		/// <param name="settings"><see cref="ISettings"/>.</param>
+		/// <param name="settings"><see cref="ISettings"/>. The reference can be Null.</param>
 		/// <param name="key">Key of setting.</param>
 		/// <returns>Setting value, or default value.</returns>
 		[Obsolete("Try using generic GetValueOrDefault() instead, unless you don't know the type of value.")]
-		public static object GetValueOrDefault(this ISettings settings, SettingKey key)
+		public static object GetValueOrDefault(this ISettings? settings, SettingKey key)
 		{
+			if (settings == null)
+				return key.DefaultValue;
 			var rawValue = settings.GetRawValue(key);
 			if (rawValue != null && key.ValueType.IsAssignableFrom(rawValue.GetType()))
 				return rawValue;
@@ -83,10 +85,10 @@ namespace CarinaStudio.Configuration
 		/// Get setting value as type specified by key, or get default value.
 		/// </summary>
 		/// <typeparam name="T">Type of value.</typeparam>
-		/// <param name="settings"><see cref="ISettings"/>.</param>
+		/// <param name="settings"><see cref="ISettings"/>. The reference can be Null.</param>
 		/// <param name="key">Key of setting.</param>
 		/// <returns>Setting value, or default value.</returns>
-		public static T GetValueOrDefault<T>(this ISettings settings, SettingKey<T> key) => (T)settings.GetValueOrDefault((SettingKey)key);
+		public static T GetValueOrDefault<T>(this ISettings? settings, SettingKey<T> key) => (T)settings.GetValueOrDefault((SettingKey)key);
 #pragma warning restore CS0618
 
 
