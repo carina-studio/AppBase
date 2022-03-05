@@ -27,7 +27,11 @@ namespace CarinaStudio.Windows.Input
 		/// Execute command.
 		/// </summary>
 		/// <param name="parameter">Parameter.</param>
-		public override void Execute(object? parameter) => this.action();
+		public override void Execute(object? parameter)
+		{
+			if (this.CanExecute(parameter))
+				this.action();
+		}
 	}
 
 
@@ -57,7 +61,11 @@ namespace CarinaStudio.Windows.Input
 		/// Execute command.
 		/// </summary>
 		/// <param name="parameter">Parameter.</param>
-		public override void Execute(object? parameter) => this.action((TParam)parameter);
+		public override void Execute(object? parameter)
+		{
+			if (this.CanExecute(parameter))
+				this.action((TParam)parameter);
+		}
 #pragma warning restore CS8600
 #pragma warning restore CS8604
 	}
