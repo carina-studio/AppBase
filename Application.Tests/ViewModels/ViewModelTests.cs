@@ -288,6 +288,7 @@ namespace CarinaStudio.ViewModels
 				Assert.IsNull(viewModel.LatestSettingChangingEventArgs, "OnSettingChanging should not be called.");
 
 				// change setting
+#pragma warning disable CS0618
 				settings.SetValue(TestSettings.Int32, 123);
 				Assert.IsNotNull(viewModel.LatestSettingChangedEventArgs, "OnSettingChanged should be called.");
 				Assert.IsNotNull(viewModel.LatestSettingChangingEventArgs, "OnSettingChanging should be called.");
@@ -315,6 +316,7 @@ namespace CarinaStudio.ViewModels
 				settings.SetValue(TestSettings.Int32, 1234);
 				Assert.IsNull(viewModel.LatestSettingChangedEventArgs, "OnSettingChanged should not be called after disposing.");
 				Assert.IsNull(viewModel.LatestSettingChangingEventArgs, "OnSettingChanging should not be called after disposing.");
+#pragma warning restore CS0618
 			});
 		}
 

@@ -440,8 +440,13 @@ namespace CarinaStudio.AutoUpdate
 								}
 								stream.Flush();
 							}
-							catch
-							{ }
+							catch (Exception ex)
+							{ 
+								Console.Error.WriteLine("Error occurred while sending update package");
+								Console.Error.WriteLine(ex.Message);
+								Console.Error.WriteLine(ex.StackTrace);
+								break;
+							}
 							Thread.Sleep(100);
 						}
 					}

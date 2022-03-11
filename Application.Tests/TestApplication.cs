@@ -49,7 +49,7 @@ namespace CarinaStudio
 		public ILoggerFactory LoggerFactory { get; }
 		public event PropertyChangedEventHandler? PropertyChanged;
 		public ISettings PersistentState { get; }
-		public string RootPrivateDirectoryPath => Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName).AsNonNull();
+		public string RootPrivateDirectoryPath => Path.GetTempPath();
 		public ISettings Settings { get; }
 		public event EventHandler? StringsUpdated;
 		public SynchronizationContext SynchronizationContext { get; }

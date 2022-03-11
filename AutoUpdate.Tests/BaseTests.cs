@@ -187,7 +187,17 @@ namespace CarinaStudio.AutoUpdate
 		/// <param name="action">Asynchronous test action.</param>
 		protected void TestOnApplicationThread(Action action)
 		{
-			this.applicationSyncContext.AsNonNull().Send(action);
+			try
+			{
+				this.applicationSyncContext.AsNonNull().Send(action);
+			}
+			catch (Exception ex)
+			{
+				Console.Error.WriteLine($"[{this.GetType().Name}]");
+				Console.Error.WriteLine(ex.Message);
+				Console.Error.WriteLine(ex.StackTrace);
+				throw new AssertionException("Error occured while testing.", ex);
+			}
 		}
 
 
@@ -221,7 +231,12 @@ namespace CarinaStudio.AutoUpdate
 				});
 				Monitor.Wait(syncLock);
 				if (exception != null)
+				{
+					Console.Error.WriteLine($"[{this.GetType().Name}]");
+					Console.Error.WriteLine(exception.Message);
+					Console.Error.WriteLine(exception.StackTrace);
 					throw new AssertionException("Error occured while testing.", exception);
+				}
 			}
 		}
 

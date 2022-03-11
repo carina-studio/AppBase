@@ -310,6 +310,35 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 						SHA512 = "SHA512-OSX-X64-Invalid",
 						Uri = new Uri("https://localhost/packages/OSX-X64-Invalid.zip"),
 					},
+					new PackageInfo()
+					{
+						Architecture = Architecture.Arm64,
+						MD5 = "MD5-OSX-Arm64-SelfContained",
+						OperatingSystem = "OSX",
+						SHA256 = "SHA256-OSX-Arm64-SelfContained",
+						SHA512 = "SHA512-OSX-Arm64-SelfContained",
+						Uri = new Uri("https://localhost/packages/OSX-Arm64-SelfContained.zip"),
+					},
+					new PackageInfo()
+					{
+						Architecture = Architecture.Arm64,
+						RuntimeVersion = RuntimeVersion,
+						MD5 = "MD5-OSX-Arm64",
+						OperatingSystem = "OSX",
+						SHA256 = "SHA256-OSX-Arm64",
+						SHA512 = "SHA512-OSX-Arm64",
+						Uri = new Uri("https://localhost/packages/OSX-Arm64.zip"),
+					},
+					new PackageInfo()
+					{
+						Architecture = Architecture.Arm64,
+						RuntimeVersion = new Version(999, 0),
+						MD5 = "MD5-OSX-Arm64-Invalid",
+						OperatingSystem = "OSX",
+						SHA256 = "SHA256-OSX-Arm64-Invalid",
+						SHA512 = "SHA512-OSX-Arm64-Invalid",
+						Uri = new Uri("https://localhost/packages/OSX-Arm64-Invalid.zip"),
+					},
 				};
 
 				// check current operating system and platform
