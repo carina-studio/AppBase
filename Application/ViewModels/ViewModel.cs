@@ -113,16 +113,22 @@ namespace CarinaStudio.ViewModels
 			this.PropertyChanged = null;
 
 			// detach from settings
-			this.Settings.SettingChanged -= this.OnSettingChanged;
-			this.Settings.SettingChanging -= this.OnSettingChanging;
+			this.Settings?.Let(settings =>
+			{
+				settings.SettingChanged -= this.OnSettingChanged;
+				settings.SettingChanging -= this.OnSettingChanging;
+			});
 
 			// detach from application
-			this.Application.PropertyChanged -= this.OnApplicationPropertyChanged;
-			this.Application.StringsUpdated -= this.OnApplicationStringsUpdated;
+			this.Application?.Let(app =>
+			{
+				app.PropertyChanged -= this.OnApplicationPropertyChanged;
+				app.StringsUpdated -= this.OnApplicationStringsUpdated;
+			});
 
 			// check necessary tasks
 			if (this.waitingNecessaryTasks.IsNotEmpty())
-				this.Logger.LogWarning($"There are {this.waitingNecessaryTasks.Count} necessary task(s) not completed yet");
+				this.Logger?.LogWarning($"There are {this.waitingNecessaryTasks.Count} necessary task(s) not completed yet");
 
 			// notify owner
 			if (disposing)
