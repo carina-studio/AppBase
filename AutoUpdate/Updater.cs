@@ -373,7 +373,9 @@ namespace CarinaStudio.AutoUpdate
 				{
 					// get response
 					this.logger.LogDebug($"Start downloading package from '{packageUri}'");
+#pragma warning disable SYSLIB0014
 					using var response = WebRequest.Create(packageUri).GetResponse();
+#pragma warning restore SYSLIB0014
 					using var downloadStream = response.GetResponseStream();
 
 					// cancellation check

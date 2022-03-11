@@ -1,6 +1,7 @@
 ﻿using CarinaStudio.IO;
 using Microsoft.Extensions.Logging;
 using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -42,7 +43,11 @@ namespace CarinaStudio.AutoUpdate.Resolvers
         {
             this.Logger.LogTrace($"Use '{this.packageFilePath}'");
             this.ApplicationName = appName;
-            this.PackageUri = new Uri($"file:///{this.packageFilePath.Replace('\\', '/')}");
+            this.PackageUri = Path.DirectorySeparatorChar switch
+            {
+                '\\' => new Uri($"file:///{this.packageFilePath.Replace('\\', '/')}"),
+                _ => new Uri($"file://{this.packageFilePath}"),
+            };
             this.PackageVersion = this.packageVersion;
             return Task.CompletedTask;
         }
