@@ -28,6 +28,11 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 		/// <returns>Task of performing operation.</returns>
 		protected override async Task PerformOperationAsync(CancellationToken cancellationToken)
 		{
+			// check state
+			var isWindows7 = (Platform.WindowsVersion == WindowsVersion.Windows7);
+			if (this.SelfContainedPackageOnly && isWindows7)
+				throw new NotSupportedException("Self-contained package is not supported on Windows 7.");
+
 			// get XML data
 			using var streamReader = await this.Source.AsNonNull().OpenStreamReaderAsync(StreamAccess.Read, Encoding.UTF8, cancellationToken);
 
@@ -149,10 +154,13 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 									continue;
 								if (runtimeVersionAttr == null)
 								{
-									selfContainedPackageUri = uri;
-									packageAttrs["MD5"]?.Let(attr => selfContainedMd5 = attr.Value);
-									packageAttrs["SHA256"]?.Let(attr => selfContainedSha256 = attr.Value);
-									packageAttrs["SHA512"]?.Let(attr => selfContainedSha512 = attr.Value);
+									if (!isWindows7)
+									{
+										selfContainedPackageUri = uri;
+										packageAttrs["MD5"]?.Let(attr => selfContainedMd5 = attr.Value);
+										packageAttrs["SHA256"]?.Let(attr => selfContainedSha256 = attr.Value);
+										packageAttrs["SHA512"]?.Let(attr => selfContainedSha512 = attr.Value);
+									}
 								}
 								else
 								{

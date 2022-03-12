@@ -31,6 +31,11 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 		/// <returns>Task of performing operation.</returns>
 		protected override async Task PerformOperationAsync(CancellationToken cancellationToken)
 		{
+			// check state
+			var isWindows7 = (Platform.WindowsVersion == WindowsVersion.Windows7);
+			if (this.SelfContainedPackageOnly && isWindows7)
+				throw new NotSupportedException("Self-contained package is not supported on Windows 7.");
+
 			// get JSON data
 			using var stream = await this.Source.AsNonNull().OpenStreamAsync(StreamAccess.Read, cancellationToken);
 
@@ -148,13 +153,16 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 							continue;
 						if (runtimeVersion == null)
 						{
-							selfContainedPackageUri = uri;
-							if (jsonPackageElement.TryGetProperty("MD5", out jsonValue) && jsonValue.ValueKind == JsonValueKind.String)
-								selfContainedMd5 = jsonValue.GetString();
-							if (jsonPackageElement.TryGetProperty("SHA256", out jsonValue) && jsonValue.ValueKind == JsonValueKind.String)
-								selfContainedSha256 = jsonValue.GetString();
-							if (jsonPackageElement.TryGetProperty("SHA512", out jsonValue) && jsonValue.ValueKind == JsonValueKind.String)
-								selfContainedSha512 = jsonValue.GetString();
+							if (!isWindows7)
+							{
+								selfContainedPackageUri = uri;
+								if (jsonPackageElement.TryGetProperty("MD5", out jsonValue) && jsonValue.ValueKind == JsonValueKind.String)
+									selfContainedMd5 = jsonValue.GetString();
+								if (jsonPackageElement.TryGetProperty("SHA256", out jsonValue) && jsonValue.ValueKind == JsonValueKind.String)
+									selfContainedSha256 = jsonValue.GetString();
+								if (jsonPackageElement.TryGetProperty("SHA512", out jsonValue) && jsonValue.ValueKind == JsonValueKind.String)
+									selfContainedSha512 = jsonValue.GetString();
+							}
 						}
 						else
 						{
