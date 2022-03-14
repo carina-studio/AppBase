@@ -134,9 +134,8 @@ namespace CarinaStudio.Configuration
 			{
 				if (!prevValue.Equals(this.GetRawValue(key) ?? key.DefaultValue))
 					return;
-				if (value.Equals(key.DefaultValue))
-					this.values.Remove(key);
-				else
+				this.values.Remove(key); // need to remove current key first to ensure that key will be updated also
+				if (!value.Equals(key.DefaultValue))
 					this.values[key] = value;
 			}
 
