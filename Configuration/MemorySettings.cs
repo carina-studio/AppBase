@@ -120,29 +120,30 @@ namespace CarinaStudio.Configuration
 
 			// check previous value
 			var prevValue = this.GetRawValue(key) ?? key.DefaultValue;
-			if (prevValue.Equals(value))
-				return;
+			var valueChanged = !prevValue.Equals(value);
 
 			// raise event
-			lock (eventLock)
+			if (valueChanged)
 			{
-				this.settingChanging?.Invoke(this, new SettingChangingEventArgs(key, prevValue, value));
+				lock (eventLock)
+					this.settingChanging?.Invoke(this, new SettingChangingEventArgs(key, prevValue, value));
 			}
 
 			// update value
 			lock (this.values)
 			{
-				if (!prevValue.Equals(this.GetRawValue(key) ?? key.DefaultValue))
+				if (valueChanged && !prevValue.Equals(this.GetRawValue(key) ?? key.DefaultValue))
 					return;
-				this.values.Remove(key); // need to remove current key first to ensure that key will be updated also
+				this.values.Remove(key); // need to remove current key first to ensure that key will be updated
 				if (!value.Equals(key.DefaultValue))
 					this.values[key] = value;
 			}
 
 			// raise event
-			lock (eventLock)
+			if (valueChanged)
 			{
-				this.settingChanged?.Invoke(this, new SettingChangedEventArgs(key, prevValue, value));
+				lock (eventLock)
+					this.settingChanged?.Invoke(this, new SettingChangedEventArgs(key, prevValue, value));
 			}
 		}
 
