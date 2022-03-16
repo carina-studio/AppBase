@@ -1,6 +1,7 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:controls="using:CarinaStudio.Controls">
+        xmlns:controls="using:CarinaStudio.Controls"
+        xmlns:preseters="using:CarinaStudio.Controls.Presenters">
 
     <!-- Resources -->
     <Styles.Resources>
@@ -37,6 +38,28 @@
         <Setter Property="Foreground" Value="{DynamicResource ObjectTextBoxForegroundInvalid}"/>
         <Setter Property="SelectionForegroundBrush" Value="{DynamicResource ObjectTextBoxSelectionForegroundInvalid}"/>
     </Style>
+
+    <!-- ProgressRing -->
+    <Style Selector="controls|ProgressRing">
+        <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundBaseLowBrush}"/>
+		<Setter Property="Foreground" Value="{DynamicResource SystemControlHighlightAccentBrush}"/>
+        <Setter Property="RingBorderThickness" Value="0"/>
+        <Setter Property="RingThickness" Value="5"/>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <preseters:ProgressRingPresenter
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding RingBorderThickness}"
+                    IsIntermediate="{TemplateBinding IsIntermediate}"
+                    MaxProgress="{TemplateBinding Maximum}"
+                    MinProgress="{TemplateBinding Minimum}"
+                    Progress="{TemplateBinding Value}"
+                    ProgressBrush="{TemplateBinding Foreground}"
+                    RingBrush="{TemplateBinding Background}"
+                    RingThickness="{TemplateBinding RingThickness}"/>
+            </ControlTemplate>
+        </Setter>
+	</Style>
 
     <!-- ValueTextBox -->
     <Style Selector="TextBox:invalidValueTextBoxText">

@@ -19,6 +19,10 @@ namespace CarinaStudio
 
         void ExecuteLinkTextBlockCommand(object? parameter) =>
             (parameter as TextBlock)?.Let(it => it.Text = "Command executed!!!");
+        
+
+        void IncreateProgressRingValue() => 
+            this.FindControl<ProgressRing>("progressRing2")?.Let(it => it.Value = it.Minimum + (it.Value + 9) % (it.Maximum - it.Minimum));
 
 
         void SetDateTimeToDateTimeTextBox() =>
