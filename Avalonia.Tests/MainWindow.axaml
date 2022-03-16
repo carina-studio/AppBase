@@ -37,6 +37,16 @@
 	<ScrollViewer Margin="10">
 		<StackPanel>
 
+			<!-- IntegerTextBox -->
+			<TextBlock Classes="Header1" Text="IntegerTextBox"/>
+			<abControls:IntegerTextBox Name="integerAddressTextBox1" HorizontalAlignment="Left" IsNullValueAllowed="False" Width="300"/>
+			<TextBlock Classes="Footer" Text="{Binding #integerAddressTextBox1.Value, StringFormat={}Value: {0}}"/>
+			<Separator Classes="Small"/>
+
+			<abControls:IntegerTextBox Name="integerAddressTextBox2" HorizontalAlignment="Left" IsNullValueAllowed="True" Watermark="Null value allowed" Width="300"/>
+			<TextBlock Classes="Footer" Text="{Binding #integerAddressTextBox2.Value, StringFormat={}Value: {0}}"/>
+			<Separator/>
+
 			<!-- IPAddressTextBox -->
 			<TextBlock Classes="Header1" Text="IPAddressTextBox"/>
 			<abControls:IPAddressTextBox Name="ipAddressTextBox1" HorizontalAlignment="Left" Width="300"/>

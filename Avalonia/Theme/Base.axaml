@@ -9,12 +9,22 @@
         <SolidColorBrush x:Key="ObjectTextBoxForegroundInvalid" Color="#ff0000"/>
         <SolidColorBrush x:Key="ObjectTextBoxSelectionForegroundInvalid" Color="#ffbfbf"/>
 
+        <!-- ValueTextBox -->
+        <SolidColorBrush x:Key="ValueTextBoxForegroundInvalid" Color="#ff0000"/>
+        <SolidColorBrush x:Key="ValueTextBoxSelectionForegroundInvalid" Color="#ffbfbf"/>
+
     </Styles.Resources>
 
     <!-- ObjectTextBox -->
     <Style Selector="TextBox:invalidObjectTextBoxText">
         <Setter Property="Foreground" Value="{DynamicResource ObjectTextBoxForegroundInvalid}"/>
         <Setter Property="SelectionForegroundBrush" Value="{DynamicResource ObjectTextBoxSelectionForegroundInvalid}"/>
+    </Style>
+
+    <!-- ValueTextBox -->
+    <Style Selector="TextBox:invalidValueTextBoxText">
+        <Setter Property="Foreground" Value="{DynamicResource ValueTextBoxForegroundInvalid}"/>
+        <Setter Property="SelectionForegroundBrush" Value="{DynamicResource ValueTextBoxSelectionForegroundInvalid}"/>
     </Style>
 
 </Styles>
