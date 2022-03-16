@@ -17,6 +17,10 @@ namespace CarinaStudio
         }
 
 
+        void ExecuteLinkTextBlockCommand(object? parameter) =>
+            (parameter as TextBlock)?.Let(it => it.Text = "Command executed!!!");
+
+
         void SetDateTimeToDateTimeTextBox() =>
             this.FindControl<DateTimeTextBox>("dateTimeTextBox3")?.Let(it => it.Value = DateTime.Now);
 

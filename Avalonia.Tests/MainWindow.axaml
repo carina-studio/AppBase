@@ -64,6 +64,17 @@
 			<TextBlock Classes="Footer" Text="{Binding #integerTextBox2.Value, StringFormat={}Value: {0}}"/>
 			<Separator/>
 
+			<!-- LinkTextBlock -->
+			<TextBlock Classes="Header1" Text="LinkTextBlock"/>
+			<StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+				<abControls:LinkTextBlock Text="Google" Uri="https://google.com/"/>
+				<Separator Classes="Small"/>
+				<abControls:LinkTextBlock Command="{Binding $parent[Window].ExecuteLinkTextBlockCommand}" CommandParameter="{Binding $self}" Text="Execute command"/>
+				<Separator Classes="Small"/>
+				<abControls:LinkTextBlock Text="Disabled"/>
+			</StackPanel>
+			<Separator/>
+
 			<!-- IPAddressTextBox -->
 			<TextBlock Classes="Header1" Text="IPAddressTextBox"/>
 			<abControls:IPAddressTextBox Name="ipAddressTextBox1" HorizontalAlignment="Left" Width="300"/>

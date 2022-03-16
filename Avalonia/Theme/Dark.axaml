@@ -4,4 +4,15 @@
     <!-- Base -->
     <StyleInclude Source="/Theme/Base.axaml"/>
 
+    <!-- Resources -->
+    <Styles.Resources>
+
+        <!-- LinkTextBlock -->
+        <SolidColorBrush x:Key="LinkTextBlockForeground" Color="#0085e5"/>
+        <SolidColorBrush x:Key="LinkTextBlockForegroundDisabled" Color="#4d0085e5"/>
+        <SolidColorBrush x:Key="LinkTextBlockForegroundPointerOver" Color="#32aaff"/>
+        <SolidColorBrush x:Key="LinkTextBlockForegroundPressed" Color="#0077cc"/>
+
+    </Styles.Resources>
+
 </Styles>

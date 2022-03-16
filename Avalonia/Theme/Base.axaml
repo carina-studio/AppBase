@@ -15,6 +15,23 @@
 
     </Styles.Resources>
 
+    <!-- LinkTextBlock -->
+	<Style Selector="controls|LinkTextBlock">
+		<Setter Property="Background" Value="{x:Static Brushes.Transparent}"/>
+		<Setter Property="Cursor" Value="Hand"/>
+		<Setter Property="Foreground" Value="{DynamicResource LinkTextBlockForeground}"/>
+		<Setter Property="ToolTip.Tip" Value="{Binding $self.Uri}"/>
+	</Style>
+	<Style Selector="controls|LinkTextBlock:disabled">
+		<Setter Property="Foreground" Value="{DynamicResource LinkTextBlockForegroundDisabled}"/>
+	</Style>
+	<Style Selector="controls|LinkTextBlock:pointerover">
+		<Setter Property="Foreground" Value="{DynamicResource LinkTextBlockForegroundPointerOver}"/>
+	</Style>
+	<Style Selector="controls|LinkTextBlock:pressed">
+		<Setter Property="Foreground" Value="{DynamicResource LinkTextBlockForegroundPressed}"/>
+	</Style>
+
     <!-- ObjectTextBox -->
     <Style Selector="TextBox:invalidObjectTextBoxText">
         <Setter Property="Foreground" Value="{DynamicResource ObjectTextBoxForegroundInvalid}"/>
