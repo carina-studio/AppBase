@@ -1,0 +1,20 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:CarinaStudio.Controls">
+
+    <!-- Resources -->
+    <Styles.Resources>
+        
+        <!-- ObjectTextBox -->
+        <SolidColorBrush x:Key="ObjectTextBoxForegroundInvalid" Color="#ff0000"/>
+        <SolidColorBrush x:Key="ObjectTextBoxSelectionForegroundInvalid" Color="#ffbfbf"/>
+
+    </Styles.Resources>
+
+    <!-- ObjectTextBox -->
+    <Style Selector="TextBox:invalidObjectTextBoxText">
+        <Setter Property="Foreground" Value="{DynamicResource ObjectTextBoxForegroundInvalid}"/>
+        <Setter Property="SelectionForegroundBrush" Value="{DynamicResource ObjectTextBoxSelectionForegroundInvalid}"/>
+    </Style>
+
+</Styles>

@@ -1,10 +1,18 @@
 using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 
 namespace CarinaStudio
 {
     public class App : Application
     {
+        // Build application.
+        public static AppBuilder BuildAvaloniaApp()
+            => AppBuilder.Configure<App>()
+                .UsePlatformDetect()
+                .LogToTrace();
+
+
         // Initialize.
         public override void Initialize()
         {
@@ -13,14 +21,18 @@ namespace CarinaStudio
 
 
         // Program entry.
-        public static void Main(string[] args)
-        { }
+        public static void Main(string[] args) => BuildAvaloniaApp()
+            .StartWithClassicDesktopLifetime(args);
 
 
         // Called when Avalonia initialized.
         public override void OnFrameworkInitializationCompleted()
         {
             base.OnFrameworkInitializationCompleted();
+            (this.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.Let(it =>
+            {
+                it.MainWindow = new MainWindow();
+            });
         }
     }
 }

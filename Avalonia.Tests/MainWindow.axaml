@@ -1,0 +1,78 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		xmlns:abControls="using:CarinaStudio.Controls"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="CarinaStudio.MainWindow"
+        Title="Avalonia.Tests">
+	
+	<Window.Styles>
+		<Style Selector="Separator">
+			<Setter Property="Background" Value="{x:Null}"/>
+			<Setter Property="Height" Value="20"/>
+			<Setter Property="Width" Value="20"/>
+		</Style>
+		<Style Selector="Separator.Small">
+			<Setter Property="Height" Value="10"/>
+			<Setter Property="Width" Value="10"/>
+		</Style>
+		<Style Selector="TextBlock.Footer">
+			<Setter Property="HorizontalAlignment" Value="Left"/>
+			<Setter Property="Margin" Value="0,3,0,0"/>
+		</Style>
+		<Style Selector="TextBlock.Header1">
+			<Setter Property="FontSize" Value="20"/>
+			<Setter Property="FontWeight" Value="Bold"/>
+			<Setter Property="HorizontalAlignment" Value="Left"/>
+			<Setter Property="Margin" Value="0,0,0,10"/>
+		</Style>
+		<Style Selector="TextBlock.Header2">
+			<Setter Property="FontSize" Value="15"/>
+			<Setter Property="HorizontalAlignment" Value="Left"/>
+			<Setter Property="Margin" Value="0,0,0,3"/>
+		</Style>
+	</Window.Styles>
+
+	<ScrollViewer Margin="10">
+		<StackPanel>
+
+			<!-- IPAddressTextBox -->
+			<TextBlock Classes="Header1" Text="IPAddressTextBox"/>
+			<abControls:IPAddressTextBox Name="ipAddressTextBox1" HorizontalAlignment="Left" Width="300"/>
+			<TextBlock Classes="Footer" Text="{Binding #ipAddressTextBox1.Object, StringFormat={}IP address: {0}}"/>
+			<Separator Classes="Small"/>
+
+			<abControls:IPAddressTextBox Name="ipAddressTextBox2" HorizontalAlignment="Left" IPv4Only="True" Watermark="IPv4 only" Width="300"/>
+			<TextBlock Classes="Footer" Text="{Binding #ipAddressTextBox2.Object, StringFormat={}IP address: {0}}"/>
+			<Separator Classes="Small"/>
+
+			<StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+				<abControls:IPAddressTextBox Name="ipAddressTextBox3" HorizontalAlignment="Left" Width="300"/>
+				<Button Command="{Binding $parent[Window].SetIPAddressToIPAddressTextBox}" Content="Set IP address"/>
+			</StackPanel>
+			<Separator/>
+			
+			<!-- UriTextBox -->
+			<TextBlock Classes="Header1" Text="UriTextBox"/>
+			<abControls:UriTextBox Name="uriTextBox1" HorizontalAlignment="Left" Width="300"/>
+			<TextBlock Classes="Footer" Text="{Binding #uriTextBox1.Object, StringFormat={}URI: {0}}"/>
+			<Separator Classes="Small"/>
+
+			<abControls:UriTextBox Name="uriTextBox2" DefaultUriScheme="https" HorizontalAlignment="Left" Watermark="Default scheme: https" Width="300"/>
+			<TextBlock Classes="Footer" Text="{Binding #uriTextBox2.Object, StringFormat={}URI: {0}}"/>
+			<Separator Classes="Small"/>
+
+			<abControls:UriTextBox Name="uriTextBox3" HorizontalAlignment="Left" UriKind="Relative" Watermark="Relative URI" Width="300"/>
+			<TextBlock Classes="Footer" Text="{Binding #uriTextBox3.Object, StringFormat={}URI: {0}}"/>
+			<Separator Classes="Small"/>
+
+			<StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+				<abControls:UriTextBox Name="uriTextBox4" HorizontalAlignment="Left" Width="300"/>
+				<Button Command="{Binding $parent[Window].SetUriToUriTextBox}" Content="Set URI"/>
+			</StackPanel>
+
+		</StackPanel>
+	</ScrollViewer>
+	
+</Window>

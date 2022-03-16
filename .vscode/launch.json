@@ -27,6 +27,17 @@
             "stopAtEntry": false
         },
         {
+            "name": "Avalonia.Tests",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-Avalonia.Tests",
+            "program": "${workspaceFolder}/Avalonia.Tests/bin/Debug/net6.0/Avalonia.Tests.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/Avalonia.Tests",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
             "name": ".NET Core Attach",
             "type": "coreclr",
             "request": "attach"
