@@ -14,6 +14,10 @@ namespace CarinaStudio.Controls
     public abstract class ValueTextBox<T> : TextBox, IStyleable where T : struct
 	{
 		/// <summary>
+		/// Property of <see cref="DefaultValue"/>.
+		/// </summary>
+		public static readonly AvaloniaProperty<T> DefaultValueProperty = AvaloniaProperty.Register<ValueTextBox<T>, T>(nameof(DefaultValue), default(T));
+		/// <summary>
 		/// Property of <see cref="IsNullValueAllowed"/>.
 		/// </summary>
 		public static readonly AvaloniaProperty<bool> IsNullValueAllowedProperty = AvaloniaProperty.Register<ValueTextBox<T>, bool>(nameof(IsNullValueAllowed), true);
@@ -71,9 +75,13 @@ namespace CarinaStudio.Controls
 
 
 		/// <summary>
-		/// Default value for <see cref="IsNullValueAllowed"/> is False and <see cref="Avalonia.Controls.TextBox.Text"/> is empty.
+		/// Get of set default value for <see cref="IsNullValueAllowed"/> is False and <see cref="Avalonia.Controls.TextBox.Text"/> is empty.
 		/// </summary>
-		protected virtual T DefaultValue { get => default(T); }
+		public T DefaultValue 
+		{
+			 get => this.GetValue<T>(DefaultValueProperty);
+			 set => this.SetValue<T>(DefaultValueProperty, value);
+		}
 
 
 		/// <summary>
@@ -97,7 +105,9 @@ namespace CarinaStudio.Controls
 		{
 			base.OnPropertyChanged(change);
 			var property = change.Property;
-			if (property == IsNullValueAllowedProperty)
+			if (property == DefaultValueProperty)
+				this.Validate();
+			else if (property == IsNullValueAllowedProperty)
 			{
 				if (!(bool)((object?)change.NewValue.Value).AsNonNull())
 				{
@@ -155,7 +165,7 @@ namespace CarinaStudio.Controls
 		// Reset to default value.
 		void ResetToDefaultValue()
 		{
-			var value = this.DefaultValue;
+			var value = this.GetValue<T>(DefaultValueProperty);
 			this.SetValue<T?>(ValueProperty, value);
 			this.Text = this.ConvertToText(value);
 			this.SetAndRaise<bool>(IsTextValidProperty, ref this.isTextValid, true);
@@ -220,7 +230,7 @@ namespace CarinaStudio.Controls
 				}
 				else
 				{
-					value = this.DefaultValue;
+					value = this.GetValue<T>(DefaultValueProperty);
 					if (updateValueAndText)
 						this.ResetToDefaultValue();
 				}

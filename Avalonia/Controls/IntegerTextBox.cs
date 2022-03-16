@@ -60,22 +60,6 @@ namespace CarinaStudio.Controls
         }
 
 
-        /// <inheritdoc/>
-        protected override long DefaultValue 
-        { 
-            get
-            {
-                if (this.Minimum < 0)
-                {
-                    if (this.Maximum > 0)
-                        return 0;
-                    return this.Maximum;
-                }
-                return this.Minimum;
-            }
-        }
-
-
         /// <summary>
         /// Get or set maximum value.
         /// </summary>
@@ -157,9 +141,20 @@ namespace CarinaStudio.Controls
                         this.Text = s.Substring(1);
                 }
             }
+            else if (property == DefaultValueProperty)
+            {
+                if (this.DefaultValue < this.Minimum)
+                    this.DefaultValue = this.Minimum;
+                else if (this.DefaultValue > this.Maximum)
+                    this.DefaultValue = this.Maximum;
+            }
             else if (property == MaximumProperty || property == MinimumProperty)
             {
                 this.Validate();
+                if (this.DefaultValue < this.Minimum)
+                    this.DefaultValue = this.Minimum;
+                else if (this.DefaultValue > this.Maximum)
+                    this.DefaultValue = this.Maximum;
                 if (!this.IsNullValueAllowed)
                     this.Value = this.CoerceValue(this.Value.GetValueOrDefault());
             }

@@ -3,6 +3,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		xmlns:abControls="using:CarinaStudio.Controls"
+		xmlns:sys="using:System"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="CarinaStudio.MainWindow"
         Title="Avalonia.Tests">
@@ -37,14 +38,30 @@
 	<ScrollViewer Margin="10">
 		<StackPanel>
 
-			<!-- IntegerTextBox -->
-			<TextBlock Classes="Header1" Text="IntegerTextBox"/>
-			<abControls:IntegerTextBox Name="integerAddressTextBox1" HorizontalAlignment="Left" IsNullValueAllowed="False" Width="300"/>
-			<TextBlock Classes="Footer" Text="{Binding #integerAddressTextBox1.Value, StringFormat={}Value: {0}}"/>
+			<!-- DateTimeTextBox -->
+			<TextBlock Classes="Header1" Text="DateTimeTextBox"/>
+			<abControls:DateTimeTextBox Name="dateTimeTextBox1" DefaultValue="{x:Static sys:DateTime.Now}" HorizontalAlignment="Left" IsNullValueAllowed="False" Width="300"/>
+			<TextBlock Classes="Footer" Text="{Binding #dateTimeTextBox1.Value, StringFormat={}Value: {0}}"/>
 			<Separator Classes="Small"/>
 
-			<abControls:IntegerTextBox Name="integerAddressTextBox2" HorizontalAlignment="Left" IsNullValueAllowed="True" Watermark="Null value allowed" Width="300"/>
-			<TextBlock Classes="Footer" Text="{Binding #integerAddressTextBox2.Value, StringFormat={}Value: {0}}"/>
+			<abControls:DateTimeTextBox Name="dateTimeTextBox2" HorizontalAlignment="Left" IsNullValueAllowed="True" Watermark="Null value allowed" Width="300"/>
+			<TextBlock Classes="Footer" Text="{Binding #dateTimeTextBox2.Value, StringFormat={}Value: {0}}"/>
+			<Separator Classes="Small"/>
+
+			<StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+				<abControls:DateTimeTextBox Name="dateTimeTextBox3" HorizontalAlignment="Left" Width="300"/>
+				<Button Command="{Binding $parent[Window].SetDateTimeToDateTimeTextBox}" Content="Set to current time"/>
+			</StackPanel>
+			<Separator/>
+
+			<!-- IntegerTextBox -->
+			<TextBlock Classes="Header1" Text="IntegerTextBox"/>
+			<abControls:IntegerTextBox Name="integerTextBox1" HorizontalAlignment="Left" IsNullValueAllowed="False" Width="300"/>
+			<TextBlock Classes="Footer" Text="{Binding #integerTextBox1.Value, StringFormat={}Value: {0}}"/>
+			<Separator Classes="Small"/>
+
+			<abControls:IntegerTextBox Name="integerTextBox2" HorizontalAlignment="Left" IsNullValueAllowed="True" Watermark="Null value allowed" Width="300"/>
+			<TextBlock Classes="Footer" Text="{Binding #integerTextBox2.Value, StringFormat={}Value: {0}}"/>
 			<Separator/>
 
 			<!-- IPAddressTextBox -->

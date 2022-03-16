@@ -17,6 +17,10 @@ namespace CarinaStudio
         }
 
 
+        void SetDateTimeToDateTimeTextBox() =>
+            this.FindControl<DateTimeTextBox>("dateTimeTextBox3")?.Let(it => it.Value = DateTime.Now);
+
+
         void SetIPAddressToIPAddressTextBox() =>
             this.FindControl<IPAddressTextBox>("ipAddressTextBox3")?.Let(it => it.Object = IPAddress.Loopback);
 
