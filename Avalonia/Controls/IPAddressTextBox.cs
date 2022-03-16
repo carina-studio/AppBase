@@ -23,6 +23,7 @@ namespace CarinaStudio.Controls
         public IPAddressTextBox()
         {
             this.MaxLength = 1024;
+            this.PseudoClasses.Set(":ipAddressTextBox", true);
         }
 
 
