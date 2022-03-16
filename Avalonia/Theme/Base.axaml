@@ -16,6 +16,28 @@
 
     </Styles.Resources>
 
+    <!-- CircularProgressBar -->
+    <Style Selector="controls|CircularProgressBar">
+        <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundBaseLowBrush}"/>
+		<Setter Property="Foreground" Value="{DynamicResource SystemControlHighlightAccentBrush}"/>
+        <Setter Property="RingBorderThickness" Value="0"/>
+        <Setter Property="RingThickness" Value="5"/>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <preseters:CircularProgressPresenter
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding RingBorderThickness}"
+                    IsIntermediate="{TemplateBinding IsIntermediate}"
+                    MaxProgress="{TemplateBinding Maximum}"
+                    MinProgress="{TemplateBinding Minimum}"
+                    Progress="{TemplateBinding Value}"
+                    ProgressBrush="{TemplateBinding Foreground}"
+                    RingBrush="{TemplateBinding Background}"
+                    RingThickness="{TemplateBinding RingThickness}"/>
+            </ControlTemplate>
+        </Setter>
+	</Style>
+
     <!-- LinkTextBlock -->
 	<Style Selector="controls|LinkTextBlock">
 		<Setter Property="Background" Value="{x:Static Brushes.Transparent}"/>
@@ -38,28 +60,6 @@
         <Setter Property="Foreground" Value="{DynamicResource ObjectTextBoxForegroundInvalid}"/>
         <Setter Property="SelectionForegroundBrush" Value="{DynamicResource ObjectTextBoxSelectionForegroundInvalid}"/>
     </Style>
-
-    <!-- ProgressRing -->
-    <Style Selector="controls|ProgressRing">
-        <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundBaseLowBrush}"/>
-		<Setter Property="Foreground" Value="{DynamicResource SystemControlHighlightAccentBrush}"/>
-        <Setter Property="RingBorderThickness" Value="0"/>
-        <Setter Property="RingThickness" Value="5"/>
-        <Setter Property="Template">
-            <ControlTemplate>
-                <preseters:ProgressRingPresenter
-                    BorderBrush="{TemplateBinding BorderBrush}"
-                    BorderThickness="{TemplateBinding RingBorderThickness}"
-                    IsIntermediate="{TemplateBinding IsIntermediate}"
-                    MaxProgress="{TemplateBinding Maximum}"
-                    MinProgress="{TemplateBinding Minimum}"
-                    Progress="{TemplateBinding Value}"
-                    ProgressBrush="{TemplateBinding Foreground}"
-                    RingBrush="{TemplateBinding Background}"
-                    RingThickness="{TemplateBinding RingThickness}"/>
-            </ControlTemplate>
-        </Setter>
-	</Style>
 
     <!-- ValueTextBox -->
     <Style Selector="TextBox:invalidValueTextBoxText">

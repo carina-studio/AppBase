@@ -6,24 +6,24 @@ using System;
 namespace CarinaStudio.Controls
 {
     /// <summary>
-    /// Progress ring.
+    /// Circular progress bar.
     /// </summary>
-    public class ProgressRing : RangeBase, IStyleable
+    public class CircularProgressBar : RangeBase, IStyleable
     {
         /// <summary>
         /// Property of <see cref="IsIntermediate"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<bool> IsIntermediateProperty = AvaloniaProperty.Register<ProgressRing, bool>(nameof(IsIntermediate), false);
+        public static readonly AvaloniaProperty<bool> IsIntermediateProperty = AvaloniaProperty.Register<CircularProgressBar, bool>(nameof(IsIntermediate), false);
         /// <summary>
         /// Property of <see cref="RingBorderThickness"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<double> RingBorderThicknessProperty = AvaloniaProperty.Register<ProgressRing, double>(nameof(RingBorderThickness), 0,
+        public static readonly AvaloniaProperty<double> RingBorderThicknessProperty = AvaloniaProperty.Register<CircularProgressBar, double>(nameof(RingBorderThickness), 0,
             coerce: (o, it) => Math.Max(0, it),
             validate: double.IsFinite);
         /// <summary>
         /// Property of <see cref="RingThickness"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<double> RingThicknessProperty = AvaloniaProperty.Register<ProgressRing, double>(nameof(RingThickness), 5,
+        public static readonly AvaloniaProperty<double> RingThicknessProperty = AvaloniaProperty.Register<CircularProgressBar, double>(nameof(RingThickness), 5,
             coerce: (o, it) => Math.Max(1, it),
             validate: double.IsFinite);
 
@@ -59,6 +59,6 @@ namespace CarinaStudio.Controls
 
 
         // Interface implementations.
-		Type IStyleable.StyleKey => typeof(ProgressRing);
+		Type IStyleable.StyleKey => typeof(CircularProgressBar);
     }
 }
