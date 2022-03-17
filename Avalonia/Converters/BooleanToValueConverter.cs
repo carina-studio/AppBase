@@ -28,7 +28,7 @@ namespace CarinaStudio.Data.Converters
 
 
 		/// <inheritdoc/>
-		public virtual object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
+		public virtual object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
 		{
 			if (!targetType.IsAssignableFrom(typeof(TValue)))
 				return null;
@@ -39,7 +39,7 @@ namespace CarinaStudio.Data.Converters
 
 
 		/// <inheritdoc/>
-		public virtual object? ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+		public virtual object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
 		{
 			if (targetType != typeof(bool))
 				return null;

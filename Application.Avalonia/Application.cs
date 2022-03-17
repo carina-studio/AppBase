@@ -45,7 +45,7 @@ namespace CarinaStudio
 		/// <summary>
 		/// Get <see cref="Application"/> instance for current process.
 		/// </summary>
-		public static new Application Current { get => (Application)Avalonia.Application.Current; }
+		public static new Application Current { get => (Application)Avalonia.Application.Current.AsNonNull(); }
 
 
 		/// <summary>

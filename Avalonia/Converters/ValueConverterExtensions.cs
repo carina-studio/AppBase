@@ -9,6 +9,8 @@ namespace CarinaStudio.Data.Converters
 	/// </summary>
 	public static class ValueConverterExtensions
 	{
+#pragma warning disable CS8600
+#pragma warning disable CS8603
 		/// <summary>
 		/// Convert value.
 		/// </summary>
@@ -16,7 +18,7 @@ namespace CarinaStudio.Data.Converters
 		/// <param name="converter"><see cref="IValueConverter"/>.</param>
 		/// <param name="value">Value to convert.</param>
 		/// <returns>Converted value.</returns>
-		public static T Convert<T>(this IValueConverter converter, object value) =>
+		public static T Convert<T>(this IValueConverter converter, object? value) =>
 			(T)converter.Convert(value, typeof(T), null, CultureInfo.InvariantCulture);
 
 
@@ -28,7 +30,7 @@ namespace CarinaStudio.Data.Converters
 		/// <param name="value">Value to convert.</param>
 		/// <param name="cultureInfo">Culture info.</param>
 		/// <returns>Converted value.</returns>
-		public static T Convert<T>(this IValueConverter converter, object value, CultureInfo cultureInfo) =>
+		public static T Convert<T>(this IValueConverter converter, object? value, CultureInfo cultureInfo) =>
 			(T)converter.Convert(value, typeof(T), null, cultureInfo);
 
 
@@ -41,7 +43,7 @@ namespace CarinaStudio.Data.Converters
 		/// <param name="parameter">Conversion parameter.</param>
 		/// <param name="cultureInfo">Culture info.</param>
 		/// <returns>Converted value.</returns>
-		public static T Convert<T>(this IValueConverter converter, object value, object? parameter, CultureInfo cultureInfo) =>
+		public static T Convert<T>(this IValueConverter converter, object? value, object? parameter, CultureInfo cultureInfo) =>
 			(T)converter.Convert(value, typeof(T), parameter, cultureInfo);
 
 
@@ -52,7 +54,7 @@ namespace CarinaStudio.Data.Converters
 		/// <param name="converter"><see cref="IValueConverter"/>.</param>
 		/// <param name="value">Value to convert back.</param>
 		/// <returns>Converted value.</returns>
-		public static T ConvertBack<T>(this IValueConverter converter, object value) =>
+		public static T ConvertBack<T>(this IValueConverter converter, object? value) =>
 			(T)converter.ConvertBack(value, typeof(T), null, CultureInfo.InvariantCulture);
 
 
@@ -64,7 +66,7 @@ namespace CarinaStudio.Data.Converters
 		/// <param name="value">Value to convert back.</param>
 		/// <param name="cultureInfo">Culture info.</param>
 		/// <returns>Converted value.</returns>
-		public static T ConvertBack<T>(this IValueConverter converter, object value, CultureInfo cultureInfo) =>
+		public static T ConvertBack<T>(this IValueConverter converter, object? value, CultureInfo cultureInfo) =>
 			(T)converter.ConvertBack(value, typeof(T), null, cultureInfo);
 
 
@@ -77,7 +79,9 @@ namespace CarinaStudio.Data.Converters
 		/// <param name="parameter">Conversion parameter.</param>
 		/// <param name="cultureInfo">Culture info.</param>
 		/// <returns>Converted value.</returns>
-		public static T ConvertBack<T>(this IValueConverter converter, object value, object? parameter, CultureInfo cultureInfo) =>
+		public static T ConvertBack<T>(this IValueConverter converter, object? value, object? parameter, CultureInfo cultureInfo) =>
 			(T)converter.ConvertBack(value, typeof(T), parameter, cultureInfo);
+#pragma warning restore CS8600
+#pragma warning restore CS8603
 	}
 }
