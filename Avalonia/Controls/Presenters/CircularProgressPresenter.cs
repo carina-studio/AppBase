@@ -15,14 +15,14 @@ namespace CarinaStudio.Controls.Presenters
     /// </summary>
     public class CircularProgressPresenter : Control
     {
-        // Timer for intermediate progress animation.
-        class IntermediateProgressAnimationTimerImpl : UiThreadRenderTimer
+        // Timer for indeterminate progress animation.
+        class IndeterminateProgressAnimationTimerImpl : UiThreadRenderTimer
         {
             // Fields.
             readonly LinkedList<CircularProgressPresenter> presenters = new LinkedList<CircularProgressPresenter>();
 
             // Constructor.
-            public IntermediateProgressAnimationTimerImpl() : base(60)
+            public IndeterminateProgressAnimationTimerImpl() : base(60)
             { 
                 this.Tick += timeSpan =>
                 {
@@ -68,9 +68,9 @@ namespace CarinaStudio.Controls.Presenters
             coerce: (o, it) => Math.Max(0, it),
             validate: double.IsFinite);
         /// <summary>
-        /// Property of <see cref="IsIntermediate"/>.
+        /// Property of <see cref="IsIndeterminate"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<bool> IsIntermediateProperty = AvaloniaProperty.Register<CircularProgressPresenter, bool>(nameof(IsIntermediate), false);
+        public static readonly AvaloniaProperty<bool> IsIndeterminateProperty = AvaloniaProperty.Register<CircularProgressPresenter, bool>(nameof(IsIndeterminate), false);
         /// <summary>
         /// Property of <see cref="MaxProgress"/>.
         /// </summary>
@@ -117,15 +117,14 @@ namespace CarinaStudio.Controls.Presenters
         
 
         // Static fields.
-        static readonly LinkedList<CircularProgressPresenter> IntermediateProgressAnimatingPresenters = new LinkedList<CircularProgressPresenter>();
-        static readonly IntermediateProgressAnimationTimerImpl IntermediateProgressAnimationTimer = new IntermediateProgressAnimationTimerImpl();
-        static readonly AvaloniaProperty<double> IntermediateProgresProperty = AvaloniaProperty.Register<CircularProgressPresenter, double>("IntermediateProgres", 0);
+        static readonly IndeterminateProgressAnimationTimerImpl IndeterminateProgressAnimationTimer = new IndeterminateProgressAnimationTimerImpl();
+        static readonly AvaloniaProperty<double> IndeterminateProgressProperty = AvaloniaProperty.Register<CircularProgressPresenter, double>("IndeterminateProgress", 0);
         
 
         // Fields.
         Pen? borderPen;
-        readonly LinkedListNode<CircularProgressPresenter> intermediateProgressAnimatingNode;
-        long intermediateProgressAnimationStartTime = -1;
+        readonly LinkedListNode<CircularProgressPresenter> indeterminateProgressAnimatingNode;
+        long indeterminateProgressAnimationStartTime = -1;
         bool isAttachedToVisualTree;
         double progressEndAngle = double.NaN;
         StreamGeometry? progressGeometry;
@@ -141,8 +140,8 @@ namespace CarinaStudio.Controls.Presenters
             AffectsRender<CircularProgressPresenter>(
                 BorderBrushProperty,
                 BorderThicknessProperty,
-                IntermediateProgresProperty,
-                IsIntermediateProperty,
+                IndeterminateProgressProperty,
+                IsIndeterminateProperty,
                 MaxProgressProperty,
                 MinProgressProperty,
                 ProgressProperty,
@@ -157,20 +156,20 @@ namespace CarinaStudio.Controls.Presenters
         /// </summary>
         public CircularProgressPresenter()
         { 
-            this.intermediateProgressAnimatingNode = new LinkedListNode<CircularProgressPresenter>(this);
+            this.indeterminateProgressAnimatingNode = new LinkedListNode<CircularProgressPresenter>(this);
         }
 
 
         // Animate intermediate progress.
         void AnimateIntermediateProgress()
         {
-            if (this.intermediateProgressAnimationStartTime >= 0)
+            if (this.indeterminateProgressAnimationStartTime >= 0)
             {
-                var duration = (this.stopwatch.ElapsedMilliseconds - this.intermediateProgressAnimationStartTime) % IntermediateProgressAnimationDuration;
-                this.SetValue<double>(IntermediateProgresProperty, (double)duration / IntermediateProgressAnimationDuration);
+                var duration = (this.stopwatch.ElapsedMilliseconds - this.indeterminateProgressAnimationStartTime) % IntermediateProgressAnimationDuration;
+                this.SetValue<double>(IndeterminateProgressProperty, (double)duration / IntermediateProgressAnimationDuration);
             }
             else
-                this.intermediateProgressAnimationStartTime = this.stopwatch.ElapsedMilliseconds;
+                this.indeterminateProgressAnimationStartTime = this.stopwatch.ElapsedMilliseconds;
             this.InvalidateProgressAngles();
         }
 
@@ -198,9 +197,9 @@ namespace CarinaStudio.Controls.Presenters
         // Invalidate and update progress angles.
         void InvalidateProgressAngles()
         {
-            if (this.GetValue<bool>(IsIntermediateProperty))
+            if (this.GetValue<bool>(IsIndeterminateProperty))
             {
-                var progress = this.GetValue<double>(IntermediateProgresProperty);
+                var progress = this.GetValue<double>(IndeterminateProgressProperty);
                 var centerAngle = progress * 360 - 90;
                 var sweepAngle = progress >= 0.5
                     ? 15 + (1 - progress) * 75
@@ -224,12 +223,12 @@ namespace CarinaStudio.Controls.Presenters
 
 
         /// <summary>
-        /// Get or set whether the progress is intermediate state or not.
+        /// Get or set whether the progress is in indeterminate state or not.
         /// </summary>
-        public bool IsIntermediate
+        public bool IsIndeterminate
         {
-            get => this.GetValue<bool>(IsIntermediateProperty);
-            set => this.SetValue<bool>(IsIntermediateProperty, value);
+            get => this.GetValue<bool>(IsIndeterminateProperty);
+            set => this.SetValue<bool>(IsIndeterminateProperty, value);
         }
 
 
@@ -258,11 +257,11 @@ namespace CarinaStudio.Controls.Presenters
         {
             base.OnAttachedToVisualTree(e);
             this.stopwatch.Start();
-            if (this.GetValue<bool>(IsIntermediateProperty))
+            if (this.GetValue<bool>(IsIndeterminateProperty))
             {
-                this.SetValue<double>(IntermediateProgresProperty, 0);
-                this.intermediateProgressAnimationStartTime = this.stopwatch.ElapsedMilliseconds;
-                IntermediateProgressAnimationTimer.Start(this.intermediateProgressAnimatingNode);
+                this.SetValue<double>(IndeterminateProgressProperty, 0);
+                this.indeterminateProgressAnimationStartTime = this.stopwatch.ElapsedMilliseconds;
+                IndeterminateProgressAnimationTimer.Start(this.indeterminateProgressAnimatingNode);
             }
             this.isAttachedToVisualTree = true;
         }
@@ -271,8 +270,8 @@ namespace CarinaStudio.Controls.Presenters
         /// <inheritdoc/>
         protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
         {
-            IntermediateProgressAnimationTimer.Stop(this.intermediateProgressAnimatingNode);
-            this.intermediateProgressAnimationStartTime = -1;
+            IndeterminateProgressAnimationTimer.Stop(this.indeterminateProgressAnimatingNode);
+            this.indeterminateProgressAnimationStartTime = -1;
             this.isAttachedToVisualTree = false;
             this.stopwatch.Stop();
             base.OnDetachedFromVisualTree(e);
@@ -291,24 +290,24 @@ namespace CarinaStudio.Controls.Presenters
                 this.borderPen = null;
                 this.progressGeometry = null;
             }
-            else if (property == IsIntermediateProperty)
+            else if (property == IsIndeterminateProperty)
             {
-                if (!this.GetValue<bool>(IsIntermediateProperty))
+                if (!this.GetValue<bool>(IsIndeterminateProperty))
                 {
-                    this.intermediateProgressAnimationStartTime = -1;
-                    IntermediateProgressAnimationTimer.Stop(this.intermediateProgressAnimatingNode);
+                    this.indeterminateProgressAnimationStartTime = -1;
+                    IndeterminateProgressAnimationTimer.Stop(this.indeterminateProgressAnimatingNode);
                     this.InvalidateProgressAngles();
                 }
                 else if (this.isAttachedToVisualTree)
                 {
-                    this.SetValue<double>(IntermediateProgresProperty, 0);
-                    this.intermediateProgressAnimationStartTime = this.stopwatch.ElapsedMilliseconds;
-                    IntermediateProgressAnimationTimer.Start(this.intermediateProgressAnimatingNode);
+                    this.SetValue<double>(IndeterminateProgressProperty, 0);
+                    this.indeterminateProgressAnimationStartTime = this.stopwatch.ElapsedMilliseconds;
+                    IndeterminateProgressAnimationTimer.Start(this.indeterminateProgressAnimatingNode);
                 }
             }
             else if (property == ProgressProperty)
             {
-                if (!this.GetValue<bool>(IsIntermediateProperty))
+                if (!this.GetValue<bool>(IsIndeterminateProperty))
                     this.InvalidateProgressAngles();
             }
             else if (property == ProgressBrushProperty)

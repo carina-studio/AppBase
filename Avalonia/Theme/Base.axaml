@@ -27,7 +27,7 @@
                 <preseters:CircularProgressPresenter
                     BorderBrush="{TemplateBinding BorderBrush}"
                     BorderThickness="{TemplateBinding RingBorderThickness}"
-                    IsIntermediate="{TemplateBinding IsIntermediate}"
+                    IsIndeterminate="{TemplateBinding IsIndeterminate}"
                     MaxProgress="{TemplateBinding Maximum}"
                     MinProgress="{TemplateBinding Minimum}"
                     Progress="{TemplateBinding Value}"

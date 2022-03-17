@@ -11,9 +11,9 @@ namespace CarinaStudio.Controls
     public class CircularProgressBar : RangeBase, IStyleable
     {
         /// <summary>
-        /// Property of <see cref="IsIntermediate"/>.
+        /// Property of <see cref="IsIndeterminate"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<bool> IsIntermediateProperty = AvaloniaProperty.Register<CircularProgressBar, bool>(nameof(IsIntermediate), false);
+        public static readonly AvaloniaProperty<bool> IsIndeterminateProperty = AvaloniaProperty.Register<CircularProgressBar, bool>(nameof(IsIndeterminate), false);
         /// <summary>
         /// Property of <see cref="RingBorderThickness"/>.
         /// </summary>
@@ -26,15 +26,15 @@ namespace CarinaStudio.Controls
         public static readonly AvaloniaProperty<double> RingThicknessProperty = AvaloniaProperty.Register<CircularProgressBar, double>(nameof(RingThickness), 5,
             coerce: (o, it) => Math.Max(1, it),
             validate: double.IsFinite);
-
+        
 
         /// <summary>
-        /// Get or set whether the progress is intermediate state or not.
+        /// Get or set whether the progress is in indeterminate state or not.
         /// </summary>
-        public bool IsIntermediate
+        public bool IsIndeterminate
         {
-            get => this.GetValue<bool>(IsIntermediateProperty);
-            set => this.SetValue<bool>(IsIntermediateProperty, value);
+            get => this.GetValue<bool>(IsIndeterminateProperty);
+            set => this.SetValue<bool>(IsIndeterminateProperty, value);
         }
 
 
