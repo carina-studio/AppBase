@@ -4,10 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Rendering;
-using Avalonia.Rendering.SceneGraph;
-using Avalonia.Skia;
 using CarinaStudio.Collections;
-using SkiaSharp;
 using System;
 using System.Diagnostics;
 
@@ -18,53 +15,6 @@ namespace CarinaStudio.Controls.Presenters
     /// </summary>
     public class CircularProgressPresenter : Control
     {
-        // Adapter of custom drawing.
-        class DrawingParameters : ICustomDrawOperation
-        {
-            // Fields
-            public SKPaint? BorderPaint;
-            public readonly double BorderThickness;
-            public readonly CircularProgressPresenter Presenter;
-            public readonly double ProgressEndAngle;
-            public SKPaint? ProgressPaint;
-            public readonly double ProgressStartAngle;
-            public SKPaint? RingPaint;
-            public readonly double RingThickness;
-
-            // Constructor.
-            public DrawingParameters(CircularProgressPresenter presenter)
-            {
-                this.BorderPaint = presenter.borderPaint;
-                this.BorderThickness = presenter.GetValue<double>(BorderThicknessProperty);
-                this.Bounds = presenter.Bounds.Let(it => new Rect(0, 0, it.Width, it.Height));
-                this.Presenter = presenter;
-                this.ProgressEndAngle = presenter.progressEndAngle;
-                this.ProgressPaint = presenter.progressPaint;
-                this.ProgressStartAngle = presenter.progressStartAngle;
-                this.RingPaint = presenter.ringPaint;
-                this.RingThickness = presenter.GetValue<double>(RingThicknessProperty);
-            }
-
-            // Bounds.
-            public Rect Bounds { get; }
-
-            // Dispose.
-            public void Dispose()
-            { }
-
-            // Check equality.
-            public bool Equals(ICustomDrawOperation? obj) =>
-                obj == this;
-
-            // Hit test.
-            public bool HitTest(Point point) => false;
-
-            // Render.
-            public void Render(IDrawingContextImpl drawingContext) =>
-                this.Presenter.OnRender(drawingContext, this);
-        }
-
-
         // Timer for intermediate progress animation.
         class IntermediateProgressAnimationTimerImpl : UiThreadRenderTimer
         {
@@ -173,14 +123,15 @@ namespace CarinaStudio.Controls.Presenters
         
 
         // Fields.
-        SKPaint? borderPaint;
+        Pen? borderPen;
         readonly LinkedListNode<CircularProgressPresenter> intermediateProgressAnimatingNode;
         long intermediateProgressAnimationStartTime = -1;
         bool isAttachedToVisualTree;
         double progressEndAngle = double.NaN;
-        SKPaint? progressPaint;
+        StreamGeometry? progressGeometry;
+        Pen? progressPen;
         double progressStartAngle = double.NaN;
-        SKPaint? ringPaint;
+        Pen? ringPen;
         readonly Stopwatch stopwatch = new Stopwatch();
         
 
@@ -220,6 +171,7 @@ namespace CarinaStudio.Controls.Presenters
             }
             else
                 this.intermediateProgressAnimationStartTime = this.stopwatch.ElapsedMilliseconds;
+            this.InvalidateProgressAngles();
         }
 
 
@@ -243,15 +195,31 @@ namespace CarinaStudio.Controls.Presenters
         }
 
 
-        // Create Skia paint object.
-        SKPaint? CreateSkiaPaint(IBrush? brush)
+        // Invalidate and update progress angles.
+        void InvalidateProgressAngles()
         {
-            if (brush is ISolidColorBrush solidColorBrush)
+            if (this.GetValue<bool>(IsIntermediateProperty))
             {
-                var color = solidColorBrush.Color;
-                return new SKPaint() { Color = new SKColor(color.R, color.G, color.B, color.A) };
+                var progress = this.GetValue<double>(IntermediateProgresProperty);
+                var centerAngle = progress * 360 - 90;
+                var sweepAngle = progress >= 0.5
+                    ? 15 + (1 - progress) * 75
+                    : 15 + progress * 75;
+                this.progressStartAngle = centerAngle - sweepAngle;
+                this.progressEndAngle = centerAngle + sweepAngle;
             }
-            return null;
+            else
+            {
+                var min = this.GetValue<double>(MinProgressProperty);
+                var max = this.GetValue<double>(MaxProgressProperty);
+                var progress = this.GetValue<double>(ProgressProperty);
+                this.progressStartAngle = -90;
+                if (max > min)
+                    this.progressEndAngle = (progress / (max - min)) * 360 - 90;
+                else
+                    this.progressEndAngle = -90;
+            }
+            this.progressGeometry = null;
         }
 
 
@@ -304,11 +272,8 @@ namespace CarinaStudio.Controls.Presenters
         protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
         {
             IntermediateProgressAnimationTimer.Stop(this.intermediateProgressAnimatingNode);
-            this.borderPaint = null;
             this.intermediateProgressAnimationStartTime = -1;
             this.isAttachedToVisualTree = false;
-            this.progressPaint = null;
-            this.ringPaint = null;
             this.stopwatch.Stop();
             base.OnDetachedFromVisualTree(e);
         }
@@ -320,13 +285,19 @@ namespace CarinaStudio.Controls.Presenters
             base.OnPropertyChanged(change);
             var property = change.Property;
             if (property == BorderBrushProperty)
-                this.borderPaint = null;
+                this.borderPen = null;
+            else if (property == BorderThicknessProperty)
+            {
+                this.borderPen = null;
+                this.progressGeometry = null;
+            }
             else if (property == IsIntermediateProperty)
             {
                 if (!this.GetValue<bool>(IsIntermediateProperty))
                 {
                     this.intermediateProgressAnimationStartTime = -1;
                     IntermediateProgressAnimationTimer.Stop(this.intermediateProgressAnimatingNode);
+                    this.InvalidateProgressAngles();
                 }
                 else if (this.isAttachedToVisualTree)
                 {
@@ -335,70 +306,32 @@ namespace CarinaStudio.Controls.Presenters
                     IntermediateProgressAnimationTimer.Start(this.intermediateProgressAnimatingNode);
                 }
             }
+            else if (property == ProgressProperty)
+            {
+                if (!this.GetValue<bool>(IsIntermediateProperty))
+                    this.InvalidateProgressAngles();
+            }
             else if (property == ProgressBrushProperty)
-                this.progressPaint = null;
+                this.progressPen = null;
             else if (property == RingBrushProperty)
-                this.ringPaint = null;
+                this.ringPen = null;
+            else if (property == RingThicknessProperty)
+            {
+                this.ringPen = null;
+                this.progressGeometry = null;
+            }
         }
 
 
-        // Render content.
-        void OnRender(IDrawingContextImpl drawingContext, DrawingParameters parameters)
+        // Calculate point on ring.
+        Point PointOnRing(double width, double height, double borderThickness, double ringThickness, double angle)
         {
-            // get canvas
-            if (!(drawingContext is ISkiaDrawingContextImpl skiaDrawingContext))
-                return;
-            var canvas = skiaDrawingContext.SkCanvas;
-
-            // get state
-            var halfWidth = (float)parameters.Bounds.Width / 2;
-            var halfHeight = (float)parameters.Bounds.Height / 2;
-            var borderThickness = (float)parameters.BorderThickness;
-            var halfBorderThickness = borderThickness / 2;
-            var ringThickness = (float)parameters.RingThickness;
-            var halfRingThickness = ringThickness / 2;
-            
-            // draw ring
-            parameters.RingPaint?.Let(paint =>
-            {
-                canvas.DrawOval(halfWidth, halfHeight, 
-                    halfWidth - borderThickness - halfRingThickness,
-                    halfHeight - borderThickness - halfRingThickness,
-                    paint);
-            });
-
-            // draw progress
-            parameters.ProgressPaint?.Let(paint =>
-            {
-                if (Math.Abs(parameters.ProgressStartAngle - parameters.ProgressEndAngle) > 0.1)
-                {
-                    var sweepAngle = parameters.ProgressEndAngle - parameters.ProgressStartAngle;
-                    if (sweepAngle < 0)
-                        sweepAngle += 360;
-                    canvas.DrawArc(new SKRect(
-                            halfBorderThickness + halfRingThickness, 
-                            halfBorderThickness + halfRingThickness, 
-                            (float)parameters.Bounds.Width - halfBorderThickness - halfRingThickness, 
-                            (float)parameters.Bounds.Height - halfBorderThickness - halfRingThickness),
-                        (float)parameters.ProgressStartAngle,
-                        (float)sweepAngle,
-                        false,
-                        paint);
-                }
-            });
-
-            // draw border
-            parameters.BorderPaint?.Let(paint =>
-            {
-                canvas.DrawOval(halfWidth, halfHeight, 
-                    halfWidth - halfBorderThickness,
-                    halfHeight - halfBorderThickness,
-                    paint);
-                canvas.DrawOval(halfWidth, halfHeight, 
-                    halfWidth - halfBorderThickness - ringThickness,
-                    halfHeight - halfBorderThickness - ringThickness,
-                    paint);
-            });
+            var a = (width - borderThickness - ringThickness) / 2;
+            var b = (height - borderThickness - ringThickness) / 2;
+            var r = angle / 180 * Math.PI;
+            var x = a * Math.Cos(r) + width / 2;
+            var y = b * Math.Sin(r) + height / 2;
+            return new Point(x, y);
         }
 
 
@@ -425,47 +358,87 @@ namespace CarinaStudio.Controls.Presenters
         /// <inheritdoc/>
         public override void Render(DrawingContext drawingContext)
         {
-            // update progress angles
-            this.UpdateProgressAngles();
-
             // prepare resources
-            if (this.borderPaint == null)
+            var bounds = this.Bounds;
+            var width = bounds.Width;
+            var height = bounds.Height;
+            var centerX = width / 2;
+            var centerY = height / 2;
+            var ringThickness = this.GetValue<double>(RingThicknessProperty);
+            var borderThickness = this.GetValue<double>(BorderThicknessProperty);
+            var hasBorder = Math.Abs(borderThickness) >= 0.1;
+            if (hasBorder && this.borderPen == null)
             {
-                var thickness = this.GetValue<double>(BorderThicknessProperty);
-                if (thickness >= 0.1)
-                {
-                    this.borderPaint = this.CreateSkiaPaint(this.GetValue<IBrush?>(BorderBrushProperty))?.Also(it =>
-                    {
-                        it.IsAntialias = true;
-                        it.StrokeWidth = (float)thickness;
-                        it.Style = SKPaintStyle.Stroke;
-                    });
-                }
+                var brush = this.GetValue<IBrush?>(BorderBrushProperty);
+                if (brush != null)
+                    this.borderPen = new Pen(brush, borderThickness);
             }
-            if (this.progressPaint == null)
+            if (this.ringPen == null)
             {
-                var thickness = this.GetValue<double>(RingThicknessProperty);
-                this.progressPaint = this.CreateSkiaPaint(this.GetValue<IBrush?>(ProgressBrushProperty))?.Also(it =>
-                {
-                    it.IsAntialias = true;
-                    it.StrokeCap = SKStrokeCap.Round;
-                    it.StrokeWidth = (float)thickness;
-                    it.Style = SKPaintStyle.Stroke;
-                });
+                var brush = this.GetValue<IBrush?>(RingBrushProperty);
+                if (brush != null)
+                    this.ringPen = new Pen(brush, ringThickness);
             }
-            if (this.ringPaint == null)
+            if (this.progressGeometry == null 
+                && Math.Abs(this.progressStartAngle - this.progressEndAngle) >= 1)
             {
-                var thickness = this.GetValue<double>(RingThicknessProperty);
-                this.ringPaint = this.CreateSkiaPaint(this.GetValue<IBrush?>(RingBrushProperty))?.Also(it =>
-                {
-                    it.IsAntialias = true;
-                    it.StrokeWidth = (float)thickness;
-                    it.Style = SKPaintStyle.Stroke;
-                });
+                this.progressGeometry = new StreamGeometry();
+                using var geometryContext = this.progressGeometry.Open();
+                var startPoint = this.PointOnRing(width, height, borderThickness, ringThickness, this.progressStartAngle);
+                var endPoint = this.PointOnRing(width, height, borderThickness, ringThickness, this.progressEndAngle);
+                geometryContext.BeginFigure(startPoint, false);
+                geometryContext.ArcTo(
+                    endPoint,
+                    new Size((width - borderThickness - ringThickness) / 2, (height - borderThickness - ringThickness) / 2),
+                    0,
+                    (this.progressEndAngle - this.progressStartAngle) >= 180,
+                    SweepDirection.Clockwise
+                );
+                geometryContext.EndFigure(false);
+            }
+            if (this.progressPen == null)
+            {
+                var brush = this.GetValue<IBrush?>(ProgressBrushProperty);
+                if (brush != null)
+                    this.progressPen = new Pen(brush, ringThickness, lineCap: PenLineCap.Round);
             }
 
-            // draw
-            drawingContext.Custom(new DrawingParameters(this));
+            // draw ring
+            if (this.ringPen != null)
+            {
+                drawingContext.DrawEllipse(null, 
+                    this.ringPen, 
+                    new Point(centerX, centerY), 
+                    (width - borderThickness - ringThickness) / 2,
+                    (height - borderThickness - ringThickness) / 2
+                );
+            }
+
+            // draw progress
+            if (this.progressGeometry != null)
+            {
+                drawingContext.DrawGeometry(null,
+                    this.progressPen,
+                    this.progressGeometry
+                );
+            }
+
+            // draw border
+            if (hasBorder && this.borderPen != null)
+            {
+                drawingContext.DrawEllipse(null, 
+                    this.borderPen, 
+                    new Point(centerX, centerY), 
+                    (width - borderThickness) / 2,
+                    (height - borderThickness) / 2
+                );
+                drawingContext.DrawEllipse(null, 
+                    this.borderPen, 
+                    new Point(centerX, centerY), 
+                    centerX - borderThickness - ringThickness,
+                    centerY - borderThickness - ringThickness
+                );
+            }
         }
 
 
@@ -486,33 +459,6 @@ namespace CarinaStudio.Controls.Presenters
         {
             get => this.GetValue<double>(RingThicknessProperty);
             set => this.SetValue<double>(RingThicknessProperty, value);
-        }
-
-
-        // Update progress angles.
-        void UpdateProgressAngles()
-        {
-            if (this.GetValue<bool>(IsIntermediateProperty))
-            {
-                var progress = this.GetValue<double>(IntermediateProgresProperty);
-                var centerAngle = progress * 360 - 90;
-                var sweepAngle = progress >= 0.5
-                    ? 15 + (1 - progress) * 75
-                    : 15 + progress * 75;
-                this.progressStartAngle = centerAngle - sweepAngle;
-                this.progressEndAngle = centerAngle + sweepAngle;
-            }
-            else
-            {
-                var min = this.GetValue<double>(MinProgressProperty);
-                var max = this.GetValue<double>(MaxProgressProperty);
-                var progress = this.GetValue<double>(ProgressProperty);
-                this.progressStartAngle = -90;
-                if (max > min)
-                    this.progressEndAngle = (progress / (max - min)) * 360 - 90;
-                else
-                    this.progressEndAngle = -90;
-            }
         }
     }
 }
