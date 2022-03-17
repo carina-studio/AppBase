@@ -87,16 +87,17 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 		/// <summary>
 		/// Property of <see cref="ProgressPercentage"/>
 		/// </summary>
-		public static readonly ObservableProperty<double> ProgressPercentageProperty = ObservableProperty.Register<UpdatingSession, double>(nameof(ProgressPercentage), double.NaN, coerce: value =>
-		{
-			if (double.IsNaN(value))
+		public static readonly ObservableProperty<double> ProgressPercentageProperty = ObservableProperty.Register<UpdatingSession, double>(nameof(ProgressPercentage), double.NaN, 
+			coerce: (o, value) =>
+			{
+				if (double.IsNaN(value))
+					return value;
+				if (value < 0)
+					return 0;
+				if (value > 100)
+					return 100;
 				return value;
-			if (value < 0)
-				return 0;
-			if (value > 100)
-				return 100;
-			return value;
-		});
+			});
 
 
 		// Fields.

@@ -15,7 +15,7 @@ namespace CarinaStudio.ViewModels
 	{
 		// Properties.
 		public static readonly ObservableProperty<int> TestInt32Property = ObservableProperty.Register<TestViewModel, int>(nameof(TestInt32));
-		public static readonly ObservableProperty<int> TestRangeInt32Property = ObservableProperty.Register<TestViewModel, int>(nameof(TestRangeInt32), 1, (value) => Math.Max(Math.Min(MaxTestRangeInt32, value), MinTestRangeInt32), (value) => value != InvalidTestRangeInt32);
+		public static readonly ObservableProperty<int> TestRangeInt32Property = ObservableProperty.Register<TestViewModel, int>(nameof(TestRangeInt32), 1, (o, value) => Math.Max(Math.Min(MaxTestRangeInt32, value), MinTestRangeInt32), (value) => value != InvalidTestRangeInt32);
 
 
 		// Constants.

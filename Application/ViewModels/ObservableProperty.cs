@@ -83,9 +83,11 @@ namespace CarinaStudio.ViewModels
 		/// <param name="coerce">Coercion function.</param>
 		/// <param name="validate">Validation function.</param>
 		/// <returns></returns>
-		public static ObservableProperty<TValue> Register<TOwner, TValue>(string name, TValue defaultValue = default, Func<TValue, TValue>? coerce = null, Predicate<TValue>? validate = null)
+		public static ObservableProperty<TValue> Register<TOwner, TValue>(string name, TValue defaultValue = default, Func<TOwner, TValue, TValue>? coerce = null, Predicate<TValue>? validate = null)
 		{
-			return new ObservableProperty<TValue>(typeof(TOwner), name, defaultValue, coerce, validate);
+			return new ObservableProperty<TValue>(typeof(TOwner), name, defaultValue, 
+				coerce != null ? (o, value) => coerce((TOwner)o, value) : (Func<object, TValue, TValue>?)null, 
+				validate);
 		}
 #pragma warning restore CS8601
 
@@ -103,19 +105,29 @@ namespace CarinaStudio.ViewModels
 	/// <typeparam name="T">Type of value.</typeparam>
 	public class ObservableProperty<T> : ObservableProperty
 	{
+		/// <summary>
+		/// Default coercion function.
+		/// </summary>
+		public static Func<object, T, T> DefaultCoercionFunction = (_, value) => value;
+		/// <summary>
+		/// Default validation function.
+		/// </summary>
+		public static Predicate<T> DefaultValidationFunction = (value) => true;
+
+
 		// Constructor.
-		internal ObservableProperty(Type ownerType, string name, T defaultValue, Func<T, T>? coerce, Predicate<T>? validate) : base(ownerType, name, typeof(T))
+		internal ObservableProperty(Type ownerType, string name, T defaultValue, Func<object, T, T>? coerce, Predicate<T>? validate) : base(ownerType, name, typeof(T))
 		{
 			this.DefaultValue = defaultValue;
-			this.CoercionFunction = coerce;
-			this.ValidationFunction = validate;
+			this.CoercionFunction = coerce ?? DefaultCoercionFunction;
+			this.ValidationFunction = validate ?? DefaultValidationFunction;
 		}
 
 
 		/// <summary>
 		/// Coercion function.
 		/// </summary>
-		public Func<T, T>? CoercionFunction { get; }
+		public Func<object, T, T> CoercionFunction { get; }
 
 
 		/// <summary>
@@ -127,6 +139,6 @@ namespace CarinaStudio.ViewModels
 		/// <summary>
 		/// Validation function.
 		/// </summary>
-		public Predicate<T>? ValidationFunction { get; }
+		public Predicate<T> ValidationFunction { get; }
 	}
 }

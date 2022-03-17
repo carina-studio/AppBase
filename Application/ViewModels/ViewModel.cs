@@ -100,6 +100,21 @@ namespace CarinaStudio.ViewModels
 
 
 		/// <summary>
+		/// Coerce value for given property.
+		/// </summary>
+		/// <param name="property">Property.</param>
+		/// <param name="value">Value.</param>
+		/// <typeparam name="T">Type of property value.</typeparam>
+		/// <returns>Coerced value.</returns>
+		protected T CoerceValue<T>(ObservableProperty<T> property, T value)
+		{
+			if (!property.OwnerType.IsAssignableFrom(this.GetType()))
+				throw new ArgumentException($"{this.GetType().Name} is not owner of property '{property.Name}'.");
+			return property.CoercionFunction(this, value);
+		}
+
+
+		/// <summary>
 		/// Dispose the view-model.
 		/// </summary>
 		/// <param name="disposing">True to release managed resources.</param>
@@ -349,11 +364,10 @@ namespace CarinaStudio.ViewModels
 				throw new ArgumentException($"{this.GetType().Name} is not owner of property '{property.Name}'.");
 
 			// coerce value
-			if (property.CoercionFunction != null)
-				value = property.CoercionFunction(value);
+			value = property.CoercionFunction(this, value);
 
 			// validate value
-			if (property.ValidationFunction != null && !property.ValidationFunction(value))
+			if (!property.ValidationFunction(value))
 				throw new ArgumentException($"Invalid value for property '{property.Name}': {value}.");
 
 			// get old value
