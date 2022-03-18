@@ -4,5 +4,891 @@
         <name>CarinaStudio.AppBase.Avalonia</name>
     </assembly>
     <members>
+        <member name="T:CarinaStudio.Controls.CircularProgressBar">
+            <summary>
+            Circular progress bar.
+            </summary>
+        </member>
+        <member name="F:CarinaStudio.Controls.CircularProgressBar.IsIndeterminateProperty">
+            <summary>
+            Property of <see cref="P:CarinaStudio.Controls.CircularProgressBar.IsIndeterminate"/>.
+            </summary>
+        </member>
+        <member name="F:CarinaStudio.Controls.CircularProgressBar.RingBorderThicknessProperty">
+            <summary>
+            Property of <see cref="P:CarinaStudio.Controls.CircularProgressBar.RingBorderThickness"/>.
+            </summary>
+        </member>
+        <member name="F:CarinaStudio.Controls.CircularProgressBar.RingThicknessProperty">
+            <summary>
+            Property of <see cref="P:CarinaStudio.Controls.CircularProgressBar.RingThickness"/>.
+            </summary>
+        </member>
+        <member name="P:CarinaStudio.Controls.CircularProgressBar.IsIndeterminate">
+            <summary>
+            Get or set whether the progress is in indeterminate state or not.
+            </summary>
+        </member>
+        <member name="P:CarinaStudio.Controls.CircularProgressBar.RingBorderThickness">
+            <summary>
+            Get or set thickness of border of ring in pixels.
+            </summary>
+        </member>
+        <member name="P:CarinaStudio.Controls.CircularProgressBar.RingThickness">
+            <summary>
+            Get or set thickness of ring in pixels.
+            </summary>
+        </member>
+        <member name="T:CarinaStudio.Controls.ComboBoxExtensions">
+            <summary>
+            Extensions for <see cref="T:Avalonia.Controls.ComboBox"/>.
+            </summary>
+        </member>
+        <member name="M:CarinaStudio.Controls.ComboBoxExtensions.TryFindComboBoxItem(Avalonia.Controls.ComboBox,System.Object,Avalonia.Controls.ComboBoxItem@)">
+            <summary>
+            Try finding <see cref="T:Avalonia.Controls.ComboBoxItem"/> of given item in <see cref="T:Avalonia.Controls.ComboBox"/>.
+            </summary>
+            <param name="comboBox"><see cref="T:Avalonia.Controls.ComboBox"/>.</param>
+            <param name="item">Item.</param>
+            <param name="comboBoxItem">Found <see cref="T:Avalonia.Controls.ComboBoxItem"/>.</param>
+            <returns>True if <see cref="T:Avalonia.Controls.ComboBoxItem"/> found.</returns>
+        </member>
+        <member name="T:CarinaStudio.Controls.DateTimeTextBox">
+            <summary>
+            <see cref="T:Avalonia.Controls.TextBox"/> to let user input a <see cref="T:System.DateTime"/>.
+            </summary>
+        </member>
+        <member name="M:CarinaStudio.Controls.DateTimeTextBox.#ctor">
+            <summary>
+            Initialize new <see cref="T:CarinaStudio.Controls.DateTimeTextBox"/> instance.
+            </summary>
+        </member>
+        <member name="M:CarinaStudio.Controls.DateTimeTextBox.TryConvertToValue(System.String,System.Nullable{System.DateTime}@)">
+            <inheritdoc/>.
+        </member>
+        <member name="T:CarinaStudio.Controls.IntegerTextBox">
+            <summary>
+            <see cref="T:Avalonia.Controls.TextBox"/> to let user input an integer in decimal.
+            </summary>
+        </member>
+        <member name="F:CarinaStudio.Controls.IntegerTextBox.AcceptsPositiveSignProperty">
+            <summary>
+            Property of <see cref="P:CarinaStudio.Controls.IntegerTextBox.AcceptsPositiveSign"/>.
+            </summary>
+        </member>
+        <member name="F:CarinaStudio.Controls.IntegerTextBox.MaximumProperty">
+            <summary>
+            Property of <see cref="P:CarinaStudio.Controls.IntegerTextBox.Maximum"/>.
+            </summary>
+        </member>
+        <member name="F:CarinaStudio.Controls.IntegerTextBox.MinimumProperty">
+            <summary>
+            Property of <see cref="P:CarinaStudio.Controls.IntegerTextBox.Minimum"/>.
+            </summary>
+        </member>
+        <member name="M:CarinaStudio.Controls.IntegerTextBox.#ctor">
+            <summary>
+            Initialize new <see cref="T:CarinaStudio.Controls.IntegerTextBox"/> instance.
+            </summary>
+        </member>
+        <member name="P:CarinaStudio.Controls.IntegerTextBox.AcceptsPositiveSign">
+            <summary>
+            Get or set whether positive sign (+) can be accpeted or not.
+            </summary>
+        </member>
+        <member name="M:CarinaStudio.Controls.IntegerTextBox.CoerceValue(System.Int64)">
+            <inheritdoc/>
+        </member>
+        <member name="P:CarinaStudio.Controls.IntegerTextBox.Maximum">
+            <summary>
+            Get or set maximum value.
+            </summary>
+        </member>
+        <member name="P:CarinaStudio.Controls.IntegerTextBox.Minimum">
+            <summary>
+            Get or set minimum value.
+            </summary>
+        </member>
+        <member name="M:CarinaStudio.Controls.IntegerTextBox.OnKeyDown(Avalonia.Input.KeyEventArgs)">
+            <inheritdoc/>
+        </member>
+        <member name="M:CarinaStudio.Controls.IntegerTextBox.OnPropertyChanged``1(Avalonia.AvaloniaPropertyChangedEventArgs{``0})">
+            <inheritdoc/>
+        </member>
+        <member name="M:CarinaStudio.Controls.IntegerTextBox.OnTextInput(Avalonia.Input.TextInputEventArgs)">
+            <inheritdoc/>
+        </member>
+        <member name="M:CarinaStudio.Controls.IntegerTextBox.TryConvertToValue(System.String,System.Nullable{System.Int64}@)">
+            <inheritdoc/>
+        </member>
+        <member name="T:CarinaStudio.Controls.IPAddressTextBox">
+            <summary>
+            <see cref="T:Avalonia.Controls.TextBox"/> which treat input text as <see cref="T:System.Net.IPAddress"/>.
+            </summary>
+        </member>
+        <member name="F:CarinaStudio.Controls.IPAddressTextBox.IPv4OnlyProperty">
+            <summary>
+            Property of <see cref="P:CarinaStudio.Controls.IPAddressTextBox.IPv4Only"/>.
+            </summary>
+        </member>
+        <member name="M:CarinaStudio.Controls.IPAddressTextBox.#ctor">
+            <summary>
+            Initialize new <see cref="T:CarinaStudio.Controls.IPAddressTextBox"/> instance.
+            </summary>
+        </member>
+        <member name="P:CarinaStudio.Controls.IPAddressTextBox.IPv4Only">
+            <summary>
+            Get or set whether only IPv4 can be used or not.
+            </summary>
+        </member>
+        <member name="M:CarinaStudio.Controls.IPAddressTextBox.OnPropertyChanged``1(Avalonia.AvaloniaPropertyChangedEventArgs{``0})">
+            <inheritdoc/>.
+        </member>
+        <member name="M:CarinaStudio.Controls.IPAddressTextBox.OnTextInput(Avalonia.Input.TextInputEventArgs)">
+            <inheritdoc/>
+        </member>
+        <member name="M:CarinaStudio.Controls.IPAddressTextBox.TryConvertToObject(System.String,System.Net.IPAddress@)">
+            <inheritdoc/>
+        </member>
+        <member name="T:CarinaStudio.Controls.ItemsControlExtensions">
+            <summary>
+            Extensions for <see cref="T:Avalonia.Controls.ItemsControl"/>.
+            </summary>
+        </member>
+        <member name="M:CarinaStudio.Controls.ItemsControlExtensions.GetItemCount(Avalonia.Controls.ItemsControl)">
+            <summary>
+            Get number of item in <see cref="T:Avalonia.Controls.ItemsControl"/>.
+            </summary>
+            <param name="itemsControl"><see cref="T:Avalonia.Controls.ItemsControl"/>.</param>
+            <returns>Number of items, or 0 if number of items cannot be determined.</returns>
+        </member>
+        <member name="T:CarinaStudio.Controls.LinkTextBlock">
+            <summary>
+            <see cref="T:Avalonia.Controls.TextBlock"/> which supports open the link.
+            </summary>
+        </member>
+        <member name="F:CarinaStudio.Controls.LinkTextBlock.CommandProperty">
+            <summary>
+            Property of <see cref="P:CarinaStudio.Controls.LinkTextBlock.Command"/>.
+            </summary>
+        </member>
+        <member name="F:CarinaStudio.Controls.LinkTextBlock.CommandParameterProperty">
+            <summary>
+            Property of <see cref="P:CarinaStudio.Controls.LinkTextBlock.CommandParameter"/>.
+            </summary>
+        </member>
+        <member name="F:CarinaStudio.Controls.LinkTextBlock.UriProperty">
+            <summary>
+            Property of <see cref="P:CarinaStudio.Controls.LinkTextBlock.Uri"/>.
+            </summary>
+        </member>
+        <member name="M:CarinaStudio.Controls.LinkTextBlock.#ctor">
+            <summary>
+            Initialize new <see cref="T:CarinaStudio.Controls.LinkTextBlock"/> instance.
+            </summary>
+        </member>
+        <member name="P:CarinaStudio.Controls.LinkTextBlock.Command">
+            <summary>
+            Get or set command to execute when clicking the link.
+            </summary>
+        </member>
+        <member name="P:CarinaStudio.Controls.LinkTextBlock.CommandParameter">
+            <summary>
+            Get or set parameter to execute <see cref="P:CarinaStudio.Controls.LinkTextBlock.Command"/>.
+            </summary>
+        </member>
+        <member name="P:CarinaStudio.Controls.LinkTextBlock.IsEnabledCore">
+            <inheritdoc/>
+        </member>
+        <member name="M:CarinaStudio.Controls.LinkTextBlock.OnPointerReleased(Avalonia.Input.PointerReleasedEventArgs)">
+            <summary>
+            Called when pointer released.
+            </summary>
+            <param name="e">Event data.</param>
+        </member>
+        <member name="M:CarinaStudio.Controls.LinkTextBlock.OnPropertyChanged``1(Avalonia.AvaloniaPropertyChangedEventArgs{``0})">
+            <summary>
+            Called when property changed.
+            </summary>
+            <typeparam name="T">Type of property.</typeparam>
+            <param name="change">Change data.</param>
+        </member>
+        <member name="P:CarinaStudio.Controls.LinkTextBlock.Uri">
+            <summary>
+            Get or set URI to open.
+            </summary>
+        </member>
+        <member name="T:CarinaStudio.Controls.ListBoxExtensions">
+            <summary>
+            Extensions for <see cref="T:Avalonia.Controls.ListBox"/>.
+            </summary>
+        </member>
+        <member name="M:CarinaStudio.Controls.ListBoxExtensions.TryFindListBoxItem(Avalonia.Controls.ListBox,System.Object,Avalonia.Controls.ListBoxItem@)">
+            <summary>
+            Try finding <see cref="T:Avalonia.Controls.ListBoxItem"/> of given item in <see cref="T:Avalonia.Controls.ListBox"/>.
+            </summary>
+            <param name="listBox"><see cref="T:Avalonia.Controls.ListBox"/>.</param>
+            <param name="item">Item.</param>
+            <param name="listBoxItem">Found <see cref="T:Avalonia.Controls.ListBoxItem"/>.</param>
+            <returns>True if <see cref="T:Avalonia.Controls.ListBoxItem"/> found.</returns>
+        </member>
+        <member name="T:CarinaStudio.Controls.ObjectTextBox`1">
+            <summary>
+            <see cref="T:Avalonia.Controls.TextBox"/> which treat input text as object with type <typeparamref name="T"/>.
+            </summary>
+            <typeparam name="T">Type of object.</typeparam>
+        </member>
+        <member name="F:CarinaStudio.Controls.ObjectTextBox`1.IsTextValidProperty">
+            <summary>
+            Property of <see cref="P:CarinaStudio.Controls.ObjectTextBox`1.IsTextValid"/>.
+            </summary>
+        </member>
+        <member name="F:CarinaStudio.Controls.ObjectTextBox`1.ObjectProperty">
+            <summary>
+            Property of <see cref="P:CarinaStudio.Controls.ObjectTextBox`1.Object"/>.
+            </summary>
+        </member>
+        <member name="F:CarinaStudio.Controls.ObjectTextBox`1.ValidationDelayProperty">
+            <summary>
+            Property of <see cref="P:CarinaStudio.Controls.ObjectTextBox`1.ValidationDelay"/>.
+            </summary>
+        </member>
+        <member name="M:CarinaStudio.Controls.ObjectTextBox`1.#ctor">
+            <summary>
+            Initialize new <see cref="T:CarinaStudio.Controls.ObjectTextBox`1"/> instance.
+            </summary>
+        </member>
+        <member name="M:CarinaStudio.Controls.ObjectTextBox`1.CheckObjectEquality(`0,`0)">
+            <summary>
+            Check equality of objects.
+            </summary>
+            <param name="x">First object.</param>
+            <param name="y">Second object.</param>
+            <returns>True if two objects are equalvant.</returns>
+        </member>
+        <member name="M:CarinaStudio.Controls.ObjectTextBox`1.ConvertToText(`0)">
+            <summary>
+            Convert object to text.
+            </summary>
+            <param name="obj">Object.</param>
+            <returns>Converted text.</returns>
+        </member>
+        <member name="P:CarinaStudio.Controls.ObjectTextBox`1.IsTextValid">
+            <summary>
+            Get whether input <see cref="P:Avalonia.Controls.TextBox.Text"/> represent a valid object or not.
+            </summary>
+        </member>
+        <member name="P:CarinaStudio.Controls.ObjectTextBox`1.IsValidationScheduled">
+            <summary>
+            Check whether text validation is scheduled or not.
+            </summary>
+        </member>
+        <member name="P:CarinaStudio.Controls.ObjectTextBox`1.Object">
+            <summary>
+            Get or set object.
+            </summary>
+        </member>
+        <member name="M:CarinaStudio.Controls.ObjectTextBox`1.OnPropertyChanged``1(Avalonia.AvaloniaPropertyChangedEventArgs{``0})">
+            <inheritdoc/>
+        </member>
+        <member name="M:CarinaStudio.Controls.ObjectTextBox`1.OnTextInput(Avalonia.Input.TextInputEventArgs)">
+            <inheritdoc/>
+        </member>
+        <member name="M:CarinaStudio.Controls.ObjectTextBox`1.TryConvertToObject(System.String,`0@)">
+            <summary>
+            Try converting text to object.
+            </summary>
+            <param name="text">Text.</param>
+            <param name="obj">Converted object.</param>
+            <returns>True if conversion succeeded.</returns>
+        </member>
+        <member name="M:CarinaStudio.Controls.ObjectTextBox`1.Validate">
+            <summary>
+            Validate input <see cref="P:Avalonia.Controls.TextBox.Text"/> and generate corresponding object.
+            </summary>
+            <returns>True if input <see cref="P:Avalonia.Controls.TextBox.Text"/> generates a valid object.</returns>
+        </member>
+        <member name="P:CarinaStudio.Controls.ObjectTextBox`1.ValidationDelay">
+            <summary>
+            Get or set the delay of validating text after user typing in milliseconds.
+            </summary>
+        </member>
+        <member name="T:CarinaStudio.Controls.Presenters.CircularProgressPresenter">
+            <summary>
+            Presenter of circular progress.
+            </summary>
+        </member>
+        <member name="F:CarinaStudio.Controls.Presenters.CircularProgressPresenter.BorderBrushProperty">
+            <summary>
+            Property of <see cref="P:CarinaStudio.Controls.Presenters.CircularProgressPresenter.BorderBrush"/>.
+            </summary>
+        </member>
+        <member name="F:CarinaStudio.Controls.Presenters.CircularProgressPresenter.BorderThicknessProperty">
+            <summary>
+            Property of <see cref="P:CarinaStudio.Controls.Presenters.CircularProgressPresenter.BorderThickness"/>.
+            </summary>
+        </member>
+        <member name="F:CarinaStudio.Controls.Presenters.CircularProgressPresenter.IsIndeterminateProperty">
+            <summary>
+            Property of <see cref="P:CarinaStudio.Controls.Presenters.CircularProgressPresenter.IsIndeterminate"/>.
+            </summary>
+        </member>
+        <member name="F:CarinaStudio.Controls.Presenters.CircularProgressPresenter.MaxProgressProperty">
+            <summary>
+            Property of <see cref="P:CarinaStudio.Controls.Presenters.CircularProgressPresenter.MaxProgress"/>.
+            </summary>
+        </member>
+        <member name="F:CarinaStudio.Controls.Presenters.CircularProgressPresenter.MinProgressProperty">
+            <summary>
+            Property of <see cref="P:CarinaStudio.Controls.Presenters.CircularProgressPresenter.MinProgress"/>.
+            </summary>
+        </member>
+        <member name="F:CarinaStudio.Controls.Presenters.CircularProgressPresenter.ProgressProperty">
+            <summary>
+            Property of <see cref="P:CarinaStudio.Controls.Presenters.CircularProgressPresenter.Progress"/>.
+            </summary>
+        </member>
+        <member name="F:CarinaStudio.Controls.Presenters.CircularProgressPresenter.ProgressBrushProperty">
+            <summary>
+            Property of <see cref="P:CarinaStudio.Controls.Presenters.CircularProgressPresenter.ProgressBrush"/>.
+            </summary>
+        </member>
+        <member name="F:CarinaStudio.Controls.Presenters.CircularProgressPresenter.RingBrushProperty">
+            <summary>
+            Property of <see cref="P:CarinaStudio.Controls.Presenters.CircularProgressPresenter.RingBrush"/>.
+            </summary>
+        </member>
+        <member name="F:CarinaStudio.Controls.Presenters.CircularProgressPresenter.RingThicknessProperty">
+            <summary>
+            Property of <see cref="P:CarinaStudio.Controls.Presenters.CircularProgressPresenter.RingThickness"/>.
+            </summary>
+        </member>
+        <member name="M:CarinaStudio.Controls.Presenters.CircularProgressPresenter.#ctor">
+            <summary>
+            Initialize new <see cref="T:CarinaStudio.Controls.Presenters.CircularProgressPresenter"/> instance.
+            </summary>
+        </member>
+        <member name="P:CarinaStudio.Controls.Presenters.CircularProgressPresenter.BorderBrush">
+            <summary>
+            Get or set brush of border.
+            </summary>
+        </member>
+        <member name="P:CarinaStudio.Controls.Presenters.CircularProgressPresenter.BorderThickness">
+            <summary>
+            Get or set thickness of border in pixels.
+            </summary>
+        </member>
+        <member name="P:CarinaStudio.Controls.Presenters.CircularProgressPresenter.IsIndeterminate">
+            <summary>
+            Get or set whether the progress is in indeterminate state or not.
+            </summary>
+        </member>
+        <member name="P:CarinaStudio.Controls.Presenters.CircularProgressPresenter.MaxProgress">
+            <summary>
+            Get or set maximum of progress.
+            </summary>
+        </member>
+        <member name="P:CarinaStudio.Controls.Presenters.CircularProgressPresenter.MinProgress">
+            <summary>
+            Get or set minimum of progress.
+            </summary>
+        </member>
+        <member name="M:CarinaStudio.Controls.Presenters.CircularProgressPresenter.OnAttachedToVisualTree(Avalonia.VisualTreeAttachmentEventArgs)">
+            <inheritdoc/>
+        </member>
+        <member name="M:CarinaStudio.Controls.Presenters.CircularProgressPresenter.OnDetachedFromVisualTree(Avalonia.VisualTreeAttachmentEventArgs)">
+            <inheritdoc/>
+        </member>
+        <member name="M:CarinaStudio.Controls.Presenters.CircularProgressPresenter.OnPropertyChanged``1(Avalonia.AvaloniaPropertyChangedEventArgs{``0})">
+            <inheritdoc/>
+        </member>
+        <member name="P:CarinaStudio.Controls.Presenters.CircularProgressPresenter.Progress">
+            <summary>
+            Get or set progress.
+            </summary>
+        </member>
+        <member name="P:CarinaStudio.Controls.Presenters.CircularProgressPresenter.ProgressBrush">
+            <summary>
+            Get or set brush of progress.
+            </summary>
+        </member>
+        <member name="M:CarinaStudio.Controls.Presenters.CircularProgressPresenter.Render(Avalonia.Media.DrawingContext)">
+            <inheritdoc/>
+        </member>
+        <member name="P:CarinaStudio.Controls.Presenters.CircularProgressPresenter.RingBrush">
+            <summary>
+            Get or set brush of ring.
+            </summary>
+        </member>
+        <member name="P:CarinaStudio.Controls.Presenters.CircularProgressPresenter.RingThickness">
+            <summary>
+            Get or set thickness of ring in pixels.
+            </summary>
+        </member>
+        <member name="T:CarinaStudio.Controls.ResourceHostExtensions">
+            <summary>
+            Extensions for <see cref="T:Avalonia.Controls.IResourceHost"/>.
+            </summary>
+        </member>
+        <member name="M:CarinaStudio.Controls.ResourceHostExtensions.TryFindResource``1(Avalonia.Controls.IResourceHost,System.Object,``0@)">
+            <summary>
+            Try finding resource with given type.
+            </summary>
+            <typeparam name="T">Type of resource.</typeparam>
+            <param name="resourceHost"><see cref="T:Avalonia.Controls.IResourceHost"/>.</param>
+            <param name="key">Resource key.</param>
+            <param name="res">Found resource.</param>
+            <returns>True if resource found.</returns>
+        </member>
+        <member name="M:CarinaStudio.Controls.ResourceHostExtensions.TryFindResource``1(Avalonia.Controls.IResourceHost,System.Object,System.Nullable{``0}@)">
+            <summary>
+            Try finding resource with given type.
+            </summary>
+            <typeparam name="T">Type of resource.</typeparam>
+            <param name="resourceHost"><see cref="T:Avalonia.Controls.IResourceHost"/>.</param>
+            <param name="key">Resource key.</param>
+            <param name="res">Found resource.</param>
+            <returns>True if resource found.</returns>
+        </member>
+        <member name="T:CarinaStudio.Controls.ResourceNodeExtensions">
+            <summary>
+            Extensions for <see cref="T:Avalonia.Controls.IResourceNode"/>.
+            </summary>
+        </member>
+        <member name="M:CarinaStudio.Controls.ResourceNodeExtensions.TryGetResource``1(Avalonia.Controls.IResourceNode,System.Object,``0@)">
+            <summary>
+            Try getting resource with given type.
+            </summary>
+            <typeparam name="T">Type of resource.</typeparam>
+            <param name="node"><see cref="T:Avalonia.Controls.IResourceNode"/>.</param>
+            <param name="key">Resource key.</param>
+            <param name="res">Found resource.</param>
+            <returns>True if resource got.</returns>
+        </member>
+        <member name="M:CarinaStudio.Controls.ResourceNodeExtensions.TryGetResource``1(Avalonia.Controls.IResourceNode,System.Object,System.Nullable{``0}@)">
+            <summary>
+            Try getting resource with given type.
+            </summary>
+            <typeparam name="T">Type of resource.</typeparam>
+            <param name="node"><see cref="T:Avalonia.Controls.IResourceNode"/>.</param>
+            <param name="key">Resource key.</param>
+            <param name="res">Found resource.</param>
+            <returns>True if resource got.</returns>
+        </member>
+        <member name="T:CarinaStudio.Controls.ScrollViewerExtensions">
+            <summary>
+            Extensions for <see cref="T:Avalonia.Controls.ScrollViewer"/>.
+            </summary>
+        </member>
+        <member name="M:CarinaStudio.Controls.ScrollViewerExtensions.ScrollIntoView(Avalonia.Controls.ScrollViewer,Avalonia.Controls.IControl)">
+            <summary>
+            Scroll given control in <see cref="T:Avalonia.Controls.ScrollViewer"/> into view.
+            </summary>
+            <param name="scrollViewer"><see cref="T:Avalonia.Controls.ScrollViewer"/>.</param>
+            <param name="control">Control inside <see cref="T:Avalonia.Controls.ScrollViewer"/>.</param>
+            <returns>True if control has been scrolled into view.</returns>
+        </member>
+        <member name="T:CarinaStudio.Controls.SelectingItemsControlExtensions">
+            <summary>
+            Extensions for <see cref="T:Avalonia.Controls.Primitives.SelectingItemsControl"/>.
+            </summary>
+        </member>
+        <member name="M:CarinaStudio.Controls.SelectingItemsControlExtensions.SelectFirstItem(Avalonia.Controls.Primitives.SelectingItemsControl,System.Boolean)">
+            <summary>
+            Select first item in <see cref="T:Avalonia.Controls.Primitives.SelectingItemsControl"/>.
+            </summary>
+            <param name="control"><see cref="T:Avalonia.Controls.Primitives.SelectingItemsControl"/>.</param>
+            <param name="scrollIntoView">True to scroll new selected item into view.</param>
+        </member>
+        <member name="M:CarinaStudio.Controls.SelectingItemsControlExtensions.SelectLastItem(Avalonia.Controls.Primitives.SelectingItemsControl,System.Boolean)">
+            <summary>
+            Select last item in <see cref="T:Avalonia.Controls.Primitives.SelectingItemsControl"/>.
+            </summary>
+            <param name="control"><see cref="T:Avalonia.Controls.Primitives.SelectingItemsControl"/>.</param>
+            <param name="scrollIntoView">True to scroll new selected item into view.</param>
+        </member>
+        <member name="M:CarinaStudio.Controls.SelectingItemsControlExtensions.SelectNextItem(Avalonia.Controls.Primitives.SelectingItemsControl,System.Boolean)">
+            <summary>
+            Select next item in <see cref="T:Avalonia.Controls.Primitives.SelectingItemsControl"/>.
+            </summary>
+            <param name="control"><see cref="T:Avalonia.Controls.Primitives.SelectingItemsControl"/>.</param>
+            <param name="scrollIntoView">True to scroll new selected item into view.</param>
+            <returns>New index of selected item.</returns>
+        </member>
+        <member name="M:CarinaStudio.Controls.SelectingItemsControlExtensions.SelectPreviousItem(Avalonia.Controls.Primitives.SelectingItemsControl,System.Boolean)">
+            <summary>
+            Select previous item in <see cref="T:Avalonia.Controls.Primitives.SelectingItemsControl"/>.
+            </summary>
+            <param name="control"><see cref="T:Avalonia.Controls.Primitives.SelectingItemsControl"/>.</param>
+            <param name="scrollIntoView">True to scroll new selected item into view.</param>
+            <returns>New index of selected item.</returns>
+        </member>
+        <member name="T:CarinaStudio.Controls.TabControlExtensions">
+            <summary>
+            Extensions for <see cref="T:Avalonia.Controls.TabControl"/>.
+            </summary>
+        </member>
+        <member name="M:CarinaStudio.Controls.TabControlExtensions.TryFindTabItem(Avalonia.Controls.TabControl,System.Object,Avalonia.Controls.TabItem@)">
+            <summary>
+            Try finding <see cref="T:Avalonia.Controls.TabItem"/> of given item in <see cref="T:Avalonia.Controls.TabControl"/>.
+            </summary>
+            <param name="listBox"><see cref="T:Avalonia.Controls.TabControl"/>.</param>
+            <param name="item">Item.</param>
+            <param name="tabItem">Found <see cref="T:Avalonia.Controls.TabItem"/>.</param>
+            <returns>True if <see cref="T:Avalonia.Controls.TabItem"/> found.</returns>
+        </member>
+        <member name="T:CarinaStudio.Controls.UriTextBox">
+            <summary>
+            <see cref="T:Avalonia.Controls.TextBox"/> which treat input text as <see cref="T:System.Uri"/>.
+            </summary>
+        </member>
+        <member name="F:CarinaStudio.Controls.UriTextBox.DefaultUriSchemeProperty">
+            <summary>
+            Property of <see cref="P:CarinaStudio.Controls.UriTextBox.DefaultUriScheme"/>.
+            </summary>
+        </member>
+        <member name="F:CarinaStudio.Controls.UriTextBox.UriKindProperty">
+            <summary>
+            Property of <see cref="P:CarinaStudio.Controls.UriTextBox.UriKind"/>.
+            </summary>
+        </member>
+        <member name="M:CarinaStudio.Controls.UriTextBox.#ctor">
+            <summary>
+            Initialize new <see cref="T:CarinaStudio.Controls.UriTextBox"/> instance.
+            </summary>
+        </member>
+        <member name="P:CarinaStudio.Controls.UriTextBox.DefaultUriScheme">
+            <summary>
+            Get or set default scheme of URI if user doesn't input the scheme.
+            </summary>
+        </member>
+        <member name="M:CarinaStudio.Controls.UriTextBox.OnPropertyChanged``1(Avalonia.AvaloniaPropertyChangedEventArgs{``0})">
+            <inheritdoc/>
+        </member>
+        <member name="M:CarinaStudio.Controls.UriTextBox.TryConvertToObject(System.String,System.Uri@)">
+            <inheritdoc/>
+        </member>
+        <member name="P:CarinaStudio.Controls.UriTextBox.UriKind">
+            <summary>
+            Get or set target <see cref="P:CarinaStudio.Controls.UriTextBox.UriKind"/>.
+            </summary>
+        </member>
+        <member name="T:CarinaStudio.Controls.ValueTextBox`1">
+            <summary>
+            <see cref="T:Avalonia.Controls.TextBox"/> which treat input text as given value with type <typeparamref name="T"/>.
+            </summary>
+            <typeparam name="T">Type of object.</typeparam>
+        </member>
+        <member name="F:CarinaStudio.Controls.ValueTextBox`1.DefaultValueProperty">
+            <summary>
+            Property of <see cref="P:CarinaStudio.Controls.ValueTextBox`1.DefaultValue"/>.
+            </summary>
+        </member>
+        <member name="F:CarinaStudio.Controls.ValueTextBox`1.IsNullValueAllowedProperty">
+            <summary>
+            Property of <see cref="P:CarinaStudio.Controls.ValueTextBox`1.IsNullValueAllowed"/>.
+            </summary>
+        </member>
+        <member name="F:CarinaStudio.Controls.ValueTextBox`1.IsTextValidProperty">
+            <summary>
+            Property of <see cref="P:CarinaStudio.Controls.ValueTextBox`1.IsTextValid"/>.
+            </summary>
+        </member>
+        <member name="F:CarinaStudio.Controls.ValueTextBox`1.ValidationDelayProperty">
+            <summary>
+            Property of <see cref="P:CarinaStudio.Controls.ValueTextBox`1.ValidationDelay"/>.
+            </summary>
+        </member>
+        <member name="F:CarinaStudio.Controls.ValueTextBox`1.ValueProperty">
+            <summary>
+            Property of <see cref="P:CarinaStudio.Controls.ValueTextBox`1.Value"/>.
+            </summary>
+        </member>
+        <member name="M:CarinaStudio.Controls.ValueTextBox`1.#ctor">
+            <summary>
+            Initialize new <see cref="T:CarinaStudio.Controls.ValueTextBox`1"/> instance.
+            </summary>
+        </member>
+        <member name="M:CarinaStudio.Controls.ValueTextBox`1.CheckValueEquality(System.Nullable{`0},System.Nullable{`0})">
+            <summary>
+            Check equality of values.
+            </summary>
+            <param name="x">First value.</param>
+            <param name="y">Second value.</param>
+            <returns>True if two values are equalvant.</returns>
+        </member>
+        <member name="M:CarinaStudio.Controls.ValueTextBox`1.CoerceValue(`0)">
+            <summary>
+            Coerce the set value.
+            </summary>
+            <param name="value">Set value.</param>
+            <returns>Coerced value.</returns>
+        </member>
+        <member name="M:CarinaStudio.Controls.ValueTextBox`1.ConvertToText(`0)">
+            <summary>
+            Convert value to text.
+            </summary>
+            <param name="value">Value.</param>
+            <returns>Converted text.</returns>
+        </member>
+        <member name="P:CarinaStudio.Controls.ValueTextBox`1.DefaultValue">
+            <summary>
+            Get of set default value for <see cref="P:CarinaStudio.Controls.ValueTextBox`1.IsNullValueAllowed"/> is False and <see cref="P:Avalonia.Controls.TextBox.Text"/> is empty.
+            </summary>
+        </member>
+        <member name="P:CarinaStudio.Controls.ValueTextBox`1.IsNullValueAllowed">
+            <summary>
+            Get or set whether <see cref="P:CarinaStudio.Controls.ValueTextBox`1.Value"/> can be Null or not.
+            </summary>
+        </member>
+        <member name="P:CarinaStudio.Controls.ValueTextBox`1.IsTextValid">
+            <summary>
+            Get whether input <see cref="P:Avalonia.Controls.TextBox.Text"/> represent a valid value or not.
+            </summary>
+        </member>
+        <member name="M:CarinaStudio.Controls.ValueTextBox`1.OnPropertyChanged``1(Avalonia.AvaloniaPropertyChangedEventArgs{``0})">
+            <inheritdoc/>
+        </member>
+        <member name="M:CarinaStudio.Controls.ValueTextBox`1.OnTextInput(Avalonia.Input.TextInputEventArgs)">
+            <inheritdoc/>
+        </member>
+        <member name="M:CarinaStudio.Controls.ValueTextBox`1.TryConvertToValue(System.String,System.Nullable{`0}@)">
+            <summary>
+            Try converting text to value.
+            </summary>
+            <param name="text">Text.</param>
+            <param name="value">Converted value.</param>
+            <returns>True if conversion succeeded.</returns>
+        </member>
+        <member name="M:CarinaStudio.Controls.ValueTextBox`1.Validate">
+            <summary>
+            Validate input <see cref="P:Avalonia.Controls.TextBox.Text"/> and generate corresponding value.
+            </summary>
+            <returns>True if input <see cref="P:Avalonia.Controls.TextBox.Text"/> generates a valid value.</returns>
+        </member>
+        <member name="P:CarinaStudio.Controls.ValueTextBox`1.ValidationDelay">
+            <summary>
+            Get or set the delay of validating text after user typing in milliseconds.
+            </summary>
+        </member>
+        <member name="P:CarinaStudio.Controls.ValueTextBox`1.Value">
+            <summary>
+            Get or set value.
+            </summary>
+        </member>
+        <member name="T:CarinaStudio.Data.Converters.BooleanToValueConverter`1">
+            <summary>
+            <see cref="T:Avalonia.Data.Converters.IValueConverter"/> to convert from <see cref="T:System.Boolean"/> to specific value type.
+            </summary>
+        </member>
+        <member name="M:CarinaStudio.Data.Converters.BooleanToValueConverter`1.#ctor(`0,`0,System.Func{`0,`0,System.Boolean})">
+            <summary>
+            Initialize new <see cref="T:CarinaStudio.Data.Converters.BooleanToValueConverter`1"/> instance.
+            </summary>
+            <param name="trueValue">Value converted from True.</param>
+            <param name="falseValue">Value converted from False.</param>
+            <param name="equalityChecker">Function to check equality of values.</param>
+        </member>
+        <member name="M:CarinaStudio.Data.Converters.BooleanToValueConverter`1.Convert(System.Object,System.Type,System.Object,System.Globalization.CultureInfo)">
+            <inheritdoc/>
+        </member>
+        <member name="M:CarinaStudio.Data.Converters.BooleanToValueConverter`1.ConvertBack(System.Object,System.Type,System.Object,System.Globalization.CultureInfo)">
+            <inheritdoc/>
+        </member>
+        <member name="P:CarinaStudio.Data.Converters.BooleanToValueConverter`1.FalseValue">
+            <summary>
+            Get value converted from False.
+            </summary>
+        </member>
+        <member name="P:CarinaStudio.Data.Converters.BooleanToValueConverter`1.TrueValue">
+            <summary>
+            Get value converted from True.
+            </summary>
+        </member>
+        <member name="T:CarinaStudio.Data.Converters.BooleanToValueConverters">
+            <summary>
+            Predefined <see cref="T:CarinaStudio.Data.Converters.BooleanToValueConverter`1"/>s.
+            </summary>
+        </member>
+        <member name="F:CarinaStudio.Data.Converters.BooleanToValueConverters.BooleanToOpacity">
+            <summary>
+            Convert from <see cref="T:System.Boolean"/> to 0.0 (False) and 1.0 (True).
+            </summary>
+        </member>
+        <member name="F:CarinaStudio.Data.Converters.BooleanToValueConverters.BooleanToOpacityInverted">
+            <summary>
+            Convert from <see cref="T:System.Boolean"/> to 1.0 (False) and 0.0 (True).
+            </summary>
+        </member>
+        <member name="T:CarinaStudio.Data.Converters.DoubleConverters">
+            <summary>
+            Predefined <see cref="T:Avalonia.Data.Converters.IMultiValueConverter"/> for operations on <see cref="T:System.Double"/>.
+            </summary>
+        </member>
+        <member name="F:CarinaStudio.Data.Converters.DoubleConverters.Addition">
+            <summary>
+            <see cref="T:Avalonia.Data.Converters.IMultiValueConverter"/> perform addition on <see cref="T:System.Double"/> values.
+            </summary>
+        </member>
+        <member name="F:CarinaStudio.Data.Converters.DoubleConverters.Division">
+            <summary>
+            <see cref="T:Avalonia.Data.Converters.IMultiValueConverter"/> perform division on <see cref="T:System.Double"/> values.
+            </summary>
+        </member>
+        <member name="F:CarinaStudio.Data.Converters.DoubleConverters.Multiplication">
+            <summary>
+            <see cref="T:Avalonia.Data.Converters.IMultiValueConverter"/> perform Mmltiplication on <see cref="T:System.Double"/> values.
+            </summary>
+        </member>
+        <member name="F:CarinaStudio.Data.Converters.DoubleConverters.Subtraction">
+            <summary>
+            <see cref="T:Avalonia.Data.Converters.IMultiValueConverter"/> perform subtraction on <see cref="T:System.Double"/> values.
+            </summary>
+        </member>
+        <member name="T:CarinaStudio.Data.Converters.ValueConverterExtensions">
+            <summary>
+            Extensions for <see cref="T:Avalonia.Data.Converters.IValueConverter"/>.
+            </summary>
+        </member>
+        <member name="M:CarinaStudio.Data.Converters.ValueConverterExtensions.Convert``1(Avalonia.Data.Converters.IValueConverter,System.Object)">
+            <summary>
+            Convert value.
+            </summary>
+            <typeparam name="T">Type of target value.</typeparam>
+            <param name="converter"><see cref="T:Avalonia.Data.Converters.IValueConverter"/>.</param>
+            <param name="value">Value to convert.</param>
+            <returns>Converted value.</returns>
+        </member>
+        <member name="M:CarinaStudio.Data.Converters.ValueConverterExtensions.Convert``1(Avalonia.Data.Converters.IValueConverter,System.Object,System.Globalization.CultureInfo)">
+            <summary>
+            Convert value.
+            </summary>
+            <typeparam name="T">Type of target value.</typeparam>
+            <param name="converter"><see cref="T:Avalonia.Data.Converters.IValueConverter"/>.</param>
+            <param name="value">Value to convert.</param>
+            <param name="cultureInfo">Culture info.</param>
+            <returns>Converted value.</returns>
+        </member>
+        <member name="M:CarinaStudio.Data.Converters.ValueConverterExtensions.Convert``1(Avalonia.Data.Converters.IValueConverter,System.Object,System.Object,System.Globalization.CultureInfo)">
+            <summary>
+            Convert value.
+            </summary>
+            <typeparam name="T">Type of target value.</typeparam>
+            <param name="converter"><see cref="T:Avalonia.Data.Converters.IValueConverter"/>.</param>
+            <param name="value">Value to convert.</param>
+            <param name="parameter">Conversion parameter.</param>
+            <param name="cultureInfo">Culture info.</param>
+            <returns>Converted value.</returns>
+        </member>
+        <member name="M:CarinaStudio.Data.Converters.ValueConverterExtensions.ConvertBack``1(Avalonia.Data.Converters.IValueConverter,System.Object)">
+            <summary>
+            Convert value back.
+            </summary>
+            <typeparam name="T">Type of target value.</typeparam>
+            <param name="converter"><see cref="T:Avalonia.Data.Converters.IValueConverter"/>.</param>
+            <param name="value">Value to convert back.</param>
+            <returns>Converted value.</returns>
+        </member>
+        <member name="M:CarinaStudio.Data.Converters.ValueConverterExtensions.ConvertBack``1(Avalonia.Data.Converters.IValueConverter,System.Object,System.Globalization.CultureInfo)">
+            <summary>
+            Convert value back.
+            </summary>
+            <typeparam name="T">Type of target value.</typeparam>
+            <param name="converter"><see cref="T:Avalonia.Data.Converters.IValueConverter"/>.</param>
+            <param name="value">Value to convert back.</param>
+            <param name="cultureInfo">Culture info.</param>
+            <returns>Converted value.</returns>
+        </member>
+        <member name="M:CarinaStudio.Data.Converters.ValueConverterExtensions.ConvertBack``1(Avalonia.Data.Converters.IValueConverter,System.Object,System.Object,System.Globalization.CultureInfo)">
+            <summary>
+            Convert value back.
+            </summary>
+            <typeparam name="T">Type of target value.</typeparam>
+            <param name="converter"><see cref="T:Avalonia.Data.Converters.IValueConverter"/>.</param>
+            <param name="value">Value to convert back.</param>
+            <param name="parameter">Conversion parameter.</param>
+            <param name="cultureInfo">Culture info.</param>
+            <returns>Converted value.</returns>
+        </member>
+        <member name="T:CarinaStudio.Data.Converters.ValueToBooleanConverters">
+            <summary>
+            Predefined <see cref="T:Avalonia.Data.Converters.IValueConverter"/>s to convert from value to <see cref="T:System.Boolean"/>.
+            </summary>
+        </member>
+        <member name="F:CarinaStudio.Data.Converters.ValueToBooleanConverters.EmptyStringToTrue">
+            <summary>
+            Convert to True if value is empty string.
+            </summary>
+        </member>
+        <member name="F:CarinaStudio.Data.Converters.ValueToBooleanConverters.NonEmptyStringToTrue">
+            <summary>
+            Convert to True if value is non-empty string.
+            </summary>
+        </member>
+        <member name="F:CarinaStudio.Data.Converters.ValueToBooleanConverters.NonNullToTrue">
+            <summary>
+            Convert to True if value is non-Null.
+            </summary>
+        </member>
+        <member name="F:CarinaStudio.Data.Converters.ValueToBooleanConverters.NullToTrue">
+            <summary>
+            Convert to True if value is Null.
+            </summary>
+        </member>
+        <member name="T:CarinaStudio.Input.DataObjectExtensions">
+            <summary>
+            Extensions for <see cref="T:Avalonia.Input.IDataObject"/>.
+            </summary>
+        </member>
+        <member name="M:CarinaStudio.Input.DataObjectExtensions.HasFileNames(Avalonia.Input.IDataObject)">
+            <summary>
+            Check whether at least one file name is contained in <see cref="T:Avalonia.Input.IDataObject"/> or not.
+            </summary>
+            <param name="data"><see cref="T:Avalonia.Input.IDataObject"/>.</param>
+            <returns>True if at least one file name is contained in <see cref="T:Avalonia.Input.IDataObject"/>.</returns>
+        </member>
+        <member name="M:CarinaStudio.Input.DataObjectExtensions.TryGetData``1(Avalonia.Input.IDataObject,System.String,``0@)">
+            <summary>
+            Try getting the data with given format and type.
+            </summary>
+            <typeparam name="T">Type of data.</typeparam>
+            <param name="dataObject"><see cref="T:Avalonia.Input.IDataObject"/>.</param>
+            <param name="format">Format.</param>
+            <param name="data">Data.</param>
+            <returns>True if data got successfully.</returns>
+        </member>
+        <member name="M:CarinaStudio.Input.DataObjectExtensions.TryGetSingleFileName(Avalonia.Input.IDataObject,System.String@)">
+            <summary>
+            Get the only file name contained in <see cref="T:Avalonia.Input.IDataObject"/>.
+            </summary>
+            <param name="data"><see cref="T:Avalonia.Input.IDataObject"/>.</param>
+            <param name="fileName">File name contained in <see cref="T:Avalonia.Input.IDataObject"/>.</param>
+            <returns>True if only one file name contained in <see cref="T:Avalonia.Input.IDataObject"/>, or false if no file name or more than one file names are contained.</returns>
+        </member>
+        <member name="M:CarinaStudio.Input.DataObjectExtensions.TryGetValue``1(Avalonia.Input.IDataObject,System.String,``0@)">
+            <summary>
+            Try getting the value type data with given format and type.
+            </summary>
+            <typeparam name="T">Type of data.</typeparam>
+            <param name="dataObject"><see cref="T:Avalonia.Input.IDataObject"/>.</param>
+            <param name="format">Format.</param>
+            <param name="value">Value.</param>
+            <returns>True if value got successfully.</returns>
+        </member>
+        <member name="T:CarinaStudio.VisualTree.VisualExtensions">
+            <summary>
+            Extensions for <see cref="T:Avalonia.VisualTree.IVisual"/>.
+            </summary>
+        </member>
+        <member name="M:CarinaStudio.VisualTree.VisualExtensions.FindDescendantOfTypeAndName``1(Avalonia.VisualTree.IVisual,System.String,System.Boolean)">
+            <summary>
+            Find descendant <see cref="T:Avalonia.VisualTree.IVisual"/> with given type and name.
+            </summary>
+            <typeparam name="T">Type of descendant.</typeparam>
+            <param name="visual">Root <see cref="T:Avalonia.VisualTree.IVisual"/>.</param>
+            <param name="name">Name of descendant.</param>
+            <param name="includeSelf">True to check <paramref name="visual"/> also.</param>
+            <returns>Found descendant.</returns>
+        </member>
     </members>
 </doc>
