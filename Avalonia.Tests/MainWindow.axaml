@@ -39,23 +39,6 @@
 	<ScrollViewer Margin="10">
 		<StackPanel>
 
-			<!-- CircularProgressBar -->
-			<TextBlock Classes="Header1" Text="CircularProgressBar"/>
-			<StackPanel Height="50" HorizontalAlignment="Left" Orientation="Horizontal">
-				<abControls:CircularProgressBar Name="circularProgressBar1" IsIndeterminate="True" Value="66" Width="50"/>
-				<Separator Classes="Small"/>
-				<ToggleButton Content="Indeterminate" IsChecked="{Binding #circularProgressBar1.IsIndeterminate, Mode=TwoWay}" VerticalAlignment="Center"/>
-			</StackPanel>
-			<Separator Classes="Small"/>
-			<StackPanel Height="50" HorizontalAlignment="Left" Orientation="Horizontal">
-				<abControls:CircularProgressBar Name="circularProgressBar2" Width="50"/>
-				<Separator Classes="Small"/>
-				<Button Content="Increase" Command="{Binding $parent[Window].IncreateCircularProgressBarValue}" VerticalAlignment="Center"/>
-			</StackPanel>
-			<Separator Classes="Small"/>
-			<abControls:CircularProgressBar Background="Green" BorderBrush="DarkGreen" Foreground="Yellow" Height="50" HorizontalAlignment="Left" IsIndeterminate="True" RingBorderThickness="2" RingThickness="10" Value="66" Width="70"/>
-			<Separator/>
-
 			<!-- DateTimeTextBox -->
 			<TextBlock Classes="Header1" Text="DateTimeTextBox"/>
 			<abControls:DateTimeTextBox Name="dateTimeTextBox1" DefaultValue="{x:Static sys:DateTime.Now}" HorizontalAlignment="Left" IsNullValueAllowed="False" Width="300"/>
@@ -109,6 +92,23 @@
 				<Separator Classes="Small"/>
 				<Button Command="{Binding $parent[Window].SetIPAddressToIPAddressTextBox}" Content="Set IP address"/>
 			</StackPanel>
+			<Separator/>
+
+			<!-- ProgressRing -->
+			<TextBlock Classes="Header1" Text="ProgressRing"/>
+			<StackPanel Height="50" HorizontalAlignment="Left" Orientation="Horizontal">
+				<abControls:ProgressRing Name="progressRing1" IsIndeterminate="True" Value="66" Width="50"/>
+				<Separator Classes="Small"/>
+				<ToggleButton Content="Indeterminate" IsChecked="{Binding #progressRing1.IsIndeterminate, Mode=TwoWay}" VerticalAlignment="Center"/>
+			</StackPanel>
+			<Separator Classes="Small"/>
+			<StackPanel Height="50" HorizontalAlignment="Left" Orientation="Horizontal">
+				<abControls:ProgressRing Name="progressRing2" Width="50"/>
+				<Separator Classes="Small"/>
+				<Button Content="Increase" Command="{Binding $parent[Window].IncreateProgressRingValue}" VerticalAlignment="Center"/>
+			</StackPanel>
+			<Separator Classes="Small"/>
+			<abControls:ProgressRing Background="Green" BorderBrush="DarkGreen" Foreground="Yellow" Height="50" HorizontalAlignment="Left" IsIndeterminate="True" RingBorderThickness="2" RingThickness="10" Value="66" Width="70"/>
 			<Separator/>
 			
 			<!-- UriTextBox -->
