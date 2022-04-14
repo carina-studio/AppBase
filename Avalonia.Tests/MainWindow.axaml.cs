@@ -31,7 +31,10 @@ namespace CarinaStudio
 
         void SetIPAddressToIPAddressTextBox() =>
             this.FindControl<IPAddressTextBox>("ipAddressTextBox3")?.Let(it => it.Object = IPAddress.Loopback);
+        
 
+        void SetTimeSpanToTimeSpanTextBox() =>
+            this.FindControl<TimeSpanTextBox>("timeSpanTextBox3")?.Let(it => it.Value = DateTime.Now - new DateTime(1970, 1, 1));
 
         void SetUriToUriTextBox() =>
             this.FindControl<UriTextBox>("uriTextBox4")?.Let(it => it.Object = new Uri("https://github.com/"));

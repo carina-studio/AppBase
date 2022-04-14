@@ -110,6 +110,24 @@
 			<Separator Classes="Small"/>
 			<abControls:ProgressRing Background="Green" BorderBrush="DarkGreen" Foreground="Yellow" Height="50" HorizontalAlignment="Left" IsIndeterminate="True" RingBorderThickness="2" RingThickness="10" Value="66" Width="70"/>
 			<Separator/>
+
+
+			<!-- TimeSpanTextBox -->
+			<TextBlock Classes="Header1" Text="TimeSpanTextBox"/>
+			<abControls:TimeSpanTextBox Name="timeSpanTextBox1" DefaultValue="{x:Static sys:TimeSpan.Zero}" HorizontalAlignment="Left" IsNullValueAllowed="False" Width="300"/>
+			<TextBlock Classes="Footer" Text="{Binding #timeSpanTextBox1.Value, StringFormat={}Value: {0}}"/>
+			<Separator Classes="Small"/>
+
+			<abControls:TimeSpanTextBox Name="timeSpanTextBox2" HorizontalAlignment="Left" IsNullValueAllowed="True" Watermark="Null value allowed" Width="300"/>
+			<TextBlock Classes="Footer" Text="{Binding #timeSpanTextBox2.Value, StringFormat={}Value: {0}}"/>
+			<Separator Classes="Small"/>
+
+			<StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+				<abControls:TimeSpanTextBox Name="timeSpanTextBox3" HorizontalAlignment="Left" Width="300"/>
+				<Separator Classes="Small"/>
+				<Button Command="{Binding $parent[Window].SetTimeSpanToTimeSpanTextBox}" Content="Set to time span from 1970/1/1"/>
+			</StackPanel>
+			<Separator/>
 			
 			<!-- UriTextBox -->
 			<TextBlock Classes="Header1" Text="UriTextBox"/>
