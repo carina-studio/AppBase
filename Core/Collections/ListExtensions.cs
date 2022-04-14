@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -149,6 +150,19 @@ namespace CarinaStudio.Collections
 
 
 		/// <summary>
+		/// Get read-only view of range of source list which allows accessing elements from source list directly without copying.
+		/// </summary>
+		/// <param name="list">Source list.</param>
+		/// <param name="start">Start index of range.</param>
+		/// <param name="count">Number of elements needed to be included.</param>
+		/// <typeparam name="T">Type of element.</typeparam>
+		/// <returns>View of range of source list.</returns>
+		/// <remarks>The element get from view and <see cref="ICollection{T}.Count"/> of view may be changed if source list has been modified.</remarks>
+		public static IList<T> GetRangeView<T>(this IList<T> list, int start, int count) =>
+			new ListRangeView<T>(list, start, count);
+
+
+		/// <summary>
 		/// Check whether elements in given <see cref="IList{T}"/> is sorted or not.
 		/// </summary>
 		/// <typeparam name="T">Type of elements.</typeparam>
@@ -272,5 +286,205 @@ namespace CarinaStudio.Collections
 		/// <param name="count">Number of elements to copy.</param>
 		/// <returns>Array of copied elements</returns>
 		public static T[] ToArray<T>(this IList<T> list, int index, int count) => new T[count].Also((it) => list.CopyTo(index, it, 0, count));
+	}
+
+
+	// View of sub range of list.
+	internal class ListRangeView<T> : IList, IList<T>, IReadOnlyList<T>
+	{
+		// Enumerator.
+		class Enumerator : IEnumerator<T>
+		{
+			// Fields.
+			int currentIndex = -1;
+			int initCount;
+			bool isEnded;
+			readonly ListRangeView<T> view;
+
+			// Constuctor.
+			public Enumerator(ListRangeView<T> view)
+			{
+				this.initCount = view.Count;
+				this.view = view;
+			}
+
+			/// <inheritdoc/>
+			public T Current
+			{
+				get
+				{
+					if (isEnded || this.currentIndex < 0)
+						throw new InvalidOperationException();
+					if (this.view.Count != this.initCount)
+						throw new InvalidOperationException();
+					return this.view[this.currentIndex];
+				}
+			}
+
+			/// <inheritdoc/>
+			public void Dispose() =>
+				this.isEnded = true;
+
+			/// <inheritdoc/>
+			public bool MoveNext()
+			{
+				if (this.isEnded)
+					return false;
+				if (this.view.Count != this.initCount)
+					throw new InvalidOperationException();
+				++this.currentIndex;
+				if (this.currentIndex >= this.initCount)
+				{
+					this.isEnded = true;
+					return false;
+				}
+				return true;
+			}
+
+			// Interface implementations.
+			object? IEnumerator.Current { get => this.Current; }
+			void IEnumerator.Reset()
+			{ }
+		}
+
+
+		// Fields.
+		readonly int count;
+		readonly IList<T> list;
+		readonly int start;
+
+
+		// Constructor.
+		public ListRangeView(IList<T> list, int start, int count)
+		{
+			if (start < 0)
+				throw new ArgumentOutOfRangeException(nameof(start));
+			if (count < 0)
+				throw new ArgumentOutOfRangeException(nameof(count));
+			if ((long)start + count > int.MaxValue)
+				throw new ArgumentOutOfRangeException();
+			this.count = count;
+			this.list = list;
+			this.start = start;
+		}
+
+
+		/// <inheritdoc/>
+		public bool Contains(T item) =>
+			this.IndexOf(item) >= 0;
+		
+
+		/// <inheritdoc/>
+		public void CopyTo(T[] array, int arrayIndex)
+		{
+			var count = this.Count;
+			if (count < 0)
+				return;
+			this.list.CopyTo(this.start, array, arrayIndex, count);
+		}
+
+
+		/// <inheritdoc/>.
+		public int Count
+		{
+			get
+			{
+				if (this.start >= this.list.Count)
+					return 0;
+				return Math.Min(this.count, this.list.Count - this.start);
+			}
+		}
+
+
+		/// <inheritdoc/>
+		public IEnumerator<T> GetEnumerator() =>
+			new Enumerator(this);
+
+
+		/// <inheritdoc/>
+    	public int IndexOf(T item)
+		{
+			var endIndex = Math.Min(this.start + this.count, this.list.Count);
+			if (this.list is SortedObservableList<T> sortedList)
+			{
+				var index = sortedList.IndexOf(item);
+				if (index >= this.start && index < this.start + this.count)
+					return (index - this.start);
+			}
+			else
+			{
+				for (var i = this.start; i < endIndex; ++i)
+				{
+					if (object.Equals(item, this.list[i]))
+						return (i - this.start);
+				}
+			}
+			return -1;
+		}
+
+
+		/// <inheritdoc/>
+    	public bool IsReadOnly { get => true; }
+
+
+		// Get element.
+		public T this[int index] 
+		{ 
+			get
+			{
+				if (index < 0 || index >= this.count)
+					throw new ArgumentOutOfRangeException(nameof(index));
+				return this.list[this.start + index];
+			}
+		}
+
+
+		// Interface implementations.
+		int IList.Add(object? item) =>
+			throw new InvalidOperationException();
+		void ICollection<T>.Add(T item) =>
+			throw new InvalidOperationException();
+		void IList.Clear() =>
+			throw new InvalidOperationException();
+		void ICollection<T>.Clear() =>
+			throw new InvalidOperationException();
+		bool IList.Contains(object? item) => 
+			item is T e && this.list.Contains(e);
+		void ICollection.CopyTo(Array array, int arrayIndex)
+		{
+			var typedArray = new T[this.Count];
+			this.list.CopyTo(typedArray, 0);
+			for (var i = 0; i < typedArray.Length; ++i, ++arrayIndex)
+				array.SetValue(typedArray[i], arrayIndex);
+		}
+		IEnumerator IEnumerable.GetEnumerator() =>
+			this.list.GetEnumerator();
+		int IList.IndexOf(object? item) => 
+			item is T e ? this.list.IndexOf(e) : -1;
+		void IList.Insert(int index, object? item) =>
+			throw new InvalidOperationException();
+		void IList<T>.Insert(int index, T item) =>
+			throw new InvalidOperationException();
+		bool IList.IsFixedSize { get => false; }
+		bool ICollection.IsSynchronized { get => false; }
+		void IList.Remove(object? item) =>
+			throw new InvalidOperationException();
+		bool ICollection<T>.Remove(T item) =>
+			throw new InvalidOperationException();
+		void IList.RemoveAt(int index) =>
+			throw new InvalidOperationException();
+		void IList<T>.RemoveAt(int index) =>
+			throw new InvalidOperationException();
+		object ICollection.SyncRoot { get => this; }
+		object? IList.this[int index]
+		{
+			get => this[index];
+			set => throw new InvalidOperationException();
+		}
+		T IList<T>.this[int index]
+		{
+			get => this[index];
+			set => throw new InvalidOperationException();
+		}
 	}
 }

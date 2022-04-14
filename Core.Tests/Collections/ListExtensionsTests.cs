@@ -155,5 +155,47 @@ namespace CarinaStudio.Collections
 			refList.CopyTo(index, refArray, 0, refArray.Length);
 			Assert.IsTrue(array.SequenceEqual(refArray), "Copied elements are incorrect.");
 		}
+
+
+		/// <summary>
+		/// Test for <see cref="ListExtensions.GetRangeView{T}(IList{T}, int, int)"/>.
+		/// </summary>
+		[Test]
+		public void GettingRangeViewTest()
+		{
+			// empty list
+			var sourceList = new int[0];
+			var view = sourceList.GetRangeView(0, 0);
+			Assert.AreEqual(0, view.Count);
+			view = sourceList.GetRangeView(0, 1);
+			Assert.AreEqual(0, view.Count);
+			view = sourceList.GetRangeView(1, 0);
+			Assert.AreEqual(0, view.Count);
+
+			// normal list
+			sourceList = new int[] { 0, 1, 2, 3, 4, 5 };
+			view = sourceList.GetRangeView(0, 0);
+			Assert.AreEqual(0, view.Count);
+			view = sourceList.GetRangeView(0, 3);
+			Assert.AreEqual(3, view.Count);
+			for (var i = view.Count - 1; i >= 0; --i)
+				Assert.AreEqual(sourceList[i], view[i]);
+			Assert.IsTrue(view.SequenceEqual(new int[] { 0, 1, 2 }));
+			view = sourceList.GetRangeView(3, 3);
+			Assert.AreEqual(3, view.Count);
+			for (var i = view.Count - 1; i >= 0; --i)
+				Assert.AreEqual(sourceList[i + 3], view[i]);
+			Assert.IsTrue(view.SequenceEqual(new int[] { 3, 4, 5 }));
+			view = sourceList.GetRangeView(4, 3);
+			Assert.AreEqual(2, view.Count);
+			for (var i = view.Count - 1; i >= 0; --i)
+				Assert.AreEqual(sourceList[i + 4], view[i]);
+			Assert.IsTrue(view.SequenceEqual(new int[] { 4, 5 }));
+
+			// modify source list
+			Assert.AreEqual(4, view[0]);
+			sourceList[4] = 0;
+			Assert.AreEqual(0, view[0]);
+		}
 	}
 }
