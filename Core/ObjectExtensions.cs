@@ -178,6 +178,18 @@ namespace CarinaStudio
 
 
 		/// <summary>
+		/// Perform action on the given value, and return a reference to custom variable.
+		/// </summary>
+		/// <typeparam name="T">Type of given value.</typeparam>
+		/// <typeparam name="R">Type of return value.</typeparam>
+		/// <param name="value">Given value.</param>
+		/// <param name="action">Action to perform on <paramref name="value"/>.</param>
+		/// <returns>Reference to custom variable.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static ref R Let<T, R>(this T value, RefFunc<T, R> action) => ref action(value);
+
+
+		/// <summary>
 		/// Acquire lock on given object and generate value after releasing lock.
 		/// </summary>
 		/// <typeparam name="T">Type of given object.</typeparam>
@@ -201,6 +213,29 @@ namespace CarinaStudio
 
 
 		/// <summary>
+		/// Acquire lock on given object and generate reference to value after releasing lock.
+		/// </summary>
+		/// <typeparam name="T">Type of given object.</typeparam>
+		/// <typeparam name="R">Type of generated value.</typeparam>
+		/// <param name="obj">Object to acquire lock on.</param>
+		/// <param name="func">Function to generate reference to value.</param>
+		/// <returns>Generated reference to value.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static ref R Lock<T, R>(this T obj, RefFunc<R> func) where T : class
+		{
+			Monitor.Enter(obj);
+			try
+			{
+				return ref func();
+			}
+			finally
+			{
+				Monitor.Exit(obj);
+			}
+		}
+
+
+		/// <summary>
 		/// Acquire lock on given object and generate value after releasing lock.
 		/// </summary>
 		/// <typeparam name="T">Type of given object.</typeparam>
@@ -215,6 +250,29 @@ namespace CarinaStudio
 			try
 			{
 				return func(obj);
+			}
+			finally
+			{
+				Monitor.Exit(obj);
+			}
+		}
+
+
+		/// <summary>
+		/// Acquire lock on given object and generate reference to value after releasing lock.
+		/// </summary>
+		/// <typeparam name="T">Type of given object.</typeparam>
+		/// <typeparam name="R">Type of generated value.</typeparam>
+		/// <param name="obj">Object to acquire lock on.</param>
+		/// <param name="func">Function to generate reference to value.</param>
+		/// <returns>Generated reference to value.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static ref R Lock<T, R>(this T obj, RefFunc<T, R> func) where T : class
+		{
+			Monitor.Enter(obj);
+			try
+			{
+				return ref func(obj);
 			}
 			finally
 			{

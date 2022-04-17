@@ -95,5 +95,27 @@ namespace CarinaStudio
 				disposable.Dispose();
 			}
 		}
+
+
+		/// <summary>
+		/// Use the given <see cref="IDisposable"/> to generate reference to value then dispose it before returning from method.
+		/// </summary>
+		/// <typeparam name="T">Type which implements <see cref="IDisposable"/>.</typeparam>
+		/// <typeparam name="R">Type of generated reference to value.</typeparam>
+		/// <param name="disposable"><see cref="IDisposable"/>.</param>
+		/// <param name="func">Using function.</param>
+		/// <returns>Generated reference to value.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static ref R Use<T, R>(this T disposable, RefFunc<T, R> func) where T : IDisposable
+		{
+			try
+			{
+				return ref func(disposable);
+			}
+			finally
+			{
+				disposable.Dispose();
+			}
+		}
 	}
 }

@@ -50,6 +50,16 @@ namespace CarinaStudio
 		public static T Run<T>(Func<T> func) => func();
 
 
+		/// <summary>
+		/// Generate a reference to value.
+		/// </summary>
+		/// <typeparam name="T">Type of generated value.</typeparam>
+		/// <param name="func">Function to generate reference to value.</param>
+		/// <returns>Generated reference to value.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static ref T Run<T>(RefFunc<T> func) => ref func();
+
+
 #pragma warning disable CS8604
 		/// <summary>
 		/// Generate value and catch exception if occurred.
