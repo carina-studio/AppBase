@@ -158,5 +158,132 @@ namespace CarinaStudio
 				return func(new IntPtr(handle1.Pointer), new IntPtr(handle2.Pointer));
 			}
 		}
+
+
+		/// <summary>
+		/// Pin given <see cref="Memory{T}"/>, get address of memory and perform action.
+		/// </summary>
+		/// <param name="memory"><see cref="Memory{T}"/>.</param>
+		/// <param name="action">Method to receive address of memory and perform action.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static unsafe void PinAsBytes<T>(this Memory<T> memory, BytePointerAction action)
+		{
+			using var handle = memory.Pin();
+			action((byte*)handle.Pointer);
+		}
+
+
+		/// <summary>
+		/// Pin given list of <see cref="Memory{T}"/>, get addresses of memory and perform action.
+		/// </summary>
+		/// <typeparam name="T1">Type of 1st memory element.</typeparam>
+		/// <typeparam name="T2">Type of 2nd memory element.</typeparam>
+		/// <param name="memoryList">List of <see cref="Memory{T}"/>.</param>
+		/// <param name="action">Method to receive addresses of memory and perform action.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static unsafe void PinAsBytes<T1, T2>(this (Memory<T1>, Memory<T2>) memoryList, BytePointersAction action)
+		{
+			using var handle1 = memoryList.Item1.Pin();
+			using var handle2 = memoryList.Item2.Pin();
+			action((byte*)handle1.Pointer, (byte*)handle2.Pointer);
+		}
+
+
+		/// <summary>
+		/// Pin given <see cref="Memory{T}"/>, get address of memory and generate a value.
+		/// </summary>
+		/// <typeparam name="T">Type of memory element.</typeparam>
+		/// <typeparam name="R">Type of generated value.</typeparam>
+		/// <param name="memory"><see cref="Memory{T}"/>.</param>
+		/// <param name="func">Function to receive address of memory and generate value.</param>
+		/// <returns>Generated value.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static unsafe R PinAsBytes<T, R>(this Memory<T> memory, BytePointerFunc<R> func)
+		{
+			using var handle = memory.Pin();
+			return func((byte*)handle.Pointer);
+		}
+
+
+		/// <summary>
+		/// Pin given list of <see cref="Memory{T}"/>, get addresses of memory and generate a value.
+		/// </summary>
+		/// <typeparam name="T1">Type of 1st memory element.</typeparam>
+		/// <typeparam name="T2">Type of 2nd memory element.</typeparam>
+		/// <typeparam name="R">Type of generated value.</typeparam>
+		/// <param name="memoryList">List of <see cref="Memory{T}"/>.</param>
+		/// <param name="func">Function to receive addresses of memory and generate value.</param>
+		/// <returns>Generated value.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static unsafe R PinAsBytes<T1, T2, R>(this (Memory<T1>, Memory<T2>) memoryList, BytePointersFunc<R> func)
+		{
+			using var handle1 = memoryList.Item1.Pin();
+			using var handle2 = memoryList.Item2.Pin();
+			return func((byte*)handle1.Pointer, (byte*)handle2.Pointer);
+		}
+
+
+		/// <summary>
+		/// Pin given <see cref="ReadOnlyMemory{T}"/>, get address of memory and perform action.
+		/// </summary>
+		/// <typeparam name="T">Type of memory element.</typeparam>
+		/// <param name="memory"><see cref="ReadOnlyMemory{T}"/>.</param>
+		/// <param name="action">Method to receive address of memory and perform action.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static unsafe void PinAsBytes<T>(this ReadOnlyMemory<T> memory, BytePointerAction action)
+		{
+			using var handle = memory.Pin();
+			action((byte*)handle.Pointer);
+		}
+
+
+		/// <summary>
+		/// Pin given list of <see cref="ReadOnlyMemory{T}"/>, get addresses of memory and perform action.
+		/// </summary>
+		/// <typeparam name="T1">Type of 1st memory element.</typeparam>
+		/// <typeparam name="T2">Type of 2nd memory element.</typeparam>
+		/// <param name="memoryList">List of <see cref="ReadOnlyMemory{T}"/>.</param>
+		/// <param name="action">Method to receive addresses of memory and perform action.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static unsafe void PinAsBytes<T1, T2>(this (ReadOnlyMemory<T1>, ReadOnlyMemory<T2>) memoryList, BytePointersAction action)
+		{
+			using var handle1 = memoryList.Item1.Pin();
+			using var handle2 = memoryList.Item2.Pin();
+			action((byte*)handle1.Pointer, (byte*)handle2.Pointer);
+		}
+
+
+		/// <summary>
+		/// Pin given <see cref="ReadOnlyMemory{T}"/>, get address of memory and generate a value.
+		/// </summary>
+		/// <typeparam name="T">Type of memory element.</typeparam>
+		/// <typeparam name="R">Type of generated value.</typeparam>
+		/// <param name="memory"><see cref="ReadOnlyMemory{T}"/>.</param>
+		/// <param name="func">Function to receive address of memory and generate value.</param>
+		/// <returns>Generated value.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static unsafe R PinAsBytes<T, R>(this ReadOnlyMemory<T> memory, BytePointerFunc<R> func)
+		{
+			using var handle = memory.Pin();
+			return func((byte*)handle.Pointer);
+		}
+
+
+		/// <summary>
+		/// Pin given list of <see cref="ReadOnlyMemory{T}"/>, get addresses of memory and generate a value.
+		/// </summary>
+		/// <typeparam name="T1">Type of 1st memory element.</typeparam>
+		/// <typeparam name="T2">Type of 2nd memory element.</typeparam>
+		/// <typeparam name="R">Type of generated value.</typeparam>
+		/// <param name="memoryList">List of <see cref="ReadOnlyMemory{T}"/>.</param>
+		/// <param name="func">Function to receive addresses of memory and generate value.</param>
+		/// <returns>Generated value.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static unsafe R PinAsBytes<T1, T2, R>(this (ReadOnlyMemory<T1>, ReadOnlyMemory<T2>) memoryList, BytePointersFunc<R> func)
+		{
+			using var handle1 = memoryList.Item1.Pin();
+			using var handle2 = memoryList.Item2.Pin();
+			return func((byte*)handle1.Pointer, (byte*)handle2.Pointer);
+		}
 	}
 }

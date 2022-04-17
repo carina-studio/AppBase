@@ -10,11 +10,28 @@ namespace CarinaStudio
 
 
     /// <summary>
+    /// Action performed on pointers to <see cref="byte"/>.
+    /// </summary>
+    /// <param name="pointer1">1st pointer to <see cref="byte"/>.</param>
+    /// <param name="pointer2">2nd pointer to <see cref="byte"/>.</param>
+    public unsafe delegate void BytePointersAction(byte* pointer1, byte* pointer2);
+
+
+    /// <summary>
     /// Function performed on pointer to <see cref="byte"/> and generate a value.
     /// </summary>
     /// <param name="pointer">Pointer to <see cref="byte"/>.</param>
     /// <returns>Generated value.</returns>
     public unsafe delegate R BytePointerFunc<R>(byte* pointer);
+
+
+    /// <summary>
+    /// Function performed on pointers to <see cref="byte"/> and generate a value.
+    /// </summary>
+    /// <param name="pointer1">1st pointer to <see cref="byte"/>.</param>
+    /// <param name="pointer2">2nd pointer to <see cref="byte"/>.</param>
+    /// <returns>Generated value.</returns>
+    public unsafe delegate R BytePointersFunc<R>(byte* pointer1, byte* pointer2);
 
 
     /// <summary>

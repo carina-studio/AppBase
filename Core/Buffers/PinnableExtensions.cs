@@ -123,5 +123,109 @@ namespace CarinaStudio.Buffers
 				return func(new IntPtr(handle1.Pointer), new IntPtr(handle2.Pointer));
 			}
 		}
+
+		
+		/// <summary>
+		/// Pin given <see cref="IPinnable"/>, get address of memory and perform action.
+		/// </summary>
+		/// <param name="pinnable"><see cref="IPinnable"/>.</param>
+		/// <param name="action">Method to receive address of memory and perform action.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static unsafe void PinAsBytes(this IPinnable pinnable, BytePointerAction action) =>
+			PinAsBytes(pinnable, 0, action);
+
+
+		/// <summary>
+		/// Pin given <see cref="IPinnable"/>s, get addresses of memory and perform action.
+		/// </summary>
+		/// <param name="pinnables"><see cref="IPinnable"/>s.</param>
+		/// <param name="action">Method to receive addresses of memory and perform action.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static unsafe void PinAsBytes(this (IPinnable, IPinnable) pinnables, BytePointersAction action) =>
+			PinAsBytes(pinnables, 0, 0, action);
+
+
+		/// <summary>
+		/// Pin given <see cref="IPinnable"/>, get address of memory and perform action.
+		/// </summary>
+		/// <param name="pinnable"><see cref="IPinnable"/>.</param>
+		/// <param name="elementIndex">Index of first element to pin.</param>
+		/// <param name="action">Method to receive address of memory and perform action.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static unsafe void PinAsBytes(this IPinnable pinnable, int elementIndex, BytePointerAction action)
+		{
+			using var handle = pinnable.Pin(elementIndex);
+			action((byte*)handle.Pointer);
+		}
+
+
+		/// <summary>
+		/// Pin given <see cref="IPinnable"/>s, get addresses of memory and perform action.
+		/// </summary>
+		/// <param name="pinnables"><see cref="IPinnable"/>s.</param>
+		/// <param name="elementIndex1">Index of first element of 1st <see cref="IPinnable"/> to pin.</param>
+		/// <param name="elementIndex2">Index of first element of 2nd <see cref="IPinnable"/> to pin.</param>
+		/// <param name="action">Method to receive addresses of memory and perform action.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static unsafe void PinAsBytes(this (IPinnable, IPinnable) pinnables, int elementIndex1, int elementIndex2, BytePointersAction action)
+		{
+			using var handle1 = pinnables.Item1.Pin(elementIndex1);
+			using var handle2 = pinnables.Item2.Pin(elementIndex2);
+			action((byte*)handle1.Pointer, (byte*)handle2.Pointer);
+		}
+
+
+		/// <summary>
+		/// Pin given <see cref="IPinnable"/>, get address of memory and generate a value.
+		/// </summary>
+		/// <param name="pinnable"><see cref="IPinnable"/>.</param>
+		/// <param name="func">Function to receive address of memory and generate value.</param>
+		/// <returns>Generated value.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static unsafe R PinAsBytes<R>(this IPinnable pinnable, BytePointerFunc<R> func) =>
+			PinAsBytes(pinnable, 0, func);
+
+
+		/// <summary>
+		/// Pin given <see cref="IPinnable"/>s, get addresses of memory and generate a value.
+		/// </summary>
+		/// <param name="pinnables"><see cref="IPinnable"/>s.</param>
+		/// <param name="func">Function to receive addresses of memory and generate value.</param>
+		/// <returns>Generated value.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static unsafe R PinAsBytes<R>(this (IPinnable, IPinnable) pinnables, BytePointersFunc<R> func) =>
+			PinAsBytes(pinnables, 0, 0, func);
+
+
+		/// <summary>
+		/// Pin given <see cref="IPinnable"/>, get address of memory and generate a value.
+		/// </summary>
+		/// <param name="pinnable"><see cref="IPinnable"/>.</param>
+		/// <param name="elementIndex">Index of first element to pin.</param>
+		/// <param name="func">Function to receive address of memory and generate value.</param>
+		/// <returns>Generated value.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static unsafe R PinAsBytes<R>(this IPinnable pinnable, int elementIndex, BytePointerFunc<R> func)
+		{
+			using var handle = pinnable.Pin(elementIndex);
+			return func((byte*)handle.Pointer);
+		}
+
+
+		/// <summary>
+		/// Pin given <see cref="IPinnable"/>s, get addresses of memory and generate a value.
+		/// </summary>
+		/// <param name="pinnables"><see cref="IPinnable"/>s.</param>
+		/// <param name="elementIndex1">Index of first element of 1st <see cref="IPinnable"/> to pin.</param>
+		/// <param name="elementIndex2">Index of first element of 2nd <see cref="IPinnable"/> to pin.</param>
+		/// <param name="func">Function to receive addresses of memory and generate value.</param>
+		/// <returns>Generated value.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static unsafe R PinAsBytes<R>(this (IPinnable, IPinnable) pinnables, int elementIndex1, int elementIndex2, BytePointersFunc<R> func)
+		{
+			using var handle1 = pinnables.Item1.Pin(elementIndex1);
+			using var handle2 = pinnables.Item2.Pin(elementIndex2);
+			return func((byte*)handle1.Pointer, (byte*)handle2.Pointer);
+		}
 	}
 }
