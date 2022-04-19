@@ -153,7 +153,22 @@ namespace CarinaStudio
 		/// <param name="action">Action to perform on <paramref name="value"/>.</param>
 		/// <returns>Value which is same as <paramref name="value"/>.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static T Also<T>(this T value, Action<T> action) where T : class
+		public static T? Also<T>(this T? value, RefAction<T?> action) where T : struct
+		{
+			action(ref value);
+			return value;
+		}
+
+
+		/// <summary>
+		/// Perform action on the given value, and return it.
+		/// </summary>
+		/// <typeparam name="T">Type of value.</typeparam>
+		/// <param name="value">Given value.</param>
+		/// <param name="action">Action to perform on <paramref name="value"/>.</param>
+		/// <returns>Value which is same as <paramref name="value"/>.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static T Also<T>(this T value, Action<T> action) where T : class?
 		{
 			action(value);
 			return value;
