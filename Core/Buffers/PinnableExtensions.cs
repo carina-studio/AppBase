@@ -128,104 +128,120 @@ namespace CarinaStudio.Buffers
 		/// <summary>
 		/// Pin given <see cref="IPinnable"/>, get address of memory and perform action.
 		/// </summary>
+		/// <typeparam name="TPtr">Type of pointer of pinned memory element.</typeparam>
 		/// <param name="pinnable"><see cref="IPinnable"/>.</param>
 		/// <param name="action">Method to receive address of memory and perform action.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe void PinAsBytes(this IPinnable pinnable, BytePointerAction action) =>
-			PinAsBytes(pinnable, 0, action);
+		public static unsafe void PinAs<TPtr>(this IPinnable pinnable, PointerAction<TPtr> action) where TPtr : unmanaged =>
+			PinAs(pinnable, 0, action);
 
 
 		/// <summary>
 		/// Pin given <see cref="IPinnable"/>s, get addresses of memory and perform action.
 		/// </summary>
+		/// <typeparam name="TPtr1">Type of 1st pointer of pinned memory element.</typeparam>
+		/// <typeparam name="TPtr2">Type of 2nd pointer of pinned memory element.</typeparam>
 		/// <param name="pinnables"><see cref="IPinnable"/>s.</param>
 		/// <param name="action">Method to receive addresses of memory and perform action.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe void PinAsBytes(this (IPinnable, IPinnable) pinnables, BytePointersAction action) =>
-			PinAsBytes(pinnables, 0, 0, action);
+		public static unsafe void PinAs<TPtr1, TPtr2>(this (IPinnable, IPinnable) pinnables, PointerAction<TPtr1, TPtr2> action) where TPtr1 : unmanaged where TPtr2 : unmanaged =>
+			PinAs(pinnables, 0, 0, action);
 
 
 		/// <summary>
 		/// Pin given <see cref="IPinnable"/>, get address of memory and perform action.
 		/// </summary>
+		/// <typeparam name="TPtr">Type of pointer of pinned memory element.</typeparam>
 		/// <param name="pinnable"><see cref="IPinnable"/>.</param>
 		/// <param name="elementIndex">Index of first element to pin.</param>
 		/// <param name="action">Method to receive address of memory and perform action.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe void PinAsBytes(this IPinnable pinnable, int elementIndex, BytePointerAction action)
+		public static unsafe void PinAs<TPtr>(this IPinnable pinnable, int elementIndex, PointerAction<TPtr> action) where TPtr : unmanaged
 		{
 			using var handle = pinnable.Pin(elementIndex);
-			action((byte*)handle.Pointer);
+			action((TPtr*)handle.Pointer);
 		}
 
 
 		/// <summary>
 		/// Pin given <see cref="IPinnable"/>s, get addresses of memory and perform action.
 		/// </summary>
+		/// <typeparam name="TPtr1">Type of 1st pointer of pinned memory element.</typeparam>
+		/// <typeparam name="TPtr2">Type of 2nd pointer of pinned memory element.</typeparam>
 		/// <param name="pinnables"><see cref="IPinnable"/>s.</param>
 		/// <param name="elementIndex1">Index of first element of 1st <see cref="IPinnable"/> to pin.</param>
 		/// <param name="elementIndex2">Index of first element of 2nd <see cref="IPinnable"/> to pin.</param>
 		/// <param name="action">Method to receive addresses of memory and perform action.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe void PinAsBytes(this (IPinnable, IPinnable) pinnables, int elementIndex1, int elementIndex2, BytePointersAction action)
+		public static unsafe void PinAs<TPtr1, TPtr2>(this (IPinnable, IPinnable) pinnables, int elementIndex1, int elementIndex2, PointerAction<TPtr1, TPtr2> action) where TPtr1 : unmanaged where TPtr2 : unmanaged
 		{
 			using var handle1 = pinnables.Item1.Pin(elementIndex1);
 			using var handle2 = pinnables.Item2.Pin(elementIndex2);
-			action((byte*)handle1.Pointer, (byte*)handle2.Pointer);
+			action((TPtr1*)handle1.Pointer, (TPtr2*)handle2.Pointer);
 		}
 
 
 		/// <summary>
 		/// Pin given <see cref="IPinnable"/>, get address of memory and generate a value.
 		/// </summary>
+		/// <typeparam name="TPtr">Type of pointer of pinned memory element.</typeparam>
+		/// <typeparam name="R">Type of generated value.</typeparam>
 		/// <param name="pinnable"><see cref="IPinnable"/>.</param>
 		/// <param name="func">Function to receive address of memory and generate value.</param>
 		/// <returns>Generated value.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe R PinAsBytes<R>(this IPinnable pinnable, BytePointerFunc<R> func) =>
-			PinAsBytes(pinnable, 0, func);
+		public static unsafe R PinAs<TPtr, R>(this IPinnable pinnable, PointerFunc<TPtr, R> func) where TPtr : unmanaged =>
+			PinAs(pinnable, 0, func);
 
 
 		/// <summary>
 		/// Pin given <see cref="IPinnable"/>s, get addresses of memory and generate a value.
 		/// </summary>
+		/// <typeparam name="TPtr1">Type of 1st pointer of pinned memory element.</typeparam>
+		/// <typeparam name="TPtr2">Type of 2nd pointer of pinned memory element.</typeparam>
+		/// <typeparam name="R">Type of generated value.</typeparam>
 		/// <param name="pinnables"><see cref="IPinnable"/>s.</param>
 		/// <param name="func">Function to receive addresses of memory and generate value.</param>
 		/// <returns>Generated value.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe R PinAsBytes<R>(this (IPinnable, IPinnable) pinnables, BytePointersFunc<R> func) =>
-			PinAsBytes(pinnables, 0, 0, func);
+		public static unsafe R PinAs<TPtr1, TPtr2, R>(this (IPinnable, IPinnable) pinnables, PointerFunc<TPtr1, TPtr2, R> func) where TPtr1 : unmanaged where TPtr2 : unmanaged =>
+			PinAs(pinnables, 0, 0, func);
 
 
 		/// <summary>
 		/// Pin given <see cref="IPinnable"/>, get address of memory and generate a value.
 		/// </summary>
+		/// <typeparam name="TPtr">Type of pointer of pinned memory element.</typeparam>
+		/// <typeparam name="R">Type of generated value.</typeparam>
 		/// <param name="pinnable"><see cref="IPinnable"/>.</param>
 		/// <param name="elementIndex">Index of first element to pin.</param>
 		/// <param name="func">Function to receive address of memory and generate value.</param>
 		/// <returns>Generated value.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe R PinAsBytes<R>(this IPinnable pinnable, int elementIndex, BytePointerFunc<R> func)
+		public static unsafe R PinAs<TPtr, R>(this IPinnable pinnable, int elementIndex, PointerFunc<TPtr, R> func) where TPtr : unmanaged
 		{
 			using var handle = pinnable.Pin(elementIndex);
-			return func((byte*)handle.Pointer);
+			return func((TPtr*)handle.Pointer);
 		}
 
 
 		/// <summary>
 		/// Pin given <see cref="IPinnable"/>s, get addresses of memory and generate a value.
 		/// </summary>
+		/// <typeparam name="TPtr1">Type of 1st pointer of pinned memory element.</typeparam>
+		/// <typeparam name="TPtr2">Type of 2nd pointer of pinned memory element.</typeparam>
+		/// <typeparam name="R">Type of generated value.</typeparam>
 		/// <param name="pinnables"><see cref="IPinnable"/>s.</param>
 		/// <param name="elementIndex1">Index of first element of 1st <see cref="IPinnable"/> to pin.</param>
 		/// <param name="elementIndex2">Index of first element of 2nd <see cref="IPinnable"/> to pin.</param>
 		/// <param name="func">Function to receive addresses of memory and generate value.</param>
 		/// <returns>Generated value.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe R PinAsBytes<R>(this (IPinnable, IPinnable) pinnables, int elementIndex1, int elementIndex2, BytePointersFunc<R> func)
+		public static unsafe R PinAs<TPtr1, TPtr2, R>(this (IPinnable, IPinnable) pinnables, int elementIndex1, int elementIndex2, PointerFunc<TPtr1, TPtr2, R> func) where TPtr1 : unmanaged where TPtr2 : unmanaged
 		{
 			using var handle1 = pinnables.Item1.Pin(elementIndex1);
 			using var handle2 = pinnables.Item2.Pin(elementIndex2);
-			return func((byte*)handle1.Pointer, (byte*)handle2.Pointer);
+			return func((TPtr1*)handle1.Pointer, (TPtr2*)handle2.Pointer);
 		}
 	}
 }

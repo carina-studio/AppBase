@@ -163,13 +163,15 @@ namespace CarinaStudio
 		/// <summary>
 		/// Pin given <see cref="Memory{T}"/>, get address of memory and perform action.
 		/// </summary>
+		/// <typeparam name="T">Type of memory element.</typeparam>
+		/// <typeparam name="TPtr">Type of pointer of pinned memory element.</typeparam>
 		/// <param name="memory"><see cref="Memory{T}"/>.</param>
 		/// <param name="action">Method to receive address of memory and perform action.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe void PinAsBytes<T>(this Memory<T> memory, BytePointerAction action)
+		public static unsafe void PinAs<T, TPtr>(this Memory<T> memory, PointerAction<TPtr> action) where TPtr : unmanaged
 		{
 			using var handle = memory.Pin();
-			action((byte*)handle.Pointer);
+			action((TPtr*)handle.Pointer);
 		}
 
 
@@ -178,14 +180,16 @@ namespace CarinaStudio
 		/// </summary>
 		/// <typeparam name="T1">Type of 1st memory element.</typeparam>
 		/// <typeparam name="T2">Type of 2nd memory element.</typeparam>
+		/// <typeparam name="TPtr1">Type of 1st pointer of pinned memory element.</typeparam>
+		/// <typeparam name="TPtr2">Type of 2nd pointer of pinned memory element.</typeparam>
 		/// <param name="memoryList">List of <see cref="Memory{T}"/>.</param>
 		/// <param name="action">Method to receive addresses of memory and perform action.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe void PinAsBytes<T1, T2>(this (Memory<T1>, Memory<T2>) memoryList, BytePointersAction action)
+		public static unsafe void PinAs<T1, T2, TPtr1, TPtr2>(this (Memory<T1>, Memory<T2>) memoryList, PointerAction<TPtr1, TPtr2> action) where TPtr1 : unmanaged where TPtr2 : unmanaged
 		{
 			using var handle1 = memoryList.Item1.Pin();
 			using var handle2 = memoryList.Item2.Pin();
-			action((byte*)handle1.Pointer, (byte*)handle2.Pointer);
+			action((TPtr1*)handle1.Pointer, (TPtr2*)handle2.Pointer);
 		}
 
 
@@ -193,15 +197,16 @@ namespace CarinaStudio
 		/// Pin given <see cref="Memory{T}"/>, get address of memory and generate a value.
 		/// </summary>
 		/// <typeparam name="T">Type of memory element.</typeparam>
+		/// <typeparam name="TPtr">Type of pointer of pinned memory element.</typeparam>
 		/// <typeparam name="R">Type of generated value.</typeparam>
 		/// <param name="memory"><see cref="Memory{T}"/>.</param>
 		/// <param name="func">Function to receive address of memory and generate value.</param>
 		/// <returns>Generated value.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe R PinAsBytes<T, R>(this Memory<T> memory, BytePointerFunc<R> func)
+		public static unsafe R PinAs<T, TPtr, R>(this Memory<T> memory, PointerFunc<TPtr, R> func) where TPtr : unmanaged
 		{
 			using var handle = memory.Pin();
-			return func((byte*)handle.Pointer);
+			return func((TPtr*)handle.Pointer);
 		}
 
 
@@ -210,16 +215,18 @@ namespace CarinaStudio
 		/// </summary>
 		/// <typeparam name="T1">Type of 1st memory element.</typeparam>
 		/// <typeparam name="T2">Type of 2nd memory element.</typeparam>
+		/// <typeparam name="TPtr1">Type of 1st pointer of pinned memory element.</typeparam>
+		/// <typeparam name="TPtr2">Type of 2nd pointer of pinned memory element.</typeparam>
 		/// <typeparam name="R">Type of generated value.</typeparam>
 		/// <param name="memoryList">List of <see cref="Memory{T}"/>.</param>
 		/// <param name="func">Function to receive addresses of memory and generate value.</param>
 		/// <returns>Generated value.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe R PinAsBytes<T1, T2, R>(this (Memory<T1>, Memory<T2>) memoryList, BytePointersFunc<R> func)
+		public static unsafe R PinAs<T1, T2, TPtr1, TPtr2, R>(this (Memory<T1>, Memory<T2>) memoryList, PointerFunc<TPtr1, TPtr2, R> func) where TPtr1 : unmanaged where TPtr2 : unmanaged
 		{
 			using var handle1 = memoryList.Item1.Pin();
 			using var handle2 = memoryList.Item2.Pin();
-			return func((byte*)handle1.Pointer, (byte*)handle2.Pointer);
+			return func((TPtr1*)handle1.Pointer, (TPtr2*)handle2.Pointer);
 		}
 
 
@@ -227,13 +234,14 @@ namespace CarinaStudio
 		/// Pin given <see cref="ReadOnlyMemory{T}"/>, get address of memory and perform action.
 		/// </summary>
 		/// <typeparam name="T">Type of memory element.</typeparam>
+		/// <typeparam name="TPtr">Type of pointer of pinned memory element.</typeparam>
 		/// <param name="memory"><see cref="ReadOnlyMemory{T}"/>.</param>
 		/// <param name="action">Method to receive address of memory and perform action.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe void PinAsBytes<T>(this ReadOnlyMemory<T> memory, BytePointerAction action)
+		public static unsafe void PinAs<T, TPtr>(this ReadOnlyMemory<T> memory, PointerAction<TPtr> action) where TPtr : unmanaged
 		{
 			using var handle = memory.Pin();
-			action((byte*)handle.Pointer);
+			action((TPtr*)handle.Pointer);
 		}
 
 
@@ -242,14 +250,16 @@ namespace CarinaStudio
 		/// </summary>
 		/// <typeparam name="T1">Type of 1st memory element.</typeparam>
 		/// <typeparam name="T2">Type of 2nd memory element.</typeparam>
+		/// <typeparam name="TPtr1">Type of 1st pointer of pinned memory element.</typeparam>
+		/// <typeparam name="TPtr2">Type of 2nd pointer of pinned memory element.</typeparam>
 		/// <param name="memoryList">List of <see cref="ReadOnlyMemory{T}"/>.</param>
 		/// <param name="action">Method to receive addresses of memory and perform action.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe void PinAsBytes<T1, T2>(this (ReadOnlyMemory<T1>, ReadOnlyMemory<T2>) memoryList, BytePointersAction action)
+		public static unsafe void PinAs<T1, T2, TPtr1, TPtr2>(this (ReadOnlyMemory<T1>, ReadOnlyMemory<T2>) memoryList, PointerAction<TPtr1, TPtr2> action) where TPtr1 : unmanaged where TPtr2 : unmanaged
 		{
 			using var handle1 = memoryList.Item1.Pin();
 			using var handle2 = memoryList.Item2.Pin();
-			action((byte*)handle1.Pointer, (byte*)handle2.Pointer);
+			action((TPtr1*)handle1.Pointer, (TPtr2*)handle2.Pointer);
 		}
 
 
@@ -257,15 +267,16 @@ namespace CarinaStudio
 		/// Pin given <see cref="ReadOnlyMemory{T}"/>, get address of memory and generate a value.
 		/// </summary>
 		/// <typeparam name="T">Type of memory element.</typeparam>
+		/// <typeparam name="TPtr">Type of pointer of pinned memory element.</typeparam>
 		/// <typeparam name="R">Type of generated value.</typeparam>
 		/// <param name="memory"><see cref="ReadOnlyMemory{T}"/>.</param>
 		/// <param name="func">Function to receive address of memory and generate value.</param>
 		/// <returns>Generated value.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe R PinAsBytes<T, R>(this ReadOnlyMemory<T> memory, BytePointerFunc<R> func)
+		public static unsafe R PinAs<T, TPtr, R>(this ReadOnlyMemory<T> memory, PointerFunc<TPtr, R> func) where TPtr : unmanaged
 		{
 			using var handle = memory.Pin();
-			return func((byte*)handle.Pointer);
+			return func((TPtr*)handle.Pointer);
 		}
 
 
@@ -274,16 +285,18 @@ namespace CarinaStudio
 		/// </summary>
 		/// <typeparam name="T1">Type of 1st memory element.</typeparam>
 		/// <typeparam name="T2">Type of 2nd memory element.</typeparam>
+		/// <typeparam name="TPtr1">Type of 1st pointer of pinned memory element.</typeparam>
+		/// <typeparam name="TPtr2">Type of 2nd pointer of pinned memory element.</typeparam>
 		/// <typeparam name="R">Type of generated value.</typeparam>
 		/// <param name="memoryList">List of <see cref="ReadOnlyMemory{T}"/>.</param>
 		/// <param name="func">Function to receive addresses of memory and generate value.</param>
 		/// <returns>Generated value.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe R PinAsBytes<T1, T2, R>(this (ReadOnlyMemory<T1>, ReadOnlyMemory<T2>) memoryList, BytePointersFunc<R> func)
+		public static unsafe R PinAs<T1, T2, TPtr1, TPtr2, R>(this (ReadOnlyMemory<T1>, ReadOnlyMemory<T2>) memoryList, PointerFunc<TPtr1, TPtr2, R> func) where TPtr1 : unmanaged where TPtr2 : unmanaged
 		{
 			using var handle1 = memoryList.Item1.Pin();
 			using var handle2 = memoryList.Item2.Pin();
-			return func((byte*)handle1.Pointer, (byte*)handle2.Pointer);
+			return func((TPtr1*)handle1.Pointer, (TPtr2*)handle2.Pointer);
 		}
 	}
 }
