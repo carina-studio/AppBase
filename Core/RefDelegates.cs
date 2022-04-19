@@ -3,6 +3,14 @@ using System;
 namespace CarinaStudio
 {
     /// <summary>
+    /// Action on reference to variable.
+    /// </summary>
+    /// <param name="arg">Reference to variable.</param>
+    /// <typeparam name="T">Type of variable.</typeparam>
+    public delegate void RefAction<T>(ref T arg);
+
+
+    /// <summary>
     /// Function to return a reference to variable.
     /// </summary>
     /// <typeparam name="R">Type of returned type of reference.</typeparam>
