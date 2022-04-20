@@ -106,7 +106,7 @@ namespace CarinaStudio
 		/// <param name="func">Using function.</param>
 		/// <returns>Generated reference to value.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static ref R Use<T, R>(this T disposable, RefFunc<T, R> func) where T : IDisposable
+		public static ref R Use<T, R>(this T disposable, RefOutFunc<T, R> func) where T : IDisposable
 		{
 			try
 			{

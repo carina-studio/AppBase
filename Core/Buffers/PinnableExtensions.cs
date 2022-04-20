@@ -190,7 +190,7 @@ namespace CarinaStudio.Buffers
 		/// <param name="func">Function to receive address of memory and generate value.</param>
 		/// <returns>Generated value.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe R PinAs<TPtr, R>(this IPinnable pinnable, PointerFunc<TPtr, R> func) where TPtr : unmanaged =>
+		public static unsafe R PinAs<TPtr, R>(this IPinnable pinnable, PointerInFunc<TPtr, R> func) where TPtr : unmanaged =>
 			PinAs(pinnable, 0, func);
 
 
@@ -204,7 +204,7 @@ namespace CarinaStudio.Buffers
 		/// <param name="func">Function to receive addresses of memory and generate value.</param>
 		/// <returns>Generated value.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe R PinAs<TPtr1, TPtr2, R>(this (IPinnable, IPinnable) pinnables, PointerFunc<TPtr1, TPtr2, R> func) where TPtr1 : unmanaged where TPtr2 : unmanaged =>
+		public static unsafe R PinAs<TPtr1, TPtr2, R>(this (IPinnable, IPinnable) pinnables, PointerInFunc<TPtr1, TPtr2, R> func) where TPtr1 : unmanaged where TPtr2 : unmanaged =>
 			PinAs(pinnables, 0, 0, func);
 
 
@@ -218,7 +218,7 @@ namespace CarinaStudio.Buffers
 		/// <param name="func">Function to receive address of memory and generate value.</param>
 		/// <returns>Generated value.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe R PinAs<TPtr, R>(this IPinnable pinnable, int elementIndex, PointerFunc<TPtr, R> func) where TPtr : unmanaged
+		public static unsafe R PinAs<TPtr, R>(this IPinnable pinnable, int elementIndex, PointerInFunc<TPtr, R> func) where TPtr : unmanaged
 		{
 			using var handle = pinnable.Pin(elementIndex);
 			return func((TPtr*)handle.Pointer);
@@ -237,7 +237,7 @@ namespace CarinaStudio.Buffers
 		/// <param name="func">Function to receive addresses of memory and generate value.</param>
 		/// <returns>Generated value.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe R PinAs<TPtr1, TPtr2, R>(this (IPinnable, IPinnable) pinnables, int elementIndex1, int elementIndex2, PointerFunc<TPtr1, TPtr2, R> func) where TPtr1 : unmanaged where TPtr2 : unmanaged
+		public static unsafe R PinAs<TPtr1, TPtr2, R>(this (IPinnable, IPinnable) pinnables, int elementIndex1, int elementIndex2, PointerInFunc<TPtr1, TPtr2, R> func) where TPtr1 : unmanaged where TPtr2 : unmanaged
 		{
 			using var handle1 = pinnables.Item1.Pin(elementIndex1);
 			using var handle2 = pinnables.Item2.Pin(elementIndex2);

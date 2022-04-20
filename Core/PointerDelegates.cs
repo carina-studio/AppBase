@@ -26,7 +26,7 @@ namespace CarinaStudio
     /// <param name="pointer">Pointer.</param>
     /// <typeparam name="T">Type of value.</typeparam>
     /// <typeparam name="R">Type of returned value.</typeparam>
-    public unsafe delegate R PointerFunc<T, R>(T* pointer) where T : unmanaged;
+    public unsafe delegate R PointerInFunc<T, R>(T* pointer) where T : unmanaged;
 
 
     /// <summary>
@@ -37,5 +37,12 @@ namespace CarinaStudio
     /// <typeparam name="T1">Type of 1st value.</typeparam>
     /// <typeparam name="T2">Type of 2nd value.</typeparam>
     /// <typeparam name="R">Type of returned value.</typeparam>
-    public unsafe delegate R PointerFunc<T1, T2, R>(T1* pointer1, T2* pointer2) where T1 : unmanaged where T2 : unmanaged;
+    public unsafe delegate R PointerInFunc<T1, T2, R>(T1* pointer1, T2* pointer2) where T1 : unmanaged where T2 : unmanaged;
+
+
+    /// <summary>
+    /// Function to return pointer of unmanaged type.
+    /// </summary>
+    /// <typeparam name="R">Type of returned value.</typeparam>
+    public unsafe delegate R* PointerOutFunc<R>() where R : unmanaged;
 }

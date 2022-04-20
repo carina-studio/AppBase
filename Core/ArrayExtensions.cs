@@ -164,7 +164,7 @@ namespace CarinaStudio
 		/// <param name="func">Function to receive address of array and generate value.</param>
 		/// <returns>Generated value.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe R PinAs<T, TPtr, R>(this T[] array, PointerFunc<TPtr, R> func) where TPtr : unmanaged
+		public static unsafe R PinAs<T, TPtr, R>(this T[] array, PointerInFunc<TPtr, R> func) where TPtr : unmanaged
 		{
 			var gcHandle = GCHandle.Alloc(array, GCHandleType.Pinned);
 			try
@@ -190,7 +190,7 @@ namespace CarinaStudio
 		/// <param name="func">Function to receive addresses of arrays and generate value.</param>
 		/// <returns>Generated value.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe R PinAs<T1, T2, TPtr1, TPtr2, R>(this (T1[], T2[]) arrays, PointerFunc<TPtr1, TPtr2, R> func) where TPtr1 : unmanaged where TPtr2 : unmanaged
+		public static unsafe R PinAs<T1, T2, TPtr1, TPtr2, R>(this (T1[], T2[]) arrays, PointerInFunc<TPtr1, TPtr2, R> func) where TPtr1 : unmanaged where TPtr2 : unmanaged
 		{
 			var gcHandle2 = new GCHandle();
 			var gcHandle1 = GCHandle.Alloc(arrays.Item1, GCHandleType.Pinned);

@@ -203,7 +203,7 @@ namespace CarinaStudio
 		/// <param name="func">Function to receive address of memory and generate value.</param>
 		/// <returns>Generated value.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe R PinAs<T, TPtr, R>(this Memory<T> memory, PointerFunc<TPtr, R> func) where TPtr : unmanaged
+		public static unsafe R PinAs<T, TPtr, R>(this Memory<T> memory, PointerInFunc<TPtr, R> func) where TPtr : unmanaged
 		{
 			using var handle = memory.Pin();
 			return func((TPtr*)handle.Pointer);
@@ -222,7 +222,7 @@ namespace CarinaStudio
 		/// <param name="func">Function to receive addresses of memory and generate value.</param>
 		/// <returns>Generated value.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe R PinAs<T1, T2, TPtr1, TPtr2, R>(this (Memory<T1>, Memory<T2>) memoryList, PointerFunc<TPtr1, TPtr2, R> func) where TPtr1 : unmanaged where TPtr2 : unmanaged
+		public static unsafe R PinAs<T1, T2, TPtr1, TPtr2, R>(this (Memory<T1>, Memory<T2>) memoryList, PointerInFunc<TPtr1, TPtr2, R> func) where TPtr1 : unmanaged where TPtr2 : unmanaged
 		{
 			using var handle1 = memoryList.Item1.Pin();
 			using var handle2 = memoryList.Item2.Pin();
@@ -273,7 +273,7 @@ namespace CarinaStudio
 		/// <param name="func">Function to receive address of memory and generate value.</param>
 		/// <returns>Generated value.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe R PinAs<T, TPtr, R>(this ReadOnlyMemory<T> memory, PointerFunc<TPtr, R> func) where TPtr : unmanaged
+		public static unsafe R PinAs<T, TPtr, R>(this ReadOnlyMemory<T> memory, PointerInFunc<TPtr, R> func) where TPtr : unmanaged
 		{
 			using var handle = memory.Pin();
 			return func((TPtr*)handle.Pointer);
@@ -292,7 +292,7 @@ namespace CarinaStudio
 		/// <param name="func">Function to receive addresses of memory and generate value.</param>
 		/// <returns>Generated value.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe R PinAs<T1, T2, TPtr1, TPtr2, R>(this (ReadOnlyMemory<T1>, ReadOnlyMemory<T2>) memoryList, PointerFunc<TPtr1, TPtr2, R> func) where TPtr1 : unmanaged where TPtr2 : unmanaged
+		public static unsafe R PinAs<T1, T2, TPtr1, TPtr2, R>(this (ReadOnlyMemory<T1>, ReadOnlyMemory<T2>) memoryList, PointerInFunc<TPtr1, TPtr2, R> func) where TPtr1 : unmanaged where TPtr2 : unmanaged
 		{
 			using var handle1 = memoryList.Item1.Pin();
 			using var handle2 = memoryList.Item2.Pin();

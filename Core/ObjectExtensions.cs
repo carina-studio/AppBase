@@ -216,7 +216,7 @@ namespace CarinaStudio
 		/// <param name="action">Action to perform on <paramref name="value"/>.</param>
 		/// <returns>Reference to custom variable.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static ref R Let<T, R>(this T value, RefFunc<T, R> action) => ref action(value);
+		public static ref R Let<T, R>(this T value, RefOutFunc<T, R> action) => ref action(value);
 
 
 		/// <summary>
@@ -251,7 +251,7 @@ namespace CarinaStudio
 		/// <param name="func">Function to generate reference to value.</param>
 		/// <returns>Generated reference to value.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static ref R Lock<T, R>(this T obj, RefFunc<R> func) where T : class
+		public static ref R Lock<T, R>(this T obj, RefOutFunc<R> func) where T : class
 		{
 			Monitor.Enter(obj);
 			try
@@ -297,7 +297,7 @@ namespace CarinaStudio
 		/// <param name="func">Function to generate reference to value.</param>
 		/// <returns>Generated reference to value.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static ref R Lock<T, R>(this T obj, RefFunc<T, R> func) where T : class
+		public static ref R Lock<T, R>(this T obj, RefOutFunc<T, R> func) where T : class
 		{
 			Monitor.Enter(obj);
 			try

@@ -57,7 +57,17 @@ namespace CarinaStudio
 		/// <param name="func">Function to generate reference to value.</param>
 		/// <returns>Generated reference to value.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static ref T Run<T>(RefFunc<T> func) => ref func();
+		public static ref T Run<T>(RefOutFunc<T> func) => ref func();
+
+
+		/// <summary>
+		/// Generate a pointer of unmanaged type.
+		/// </summary>
+		/// <typeparam name="T">Unmanaged type.</typeparam>
+		/// <param name="func">Function to generate pointer of unmanaged type.</param>
+		/// <returns>Generated pointer of unmanaged type.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static unsafe T* Run<T>(PointerOutFunc<T> func) where T : unmanaged => func();
 
 
 #pragma warning disable CS8604
