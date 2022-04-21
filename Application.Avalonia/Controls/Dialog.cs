@@ -96,7 +96,7 @@ namespace CarinaStudio.Controls
 					if ((Platform.IsWindows && (this.ownerWindow == null || this.ownerWindow.WindowState == WindowState.Maximized))
 						|| Platform.IsLinux)
 					{
-						this.Screens.ScreenFromVisual(this).Let(screen =>
+						this.Screens.ScreenFromVisual(this)?.Let(screen =>
 						{
 							var screenBounds = screen.WorkingArea;
 							var pixelDensity = screen.PixelDensity;
@@ -116,7 +116,7 @@ namespace CarinaStudio.Controls
 						{
 							var position = owner.Position.Let((position) =>
 							{
-								var screenScale = owner.Screens.ScreenFromVisual(owner).PixelDensity;
+								var screenScale = owner.Screens.ScreenFromVisual(owner)?.PixelDensity ?? 1.0;
 								var offsetX = (int)((owner.Width - this.Width) / 2 * screenScale);
 								var offsetY = (int)((owner.Height - this.Height) / 2 * screenScale);
 								return new PixelPoint(position.X + offsetX, position.Y + offsetY);
