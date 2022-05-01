@@ -16,11 +16,12 @@ namespace CarinaStudio.Controls
         /// <summary>
 		/// Property of <see cref="IsValidInput"/>.
 		/// </summary>
-		public static readonly AvaloniaProperty<bool> IsValidInputProperty = AvaloniaProperty.Register<InputDialog, bool>(nameof(IsValidInput));
+		public static readonly AvaloniaProperty<bool> IsValidInputProperty = AvaloniaProperty.RegisterDirect<InputDialog, bool>(nameof(IsValidInput), d => d.isValidInput);
 
 
         // Fields.
         bool isGeneratingResult;
+        bool isValidInput;
         readonly CancellationTokenSource resultGeneratingCancellationTokenSource = new CancellationTokenSource();
         readonly ScheduledAction validateInputAction;
 
@@ -35,7 +36,7 @@ namespace CarinaStudio.Controls
             {
                 if (this.IsClosed)
                     return;
-                this.SetValue<bool>(IsValidInputProperty, this.OnValidateInput());
+                this.SetAndRaise<bool>(IsValidInputProperty, ref this.isValidInput, this.OnValidateInput());
             });
         }
 
@@ -101,7 +102,7 @@ namespace CarinaStudio.Controls
         /// <summary>
 		/// Check whether user input of dialog is valid or not.
 		/// </summary>
-		public bool IsValidInput { get => this.GetValue<bool>(IsValidInputProperty); }
+		public bool IsValidInput { get => this.isValidInput; }
 
 
         /// <summary>
