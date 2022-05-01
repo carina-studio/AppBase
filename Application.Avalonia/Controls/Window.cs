@@ -17,19 +17,22 @@ namespace CarinaStudio.Controls
 		/// <summary>
 		/// Property of <see cref="HasDialogs"/>.
 		/// </summary>
-		public static readonly AvaloniaProperty<bool> HasDialogsProperty = AvaloniaProperty.Register<Window, bool>(nameof(HasDialogs), false);
+		public static readonly AvaloniaProperty<bool> HasDialogsProperty = AvaloniaProperty.RegisterDirect<Window, bool>(nameof(HasDialogs), w => w.hasDialogs);
 		/// <summary>
 		/// Property of <see cref="IsClosed"/>.
 		/// </summary>
-		public static readonly AvaloniaProperty<bool> IsClosedProperty = AvaloniaProperty.Register<Window, bool>(nameof(IsClosed), false);
+		public static readonly AvaloniaProperty<bool> IsClosedProperty = AvaloniaProperty.RegisterDirect<Window, bool>(nameof(IsClosed), w => w.isClosed);
 		/// <summary>
 		/// Property of <see cref="IsOpened"/>.
 		/// </summary>
-		public static readonly AvaloniaProperty<bool> IsOpenedProperty = AvaloniaProperty.Register<Window, bool>(nameof(IsOpened), false);
+		public static readonly AvaloniaProperty<bool> IsOpenedProperty = AvaloniaProperty.RegisterDirect<Window, bool>(nameof(IsOpened), w => w.isOpened);
 
 
 		// Fields.
 		readonly List<Dialog> dialogs = new List<Dialog>();
+		bool hasDialogs;
+		bool isClosed;
+		bool isOpened;
 
 
 		/// <summary>
@@ -56,19 +59,19 @@ namespace CarinaStudio.Controls
 		/// <summary>
 		/// Get whether at least one <see cref="Dialog{TApp}"/> owned by this window is shown or not.
 		/// </summary>
-		public bool HasDialogs { get => this.GetValue<bool>(HasDialogsProperty); }
+		public bool HasDialogs { get => this.hasDialogs; }
 
 
 		/// <summary>
 		/// Check whether window is closed or not.
 		/// </summary>
-		public bool IsClosed { get => this.GetValue<bool>(IsClosedProperty); }
+		public bool IsClosed { get => this.isClosed; }
 
 
 		/// <summary>
 		/// Check whether window is opened or not.
 		/// </summary>
-		public bool IsOpened { get => this.GetValue<bool>(IsOpenedProperty); }
+		public bool IsOpened { get => this.isOpened; }
 
 
 		/// <summary>
@@ -83,8 +86,8 @@ namespace CarinaStudio.Controls
 		/// <param name="e">Event data.</param>
 		protected override void OnClosed(EventArgs e)
 		{
-			this.SetValue<bool>(IsOpenedProperty, false);
-			this.SetValue<bool>(IsClosedProperty, true);
+			this.SetAndRaise<bool>(IsOpenedProperty, ref this.isOpened, false);
+			this.SetAndRaise<bool>(IsClosedProperty, ref this.isClosed, true);
 			base.OnClosed(e);
 		}
 
@@ -96,7 +99,7 @@ namespace CarinaStudio.Controls
 		internal protected virtual void OnDialogClosed(Dialog dialog)
 		{
 			if (this.dialogs.Remove(dialog) && this.dialogs.IsEmpty())
-				this.SetValue<bool>(HasDialogsProperty, false);
+				this.SetAndRaise<bool>(HasDialogsProperty, ref this.hasDialogs, false);
 		}
 
 
@@ -108,7 +111,7 @@ namespace CarinaStudio.Controls
 		{
 			this.dialogs.Add(dialog);
 			if (this.dialogs.Count == 1)
-				this.SetValue<bool>(HasDialogsProperty, true);
+				this.SetAndRaise<bool>(HasDialogsProperty, ref this.hasDialogs, true);
 		}
 
 
@@ -118,7 +121,7 @@ namespace CarinaStudio.Controls
 		/// <param name="e">Event data.</param>
 		protected override void OnOpened(EventArgs e)
 		{
-			this.SetValue<bool>(IsOpenedProperty, true);
+			this.SetAndRaise<bool>(IsOpenedProperty, ref this.isOpened, true);
 			base.OnOpened(e);
 		}
 
