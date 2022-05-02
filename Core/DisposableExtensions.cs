@@ -31,9 +31,9 @@ namespace CarinaStudio
 		/// <param name="func">Exchanging function.</param>
 		/// <returns>Exchanged <see cref="IDisposable"/>.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static R Exchange<T, R>(this T source, Func<R> func) where T : IDisposable where R : IDisposable
+		public static R? Exchange<T, R>(this T? source, Func<R?> func) where T : class, IDisposable where R : class, IDisposable
 		{
-			R result = default;
+			R? result = default;
 			try
 			{
 				result = func();
@@ -41,14 +41,12 @@ namespace CarinaStudio
 			finally
 			{
 				if (!object.ReferenceEquals(source, result))
-					source.Dispose();
+					source?.Dispose();
 			}
 			return result;
 		}
-#pragma warning restore CS8600
 
 
-#pragma warning disable CS8600
 		/// <summary>
 		/// Exhange the source <see cref="IDisposable"/> with another one.
 		/// </summary>
@@ -58,9 +56,9 @@ namespace CarinaStudio
 		/// <param name="func">Exchanging function.</param>
 		/// <returns>Exchanged <see cref="IDisposable"/>.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static R Exchange<T, R>(this T source, Func<T, R> func) where T : IDisposable where R : IDisposable
+		public static R? Exchange<T, R>(this T? source, Func<T?, R?> func) where T : class, IDisposable where R : class, IDisposable
 		{
-			R result = default;
+			R? result = default;
 			try
 			{
 				result = func(source);
@@ -68,7 +66,7 @@ namespace CarinaStudio
 			finally
 			{
 				if (!object.ReferenceEquals(source, result))
-					source.Dispose();
+					source?.Dispose();
 			}
 			return result;
 		}
