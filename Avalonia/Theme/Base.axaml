@@ -20,10 +20,12 @@
 	<Style Selector="controls|LinkTextBlock">
 		<Setter Property="Background" Value="{x:Static Brushes.Transparent}"/>
 		<Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Focusable" Value="True"/>
 		<Setter Property="Foreground" Value="{DynamicResource LinkTextBlockForeground}"/>
 		<Setter Property="ToolTip.Tip" Value="{Binding $self.Uri}"/>
 	</Style>
 	<Style Selector="controls|LinkTextBlock:disabled">
+        <Setter Property="Focusable" Value="False"/>
 		<Setter Property="Foreground" Value="{DynamicResource LinkTextBlockForegroundDisabled}"/>
 	</Style>
 	<Style Selector="controls|LinkTextBlock:pointerover">

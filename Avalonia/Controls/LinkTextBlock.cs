@@ -34,6 +34,22 @@ namespace CarinaStudio.Controls
         { }
 
 
+        // Perform action for click.
+        void Click()
+        {
+            ToolTip.SetIsOpen(this, false);
+            var command = this.Command;
+            if (command != null)
+            {
+                var parameter = this.GetValue<object?>(CommandParameterProperty);
+                if (command.CanExecute(parameter))
+                    command.Execute(parameter);
+            }
+            else
+                this.Uri?.Let(it => Platform.OpenLink(it));
+        }
+
+
         /// <summary>
         /// Get or set command to execute when clicking the link.
         /// </summary>
@@ -77,6 +93,15 @@ namespace CarinaStudio.Controls
             this.UpdateIsEffectivelyEnabled();
 
 
+        /// <inheritdoc/>
+        protected override void OnKeyUp(KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+                this.Click();
+            base.OnKeyUp(e);
+        }
+
+
         /// <summary>
         /// Called when pointer released.
         /// </summary>
@@ -85,18 +110,7 @@ namespace CarinaStudio.Controls
         {
             base.OnPointerReleased(e);
             if (e.InitialPressMouseButton == MouseButton.Left && this.IsPointerOver)
-            {
-                ToolTip.SetIsOpen(this, false);
-                var command = this.Command;
-                if (command != null)
-                {
-                    var parameter = this.GetValue<object?>(CommandParameterProperty);
-                    if (command.CanExecute(parameter))
-                        command.Execute(parameter);
-                }
-                else
-                    this.Uri?.Let(it => Platform.OpenLink(it));
-            }
+                this.Click();
         }
 
 
