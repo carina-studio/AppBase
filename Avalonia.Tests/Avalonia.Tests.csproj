@@ -12,7 +12,10 @@
 		<PackageReference Include="Avalonia" Version="0.10.13" />
 		<PackageReference Include="Avalonia.Desktop" Version="0.10.13" />
 		<PackageReference Include="Avalonia.Diagnostics" Version="0.10.13" />
+		<PackageReference Include="NUnit" Version="3.13.2" />
+		<PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.4" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -20,6 +20,18 @@ namespace CarinaStudio.Data.Converters
 		/// <returns>Converted value.</returns>
 		public static T Convert<T>(this IValueConverter converter, object? value) =>
 			(T)converter.Convert(value, typeof(T), null, CultureInfo.InvariantCulture);
+		
+
+		/// <summary>
+		/// Convert value.
+		/// </summary>
+		/// <typeparam name="T">Type of target value.</typeparam>
+		/// <param name="converter"><see cref="IValueConverter"/>.</param>
+		/// <param name="value">Value to convert.</param>
+		/// <param name="parameter">Conversion parameter.</param>
+		/// <returns>Converted value.</returns>
+		public static T Convert<T>(this IValueConverter converter, object? value, object? parameter) =>
+			(T)converter.Convert(value, typeof(T), parameter, CultureInfo.InvariantCulture);
 
 
 		/// <summary>
