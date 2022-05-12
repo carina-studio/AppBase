@@ -7,7 +7,7 @@ using System.Collections.Specialized;
 namespace CarinaStudio.Collections
 {
 	/// <summary>
-	/// Extensions for <see cref="IList{T}"/>.
+	/// Extensions for <see cref="IList{T}"/> and <see cref="IList"/>.
 	/// </summary>
 	public static class ListExtensions
 	{
@@ -114,6 +114,25 @@ namespace CarinaStudio.Collections
 			if (result < 0)
 				return BinarySearch(list, start, middle, element);
 			return BinarySearch(list, middle + 1, end, element);
+		}
+
+
+		/// <summary>
+		/// Case given list to generic typed list.
+		/// </summary>
+		/// <remarks>If <paramref name="list"/> implements <see cref="INotifyCollectionChanged"/> then returned <see cref="IList{T}"/> will also implements <see cref="INotifyCollectionChanged"/>.</remarks>
+		/// <param name="list">List.</param>
+		/// <typeparam name="TOut">Type of element.</typeparam>
+		/// <returns>Generic typed list.</returns>
+		public static IList<TOut> Cast<TOut>(this IList list)
+		{
+			if (list is IList<TOut> typedList)
+				return typedList;
+			if (list.Count > 0 && !(list[0] is TOut))
+				throw new InvalidCastException();
+			if (list is INotifyCollectionChanged)
+				return new TypeCastingObservableList<TOut>(list);
+			return new TypeCastingList<TOut>(list);
 		}
 
 
