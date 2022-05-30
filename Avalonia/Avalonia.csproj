@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<AssemblyVersion>1.6.1.512</AssemblyVersion>
-		<Version>1.6.1.512</Version>
-		<PackageVersion>1.6.1.512-preview</PackageVersion>
+		<AssemblyVersion>1.6.2.530</AssemblyVersion>
+		<Version>1.6.2.530</Version>
+		<PackageVersion>1.6.2.530-preview</PackageVersion>
 		<TargetFrameworks>netcoreapp3.1;netstandard2.1;net5.0;net6.0</TargetFrameworks>
 		<RootNamespace>CarinaStudio</RootNamespace>
 		<AssemblyName>CarinaStudio.AppBase.Avalonia</AssemblyName>
