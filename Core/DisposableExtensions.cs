@@ -74,6 +74,26 @@ namespace CarinaStudio
 
 
 		/// <summary>
+		/// Use the given <see cref="IDisposable"/> to perform action then dispose it before returning from method.
+		/// </summary>
+		/// <typeparam name="T">Type which implements <see cref="IDisposable"/>.</typeparam>
+		/// <param name="disposable"><see cref="IDisposable"/>.</param>
+		/// <param name="action">Action to perform.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static void Use<T>(this T disposable, Action<T> action) where T : IDisposable
+		{
+			try
+			{
+				action(disposable);
+			}
+			finally
+			{
+				disposable.Dispose();
+			}
+		}
+
+
+		/// <summary>
 		/// Use the given <see cref="IDisposable"/> to generate value then dispose it before returning from method.
 		/// </summary>
 		/// <typeparam name="T">Type which implements <see cref="IDisposable"/>.</typeparam>

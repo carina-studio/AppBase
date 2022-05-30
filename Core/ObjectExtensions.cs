@@ -220,6 +220,28 @@ namespace CarinaStudio
 
 
 		/// <summary>
+		/// Acquire lock on given object and perform action after releasing lock.
+		/// </summary>
+		/// <typeparam name="T">Type of given object.</typeparam>
+		/// <param name="obj">Object to acquire lock on.</param>
+		/// <param name="action">Action to perform.</param>
+		/// <returns>Generated value.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static void Lock<T>(this T obj, Action<T> action) where T : class
+		{
+			Monitor.Enter(obj);
+			try
+			{
+				action(obj);
+			}
+			finally
+			{
+				Monitor.Exit(obj);
+			}
+		}
+
+
+		/// <summary>
 		/// Acquire lock on given object and generate value after releasing lock.
 		/// </summary>
 		/// <typeparam name="T">Type of given object.</typeparam>
