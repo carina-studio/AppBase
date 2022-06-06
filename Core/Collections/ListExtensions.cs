@@ -128,7 +128,7 @@ namespace CarinaStudio.Collections
 		{
 			if (list is IList<TOut> typedList)
 				return typedList;
-			if (list.Count > 0 && !(list[0] is TOut))
+			if (list.Count > 0 && !(list[0] is TOut) && list[0] != null)
 				throw new InvalidCastException();
 			if (list is INotifyCollectionChanged)
 				return new TypeCastingObservableList<TOut>(list);
