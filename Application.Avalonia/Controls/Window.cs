@@ -1,10 +1,10 @@
 ﻿using Avalonia;
-using CarinaStudio.Collections;
 using CarinaStudio.Configuration;
 using CarinaStudio.Threading;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading;
 
 namespace CarinaStudio.Controls
@@ -29,7 +29,7 @@ namespace CarinaStudio.Controls
 
 
 		// Fields.
-		readonly List<Dialog> dialogs = new List<Dialog>();
+		readonly List<(Avalonia.Controls.Window, bool)> children;
 		bool hasDialogs;
 		bool isClosed;
 		bool isOpened;
@@ -42,6 +42,13 @@ namespace CarinaStudio.Controls
 		{
 			this.Application.VerifyAccess();
 			this.Logger = this.Application.LoggerFactory.CreateLogger(this.GetType().Name);
+			this.children = typeof(Avalonia.Controls.Window).GetField("_children", BindingFlags.Instance | BindingFlags.NonPublic)?.Let(it =>
+				(List<(Avalonia.Controls.Window, bool)>)it.GetValue(this).AsNonNull()) ?? Global.Run(() =>
+				{
+					this.Logger.LogError("Unable to get list of child window");
+					return new List<(Avalonia.Controls.Window, bool)>();
+				});
+			this.GetObservable(IsActiveProperty).Subscribe(_ => this.CheckDialogs());
 			this.AddHandler(PointerWheelChangedEvent, (_, e) =>
 			{
 				if (this.HasDialogs)
@@ -54,6 +61,23 @@ namespace CarinaStudio.Controls
 		/// Get application instance.
 		/// </summary>
 		public IApplication Application { get; } = CarinaStudio.Application.Current;
+
+
+		// Check whether dialogs exist or not.
+		void CheckDialogs()
+		{
+			var hasDialogs = false;
+			foreach (var (_, isDialog) in this.children)
+			{
+				if (isDialog)
+				{
+					hasDialogs = true;
+					break;
+				}
+			}
+			if (this.hasDialogs != hasDialogs)
+				this.SetAndRaise<bool>(HasDialogsProperty, ref this.hasDialogs, hasDialogs);
+		}
 
 
 		/// <summary>
@@ -89,29 +113,6 @@ namespace CarinaStudio.Controls
 			this.SetAndRaise<bool>(IsOpenedProperty, ref this.isOpened, false);
 			this.SetAndRaise<bool>(IsClosedProperty, ref this.isClosed, true);
 			base.OnClosed(e);
-		}
-
-
-		/// <summary>
-		/// Called when dialog closed.
-		/// </summary>
-		/// <param name="dialog">Closed dialog.</param>
-		internal protected virtual void OnDialogClosed(Dialog dialog)
-		{
-			if (this.dialogs.Remove(dialog) && this.dialogs.IsEmpty())
-				this.SetAndRaise<bool>(HasDialogsProperty, ref this.hasDialogs, false);
-		}
-
-
-		/// <summary>
-		/// Called when dialog opened.
-		/// </summary>
-		/// <param name="dialog">Opened dialog.</param>
-		internal protected virtual void OnDialogOpened(Dialog dialog)
-		{
-			this.dialogs.Add(dialog);
-			if (this.dialogs.Count == 1)
-				this.SetAndRaise<bool>(HasDialogsProperty, ref this.hasDialogs, true);
 		}
 
 

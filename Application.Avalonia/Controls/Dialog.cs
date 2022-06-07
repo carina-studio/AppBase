@@ -18,7 +18,6 @@ namespace CarinaStudio.Controls
 		// Fields.
 		double? desiredWidth;
 		long openedTime;
-		Window? ownerWindow;
 		readonly Stopwatch stopWatch = new Stopwatch().Also(it => it.Start());
 
 
@@ -58,8 +57,6 @@ namespace CarinaStudio.Controls
 		protected override void OnClosed(EventArgs e)
 		{
 			this.stopWatch.Stop();
-			this.ownerWindow?.OnDialogClosed(this);
-			this.ownerWindow = null;
 			base.OnClosed(e);
 		}
 
@@ -82,18 +79,16 @@ namespace CarinaStudio.Controls
 			// call base
 			base.OnOpened(e);
 
-			// notify owner window
-			this.ownerWindow = (this.Owner as Window)?.Also(it => it.OnDialogOpened(this));
-
 			// use icon from owner window
+			var owner = this.Owner as Avalonia.Controls.Window;
 			if (this.Icon == null)
-				this.Icon = this.ownerWindow?.Icon;
+				this.Icon = owner?.Icon;
 
 			// [workaround] move to center of owner or screen
 			switch (this.WindowStartupLocation)
 			{
 				case WindowStartupLocation.CenterScreen:
-					if ((Platform.IsWindows && (this.ownerWindow == null || this.ownerWindow.WindowState == WindowState.Maximized))
+					if ((Platform.IsWindows && (owner == null || owner.WindowState == WindowState.Maximized))
 						|| Platform.IsLinux)
 					{
 						this.Screens.ScreenFromVisual(this)?.Let(screen =>
@@ -112,7 +107,7 @@ namespace CarinaStudio.Controls
 				case WindowStartupLocation.CenterOwner:
 					if (Platform.IsLinux)
 					{
-						this.ownerWindow?.Let(owner =>
+						owner?.Let(owner =>
 						{
 							var position = owner.Position.Let((position) =>
 							{

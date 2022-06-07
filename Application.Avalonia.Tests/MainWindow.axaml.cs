@@ -29,8 +29,9 @@ namespace CarinaStudio
 
         void Test()
         {
-            //new TestDialog().ShowDialog(this);
+            new TestDialog().Show(this);
 
+            /*
             var transform = this.Find<Rectangle>("rect")?.RenderTransform as TranslateTransform;
             if (transform == null)
                 return;
@@ -45,6 +46,7 @@ namespace CarinaStudio
                 it.ProgressChanged += (_, e) => transform.X = it.Value;
                 it.Start();
             });
+            */
         }
     }
 }
