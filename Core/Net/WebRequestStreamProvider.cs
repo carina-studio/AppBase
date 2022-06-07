@@ -59,7 +59,9 @@ namespace CarinaStudio.Net
 
 
 		// Fields.
+#pragma warning disable CS0649
 		readonly RequestCachePolicy? cachePolicy;
+#pragma warning restore CS0649
 		readonly ICredentials? credentials;
 		readonly string? method;
 

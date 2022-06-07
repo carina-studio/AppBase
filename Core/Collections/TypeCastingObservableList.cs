@@ -108,6 +108,7 @@ namespace CarinaStudio.Collections
             this.list.RemoveAt(index);
 
 
+#pragma warning disable CS8600
 #pragma warning disable CS8603
         /// <inheritdoc/>
         public T this[int index]
@@ -115,6 +116,7 @@ namespace CarinaStudio.Collections
             get => (T)this.list[index];
             set => this.list[index] = value;
         }
+#pragma warning restore CS8600
 #pragma warning restore CS8603
 
 
