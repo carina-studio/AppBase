@@ -29,6 +29,7 @@ namespace CarinaStudio.Controls
 
 
 		// Fields.
+		readonly ScheduledAction checkDialogsAction;
 		readonly List<(Avalonia.Controls.Window, bool)> children;
 		bool hasDialogs;
 		bool isClosed;
@@ -42,13 +43,27 @@ namespace CarinaStudio.Controls
 		{
 			this.Application.VerifyAccess();
 			this.Logger = this.Application.LoggerFactory.CreateLogger(this.GetType().Name);
+			this.checkDialogsAction = new ScheduledAction(() =>
+			{
+				var hasDialogs = false;
+				foreach (var (_, isDialog) in this.children!)
+				{
+					if (isDialog)
+					{
+						hasDialogs = true;
+						break;
+					}
+				}
+				if (this.hasDialogs != hasDialogs)
+					this.SetAndRaise<bool>(HasDialogsProperty, ref this.hasDialogs, hasDialogs);
+			});
 			this.children = typeof(Avalonia.Controls.Window).GetField("_children", BindingFlags.Instance | BindingFlags.NonPublic)?.Let(it =>
 				(List<(Avalonia.Controls.Window, bool)>)it.GetValue(this).AsNonNull()) ?? Global.Run(() =>
 				{
 					this.Logger.LogError("Unable to get list of child window");
 					return new List<(Avalonia.Controls.Window, bool)>();
 				});
-			this.GetObservable(IsActiveProperty).Subscribe(_ => this.CheckDialogs());
+			this.GetObservable(IsActiveProperty).Subscribe(_ => this.checkDialogsAction.Schedule());
 			this.AddHandler(PointerWheelChangedEvent, (_, e) =>
 			{
 				if (this.HasDialogs)
@@ -61,23 +76,6 @@ namespace CarinaStudio.Controls
 		/// Get application instance.
 		/// </summary>
 		public IApplication Application { get; } = CarinaStudio.Application.Current;
-
-
-		// Check whether dialogs exist or not.
-		void CheckDialogs()
-		{
-			var hasDialogs = false;
-			foreach (var (_, isDialog) in this.children)
-			{
-				if (isDialog)
-				{
-					hasDialogs = true;
-					break;
-				}
-			}
-			if (this.hasDialogs != hasDialogs)
-				this.SetAndRaise<bool>(HasDialogsProperty, ref this.hasDialogs, hasDialogs);
-		}
 
 
 		/// <summary>
@@ -104,12 +102,18 @@ namespace CarinaStudio.Controls
 		protected ILogger Logger { get; }
 
 
+		// Called when child window opened or closed.
+		internal void OnChildWindowOpenedOrClosed() =>
+			this.checkDialogsAction.Schedule();
+
+
 		/// <summary>
 		/// Called when window closed.
 		/// </summary>
 		/// <param name="e">Event data.</param>
 		protected override void OnClosed(EventArgs e)
 		{
+			(this.Owner as Window)?.OnChildWindowOpenedOrClosed();
 			this.SetAndRaise<bool>(IsOpenedProperty, ref this.isOpened, false);
 			this.SetAndRaise<bool>(IsClosedProperty, ref this.isClosed, true);
 			base.OnClosed(e);
@@ -122,6 +126,7 @@ namespace CarinaStudio.Controls
 		/// <param name="e">Event data.</param>
 		protected override void OnOpened(EventArgs e)
 		{
+			(this.Owner as Window)?.OnChildWindowOpenedOrClosed();
 			this.SetAndRaise<bool>(IsOpenedProperty, ref this.isOpened, true);
 			base.OnOpened(e);
 		}
