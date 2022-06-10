@@ -63,6 +63,18 @@ namespace CarinaStudio.Collections
 		/// <param name="list">List to find element.</param>
 		/// <param name="key">Key of element to be found.</param>
 		/// <param name="keyGetter">Method to get key from element.</param>
+		/// <returns>Index of found element, or bitwise complement of index of proper position to put element.</returns>
+		public static int BinarySearch<T, TKey>(this IList<T> list, TKey key, Func<T, TKey> keyGetter) where TKey : IComparable<TKey> => BinarySearch(list, 0, list.Count, key, keyGetter, (lhs, rhs) => lhs.CompareTo(rhs));
+
+
+		/// <summary>
+		/// Use binary-search to find given element by key.
+		/// </summary>
+		/// <typeparam name="T">Type of element.</typeparam>
+		/// <typeparam name="TKey">Type of key of element.</typeparam>
+		/// <param name="list">List to find element.</param>
+		/// <param name="key">Key of element to be found.</param>
+		/// <param name="keyGetter">Method to get key from element.</param>
 		/// <param name="comparison">Comparison function.</param>
 		/// <returns>Index of found element, or bitwise complement of index of proper position to put element.</returns>
 		public static int BinarySearch<T, TKey>(this IList<T> list, TKey key, Func<T, TKey> keyGetter, Comparison<TKey> comparison) => BinarySearch(list, 0, list.Count, key, keyGetter, comparison);
