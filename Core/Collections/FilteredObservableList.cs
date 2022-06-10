@@ -113,7 +113,7 @@ namespace CarinaStudio.Collections
                 case NotifyCollectionChangedAction.Add:
                     {
                         var startIndex = e.NewStartingIndex;
-                        var count = e.NewItems.Count;
+                        var count = e.NewItems!.Count;
                         if (filter != null)
                         {
                             var insertionIndex = items.BinarySearch<(T, int), int>(startIndex, it => it.Item2);
@@ -159,7 +159,7 @@ namespace CarinaStudio.Collections
                 case NotifyCollectionChangedAction.Remove:
                     {
                         var startIndex = e.OldStartingIndex;
-                        var count = e.OldItems.Count;
+                        var count = e.OldItems!.Count;
                         if (filter != null)
                         {
                             var removingStartIndex = items.BinarySearch<(T, int), int>(startIndex, it => it.Item2);
@@ -198,7 +198,7 @@ namespace CarinaStudio.Collections
                     }
                     break;
                 case NotifyCollectionChangedAction.Replace:
-                    if (e.NewItems.Count == 1)
+                    if (e.NewItems!.Count == 1)
                     {
                         var sourceIndex = e.NewStartingIndex;
                         var sourceItem = source[sourceIndex];
@@ -229,7 +229,7 @@ namespace CarinaStudio.Collections
                         this.Rebuild();
                     break;
                 case NotifyCollectionChangedAction.Move:
-                    if (e.NewItems.Count == 1)
+                    if (e.NewItems!.Count == 1)
                     {
                         var oldSourceIndex = e.OldStartingIndex;
                         var newSourceIndex = e.NewStartingIndex;
