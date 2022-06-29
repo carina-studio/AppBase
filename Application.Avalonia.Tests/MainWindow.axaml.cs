@@ -29,7 +29,10 @@ namespace CarinaStudio
 
         void Test()
         {
-            new TestDialog().Show(this);
+            if (this.OwnedWindows.Count > 0)
+                _ = new TestDialog().ShowDialog(this);
+            else
+                new TestDialog().Show(this);
 
             /*
             var transform = this.Find<Rectangle>("rect")?.RenderTransform as TranslateTransform;

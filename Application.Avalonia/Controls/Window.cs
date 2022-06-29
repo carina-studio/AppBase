@@ -28,6 +28,10 @@ namespace CarinaStudio.Controls
 		public static readonly AvaloniaProperty<bool> IsOpenedProperty = AvaloniaProperty.RegisterDirect<Window, bool>(nameof(IsOpened), w => w.isOpened);
 
 
+		// Static fields.
+		static readonly Version AvaloniaVersion = typeof(AvaloniaObject).Assembly.GetName()?.Version ?? new Version();
+
+
 		// Fields.
 		readonly ScheduledAction checkDialogsAction;
 		readonly List<(Avalonia.Controls.Window, bool)> children;
@@ -46,16 +50,36 @@ namespace CarinaStudio.Controls
 			this.checkDialogsAction = new ScheduledAction(() =>
 			{
 				var hasDialogs = false;
-				foreach (var (_, isDialog) in this.children!)
+				var nonDialogWindows = (List<Avalonia.Controls.Window>?)null;
+				var isAvalonia_0_10_15 = AvaloniaVersion.Major == 0 
+					&& (AvaloniaVersion.Minor > 10 || AvaloniaVersion.Build >= 15);
+				foreach (var (childWindow, isDialog) in this.children!)
 				{
 					if (isDialog)
 					{
 						hasDialogs = true;
-						break;
+						if (!isAvalonia_0_10_15)
+							break;
+					}
+					else if (isAvalonia_0_10_15)
+					{
+						nonDialogWindows ??= new List<Avalonia.Controls.Window>();
+						nonDialogWindows.Add(childWindow);
 					}
 				}
 				if (this.hasDialogs != hasDialogs)
 					this.SetAndRaise<bool>(HasDialogsProperty, ref this.hasDialogs, hasDialogs);
+				if (this.IsActive && nonDialogWindows != null) // [Workaround] non-blocking child window may be overlapped by owner window since Avalonia 0.10.15.
+				{
+					foreach (var childWindow in nonDialogWindows)
+					{
+						if (!childWindow.Topmost)
+						{
+							childWindow.Topmost = true;
+							childWindow.Topmost = false;
+						}
+					}
+				}
 			});
 			this.children = typeof(Avalonia.Controls.Window).GetField("_children", BindingFlags.Instance | BindingFlags.NonPublic)?.Let(it =>
 				(List<(Avalonia.Controls.Window, bool)>)it.GetValue(this).AsNonNull()) ?? Global.Run(() =>
