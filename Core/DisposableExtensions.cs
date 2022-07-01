@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace CarinaStudio
 {
@@ -74,6 +75,66 @@ namespace CarinaStudio
 
 
 		/// <summary>
+		/// Exhange the source <see cref="IDisposable"/> with another one asynchronously.
+		/// </summary>
+		/// <typeparam name="T">Type of source <see cref="IDisposable"/>.</typeparam>
+		/// <typeparam name="R">Type of result <see cref="IDisposable"/>.</typeparam>
+		/// <param name="source">Source <see cref="IDisposable"/>.</param>
+		/// <param name="func">Exchanging function.</param>
+		/// <returns>Task of exchanging <see cref="IDisposable"/>.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static async Task<R?> ExchangeAsync<T, R>(this T? source, Func<Task<R?>> func) where T : class, IDisposable where R : class, IDisposable
+		{
+			R? result = default;
+			try
+			{
+				result = await func();
+			}
+			finally
+			{
+				if (!object.ReferenceEquals(source, result))
+				{
+					if (source is IAsyncDisposable asyncDisposable)
+						await asyncDisposable.DisposeAsync();
+					else
+						source?.Dispose();
+				}
+			}
+			return result;
+		}
+
+
+		/// <summary>
+		/// Exhange the source <see cref="IDisposable"/> with another one asynchronously.
+		/// </summary>
+		/// <typeparam name="T">Type of source <see cref="IDisposable"/>.</typeparam>
+		/// <typeparam name="R">Type of result <see cref="IDisposable"/>.</typeparam>
+		/// <param name="source">Source <see cref="IDisposable"/>.</param>
+		/// <param name="func">Exchanging function.</param>
+		/// <returns>Task of exchanging <see cref="IDisposable"/>.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static async Task<R?> ExchangeAsync<T, R>(this T? source, Func<T?, Task<R?>> func) where T : class, IDisposable where R : class, IDisposable
+		{
+			R? result = default;
+			try
+			{
+				result = await func(source);
+			}
+			finally
+			{
+				if (!object.ReferenceEquals(source, result))
+				{
+					if (source is IAsyncDisposable asyncDisposable)
+						await asyncDisposable.DisposeAsync();
+					else
+						source?.Dispose();
+				}
+			}
+			return result;
+		}
+
+
+		/// <summary>
 		/// Use the given <see cref="IDisposable"/> to perform action then dispose it before returning from method.
 		/// </summary>
 		/// <typeparam name="T">Type which implements <see cref="IDisposable"/>.</typeparam>
@@ -133,6 +194,55 @@ namespace CarinaStudio
 			finally
 			{
 				disposable.Dispose();
+			}
+		}
+
+
+		/// <summary>
+		/// Use the given <see cref="IDisposable"/> to perform action asynchronously then dispose it before returning from method.
+		/// </summary>
+		/// <typeparam name="T">Type which implements <see cref="IDisposable"/>.</typeparam>
+		/// <param name="disposable"><see cref="IDisposable"/>.</param>
+		/// <param name="action">Action to perform.</param>
+		/// <returns>Task of asynchronous action.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static async Task UseAsync<T>(this T disposable, Func<T, Task> action) where T : IDisposable
+		{
+			try
+			{
+				await action(disposable);
+			}
+			finally
+			{
+				if (disposable is IAsyncDisposable asyncDisposable)
+					await asyncDisposable.DisposeAsync();
+				else
+					disposable.Dispose();
+			}
+		}
+
+
+		/// <summary>
+		/// Use the given <see cref="IDisposable"/> to generate value asynchronously then dispose it before returning from method.
+		/// </summary>
+		/// <typeparam name="T">Type which implements <see cref="IDisposable"/>.</typeparam>
+		/// <typeparam name="R">Type of generated value.</typeparam>
+		/// <param name="disposable"><see cref="IDisposable"/>.</param>
+		/// <param name="func">Using function.</param>
+		/// <returns>Task of generating value.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static async Task<R> UseAsync<T, R>(this T disposable, Func<T, Task<R>> func) where T : IDisposable
+		{
+			try
+			{
+				return await func(disposable);
+			}
+			finally
+			{
+				if (disposable is IAsyncDisposable asyncDisposable)
+					await asyncDisposable.DisposeAsync();
+				else
+					disposable.Dispose();
 			}
 		}
 	}
