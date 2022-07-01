@@ -111,6 +111,16 @@
 			<abControls:ProgressRing Background="Green" BorderBrush="DarkGreen" Foreground="Yellow" Height="50" HorizontalAlignment="Left" IsIndeterminate="True" RingBorderThickness="2" RingThickness="10" Value="66" Width="70"/>
 			<Separator/>
 
+			<!-- TextBlock -->
+			<TextBlock Classes="Header1" Text="TextBlock"/>
+			<abControls:TextBlock HorizontalAlignment="Left" Text="TextBlock with loooooooog text"/>
+			<abControls:TextBlock HorizontalAlignment="Left" Text="(With ToolTip) TextBlock with loooooooog text" Width="180"/>
+			<abControls:TextBlock HorizontalAlignment="Left" Text="(Without ToolTip) TextBlock with loooooooog text" ShowToolTipWhenTextTrimmed="False" Width="180"/>
+			<Panel HorizontalAlignment="Left">
+				<Border BorderBrush="Red" BorderThickness="1" IsVisible="{Binding #multiLineTextBlock.IsMultiLineText}"/>
+				<abControls:TextBlock Name="multiLineTextBlock" Margin="1" Text="The border will be visible if text inside the TextBlock is multi-line" TextWrapping="Wrap" Width="100"/>
+			</Panel>
+			<Separator Classes="Small"/>
 
 			<!-- TimeSpanTextBox -->
 			<TextBlock Classes="Header1" Text="TimeSpanTextBox"/>

@@ -18,7 +18,7 @@ namespace CarinaStudio
 
 
         void ExecuteLinkTextBlockCommand(object? parameter) =>
-            (parameter as TextBlock)?.Let(it => it.Text = "Command executed!!!");
+            (parameter as Avalonia.Controls.TextBlock)?.Let(it => it.Text = "Command executed!!!");
         
 
         void IncreateProgressRingValue() => 
