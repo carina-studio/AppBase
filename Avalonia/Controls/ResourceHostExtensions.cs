@@ -8,6 +8,24 @@ namespace CarinaStudio.Controls
     /// </summary>
     public static class ResourceHostExtensions
     {
+#pragma warning disable CS8601
+		/// <summary>
+		/// Find resource with given type or use default value.
+		/// </summary>
+		/// <typeparam name="T">Type of resource.</typeparam>
+		/// <param name="resourceHost"><see cref="IResourceHost"/>.</param>
+		/// <param name="key">Resource key.</param>
+		/// <param name="defaultValue">Default value.</param>
+		/// <returns></returns>
+		public static T FindResourceOrDefault<T>(this IResourceHost resourceHost, object key, T defaultValue = default)
+		{
+			if (resourceHost.TryFindResource(key, out var rawRes) && rawRes is T targetRes)
+				return targetRes;
+			return defaultValue;
+		}
+#pragma warning restore CS8601
+
+
 		/// <summary>
 		/// Try finding resource with given type.
 		/// </summary>
