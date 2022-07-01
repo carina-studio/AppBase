@@ -6,6 +6,6 @@ namespace CarinaStudio
     /// <summary>
     /// <see cref="IApplication"/> which based-on Avalonia.
     /// </summary>
-    public interface IAvaloniaApplication : IApplication, IResourceNode
+    public interface IAvaloniaApplication : IApplication, IResourceNode, IResourceHost
     { }
 }
