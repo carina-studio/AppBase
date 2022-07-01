@@ -11,6 +11,16 @@ namespace CarinaStudio
 
 
     /// <summary>
+    /// Function to consume reference to variable.
+    /// </summary>
+    /// <param name="arg1">1st argument.</param>
+    /// <typeparam name="T1">Type of 1st argument.</typeparam>
+    /// <typeparam name="R">Type of returned type of reference.</typeparam>
+    /// <returns>Result.</returns>
+    public delegate R RefInFunc<T1, R>(ref T1 arg1);
+
+
+    /// <summary>
     /// Function to return a reference to variable.
     /// </summary>
     /// <typeparam name="R">Type of returned type of reference.</typeparam>

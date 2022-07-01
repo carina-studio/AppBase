@@ -2,6 +2,7 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace CarinaStudio
 {
@@ -176,6 +177,51 @@ namespace CarinaStudio
 
 
 		/// <summary>
+		/// Perform asynchronous action on the given value, and return it.
+		/// </summary>
+		/// <typeparam name="T">Type of value.</typeparam>
+		/// <param name="value">Given value.</param>
+		/// <param name="action">Asynchronous action to perform on <paramref name="value"/>.</param>
+		/// <returns>Task of asynchronous action. The result value which is same as <paramref name="value"/>.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static async Task<T> AlsoAsync<T>(this T value, RefInFunc<T, Task> action) where T : struct
+		{
+			await action(ref value);
+			return value;
+		}
+
+
+		/// <summary>
+		/// Perform asynchronous action on the given value, and return it.
+		/// </summary>
+		/// <typeparam name="T">Type of value.</typeparam>
+		/// <param name="value">Given value.</param>
+		/// <param name="action">Asynchronous action to perform on <paramref name="value"/>.</param>
+		/// <returns>Task of asynchronous action. The result value which is same as <paramref name="value"/>.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static async Task<T?> AlsoAsync<T>(this T? value, RefInFunc<T?, Task> action) where T : struct
+		{
+			await action(ref value);
+			return value;
+		}
+
+
+		/// <summary>
+		/// Perform asynchronous action on the given value, and return it.
+		/// </summary>
+		/// <typeparam name="T">Type of value.</typeparam>
+		/// <param name="value">Given value.</param>
+		/// <param name="action">Asynchronous action to perform on <paramref name="value"/>.</param>
+		/// <returns>Task of asynchronous action. The result value which is same as <paramref name="value"/>.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static async Task<T> AlsoAsync<T>(this T value, Func<T, Task> action) where T : class?
+		{
+			await action(value);
+			return value;
+		}
+
+
+		/// <summary>
 		/// Treat given nullable value as non-null value, or throw <see cref="NullReferenceException"/>.
 		/// </summary>
 		/// <typeparam name="T">Type of value.</typeparam>
@@ -220,7 +266,30 @@ namespace CarinaStudio
 
 
 		/// <summary>
-		/// Acquire lock on given object and perform action after releasing lock.
+		/// Perform asynchronous action on the given value.
+		/// </summary>
+		/// <typeparam name="T">Type of given value.</typeparam>
+		/// <param name="value">Given value.</param>
+		/// <param name="action">Asynchronous action to perform on <paramref name="value"/>.</param>
+		/// <returns>Task of asynchronous action.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static Task LetAsync<T>(this T value, Func<T, Task> action) => action(value);
+
+
+		/// <summary>
+		/// Perform asynchronous action on the given value, and return a custom value.
+		/// </summary>
+		/// <typeparam name="T">Type of given value.</typeparam>
+		/// <typeparam name="R">Type of return value.</typeparam>
+		/// <param name="value">Given value.</param>
+		/// <param name="action">Asynchronous action to perform on <paramref name="value"/>.</param>
+		/// <returns>Task of asynchronous action.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static Task<R> LetAsync<T, R>(this T value, Func<T, Task<R>> action) => action(value);
+
+
+		/// <summary>
+		/// Acquire lock on given object and perform action before releasing lock.
 		/// </summary>
 		/// <typeparam name="T">Type of given object.</typeparam>
 		/// <param name="obj">Object to acquire lock on.</param>
@@ -242,7 +311,7 @@ namespace CarinaStudio
 
 
 		/// <summary>
-		/// Acquire lock on given object and generate value after releasing lock.
+		/// Acquire lock on given object and generate value before releasing lock.
 		/// </summary>
 		/// <typeparam name="T">Type of given object.</typeparam>
 		/// <typeparam name="R">Type of generated value.</typeparam>
@@ -265,7 +334,7 @@ namespace CarinaStudio
 
 
 		/// <summary>
-		/// Acquire lock on given object and generate reference to value after releasing lock.
+		/// Acquire lock on given object and generate reference to value before releasing lock.
 		/// </summary>
 		/// <typeparam name="T">Type of given object.</typeparam>
 		/// <typeparam name="R">Type of generated value.</typeparam>
@@ -288,7 +357,7 @@ namespace CarinaStudio
 
 
 		/// <summary>
-		/// Acquire lock on given object and generate value after releasing lock.
+		/// Acquire lock on given object and generate value before releasing lock.
 		/// </summary>
 		/// <typeparam name="T">Type of given object.</typeparam>
 		/// <typeparam name="R">Type of generated value.</typeparam>
@@ -311,7 +380,7 @@ namespace CarinaStudio
 
 
 		/// <summary>
-		/// Acquire lock on given object and generate reference to value after releasing lock.
+		/// Acquire lock on given object and generate reference to value before releasing lock.
 		/// </summary>
 		/// <typeparam name="T">Type of given object.</typeparam>
 		/// <typeparam name="R">Type of generated value.</typeparam>
@@ -325,6 +394,74 @@ namespace CarinaStudio
 			try
 			{
 				return ref func(obj);
+			}
+			finally
+			{
+				Monitor.Exit(obj);
+			}
+		}
+
+
+		/// <summary>
+		/// Acquire lock on given object and perform asynchronous action before releasing lock.
+		/// </summary>
+		/// <typeparam name="T">Type of given object.</typeparam>
+		/// <param name="obj">Object to acquire lock on.</param>
+		/// <param name="action">Action to perform.</param>
+		/// <returns>Task of asynchronous action to generated value.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static async Task LockAsync<T>(this T obj, Func<T, Task> action) where T : class
+		{
+			Monitor.Enter(obj);
+			try
+			{
+				await action(obj);
+			}
+			finally
+			{
+				Monitor.Exit(obj);
+			}
+		}
+
+
+		/// <summary>
+		/// Acquire lock on given object and generate value asynchronously before releasing lock.
+		/// </summary>
+		/// <typeparam name="T">Type of given object.</typeparam>
+		/// <typeparam name="R">Type of generated value.</typeparam>
+		/// <param name="obj">Object to acquire lock on.</param>
+		/// <param name="func">Function to generate value.</param>
+		/// <returns>Task of generating value asynchronously.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static async Task<R> LockAsync<T, R>(this T obj, Func<Task<R>> func) where T : class
+		{
+			Monitor.Enter(obj);
+			try
+			{
+				return await func();
+			}
+			finally
+			{
+				Monitor.Exit(obj);
+			}
+		}
+
+
+		/// <summary>
+		/// Acquire lock on given object and generate value asynchronously before releasing lock.
+		/// </summary>
+		/// <typeparam name="T">Type of given object.</typeparam>
+		/// <typeparam name="R">Type of generated value.</typeparam>
+		/// <param name="obj">Object to acquire lock on.</param>
+		/// <param name="func">Function to generate value.</param>
+		/// <returns>Task of generating value asynchronously.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static async Task<R> LockAsync<T, R>(this T obj, Func<T, Task<R>> func) where T : class
+		{
+			Monitor.Enter(obj);
+			try
+			{
+				return await func(obj);
 			}
 			finally
 			{
