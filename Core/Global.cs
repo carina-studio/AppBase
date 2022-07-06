@@ -43,31 +43,121 @@ namespace CarinaStudio
 		/// <summary>
 		/// Generate a value.
 		/// </summary>
-		/// <typeparam name="T">Type of generated value.</typeparam>
+		/// <typeparam name="R">Type of generated value.</typeparam>
 		/// <param name="func">Function to generate value.</param>
 		/// <returns>Generated value.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static T Run<T>(Func<T> func) => func();
+		public static R Run<R>(Func<R> func) => func();
 
 
 		/// <summary>
 		/// Generate a reference to value.
 		/// </summary>
-		/// <typeparam name="T">Type of generated value.</typeparam>
+		/// <typeparam name="R">Type of generated value.</typeparam>
 		/// <param name="func">Function to generate reference to value.</param>
 		/// <returns>Generated reference to value.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static ref T Run<T>(RefOutFunc<T> func) => ref func();
+		public static ref R Run<R>(RefOutFunc<R> func) => ref func();
 
 
 		/// <summary>
 		/// Generate a pointer of unmanaged type.
 		/// </summary>
-		/// <typeparam name="T">Unmanaged type.</typeparam>
+		/// <typeparam name="R">Unmanaged type.</typeparam>
 		/// <param name="func">Function to generate pointer of unmanaged type.</param>
 		/// <returns>Generated pointer of unmanaged type.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe T* Run<T>(PointerOutFunc<T> func) where T : unmanaged => func();
+		public static unsafe R* Run<R>(PointerOutFunc<R> func) where R : unmanaged => func();
+
+
+#pragma warning disable CS8601
+		/// <summary>
+		/// Try generating value or return default value if error occurs.
+		/// </summary>
+		/// <param name="func">Function to generate value.</param>
+		/// <param name="defaultValue">Default value.</param>
+		/// <typeparam name="R">Type of generated value.</typeparam>
+		/// <returns>Generated value.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static R RunOrDefault<R>(Func<R> func, R defaultValue = default)
+		{
+			try
+			{
+				return func();
+			}
+			catch
+			{
+				return defaultValue;
+			}
+		}
+
+
+		/// <summary>
+		/// Try generating value or return default value if error occurs.
+		/// </summary>
+		/// <param name="func">Function to generate value.</param>
+		/// <param name="errorHandler">Action to handle occurred error.</param>
+		/// <param name="defaultValue">Default value.</param>
+		/// <typeparam name="R">Type of generated value.</typeparam>
+		/// <returns>Generated value.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static R RunOrDefault<R>(Func<R> func, Action<Exception> errorHandler, R defaultValue = default)
+		{
+			try
+			{
+				return func();
+			}
+			catch (Exception ex)
+			{
+				errorHandler(ex);
+				return defaultValue;
+			}
+		}
+
+
+		/// <summary>
+		/// Try generating value asynchronously or return default value if error occurs.
+		/// </summary>
+		/// <param name="func">Function to generate value.</param>
+		/// <param name="defaultValue">Default value.</param>
+		/// <typeparam name="R">Type of generated value.</typeparam>
+		/// <returns>Generated value.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static async Task<R> RunOrDefaultAsync<R>(Func<Task<R>> func, R defaultValue = default)
+		{
+			try
+			{
+				return await func();
+			}
+			catch
+			{
+				return defaultValue;
+			}
+		}
+
+
+		/// <summary>
+		/// Try generating value asynchronously or return default value if error occurs.
+		/// </summary>
+		/// <param name="func">Function to generate value.</param>
+		/// <param name="errorHandler">Action to handle occurred error.</param>
+		/// <param name="defaultValue">Default value.</param>
+		/// <typeparam name="R">Type of generated value.</typeparam>
+		/// <returns>Generated value.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static async Task<R> RunOrDefaultAsync<R>(Func<Task<R>> func, Action<Exception> errorHandler, R defaultValue = default)
+		{
+			try
+			{
+				return await func();
+			}
+			catch (Exception ex)
+			{
+				errorHandler(ex);
+				return defaultValue;
+			}
+		}
+#pragma warning restore CS8601
 
 
 #pragma warning disable CS8604
