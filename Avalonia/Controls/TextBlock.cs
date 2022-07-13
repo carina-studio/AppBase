@@ -39,6 +39,7 @@ namespace CarinaStudio.Controls
 
 
         // Fields.
+        IDisposable? isWindowActiveObserverToken;
         bool isMultiLineText;
         bool isTextTrimmed;
         readonly List<(int, int)> textLineRanges = new List<(int, int)>();
@@ -81,7 +82,8 @@ namespace CarinaStudio.Controls
             this.updateToolTipAction = new ScheduledAction(() =>
             {
                 if (!this.isTextTrimmed
-                    || !this.GetValue<bool>(ShowToolTipWhenTextTrimmedProperty))
+                    || !this.GetValue<bool>(ShowToolTipWhenTextTrimmedProperty)
+                    || (Platform.IsMacOS && this.window?.IsActive == false))
                 {
                     this.ClearValue(ToolTip.TipProperty);
                 }
@@ -196,12 +198,18 @@ namespace CarinaStudio.Controls
         {
             base.OnAttachedToLogicalTree(e);
             this.window = this.FindLogicalAncestorOfType<Window>();
+            if (Platform.IsMacOS)
+            {
+                this.isWindowActiveObserverToken = this.window?.GetObservable(Window.IsActiveProperty)?.Subscribe(_ => 
+                    this.updateToolTipAction.Schedule());
+            }
         }
 
 
         /// <inheritdoc/>
         protected override void OnDetachedFromLogicalTree(LogicalTreeAttachmentEventArgs e)
         {
+            this.isWindowActiveObserverToken = this.isWindowActiveObserverToken.DisposeAndReturnNull();
             this.window = null;
             base.OnDetachedFromLogicalTree(e);
         }
