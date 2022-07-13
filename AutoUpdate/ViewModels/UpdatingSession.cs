@@ -101,6 +101,7 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 
 
 		// Fields.
+		Version? applicationBaseVersion;
 		string? applicationDirectoryPath;
 		readonly MutableObservableBoolean canCancelUpdating = new MutableObservableBoolean();
 		readonly MutableObservableBoolean canStartUpdating = new MutableObservableBoolean(true);
@@ -146,6 +147,26 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 
 
 		/// <summary>
+		/// Get or set base version of application to update.
+		/// </summary>
+		public Version? ApplicationBaseVersion
+		{
+			get => this.applicationBaseVersion;
+			set
+			{
+				this.VerifyAccess();
+				this.VerifyDisposed();
+				if (this.updater.State != UpdaterState.Initializing)
+					throw new InvalidOperationException();
+				if (this.applicationBaseVersion == value)
+					return;
+				this.applicationBaseVersion = value;
+				this.OnPropertyChanged(nameof(ApplicationBaseVersion));
+			}
+		}
+
+
+		/// <summary>
 		/// Get or set name of application to update.
 		/// </summary>
 		public string? ApplicationName
@@ -178,7 +199,7 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 		/// <returns><see cref="IPackageResolver"/>.</returns>
 		/// <remarks>Will create <see cref="XmlPackageResolver"/> by default implementation.</remarks>
 		protected virtual IPackageResolver CreatePackageResolver(IStreamProvider source) =>
-			new XmlPackageResolver(this.Application) { Source = source };
+			new XmlPackageResolver(this.Application, this.applicationBaseVersion) { Source = source };
 
 
 		/// <summary>

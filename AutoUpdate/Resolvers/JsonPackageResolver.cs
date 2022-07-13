@@ -16,12 +16,19 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 	/// </summary>
 	public class JsonPackageResolver : BasePackageResolver
 	{
+		// Fields.
+		readonly Version? appVersion;
+
+
 		/// <summary>
 		/// Initialize new <see cref="JsonPackageResolver"/> instance.
 		/// </summary>
 		/// <param name="app">Application.</param>
-		public JsonPackageResolver(IApplication app) : base(app) 
-		{ }
+		/// <param name="baseAppVersion">Base version of application to update.</param>
+		public JsonPackageResolver(IApplication app, Version? baseAppVersion) : base(app) 
+		{ 
+			this.appVersion = baseAppVersion;
+		}
 
 
 		/// <summary>
@@ -44,14 +51,17 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 			var packageVersion = (Version?)null;
 			var pageUri = (Uri?)null;
 			var packageUri = (Uri?)null;
+			var baseVersion = (Version?)null;
 			var md5 = (string?)null;
 			var sha256 = (string?)null;
 			var sha512 = (string?)null;
 			var selfContainedPackageUri = (Uri?)null;
+			var selfContainedBaseVersion = (Version?)null;
 			var selfContainedMd5 = (string?)null;
 			var selfContainedSha256 = (string?)null;
 			var selfContainedSha512 = (string?)null;
 			var genericPackageUri = (Uri?)null;
+			var genericBaseVersion = (Version?)null;
 			var genericMd5 = (string?)null;
 			var genericSha256 = (string?)null;
 			var genericSha512 = (string?)null;
@@ -136,16 +146,28 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 						: null;
 					var isRuntimeMatched = runtimeVersion == null || (installedRuntimeVersion != null && runtimeVersion <= installedRuntimeVersion);
 
+					// check base version
+					var hasTargetBaseVersion = jsonPackageElement.TryGetProperty("BaseVersion", out jsonValue);
+					var targetBaseVersion = hasTargetBaseVersion && jsonValue.ValueKind == JsonValueKind.String
+						? (Version.TryParse(jsonValue.GetString(), out version) ? version : null)
+						: null;
+					if (targetBaseVersion != null && targetBaseVersion != this.appVersion)
+						continue;
+
 					// select package
 					if (!hasOsProperty && !hasArchProperty && !hasRuntimeProperty)
 					{
-						genericPackageUri = uri;
-						if (jsonPackageElement.TryGetProperty("MD5", out jsonValue) && jsonValue.ValueKind == JsonValueKind.String)
-							genericMd5 = jsonValue.GetString();
-						if (jsonPackageElement.TryGetProperty("SHA256", out jsonValue) && jsonValue.ValueKind == JsonValueKind.String)
-							genericSha256 = jsonValue.GetString();
-						if (jsonPackageElement.TryGetProperty("SHA512", out jsonValue) && jsonValue.ValueKind == JsonValueKind.String)
-							genericSha512 = jsonValue.GetString();
+						if (genericBaseVersion == null || targetBaseVersion != null)
+						{
+							genericPackageUri = uri;
+							genericBaseVersion = targetBaseVersion;
+							if (jsonPackageElement.TryGetProperty("MD5", out jsonValue) && jsonValue.ValueKind == JsonValueKind.String)
+								genericMd5 = jsonValue.GetString();
+							if (jsonPackageElement.TryGetProperty("SHA256", out jsonValue) && jsonValue.ValueKind == JsonValueKind.String)
+								genericSha256 = jsonValue.GetString();
+							if (jsonPackageElement.TryGetProperty("SHA512", out jsonValue) && jsonValue.ValueKind == JsonValueKind.String)
+								genericSha512 = jsonValue.GetString();
+						}
 					}
 					else if (isOsMatched && isArchMatched && isRuntimeMatched)
 					{
@@ -153,9 +175,11 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 							continue;
 						if (runtimeVersion == null)
 						{
-							if (!isWindows7)
+							if (!isWindows7 
+								&& (selfContainedBaseVersion == null || targetBaseVersion != null))
 							{
 								selfContainedPackageUri = uri;
+								selfContainedBaseVersion = targetBaseVersion;
 								if (jsonPackageElement.TryGetProperty("MD5", out jsonValue) && jsonValue.ValueKind == JsonValueKind.String)
 									selfContainedMd5 = jsonValue.GetString();
 								if (jsonPackageElement.TryGetProperty("SHA256", out jsonValue) && jsonValue.ValueKind == JsonValueKind.String)
@@ -164,9 +188,10 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 									selfContainedSha512 = jsonValue.GetString();
 							}
 						}
-						else
+						else if (baseVersion == null || targetBaseVersion != null)
 						{
 							packageUri = uri;
+							baseVersion = targetBaseVersion;
 							if (jsonPackageElement.TryGetProperty("MD5", out jsonValue) && jsonValue.ValueKind == JsonValueKind.String)
 								md5 = jsonValue.GetString();
 							if (jsonPackageElement.TryGetProperty("SHA256", out jsonValue) && jsonValue.ValueKind == JsonValueKind.String)

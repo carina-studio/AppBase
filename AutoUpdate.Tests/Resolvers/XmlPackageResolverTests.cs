@@ -17,7 +17,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 		protected override IPackageResolver CreateInstance(string packageManifest)
 		{
 			var memoryStreamProvider = new MemoryStreamProvider(Encoding.UTF8.GetBytes(packageManifest));
-			return new XmlPackageResolver(this.Application) { Source = memoryStreamProvider };
+			return new XmlPackageResolver(this.Application, this.Application.Assembly.GetName()?.Version) { Source = memoryStreamProvider };
 		}
 
 
@@ -34,6 +34,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 			foreach (var packageInfo in packageInfos)
 			{
 				xmlWriter.WriteStartElement("Package");
+				packageInfo.BaseVersion?.Let(it => xmlWriter.WriteAttributeString("BaseVersion", it.ToString()));
 				packageInfo.Architecture?.Let(it => xmlWriter.WriteAttributeString("Architecture", it.ToString()));
 				packageInfo.RuntimeVersion?.Let(it => xmlWriter.WriteAttributeString("RuntimeVersion", it.ToString()));
 				packageInfo.MD5?.Let(it => xmlWriter.WriteAttributeString("MD5", it));

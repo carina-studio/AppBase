@@ -13,12 +13,19 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 	/// </summary>
 	public class XmlPackageResolver : BasePackageResolver
 	{
+		// Fields.
+		readonly Version? appVersion;
+
+
 		/// <summary>
 		/// Initialize new <see cref="XmlPackageResolver"/> instance.
 		/// </summary>
 		/// <param name="app">Application.</param>
-		public XmlPackageResolver(IApplication app) : base(app)
-		{ }
+		/// <param name="baseAppVersion">Base version of application to update.</param>
+		public XmlPackageResolver(IApplication app, Version? baseAppVersion) : base(app)
+		{
+			this.appVersion = baseAppVersion;
+		}
 
 
 		/// <summary>
@@ -41,14 +48,17 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 			var packageVersion = (Version?)null;
 			var pageUri = (Uri?)null;
 			var packageUri = (Uri?)null;
+			var baseVersion = (Version?)null;
 			var md5 = (string?)null;
 			var sha256 = (string?)null;
 			var sha512 = (string?)null;
 			var selfContainedPackageUri = (Uri?)null;
+			var selfContainedBaseVersion = (Version?)null;
 			var selfContainedMd5 = (string?)null;
 			var selfContainedSha256 = (string?)null;
 			var selfContainedSha512 = (string?)null;
 			var genericPackageUri = (Uri?)null;
+			var genericBaseVersion = (Version?)null;
 			var genericMd5 = (string?)null;
 			var genericSha256 = (string?)null;
 			var genericSha512 = (string?)null;
@@ -139,14 +149,26 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 								|| (Version.TryParse(runtimeVersionAttr.Value, out var version) 
 									&& installedRuntimeVersion != null 
 									&& version <= installedRuntimeVersion);
+							
+							// check base version
+							var trgetBaseVersionAttr = packageAttrs["BaseVersion"];
+							var targetBaseVersion = trgetBaseVersionAttr != null && Version.TryParse(trgetBaseVersionAttr.Value, out version)
+								? version 
+								: null;
+							if (targetBaseVersion != null && targetBaseVersion != this.appVersion)
+								continue;
 
 							// select package
 							if (osAttribute == null && archArrtibute == null && runtimeVersionAttr == null)
 							{
-								genericPackageUri = uri;
-								packageAttrs["MD5"]?.Let(attr => genericMd5 = attr.Value);
-								packageAttrs["SHA256"]?.Let(attr => genericSha256 = attr.Value);
-								packageAttrs["SHA512"]?.Let(attr => genericSha512 = attr.Value);
+								if (genericBaseVersion == null || targetBaseVersion != null)
+								{
+									genericPackageUri = uri;
+									genericBaseVersion = targetBaseVersion;
+									packageAttrs["MD5"]?.Let(attr => genericMd5 = attr.Value);
+									packageAttrs["SHA256"]?.Let(attr => genericSha256 = attr.Value);
+									packageAttrs["SHA512"]?.Let(attr => genericSha512 = attr.Value);
+								}
 							}
 							else if (isOsMatched && isArchMatched && isruntimeMatched)
 							{
@@ -154,17 +176,19 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 									continue;
 								if (runtimeVersionAttr == null)
 								{
-									if (!isWindows7)
+									if (!isWindows7 && (selfContainedBaseVersion == null || targetBaseVersion != null))
 									{
 										selfContainedPackageUri = uri;
+										selfContainedBaseVersion = targetBaseVersion;
 										packageAttrs["MD5"]?.Let(attr => selfContainedMd5 = attr.Value);
 										packageAttrs["SHA256"]?.Let(attr => selfContainedSha256 = attr.Value);
 										packageAttrs["SHA512"]?.Let(attr => selfContainedSha512 = attr.Value);
 									}
 								}
-								else
+								else if (baseVersion == null || targetBaseVersion != null)
 								{
 									packageUri = uri;
+									baseVersion = targetBaseVersion;
 									packageAttrs["MD5"]?.Let(attr => md5 = attr.Value);
 									packageAttrs["SHA256"]?.Let(attr => sha256 = attr.Value);
 									packageAttrs["SHA512"]?.Let(attr => sha512 = attr.Value);

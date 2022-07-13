@@ -18,7 +18,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 		protected override IPackageResolver CreateInstance(string packageManifest)
 		{
 			var streamProvider = new MemoryStreamProvider(Encoding.UTF8.GetBytes(packageManifest), false);
-			return new JsonPackageResolver(this.Application) { Source = streamProvider };
+			return new JsonPackageResolver(this.Application, this.Application.Assembly.GetName()?.Version) { Source = streamProvider };
 		}
 
 
@@ -37,6 +37,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 				foreach (var packageInfo in packageInfos)
 				{
 					jsonWriter.WriteStartObject();
+					packageInfo.BaseVersion?.Let(it => jsonWriter.WriteString("BaseVersion", it.ToString()));
 					packageInfo.OperatingSystem?.Let(it => jsonWriter.WriteString("OperatingSystem", it));
 					packageInfo.Architecture?.Let(it => jsonWriter.WriteString("Architecture", it.ToString()));
 					packageInfo.RuntimeVersion?.Let(it => jsonWriter.WriteString("RuntimeVersion", it.ToString()));

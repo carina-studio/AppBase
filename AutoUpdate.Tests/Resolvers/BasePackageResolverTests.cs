@@ -2,6 +2,7 @@
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
@@ -21,6 +22,10 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 			/// Get or set CPU architecture.
 			/// </summary>
 			public Architecture? Architecture { get; set; }
+			/// <summary>
+			/// Get or set base version to upgrade.
+			/// </summary>
+			public Version? BaseVersion { get; set; }
 			/// <summary>
 			/// MD5 of update package.
 			/// </summary>
@@ -160,9 +165,10 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 			{
 				// prepare
 				var appName = Tests.Random.GenerateRandomString(8);
+				var appVersion = Assembly.GetExecutingAssembly()!.GetName()!.Version;
 				var version = new Version(1, 2, 3, 4);
 				var pageUri = new Uri("https://localhost/Package.htm");
-				var RuntimeVersion = Environment.Version;
+				var runtimeVersion = Environment.Version;
 				var packageInfos = new List<PackageInfo>()
 				{
 					new PackageInfo()
@@ -177,7 +183,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					new PackageInfo()
 					{
 						Architecture = Architecture.X86,
-						RuntimeVersion = RuntimeVersion,
+						RuntimeVersion = runtimeVersion,
 						MD5 = "MD5-Windows-X86",
 						OperatingSystem = "Windows",
 						SHA256 = "SHA256-Windows-X86",
@@ -206,7 +212,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					new PackageInfo()
 					{
 						Architecture = Architecture.X64,
-						RuntimeVersion = RuntimeVersion,
+						RuntimeVersion = runtimeVersion,
 						MD5 = "MD5-Windows-X64",
 						OperatingSystem = "Windows",
 						SHA256 = "SHA256-Windows-X64",
@@ -235,7 +241,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					new PackageInfo()
 					{
 						Architecture = Architecture.X64,
-						RuntimeVersion = RuntimeVersion,
+						RuntimeVersion = runtimeVersion,
 						MD5 = "MD5-Linux-X64",
 						OperatingSystem = "Linux",
 						SHA256 = "SHA256-Linux-X64",
@@ -264,7 +270,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					new PackageInfo()
 					{
 						Architecture = Architecture.Arm64,
-						RuntimeVersion = RuntimeVersion,
+						RuntimeVersion = runtimeVersion,
 						MD5 = "MD5-Linux-Arm64",
 						OperatingSystem = "Linux",
 						SHA256 = "SHA256-Linux-Arm64",
@@ -293,7 +299,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					new PackageInfo()
 					{
 						Architecture = Architecture.X64,
-						RuntimeVersion = RuntimeVersion,
+						RuntimeVersion = runtimeVersion,
 						MD5 = "MD5-OSX-X64",
 						OperatingSystem = "OSX",
 						SHA256 = "SHA256-OSX-X64",
@@ -322,7 +328,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					new PackageInfo()
 					{
 						Architecture = Architecture.Arm64,
-						RuntimeVersion = RuntimeVersion,
+						RuntimeVersion = runtimeVersion,
 						MD5 = "MD5-OSX-Arm64",
 						OperatingSystem = "OSX",
 						SHA256 = "SHA256-OSX-Arm64",
@@ -406,6 +412,60 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					Assert.IsTrue(packageResolver.Start());
 					Assert.IsTrue(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Failed, 10000));
 				}
+
+				// resolve package info with self-contained package with specified base version only
+				var tempPackageInfo = new PackageInfo()
+				{
+					Architecture = architecture,
+					BaseVersion = appVersion,
+					MD5 = $"MD5-{osName}-{architecture}-SelfContained-partial",
+					OperatingSystem = $"{osName}",
+					SHA256 = $"SHA256-{osName}-{architecture}-SelfContained-partial",
+					SHA512 = $"SHA512-{osName}-{architecture}-SelfContained-partial",
+					Uri = new Uri($"https://localhost/packages/{osName}-{architecture}-SelfContained-partial.zip"),
+				};
+				packageInfos.Insert(0, tempPackageInfo);
+				packageManifest = this.GeneratePackageManifest(appName, version, pageUri, packageInfos);
+				expectedPackageUri = new Uri($"https://localhost/packages/{osName}-{architecture}-SelfContained-partial.zip");
+				expectedMD5 = $"MD5-{osName}-{architecture}-SelfContained-partial";
+				expectedSHA256 = $"SHA256-{osName}-{architecture}-SelfContained-partial";
+				expectedSHA512 = $"SHA512-{osName}-{architecture}-SelfContained-partial";
+				using (var packageResolver = this.CreateInstance(packageManifest))
+				{
+					packageResolver.SelfContainedPackageOnly = true;
+					Assert.IsTrue(packageResolver.Start());
+					Assert.IsTrue(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Succeeded, 10000));
+					Assert.IsNull(packageResolver.Exception);
+					this.VerifyResolvedPackage(packageResolver, appName, version, pageUri, expectedPackageUri, expectedMD5, expectedSHA256, expectedSHA512);
+				}
+				packageInfos.Remove(tempPackageInfo);
+
+				// resolve package info with specified base version only
+				tempPackageInfo = new PackageInfo()
+				{
+					Architecture = architecture,
+					BaseVersion = appVersion,
+					RuntimeVersion = runtimeVersion,
+					MD5 = $"MD5-{osName}-{architecture}-partial",
+					OperatingSystem = $"{osName}",
+					SHA256 = $"SHA256-{osName}-{architecture}-partial",
+					SHA512 = $"SHA512-{osName}-{architecture}-partial",
+					Uri = new Uri($"https://localhost/packages/{osName}-{architecture}-partial.zip"),
+				};
+				packageInfos.Insert(0, tempPackageInfo);
+				packageManifest = this.GeneratePackageManifest(appName, version, pageUri, packageInfos);
+				expectedPackageUri = new Uri($"https://localhost/packages/{osName}-{architecture}-partial.zip");
+				expectedMD5 = $"MD5-{osName}-{architecture}-partial";
+				expectedSHA256 = $"SHA256-{osName}-{architecture}-partial";
+				expectedSHA512 = $"SHA512-{osName}-{architecture}-partial";
+				using (var packageResolver = this.CreateInstance(packageManifest))
+				{
+					Assert.IsTrue(packageResolver.Start());
+					Assert.IsTrue(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Succeeded, 10000));
+					Assert.IsNull(packageResolver.Exception);
+					this.VerifyResolvedPackage(packageResolver, appName, version, pageUri, expectedPackageUri, expectedMD5, expectedSHA256, expectedSHA512);
+				}
+				packageInfos.Remove(tempPackageInfo);
 			});
 		}
 
