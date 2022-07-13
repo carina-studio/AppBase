@@ -23,6 +23,22 @@ namespace CarinaStudio
 
         void IncreateProgressRingValue() => 
             this.FindControl<ProgressRing>("progressRing2")?.Let(it => it.Value = it.Minimum + (it.Value + 9) % (it.Maximum - it.Minimum));
+        
+
+        string LongText { get; } = new string(new char[65536 * 10].Also(it =>
+        {
+            var r = new Random();
+            for (var i = it.Length - 1; i >= 0; --i)
+            {
+                if ((i % 1024) == 0 && i > 0 && false)
+                    it[i] = '\n';
+                else
+                {
+                    var n = r.Next(36);
+                    it[i] = n < 10 ? (char)('0' + n) : (char)('A' + (n - 10));
+                }
+            }
+        }));
 
 
         void SetDateTimeToDateTimeTextBox() =>
