@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Media;
 using Avalonia.Styling;
+using CarinaStudio.Threading;
 using System;
 
 namespace CarinaStudio.Controls
@@ -26,10 +27,14 @@ namespace CarinaStudio.Controls
         public static readonly AvaloniaProperty<bool> ShowToolTipWhenTextTrimmedProperty = AvaloniaProperty.Register<TextBlock, bool>(nameof(ShowToolTipWhenTextTrimmed), true);
 
 
+        // Constants.
+        const int MaxToolTipLength = 1024;
+
+
         // Fields.
         bool isMultiLineText;
         bool isTextTrimmed;
-        IDisposable? toolTipBindingToken;
+        readonly ScheduledAction updateToolTipAction;
 
 
         /// <summary>
@@ -37,21 +42,28 @@ namespace CarinaStudio.Controls
         /// </summary>
         public TextBlock()
         {
-            this.GetObservable(IsTextTrimmedProperty).Subscribe(isTrimmed =>
-            {
-                if (!isTrimmed)
-                    this.toolTipBindingToken = this.toolTipBindingToken.DisposeAndReturnNull();
-                else if (this.GetValue<bool>(ShowToolTipWhenTextTrimmedProperty))
-                    this.toolTipBindingToken = this.Bind(ToolTip.TipProperty, new Binding() { Path = nameof(Text), Source = this });
-            });
-            this.GetObservable(ShowToolTipWhenTextTrimmedProperty).Subscribe(show =>
-            {
-                if (!show)
-                    this.toolTipBindingToken = this.toolTipBindingToken.DisposeAndReturnNull();
-                else if (this.isTextTrimmed)
-                    this.toolTipBindingToken = this.Bind(ToolTip.TipProperty, new Binding() { Path = nameof(Text), Source = this });
-            });
+            this.GetObservable(IsTextTrimmedProperty).Subscribe(_ => this.updateToolTipAction?.Schedule());
+            this.GetObservable(ShowToolTipWhenTextTrimmedProperty).Subscribe(_ => this.updateToolTipAction?.Schedule());
+            this.GetObservable(TextProperty).Subscribe(_ => this.updateToolTipAction?.Schedule());
             this.TextTrimming = TextTrimming.CharacterEllipsis;
+            this.updateToolTipAction = new ScheduledAction(() =>
+            {
+                if (!this.isTextTrimmed
+                    || !this.GetValue<bool>(ShowToolTipWhenTextTrimmedProperty))
+                {
+                    this.ClearValue(ToolTip.TipProperty);
+                }
+                else
+                {
+                    var text = this.Text;
+                    if (string.IsNullOrEmpty(text))
+                        this.ClearValue(ToolTip.TipProperty);
+                    else if (text.Length <= MaxToolTipLength)
+                        this.SetValue<object?>(ToolTip.TipProperty, text);
+                    else
+                        this.SetValue<object?>(ToolTip.TipProperty, $"{text.Substring(0, MaxToolTipLength - 1)}…");
+                }
+            });
         }
 
 
