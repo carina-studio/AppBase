@@ -38,6 +38,17 @@
             "stopAtEntry": false
         },
         {
+            "name": "Core.Tests",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-Core.Tests",
+            "program": "${workspaceFolder}/Core.Tests/bin/Debug/net6.0/CarinaStudio.Core.Tests.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/Core.Tests",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
             "name": ".NET Core Attach",
             "type": "coreclr",
             "request": "attach"
