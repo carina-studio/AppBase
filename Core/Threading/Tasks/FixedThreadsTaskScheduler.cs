@@ -11,6 +11,26 @@ namespace CarinaStudio.Threading.Tasks
 	/// </summary>
 	public class FixedThreadsTaskScheduler : TaskScheduler, IDisposable
 	{
+		// Synchronization context of scheduler.
+		class SyncContext : SynchronizationContext
+		{
+			// Fields.
+			readonly FixedThreadsTaskScheduler scheduler;
+
+			// Constructor.
+			public SyncContext(FixedThreadsTaskScheduler scheduler) =>
+				this.scheduler = scheduler;
+			
+			/// <inheritdoc/>
+			public override SynchronizationContext CreateCopy() =>
+				new SyncContext(this.scheduler);
+			
+			/// <inheritdoc/>
+			public override void Post(SendOrPostCallback d, object? state) =>
+				this.scheduler.QueueTask(new Task(() => d(state)));
+		}
+
+
 		// Fields.
 		readonly List<Thread> executionThreads;
 		volatile bool isDisposed;
@@ -65,6 +85,8 @@ namespace CarinaStudio.Threading.Tasks
 		// Entry of execution thread.
 		void ExecutionThreadProc()
 		{
+			var syncContext = new SyncContext(this);
+			SynchronizationContext.SetSynchronizationContext(syncContext);
 			while (true)
 			{
 				// get next task
@@ -96,12 +118,14 @@ namespace CarinaStudio.Threading.Tasks
 				// execute task
 				try
 				{
+					syncContext.OperationStarted();
 					this.TryExecuteTask(task);
 				}
 				finally
 				{
 					lock (this.syncLock)
 						--this.numberOfBusyThreads;
+					syncContext.OperationCompleted();
 				}
 			}
 			lock (this.syncLock)
