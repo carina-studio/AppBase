@@ -30,7 +30,7 @@ namespace CarinaStudio.Threading.Tasks
 				this.scheduler.QueueTask(new Task(() => d(state)));
 		}
 
-		
+
 		// Static fields.
 		static volatile int LatestId;
 
@@ -92,8 +92,8 @@ namespace CarinaStudio.Threading.Tasks
 		// Entry of execution thread.
 		void ExecutionThreadProc()
 		{
-			var syncContext = new SyncContext(this);
-			SynchronizationContext.SetSynchronizationContext(syncContext);
+			//var syncContext = new SyncContext(this);
+			//SynchronizationContext.SetSynchronizationContext(syncContext);
 			while (true)
 			{
 				// get next task
@@ -125,14 +125,14 @@ namespace CarinaStudio.Threading.Tasks
 				// execute task
 				try
 				{
-					syncContext.OperationStarted();
+					//syncContext.OperationStarted();
 					this.TryExecuteTask(task);
 				}
 				finally
 				{
 					lock (this.syncLock)
 						--this.numberOfBusyThreads;
-					syncContext.OperationCompleted();
+					//syncContext.OperationCompleted();
 				}
 			}
 			lock (this.syncLock)
@@ -140,10 +140,8 @@ namespace CarinaStudio.Threading.Tasks
 		}
 
 
-#pragma warning disable CS1591
-		// Get all scheduled tasks.
+		/// <inheritdoc/>
 		protected override IEnumerable<Task>? GetScheduledTasks() => this.scheduledTasks;
-#pragma warning restore CS1591
 
 
 		/// <summary>
@@ -159,8 +157,7 @@ namespace CarinaStudio.Threading.Tasks
 		}
 
 
-#pragma warning disable CS1591
-		// Schedule a task.
+		/// <inheritdoc/>
 		protected override void QueueTask(Task task)
 		{
 			lock (this.syncLock)
@@ -186,17 +183,13 @@ namespace CarinaStudio.Threading.Tasks
 				}
 			}
 		}
-#pragma warning restore CS1591
 
 
-#pragma warning disable CS1591
-		// Maximum concurrency level.
+		/// <inheritdoc/>
 		public override int MaximumConcurrencyLevel { get; }
-#pragma warning restore CS1591
 
 
-#pragma warning disable CS1591
-		// Try dequeue given task.
+		/// <inheritdoc/>
 		protected override bool TryDequeue(Task task) => this.syncLock.Lock(() =>
 		{
 			var node = this.scheduledTasks.First;
@@ -211,11 +204,9 @@ namespace CarinaStudio.Threading.Tasks
 			}
 			return false;
 		});
-#pragma warning restore CS1591
 
 
-#pragma warning disable CS1591
-		// Execute task inline.
+		/// <inheritdoc/>
 		protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
 		{
 			if (!this.IsExecutionThread)
@@ -224,6 +215,5 @@ namespace CarinaStudio.Threading.Tasks
 				return false;
 			return this.TryExecuteTask(task);
 		}
-#pragma warning restore CS1591
 	}
 }
