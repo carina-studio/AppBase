@@ -30,10 +30,16 @@ namespace CarinaStudio.Threading.Tasks
 				this.scheduler.QueueTask(new Task(() => d(state)));
 		}
 
+		
+		// Static fields.
+		static volatile int LatestId;
+
 
 		// Fields.
 		readonly List<Thread> executionThreads;
+		readonly int id;
 		volatile bool isDisposed;
+		volatile int latestExecThreadId;
 		volatile int numberOfBusyThreads;
 		readonly LinkedList<Task> scheduledTasks = new LinkedList<Task>();
 		readonly object syncLock = new object();
@@ -49,6 +55,7 @@ namespace CarinaStudio.Threading.Tasks
 		{
 			if (maxConcurrencyLevel <= 0)
 				throw new ArgumentOutOfRangeException(nameof(maxConcurrencyLevel));
+			this.id = Interlocked.Increment(ref LatestId);
 			this.MaximumConcurrencyLevel = maxConcurrencyLevel;
 			this.useBackgroundThreads = useBackgroundThreads;
 			this.executionThreads = new List<Thread>(Math.Min(32, maxConcurrencyLevel));
@@ -173,6 +180,7 @@ namespace CarinaStudio.Threading.Tasks
 					this.executionThreads.Add(new Thread(this.ExecutionThreadProc).Also((thread) =>
 					{
 						thread.IsBackground = this.useBackgroundThreads;
+						thread.Name = $"FTTaskScheduler-{this.id}-{Interlocked.Increment(ref this.latestExecThreadId)}";
 						thread.Start();
 					}));
 				}
