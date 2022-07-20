@@ -63,9 +63,23 @@
 			</StackPanel>
 			<Separator/>
 
+			<!-- FormattedString -->
+			<TextBlock Classes="Header1" Text="FormattedString"/>
+			<TextBlock>
+				<TextBlock.Text>
+					<Binding Path="String">
+						<Binding.Source>
+							<cs:FormattedString Format="{DynamicResource String/StringFormat}" Arg1="{DynamicResource String/Hello}" Arg2="{DynamicResource String/World}" Arg9="Unused"/>
+						</Binding.Source>
+					</Binding>
+				</TextBlock.Text>
+			</TextBlock>
+			<Separator/>
+
 			<!-- FormattedTextBlock -->
 			<TextBlock Classes="Header1" Text="FormattedTextBlock"/>
 			<abControls:FormattedTextBlock Format="{DynamicResource String/StringFormat}" Arg1="{DynamicResource String/Hello}" Arg2="{DynamicResource String/World}" Arg9="Unused"/>
+			<abControls:FormattedLinkTextBlock Format="{DynamicResource String/StringFormat}" Arg1="{DynamicResource String/Hello}" Arg2="{DynamicResource String/World}" Arg9="Unused"/>
 			<Separator/>
 
 			<!-- IntegerTextBox -->

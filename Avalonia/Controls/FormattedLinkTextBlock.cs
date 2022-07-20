@@ -5,50 +5,50 @@ using Avalonia.Styling;
 namespace CarinaStudio.Controls
 {
     /// <summary>
-    /// <see cref="TextBlock"/> which shows formatted text on it.
+    /// <see cref="FormattedLinkTextBlock"/> which shows formatted text on it.
     /// </summary>
-    public class FormattedTextBlock : TextBlock, IStyleable
+    public class FormattedLinkTextBlock : LinkTextBlock, IStyleable
     {
         /// <summary>
         /// Property of <see cref="Arg1"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<object?> Arg1Property = AvaloniaProperty.Register<FormattedTextBlock, object?>(nameof(Arg1));
+        public static readonly AvaloniaProperty<object?> Arg1Property = AvaloniaProperty.Register<FormattedLinkTextBlock, object?>(nameof(Arg1));
         /// <summary>
         /// Property of <see cref="Arg2"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<object?> Arg2Property = AvaloniaProperty.Register<FormattedTextBlock, object?>(nameof(Arg2));
+        public static readonly AvaloniaProperty<object?> Arg2Property = AvaloniaProperty.Register<FormattedLinkTextBlock, object?>(nameof(Arg2));
         /// <summary>
         /// Property of <see cref="Arg3"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<object?> Arg3Property = AvaloniaProperty.Register<FormattedTextBlock, object?>(nameof(Arg3));
+        public static readonly AvaloniaProperty<object?> Arg3Property = AvaloniaProperty.Register<FormattedLinkTextBlock, object?>(nameof(Arg3));
         /// <summary>
         /// Property of <see cref="Arg4"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<object?> Arg4Property = AvaloniaProperty.Register<FormattedTextBlock, object?>(nameof(Arg4));
+        public static readonly AvaloniaProperty<object?> Arg4Property = AvaloniaProperty.Register<FormattedLinkTextBlock, object?>(nameof(Arg4));
         /// <summary>
         /// Property of <see cref="Arg5"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<object?> Arg5Property = AvaloniaProperty.Register<FormattedTextBlock, object?>(nameof(Arg5));
+        public static readonly AvaloniaProperty<object?> Arg5Property = AvaloniaProperty.Register<FormattedLinkTextBlock, object?>(nameof(Arg5));
         /// <summary>
         /// Property of <see cref="Arg6"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<object?> Arg6Property = AvaloniaProperty.Register<FormattedTextBlock, object?>(nameof(Arg6));
+        public static readonly AvaloniaProperty<object?> Arg6Property = AvaloniaProperty.Register<FormattedLinkTextBlock, object?>(nameof(Arg6));
         /// <summary>
         /// Property of <see cref="Arg7"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<object?> Arg7Property = AvaloniaProperty.Register<FormattedTextBlock, object?>(nameof(Arg7));
+        public static readonly AvaloniaProperty<object?> Arg7Property = AvaloniaProperty.Register<FormattedLinkTextBlock, object?>(nameof(Arg7));
         /// <summary>
         /// Property of <see cref="Arg8"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<object?> Arg8Property = AvaloniaProperty.Register<FormattedTextBlock, object?>(nameof(Arg8));
+        public static readonly AvaloniaProperty<object?> Arg8Property = AvaloniaProperty.Register<FormattedLinkTextBlock, object?>(nameof(Arg8));
         /// <summary>
         /// Property of <see cref="Arg9"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<object?> Arg9Property = AvaloniaProperty.Register<FormattedTextBlock, object?>(nameof(Arg9));
+        public static readonly AvaloniaProperty<object?> Arg9Property = AvaloniaProperty.Register<FormattedLinkTextBlock, object?>(nameof(Arg9));
         /// <summary>
         /// Property of <see cref="Format"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<string?> FormatProperty = AvaloniaProperty.Register<FormattedTextBlock, string?>(nameof(Format));
+        public static readonly AvaloniaProperty<string?> FormatProperty = AvaloniaProperty.Register<FormattedLinkTextBlock, string?>(nameof(Format));
 
 
         // Fields.
@@ -57,9 +57,9 @@ namespace CarinaStudio.Controls
 
 
         /// <summary>
-        /// Initialize new <see cref="FormattedTextBlock"/> instance.
+        /// Initialize new <see cref="FormattedLinkTextBlock"/> instance.
         /// </summary>
-        public FormattedTextBlock()
+        public FormattedLinkTextBlock()
         {
             var isCtor = true;
             this.formattedString.Subscribe(text =>
@@ -194,6 +194,6 @@ namespace CarinaStudio.Controls
 
 
         // Interface implementation.
-        Type IStyleable.StyleKey { get; } = typeof(Avalonia.Controls.TextBlock);
+        Type IStyleable.StyleKey { get; } = typeof(LinkTextBlock);
     }
 }

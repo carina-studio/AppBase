@@ -11,7 +11,7 @@ namespace CarinaStudio.Controls
     /// <summary>
     /// <see cref="TextBlock"/> which supports open the link.
     /// </summary>
-    public class LinkTextBlock : Avalonia.Controls.TextBlock, IStyleable
+    public class LinkTextBlock : TextBlock, IStyleable
     {
         /// <summary>
         /// Property of <see cref="Command"/>.
