@@ -1,7 +1,6 @@
 using System;
 using Avalonia;
 using Avalonia.Threading;
-using CarinaStudio.Threading;
 
 namespace CarinaStudio
 {
@@ -53,7 +52,7 @@ namespace CarinaStudio
         /// <summary>
         /// Property of <see cref="String"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<string> StringProperty = AvaloniaProperty.RegisterDirect<FormattedString, string>(nameof(String), fs => fs.formattedString);
+        public static readonly AvaloniaProperty<string> StringProperty = AvaloniaProperty.RegisterDirect<FormattedString, string>(nameof(String), fs => fs.String);
 
 
         // Control block of subscribed observers.
@@ -83,9 +82,10 @@ namespace CarinaStudio
         readonly IObserver<object?> argObserver;
         string formattedString = "";
         bool hasPendingDisposedObservers;
+        bool isUpdatingStringScheduled;
         int notifyingCounter;
         SubscribedObserver? observerListHead;
-        readonly ScheduledAction updateTextAction;
+        readonly Action updateStringAction;
 
 
         /// <summary>
@@ -94,31 +94,15 @@ namespace CarinaStudio
         public FormattedString()
         {
             Dispatcher.UIThread.VerifyAccess();
-            this.argObserver = new Observer<object?>(_ => this.updateTextAction?.Schedule());
-            this.updateTextAction = new ScheduledAction(() =>
+            this.argObserver = new Observer<object?>(_ => this.ScheduleUpdatingString());
+            this.updateStringAction = () =>
             {
-                var format = this.GetValue<string?>(FormatProperty);
-                var formattedString = string.IsNullOrEmpty(format)
-                    ? ""
-                    : string.Format(format, new object?[] {
-                        this.GetValue<object?>(Arg1Property),
-                        this.GetValue<object?>(Arg2Property),
-                        this.GetValue<object?>(Arg3Property),
-                        this.GetValue<object?>(Arg4Property),
-                        this.GetValue<object?>(Arg5Property),
-                        this.GetValue<object?>(Arg6Property),
-                        this.GetValue<object?>(Arg7Property),
-                        this.GetValue<object?>(Arg8Property),
-                        this.GetValue<object?>(Arg9Property),
-                    });
-                if (this.formattedString.Length != formattedString.Length
-                    || formattedString.Length > 1024
-                    || this.formattedString != formattedString)
+                if (this.isUpdatingStringScheduled)
                 {
-                    this.SetAndRaise<string>(StringProperty, ref this.formattedString, formattedString);
-                    this.Notify();
+                    this.isUpdatingStringScheduled = false;
+                    this.UpdateString();
                 }
-            });
+            };
             this.GetObservable(Arg1Property).Subscribe(this.argObserver);
             this.GetObservable(Arg2Property).Subscribe(this.argObserver);
             this.GetObservable(Arg3Property).Subscribe(this.argObserver);
@@ -278,21 +262,53 @@ namespace CarinaStudio
         }
 
 
+        // Schedule updating formatted string.
+        void ScheduleUpdatingString()
+        {
+            if (!this.isUpdatingStringScheduled)
+            {
+                this.isUpdatingStringScheduled = true;
+                Dispatcher.UIThread.Post(this.updateStringAction, DispatcherPriority.Normal);
+            }
+        }
+
+
         /// <summary>
         /// Get formatted string.
         /// </summary>
-        public string String { get => this.formattedString; }
+        public string String 
+        { 
+            get
+            {
+                if (this.isUpdatingStringScheduled)
+                {
+                    this.isUpdatingStringScheduled = false;
+                    this.UpdateString();
+                }
+                return this.formattedString;
+            }
+        }
 
 
         /// <inheritdoc/>
         public IDisposable Subscribe(IObserver<string> observer)
         {
+            // update formatted string if needed
+            if (this.isUpdatingStringScheduled)
+            {
+                this.isUpdatingStringScheduled = false;
+                this.UpdateString();
+            }
+
+            // add observer to list
             var subscribedObserver = new SubscribedObserver(this, observer);
             subscribedObserver.Next = this.observerListHead;
             if (this.observerListHead != null)
                 this.observerListHead.Previous = subscribedObserver;
             this.observerListHead = subscribedObserver;
-            observer.OnNext(this.formattedString);
+
+            // complete
+             observer.OnNext(this.formattedString);
             return subscribedObserver;
         }
 
@@ -321,6 +337,33 @@ namespace CarinaStudio
             }
             else
                 this.hasPendingDisposedObservers = true;
+        }
+
+
+        // Update formatted string.
+        void UpdateString()
+        {
+            var format = this.GetValue<string?>(FormatProperty);
+            var formattedString = string.IsNullOrEmpty(format)
+                ? ""
+                : string.Format(format, new object?[] {
+                    this.GetValue<object?>(Arg1Property),
+                    this.GetValue<object?>(Arg2Property),
+                    this.GetValue<object?>(Arg3Property),
+                    this.GetValue<object?>(Arg4Property),
+                    this.GetValue<object?>(Arg5Property),
+                    this.GetValue<object?>(Arg6Property),
+                    this.GetValue<object?>(Arg7Property),
+                    this.GetValue<object?>(Arg8Property),
+                    this.GetValue<object?>(Arg9Property),
+                });
+            if (this.formattedString.Length != formattedString.Length
+                || formattedString.Length > 1024
+                || this.formattedString != formattedString)
+            {
+                this.SetAndRaise<string>(StringProperty, ref this.formattedString, formattedString);
+                this.Notify();
+            }
         }
     }
 }
