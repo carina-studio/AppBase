@@ -28,11 +28,19 @@ namespace CarinaStudio.Animation
             {
                 // prepare
                 var stopwatch = new Stopwatch().Also(it => it.Start());
+                var random = new Random();
                 var prevProgress = 0.0;
                 var progressUpdateCount = 0;
 
                 // check interval and progress change
                 var startTime = stopwatch.ElapsedMilliseconds;
+                for (var i = 0; i < 10; ++i)
+                {
+                    Animator.Start(TimeSpan.FromMilliseconds(500 + random.Next(1001)),
+                        TimeSpan.FromMilliseconds(15 + random.Next(3)),
+                        _ => {}
+                    );
+                }
                 await Animator.StartAndWaitForCompletionAsync(TimeSpan.FromSeconds(1), TimeSpan.FromMilliseconds(16), (progress) =>
                 {
                     Assert.GreaterOrEqual(progress, prevProgress);
@@ -48,6 +56,13 @@ namespace CarinaStudio.Animation
                 prevProgress = 0;
                 progressUpdateCount = 0;
                 startTime = stopwatch.ElapsedMilliseconds;
+                for (var i = 0; i < 10; ++i)
+                {
+                    Animator.Start(TimeSpan.FromMilliseconds(500 + random.Next(1001)),
+                        TimeSpan.FromMilliseconds(32 + random.Next(3)),
+                        _ => {}
+                    );
+                }
                 await Animator.StartAndWaitForCompletionAsync(TimeSpan.FromSeconds(1), TimeSpan.FromMilliseconds(33), (progress) =>
                 {
                     Assert.GreaterOrEqual(progress, prevProgress);
@@ -65,6 +80,13 @@ namespace CarinaStudio.Animation
                 prevProgress = 1;
                 progressUpdateCount = 0;
                 startTime = stopwatch.ElapsedMilliseconds;
+                for (var i = 0; i < 10; ++i)
+                {
+                    Animator.Start(TimeSpan.FromMilliseconds(500 + random.Next(1001)),
+                        TimeSpan.FromMilliseconds(15 + random.Next(3)),
+                        _ => {}
+                    );
+                }
                 await Animator.StartAndWaitForCompletionAsync(TimeSpan.FromSeconds(1), TimeSpan.FromMilliseconds(16), Interpolators.Inverted, (progress) =>
                 {
                     Assert.LessOrEqual(progress, prevProgress);
@@ -82,6 +104,15 @@ namespace CarinaStudio.Animation
                 prevProgress = 0;
                 progressUpdateCount = 0;
                 startTime = stopwatch.ElapsedMilliseconds;
+                for (var i = 0; i < 10; ++i)
+                {
+                    new Animator().Also(it =>
+                    {
+                        it.Delay = TimeSpan.FromMilliseconds(1232 + random.Next(5));
+                        it.Duration = TimeSpan.FromMilliseconds(500 + random.Next(1001));
+                        it.Interval = TimeSpan.FromMilliseconds(15 + random.Next(3));
+                    }).Start();
+                }
                 await new Animator().Also(it =>
                 {
                     it.Delay = TimeSpan.FromMilliseconds(1234);
@@ -113,6 +144,7 @@ namespace CarinaStudio.Animation
             this.TestOnSyncContextThread(async () =>
             {
                 // prepare
+                var random = new Random();
                 var latestProgress = 0.0;
                 var isCancelledCalled = false;
                 var isCompletedCalled = false;
@@ -137,6 +169,12 @@ namespace CarinaStudio.Animation
 
                 // cancel when animating
                 animator.Start();
+                for (var i = 0; i < 10; ++i)
+                {
+                    Animator.Start(TimeSpan.FromMilliseconds(500 + random.Next(1001)),
+                        _ => {}
+                    );
+                }
                 Assert.IsTrue(animator.IsStarted);
                 await Task.Delay(500);
                 Assert.IsTrue(animator.IsStarted);
@@ -153,6 +191,12 @@ namespace CarinaStudio.Animation
                 isCancelledCalled = false;
                 isCompletedCalled = false;
                 animator.Start();
+                for (var i = 0; i < 10; ++i)
+                {
+                    Animator.Start(TimeSpan.FromMilliseconds(500 + random.Next(1001)),
+                        _ => {}
+                    );
+                }
                 Assert.IsTrue(animator.IsStarted);
                 await Task.Delay(1500);
                 Assert.IsFalse(animator.IsStarted);
@@ -184,9 +228,16 @@ namespace CarinaStudio.Animation
             this.TestOnSyncContextThread(async () =>
             {
                 // change duration in animation
+                var random = new Random();
                 var stopwatch = new Stopwatch().Also(it => it.Start());
                 var startTime = stopwatch.ElapsedMilliseconds;
                 var animator = Animator.Start(TimeSpan.FromSeconds(1), p => { });
+                for (var i = 0; i < 10; ++i)
+                {
+                    Animator.Start(TimeSpan.FromMilliseconds(500 + random.Next(2001)),
+                        _ => {}
+                    );
+                }
                 await Task.Delay(500);
                 animator.Duration = TimeSpan.FromSeconds(2);
                 await animator.WaitForCompletionAsync();
@@ -204,6 +255,12 @@ namespace CarinaStudio.Animation
                 };
                 startTime = stopwatch.ElapsedMilliseconds;
                 animator.Start();
+                for (var i = 0; i < 10; ++i)
+                {
+                    Animator.Start(TimeSpan.FromMilliseconds(2500 + random.Next(1001)),
+                        _ => {}
+                    );
+                }
                 await Task.Delay(1000);
                 var firstActualDuration = (stopwatch.ElapsedMilliseconds - startTime);
                 var firstProgressUpdateCount = progressUpdateCount;
@@ -217,6 +274,15 @@ namespace CarinaStudio.Animation
 
                 // change delay in animation
                 startTime = stopwatch.ElapsedMilliseconds;
+                for (var i = 0; i < 10; ++i)
+                {
+                    new Animator().Also(it =>
+                    {
+                        it.Delay = TimeSpan.FromMilliseconds(500 + random.Next(1001));
+                        it.Duration = TimeSpan.FromSeconds(500 + random.Next(1001));
+                        it.Start();
+                    }).Start();
+                }
                 animator = new Animator().Also(it =>
                 {
                     it.Delay = TimeSpan.FromMilliseconds(1000);

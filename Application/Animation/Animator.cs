@@ -17,18 +17,158 @@ namespace CarinaStudio.Animation
         public static readonly TimeSpan DefaultInterval = TimeSpan.FromMilliseconds(8);
 
 
+        // Timer of animation for each thread.
+        class AnimationTimer
+        {
+            // Fields.
+            readonly ScheduledAction animateAction;
+            int animatorCount;
+            long scheduledAnimationTime;
+            Animator? scheduledAnimators;
+            readonly Stopwatch stopwatch = new Stopwatch();
+
+            // Constructor.
+            public AnimationTimer()
+            {
+                this.animateAction = new ScheduledAction(() =>
+                {
+                    var currentTime = this.stopwatch.ElapsedMilliseconds;
+                    var animator = this.scheduledAnimators;
+                    while (animator != null && animator.nextAnimationTime <= currentTime)
+                    {
+                        // remove animator from list
+                        var nextAnimator = animator.nextAnimator;
+                        this.scheduledAnimators = nextAnimator;
+                        animator.nextAnimator = null;
+                        if (nextAnimator != null)
+                            nextAnimator.prevAnimator = null;
+                        
+                        // animate
+                        animator.Animate();
+                        animator = this.scheduledAnimators;
+                    }
+                    this.ScheduleNextAnimation();
+                });
+            }
+
+            // Cancel scheduled animation.
+            public void CancelAnimation(Animator animator)
+            {
+                var isFirstAnimator = this.scheduledAnimators == animator;
+                if (animator.prevAnimator != null)
+                    animator.prevAnimator.nextAnimator = animator.nextAnimator;
+                else if (this.scheduledAnimators == animator)
+                    this.scheduledAnimators = animator.nextAnimator;
+                if (animator.nextAnimator != null)
+                {
+                    animator.nextAnimator.prevAnimator = animator.prevAnimator;
+                    if (this.scheduledAnimators == animator)
+                        this.scheduledAnimators = animator.nextAnimator;
+                }
+                animator.prevAnimator = null;
+                animator.nextAnimator = null;
+                if (isFirstAnimator)
+                    this.ScheduleNextAnimation();
+            }
+
+            // Get current time for animation.
+            public long CurrentTimeMilliseconds { get => this.stopwatch.ElapsedMilliseconds; }
+
+            // Check whether animation of given animator is scheduled or not.
+            public bool IsAnimationScheduled(Animator animator) =>
+                this.scheduledAnimators == animator
+                || animator.prevAnimator != null
+                || animator.nextAnimator != null;
+
+            // Register animator.
+            public void Register(Animator animator)
+            {
+                ++this.animatorCount;
+                if (this.animatorCount == 1)
+                    this.stopwatch.Start();
+            }
+
+            // Schedule next animation.
+            public void ScheduleNextAnimation(Animator animator)
+            {
+                // remove from list first
+                if (animator.prevAnimator != null)
+                    animator.prevAnimator.nextAnimator = animator.nextAnimator;
+                if (animator.nextAnimator != null)
+                {
+                    animator.nextAnimator.prevAnimator = animator.prevAnimator;
+                    if (this.scheduledAnimators == animator)
+                        this.scheduledAnimators = animator.nextAnimator;
+                }
+
+                // add to list according to next animation time
+                if (animator.nextAnimationTime <= 0)
+                    return;
+                var prevAnimator = (Animator?)null;
+                var nextAnimator = this.scheduledAnimators;
+                while (nextAnimator != null && nextAnimator.nextAnimationTime < animator.nextAnimationTime)
+                {
+                    prevAnimator = nextAnimator;
+                    nextAnimator = nextAnimator.nextAnimator;
+                }
+                if (prevAnimator != null)
+                {
+                    animator.prevAnimator = prevAnimator;
+                    animator.nextAnimator = prevAnimator.nextAnimator;
+                    prevAnimator.nextAnimator = animator;
+                    if (animator.nextAnimator != null)
+                        animator.nextAnimator.prevAnimator = animator;
+                }
+                else
+                {
+                    animator.prevAnimator = null;
+                    animator.nextAnimator = this.scheduledAnimators;
+                    if (animator.nextAnimator != null)
+                        animator.nextAnimator.prevAnimator = animator;
+                    this.scheduledAnimators = animator;
+                }
+
+                // schedule
+                if (this.scheduledAnimators == animator)
+                    this.ScheduleNextAnimation();
+            }
+            void ScheduleNextAnimation()
+            {
+                var animator = this.scheduledAnimators;
+                if (animator == null)
+                    return;
+                if (!this.animateAction.IsScheduled || this.scheduledAnimationTime > animator.nextAnimationTime)
+                {
+                    this.scheduledAnimationTime = animator.nextAnimationTime;
+                    this.animateAction.Reschedule((int)Math.Max(0, this.scheduledAnimationTime - this.stopwatch.ElapsedMilliseconds));
+                }
+            }
+
+            // Unregister animator.
+            public void Unregister(Animator animator)
+            {
+                --this.animatorCount;
+                if (this.animatorCount <= 0)
+                    this.stopwatch.Reset();
+            }
+        }
+
+
         // Static fields.
-        static readonly Stopwatch Stopwatch = new Stopwatch().Also(it => it.Start());
+        [ThreadStatic]
+        static AnimationTimer? _CurrentAnimationTimer;
 
 
         // Fields.
-        readonly ScheduledAction animateAction;
+        readonly AnimationTimer animationTimer;
         long completionTime;
         TimeSpan delay = TimeSpan.Zero;
         TimeSpan duration;
         TimeSpan interval = DefaultInterval;
         long nextAnimationTime;
+        Animator? nextAnimator;
         long prevAnimationTime;
+        Animator? prevAnimator;
         long startTime = -1;
         readonly Thread thread;
 
@@ -38,17 +178,23 @@ namespace CarinaStudio.Animation
         /// </summary>
         public Animator()
         {
-            this.animateAction = new ScheduledAction(this.Animate);
+            this.animationTimer = _CurrentAnimationTimer ?? new AnimationTimer().Also(it => _CurrentAnimationTimer = it);
+            this.animationTimer.Register(this);
             this.SynchronizationContext = SynchronizationContext.Current.AsNonNull();
             this.thread = Thread.CurrentThread;
         }
+
+
+        /// <inheritdoc/>
+        ~Animator() =>
+            this.animationTimer.Unregister(this);
 
 
         // Perform a single step of animation.
         void Animate()
         {
             // calculate original progress
-            var currentTime = Stopwatch.ElapsedMilliseconds;
+            var currentTime = this.animationTimer.CurrentTimeMilliseconds;
             var progress = ((double)currentTime - this.startTime - this.delay.TotalMilliseconds) / this.duration.TotalMilliseconds;
 
             // complete animation
@@ -61,18 +207,18 @@ namespace CarinaStudio.Animation
             // update progress
             this.Progress = this.Interpolator(progress);
             this.OnProgressChanged(EventArgs.Empty);
-            if (!this.IsStarted || this.animateAction.IsScheduled)
+            if (!this.IsStarted || this.animationTimer.IsAnimationScheduled(this))
                 return;
 
             // schedule next update
-            currentTime = Stopwatch.ElapsedMilliseconds;
+            currentTime = this.animationTimer.CurrentTimeMilliseconds;
             while (this.nextAnimationTime <= currentTime)
             {
                 this.prevAnimationTime = this.nextAnimationTime;
                 this.nextAnimationTime += (long)this.interval.TotalMilliseconds;
             }
             this.nextAnimationTime = Math.Min(this.completionTime, this.nextAnimationTime);
-            this.ScheduleNextAnimating();
+            this.animationTimer.ScheduleNextAnimation(this);
         }
 
 
@@ -89,7 +235,7 @@ namespace CarinaStudio.Animation
                 this.prevAnimationTime = 0;
                 this.nextAnimationTime = 0;
                 this.Progress = 0;
-                this.animateAction.Cancel();
+                this.animationTimer.CancelAnimation(this);
                 this.OnCancelled(EventArgs.Empty);
             }
         }
@@ -113,7 +259,7 @@ namespace CarinaStudio.Animation
             this.prevAnimationTime = 0;
             this.nextAnimationTime = 0;
             this.Progress = 0;
-            this.animateAction.Cancel();
+            this.animationTimer.CancelAnimation(this);
             this.OnCompleted(EventArgs.Empty);
         }
 
@@ -142,20 +288,17 @@ namespace CarinaStudio.Animation
                 this.delay = value;
                 if (this.IsStarted)
                 {
-                    var currentTime = Stopwatch.ElapsedMilliseconds;
+                    var currentTime = this.animationTimer.CurrentTimeMilliseconds;
                     var scheduledStartingTime = this.startTime + (long)this.delay.TotalMilliseconds;
                     this.completionTime = this.startTime + (long)(this.delay + this.duration).TotalMilliseconds;
                     if (currentTime <= scheduledStartingTime)
                     {
                         this.prevAnimationTime = scheduledStartingTime;
                         this.nextAnimationTime = this.prevAnimationTime + (long)this.interval.TotalMilliseconds;
-                        this.animateAction.Reschedule((int)(scheduledStartingTime - currentTime));
                     }
                     else
-                    {
                         this.nextAnimationTime = Math.Min(this.completionTime, this.nextAnimationTime);
-                        this.ScheduleNextAnimating();
-                    }
+                    this.animationTimer.ScheduleNextAnimation(this);
                 }
             }
         }
@@ -179,20 +322,17 @@ namespace CarinaStudio.Animation
                 this.duration = value;
                 if (this.IsStarted)
                 {
-                    var currentTime = Stopwatch.ElapsedMilliseconds;
+                    var currentTime = this.animationTimer.CurrentTimeMilliseconds;
                     var scheduledStartingTime = this.startTime + (long)this.delay.TotalMilliseconds;
                     this.completionTime = this.startTime + (long)(this.delay + this.duration).TotalMilliseconds;
                     if (currentTime <= scheduledStartingTime)
                     {
                         this.prevAnimationTime = scheduledStartingTime;
                         this.nextAnimationTime = this.prevAnimationTime + (long)this.interval.TotalMilliseconds;
-                        this.animateAction.Reschedule((int)(scheduledStartingTime - currentTime));
                     }
                     else
-                    {
                         this.nextAnimationTime = Math.Min(this.completionTime, this.nextAnimationTime);
-                        this.ScheduleNextAnimating();
-                    }
+                    this.animationTimer.ScheduleNextAnimation(this);
                 }
             }
         }
@@ -223,7 +363,7 @@ namespace CarinaStudio.Animation
                 if (this.IsStarted)
                 {
                     this.nextAnimationTime = Math.Min(this.completionTime, this.prevAnimationTime + (long)value.TotalMilliseconds);
-                    this.ScheduleNextAnimating();
+                    this.animationTimer.ScheduleNextAnimation(this);
                 }
             }
         }
@@ -268,14 +408,6 @@ namespace CarinaStudio.Animation
         public event EventHandler? ProgressChanged;
 
 
-        // Schedule next call to Animate().
-        void ScheduleNextAnimating()
-        {
-            var delay = (this.nextAnimationTime - Stopwatch.ElapsedMilliseconds);
-            this.animateAction.Reschedule((int)delay);
-        }
-
-
         /// <summary>
         /// Start animation. The current animation whill be cancelled before starting new one.
         /// </summary>
@@ -288,11 +420,11 @@ namespace CarinaStudio.Animation
                 return;
 
             // start animation
-            this.startTime = Stopwatch.ElapsedMilliseconds;
+            this.startTime = this.animationTimer.CurrentTimeMilliseconds;
             this.completionTime = this.startTime + (long)(this.delay + this.duration).TotalMilliseconds;
             this.prevAnimationTime = this.startTime + (long)this.delay.TotalMilliseconds;
             this.nextAnimationTime = this.prevAnimationTime + (long)this.interval.TotalMilliseconds;
-            this.animateAction.Reschedule((int)this.delay.TotalMilliseconds);
+            this.animationTimer.ScheduleNextAnimation(this);
         }
 
 
@@ -304,8 +436,8 @@ namespace CarinaStudio.Animation
         /// <param name="completedAction">Action when completed.</param>
         /// <returns><see cref="Animator"/> which handles the animation.</returns>
         public static Animator Start(TimeSpan duration, Action<double> progressChangedAction, Action? completedAction = null) =>
-            Start(duration, Interpolators.Default, progressChangedAction, completedAction);
-
+            Start(duration, DefaultInterval, Interpolators.Default, progressChangedAction, completedAction);
+        
 
         /// <summary>
         /// Start new animation with default interval.
@@ -315,12 +447,38 @@ namespace CarinaStudio.Animation
         /// <param name="progressChangedAction">Action when progress changed.</param>
         /// <param name="completedAction">Action when completed.</param>
         /// <returns><see cref="Animator"/> which handles the animation.</returns>
-        public static Animator Start(TimeSpan duration, Func<double, double> interpolator, Action<double> progressChangedAction, Action? completedAction = null) => new Animator().Also(it =>
+        public static Animator Start(TimeSpan duration, Func<double, double> interpolator, Action<double> progressChangedAction, Action? completedAction = null) => 
+            Start(duration, DefaultInterval, interpolator, progressChangedAction, completedAction);
+        
+
+        /// <summary>
+        /// Start new animation with default interval.
+        /// </summary>
+        /// <param name="duration">Duration.</param>
+        /// <param name="interval">Interval between progress updating.</param>
+        /// <param name="progressChangedAction">Action when progress changed.</param>
+        /// <param name="completedAction">Action when completed.</param>
+        /// <returns><see cref="Animator"/> which handles the animation.</returns>
+        public static Animator Start(TimeSpan duration, TimeSpan interval, Action<double> progressChangedAction, Action? completedAction = null) => 
+            Start(duration, interval, Interpolators.Default, progressChangedAction, completedAction);
+
+
+        /// <summary>
+        /// Start new animation with default interval.
+        /// </summary>
+        /// <param name="duration">Duration.</param>
+        /// <param name="interval">Interval between progress updating.</param>
+        /// <param name="interpolator">Interpolator.</param>
+        /// <param name="progressChangedAction">Action when progress changed.</param>
+        /// <param name="completedAction">Action when completed.</param>
+        /// <returns><see cref="Animator"/> which handles the animation.</returns>
+        public static Animator Start(TimeSpan duration, TimeSpan interval, Func<double, double> interpolator, Action<double> progressChangedAction, Action? completedAction = null) => new Animator().Also(it =>
         {
             it.Duration = duration;
             if (completedAction != null)
                 it.Completed += (_, e) => completedAction();
             it.Interpolator = interpolator;
+            it.Interval = interval;
             it.ProgressChanged += (_, e) => progressChangedAction(it.Progress);
             it.Start();
         });

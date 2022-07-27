@@ -29,12 +29,13 @@ namespace CarinaStudio
 
         void Test()
         {
+            /*
             if (this.OwnedWindows.Count > 0)
                 _ = new TestDialog().ShowDialog(this);
             else
                 new TestDialog().Show(this);
+            */
 
-            /*
             var transform = this.Find<Rectangle>("rect")?.RenderTransform as TranslateTransform;
             if (transform == null)
                 return;
@@ -49,7 +50,6 @@ namespace CarinaStudio
                 it.ProgressChanged += (_, e) => transform.X = it.Value;
                 it.Start();
             });
-            */
         }
     }
 }
