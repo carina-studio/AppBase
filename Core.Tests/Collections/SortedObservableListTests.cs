@@ -130,12 +130,12 @@ namespace CarinaStudio.Collections
 					case NotifyCollectionChangedAction.Add:
 						{
 							var newItems = e.NewItems;
-							var elements = new int[newItems.Count].Also((it) => newItems.CopyTo(it, 0));
+							var elements = new int[newItems!.Count].Also((it) => newItems.CopyTo(it, 0));
 							reflectedList.InsertRange(e.NewStartingIndex, elements);
 						}
 						break;
 					case NotifyCollectionChangedAction.Remove:
-						reflectedList.RemoveRange(e.OldStartingIndex, e.OldItems.Count);
+						reflectedList.RemoveRange(e.OldStartingIndex, e.OldItems!.Count);
 						break;
 					case NotifyCollectionChangedAction.Reset:
 						reflectedList.Clear();

@@ -34,23 +34,23 @@ namespace CarinaStudio.Collections
 						case NotifyCollectionChangedAction.Add:
 							{
 								var newItems = e.NewItems;
-								var elements = new int[newItems.Count].Also((it) => newItems.CopyTo(it, 0));
+								var elements = new int[newItems!.Count].Also((it) => newItems.CopyTo(it, 0));
 								reflectedList.InsertRange(e.NewStartingIndex, elements);
 							}
 							break;
 						case NotifyCollectionChangedAction.Move:
 							{
 								var oldItems = e.OldItems;
-								var elements = new int[oldItems.Count].Also((it) => oldItems.CopyTo(it, 0));
+								var elements = new int[oldItems!.Count].Also((it) => oldItems.CopyTo(it, 0));
 								reflectedList.RemoveRange(e.OldStartingIndex, oldItems.Count);
 								reflectedList.InsertRange(e.NewStartingIndex, elements);
 							}
 							break;
 						case NotifyCollectionChangedAction.Remove:
-							reflectedList.RemoveRange(e.OldStartingIndex, e.OldItems.Count);
+							reflectedList.RemoveRange(e.OldStartingIndex, e.OldItems!.Count);
 							break;
 						case NotifyCollectionChangedAction.Replace:
-							reflectedList[e.OldStartingIndex] = (int)e.NewItems[0].AsNonNull();
+							reflectedList[e.OldStartingIndex] = (int)e.NewItems![0].AsNonNull();
 							break;
 						case NotifyCollectionChangedAction.Reset:
 							reflectedList.Clear();
