@@ -40,6 +40,16 @@
             "**/bin/**",
             "**/obj/**"
           ],
+          "src": "../Avalonia"
+        },
+        {
+          "files": [
+            "**/*.csproj"
+          ],
+          "exclude": [
+            "**/bin/**",
+            "**/obj/**"
+          ],
           "src": "../Application.Avalonia"
         },
         {
