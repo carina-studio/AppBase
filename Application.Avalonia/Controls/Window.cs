@@ -38,6 +38,7 @@ namespace CarinaStudio.Controls
 		bool hasDialogs;
 		bool isClosed;
 		bool isOpened;
+		Window? owner;
 
 
 		/// <summary>
@@ -50,36 +51,25 @@ namespace CarinaStudio.Controls
 			this.checkDialogsAction = new ScheduledAction(() =>
 			{
 				var hasDialogs = false;
-				var nonDialogWindows = (List<Avalonia.Controls.Window>?)null;
-				var isAvalonia_0_10_15 = AvaloniaVersion.Major == 0 
+				var isAvalonia_0_10_15_OrAbove = AvaloniaVersion.Major == 0 
 					&& (AvaloniaVersion.Minor > 10 || AvaloniaVersion.Build >= 15);
+				var isActive = this.IsActive;
 				foreach (var (childWindow, isDialog) in this.children!)
 				{
 					if (isDialog)
 					{
 						hasDialogs = true;
-						if (!isAvalonia_0_10_15)
+						if (!isAvalonia_0_10_15_OrAbove)
 							break;
 					}
-					else if (isAvalonia_0_10_15)
+					if (!childWindow.Topmost)
 					{
-						nonDialogWindows ??= new List<Avalonia.Controls.Window>();
-						nonDialogWindows.Add(childWindow);
+						childWindow.Topmost = true;
+						childWindow.Topmost = false;
 					}
 				}
 				if (this.hasDialogs != hasDialogs)
 					this.SetAndRaise<bool>(HasDialogsProperty, ref this.hasDialogs, hasDialogs);
-				if (this.IsActive && nonDialogWindows != null) // [Workaround] non-blocking child window may be overlapped by owner window since Avalonia 0.10.15.
-				{
-					foreach (var childWindow in nonDialogWindows)
-					{
-						if (!childWindow.Topmost)
-						{
-							childWindow.Topmost = true;
-							childWindow.Topmost = false;
-						}
-					}
-				}
 			});
 			this.children = typeof(Avalonia.Controls.Window).GetField("_children", BindingFlags.Instance | BindingFlags.NonPublic)?.Let(it =>
 				(List<(Avalonia.Controls.Window, bool)>)it.GetValue(this).AsNonNull()) ?? Global.Run(() =>
@@ -137,10 +127,11 @@ namespace CarinaStudio.Controls
 		/// <param name="e">Event data.</param>
 		protected override void OnClosed(EventArgs e)
 		{
-			(this.Owner as Window)?.OnChildWindowOpenedOrClosed();
+			this.owner?.OnChildWindowOpenedOrClosed();
 			this.SetAndRaise<bool>(IsOpenedProperty, ref this.isOpened, false);
 			this.SetAndRaise<bool>(IsClosedProperty, ref this.isClosed, true);
 			base.OnClosed(e);
+			this.owner = null;
 		}
 
 
@@ -150,7 +141,8 @@ namespace CarinaStudio.Controls
 		/// <param name="e">Event data.</param>
 		protected override void OnOpened(EventArgs e)
 		{
-			(this.Owner as Window)?.OnChildWindowOpenedOrClosed();
+			this.owner = this.Owner as Window;
+			this.owner?.OnChildWindowOpenedOrClosed();
 			this.SetAndRaise<bool>(IsOpenedProperty, ref this.isOpened, true);
 			base.OnOpened(e);
 		}
