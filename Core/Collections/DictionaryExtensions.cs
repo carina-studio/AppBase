@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
 namespace CarinaStudio.Collections
@@ -35,6 +34,33 @@ namespace CarinaStudio.Collections
 			if (dictionary.IsReadOnly)
 				return dictionary;
 			return new ReadOnlyDictionary<TKey, TValue>(dictionary);
+		}
+
+
+		/// <summary>
+		/// Try getting value from dictionary as given type.
+		/// </summary>
+		/// <param name="dictionary"><see cref="IDictionary{TKey, TValue}"/>.</param>
+		/// <param name="key">Key.</param>
+		/// <param name="value">Got value.</param>
+		/// <typeparam name="TKey">Type of key in dictionary.</typeparam>
+		/// <typeparam name="TValue">Type of value in dictionary.</typeparam>
+		/// <typeparam name="TOut">Desired type of value.</typeparam>
+		/// <returns>True if value has been got as given type successfully.</returns>
+		public static bool TryGetValue<TKey, TValue, TOut>(this IDictionary<TKey, TValue> dictionary, TKey key, out TOut value) where TKey : notnull where TOut : TValue
+		{
+			var d = new Dictionary<string, object?>();
+			d.TryGetValue("", out int v);
+
+			if (dictionary.TryGetValue(key, out var rawValue) && rawValue is TOut outValue)
+			{
+				value = outValue;
+				return true;
+			}
+#pragma warning disable CS8601
+			value = default;
+#pragma warning restore CS8601
+			return false;
 		}
 	}
 }
