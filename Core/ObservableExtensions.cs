@@ -35,6 +35,7 @@ namespace CarinaStudio
         /// <param name="observable"><see cref="IObservable{T}"/>.</param>
         /// <param name="onNext">Function to observe value change.</param>
         /// <typeparam name="T">Type of value of <see cref="IObservable{T}"/>.</typeparam>
+        /// <typeparam name="R">Type returned value of <paramref name="onNext"/>.</typeparam>
         /// <returns>Token of subscribed observer.</returns>
         public static IDisposable Subscribe<T, R>(this IObservable<T> observable, Func<T, R> onNext) =>
             observable.Subscribe(new Observer<T>(value => onNext(value)));
