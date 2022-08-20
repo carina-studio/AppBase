@@ -15,15 +15,15 @@ namespace CarinaStudio.Controls
         /// <summary>
         /// Property of <see cref="AcceptsPositiveSign"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<bool> AcceptsPositiveSignProperty = AvaloniaProperty.Register<IntegerTextBox, bool>(nameof(AcceptsPositiveSign), false);
+        public static readonly StyledProperty<bool> AcceptsPositiveSignProperty = AvaloniaProperty.Register<IntegerTextBox, bool>(nameof(AcceptsPositiveSign), false);
         /// <summary>
         /// Property of <see cref="Maximum"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<long> MaximumProperty = AvaloniaProperty.Register<IntegerTextBox, long>(nameof(Maximum), long.MaxValue);
+        public static readonly StyledProperty<long> MaximumProperty = AvaloniaProperty.Register<IntegerTextBox, long>(nameof(Maximum), long.MaxValue);
         /// <summary>
         /// Property of <see cref="Minimum"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<long> MinimumProperty = AvaloniaProperty.Register<IntegerTextBox, long>(nameof(Minimum), long.MinValue);
+        public static readonly StyledProperty<long> MinimumProperty = AvaloniaProperty.Register<IntegerTextBox, long>(nameof(Minimum), long.MinValue);
 
 
         // Constants.
@@ -128,7 +128,7 @@ namespace CarinaStudio.Controls
 
 
         /// <inheritdoc/>
-        protected override void OnPropertyChanged<TProperty>(AvaloniaPropertyChangedEventArgs<TProperty> change)
+        protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
         {
             base.OnPropertyChanged(change);
             var property = change.Property;
@@ -160,7 +160,7 @@ namespace CarinaStudio.Controls
             }
             else if (property == TextProperty)
             {
-                var s = (change.NewValue.Value as string);
+                var s = (change.NewValue as string);
                 if (s != null)
                 {
                     if (s.Length > MaxTextLength)
@@ -189,7 +189,7 @@ namespace CarinaStudio.Controls
                         }
                         SynchronizationContext.Current?.Post(_ =>
                         {
-                            if (this.Text == (change.NewValue.Value as string))
+                            if (this.Text == (change.NewValue as string))
                                 this.Text = newString.ToString();
                         }, null);
                         break;

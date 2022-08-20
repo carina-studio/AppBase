@@ -122,7 +122,7 @@ namespace CarinaStudio
         public object? Arg1
         {
             get => this.GetValue<object?>(Arg1Property);
-            set => this.SetValue<object?>(Arg1Property, value);
+            set => this.SetValue(Arg1Property, value);
         }
 
 
@@ -132,7 +132,7 @@ namespace CarinaStudio
         public object? Arg2
         {
             get => this.GetValue<object?>(Arg2Property);
-            set => this.SetValue<object?>(Arg2Property, value);
+            set => this.SetValue(Arg2Property, value);
         }
 
 
@@ -142,7 +142,7 @@ namespace CarinaStudio
         public object? Arg3
         {
             get => this.GetValue<object?>(Arg3Property);
-            set => this.SetValue<object?>(Arg3Property, value);
+            set => this.SetValue(Arg3Property, value);
         }
 
 
@@ -152,7 +152,7 @@ namespace CarinaStudio
         public object? Arg4
         {
             get => this.GetValue<object?>(Arg4Property);
-            set => this.SetValue<object?>(Arg4Property, value);
+            set => this.SetValue(Arg4Property, value);
         }
 
 
@@ -162,7 +162,7 @@ namespace CarinaStudio
         public object? Arg5
         {
             get => this.GetValue<object?>(Arg5Property);
-            set => this.SetValue<object?>(Arg5Property, value);
+            set => this.SetValue(Arg5Property, value);
         }
 
 
@@ -172,7 +172,7 @@ namespace CarinaStudio
         public object? Arg6
         {
             get => this.GetValue<object?>(Arg6Property);
-            set => this.SetValue<object?>(Arg6Property, value);
+            set => this.SetValue(Arg6Property, value);
         }
 
 
@@ -182,7 +182,7 @@ namespace CarinaStudio
         public object? Arg7
         {
             get => this.GetValue<object?>(Arg7Property);
-            set => this.SetValue<object?>(Arg7Property, value);
+            set => this.SetValue(Arg7Property, value);
         }
 
 
@@ -192,7 +192,7 @@ namespace CarinaStudio
         public object? Arg8
         {
             get => this.GetValue<object?>(Arg8Property);
-            set => this.SetValue<object?>(Arg8Property, value);
+            set => this.SetValue(Arg8Property, value);
         }
 
 
@@ -202,7 +202,7 @@ namespace CarinaStudio
         public object? Arg9
         {
             get => this.GetValue<object?>(Arg9Property);
-            set => this.SetValue<object?>(Arg9Property, value);
+            set => this.SetValue(Arg9Property, value);
         }
 
 
@@ -212,7 +212,7 @@ namespace CarinaStudio
         public string? Format
         {
             get => this.GetValue<string?>(FormatProperty);
-            set => this.SetValue<string?>(FormatProperty, value);
+            set => this.SetValue(FormatProperty, value);
         }
 
 

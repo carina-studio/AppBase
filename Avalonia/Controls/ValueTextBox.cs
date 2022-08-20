@@ -16,11 +16,11 @@ namespace CarinaStudio.Controls
 		/// <summary>
 		/// Property of <see cref="DefaultValue"/>.
 		/// </summary>
-		public static readonly AvaloniaProperty<T> DefaultValueProperty = AvaloniaProperty.Register<ValueTextBox<T>, T>(nameof(DefaultValue), default(T));
+		public static readonly StyledProperty<T> DefaultValueProperty = AvaloniaProperty.Register<ValueTextBox<T>, T>(nameof(DefaultValue), default(T));
 		/// <summary>
 		/// Property of <see cref="IsNullValueAllowed"/>.
 		/// </summary>
-		public static readonly AvaloniaProperty<bool> IsNullValueAllowedProperty = AvaloniaProperty.Register<ValueTextBox<T>, bool>(nameof(IsNullValueAllowed), true);
+		public static readonly StyledProperty<bool> IsNullValueAllowedProperty = AvaloniaProperty.Register<ValueTextBox<T>, bool>(nameof(IsNullValueAllowed), true);
 		/// <summary>
 		/// Property of <see cref="IsTextValid"/>.
 		/// </summary>
@@ -28,11 +28,11 @@ namespace CarinaStudio.Controls
 		/// <summary>
 		/// Property of <see cref="ValidationDelay"/>.
 		/// </summary>
-		public static readonly AvaloniaProperty<int> ValidationDelayProperty = AvaloniaProperty.Register<ValueTextBox<T>, int>(nameof(ValidationDelay), 500, coerce: (_, it) => Math.Max(0, it));
+		public static readonly StyledProperty<int> ValidationDelayProperty = AvaloniaProperty.Register<ValueTextBox<T>, int>(nameof(ValidationDelay), 500, coerce: (_, it) => Math.Max(0, it));
 		/// <summary>
 		/// Property of <see cref="Value"/>.
 		/// </summary>
-		public static readonly AvaloniaProperty<T?> ValueProperty = AvaloniaProperty.Register<ValueTextBox<T>, T?>(nameof(Value), null);
+		public static readonly StyledProperty<T?> ValueProperty = AvaloniaProperty.Register<ValueTextBox<T>, T?>(nameof(Value), null);
 
 
 		// Fields.
@@ -101,7 +101,7 @@ namespace CarinaStudio.Controls
 
 
 		/// <inheritdoc/>
-		protected override void OnPropertyChanged<TProperty>(AvaloniaPropertyChangedEventArgs<TProperty> change)
+		protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 		{
 			base.OnPropertyChanged(change);
 			var property = change.Property;
@@ -109,7 +109,7 @@ namespace CarinaStudio.Controls
 				this.Validate();
 			else if (property == IsNullValueAllowedProperty)
 			{
-				if (!(bool)((object?)change.NewValue.Value).AsNonNull())
+				if (!(bool)((object?)change.NewValue).AsNonNull())
 				{
 					if (!this.validateAction.ExecuteIfScheduled() && this.Value == null)
 						this.ResetToDefaultValue();
@@ -129,7 +129,7 @@ namespace CarinaStudio.Controls
 			}
 			else if (property == ValueProperty)
 			{
-				var value = (T?)(object?)change.NewValue.Value;
+				var value = (T?)change.NewValue;
 				if (value == null && !this.IsNullValueAllowed)
 					value = value.GetValueOrDefault();
 				if (value != null)

@@ -19,15 +19,15 @@ namespace CarinaStudio.Controls
         /// <summary>
         /// Property of <see cref="IsMultiLineText"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<bool> IsMultiLineTextProperty = AvaloniaProperty.RegisterDirect<TextBlock, bool>(nameof(IsMultiLineText), v => v.isMultiLineText);
+        public static readonly DirectProperty<TextBlock, bool> IsMultiLineTextProperty = AvaloniaProperty.RegisterDirect<TextBlock, bool>(nameof(IsMultiLineText), v => v.isMultiLineText);
         /// <summary>
         /// Property of <see cref="IsTextTrimmed"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<bool> IsTextTrimmedProperty = AvaloniaProperty.RegisterDirect<TextBlock, bool>(nameof(IsTextTrimmed), v => v.isTextTrimmed);
+        public static readonly DirectProperty<TextBlock, bool> IsTextTrimmedProperty = AvaloniaProperty.RegisterDirect<TextBlock, bool>(nameof(IsTextTrimmed), v => v.isTextTrimmed);
         /// <summary>
         /// Property of <see cref="ShowToolTipWhenTextTrimmed"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<bool> ShowToolTipWhenTextTrimmedProperty = AvaloniaProperty.Register<TextBlock, bool>(nameof(ShowToolTipWhenTextTrimmed), true);
+        public static readonly StyledProperty<bool> ShowToolTipWhenTextTrimmedProperty = AvaloniaProperty.Register<TextBlock, bool>(nameof(ShowToolTipWhenTextTrimmed), true);
 
 
         // Constants.

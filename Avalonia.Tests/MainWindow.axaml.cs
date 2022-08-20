@@ -17,11 +17,11 @@ namespace CarinaStudio
         }
 
 
-        void ExecuteLinkTextBlockCommand(object? parameter) =>
+        public void ExecuteLinkTextBlockCommand(object? parameter) =>
             (parameter as Avalonia.Controls.TextBlock)?.Let(it => it.Text = "Command executed!!!");
         
 
-        void IncreateProgressRingValue() => 
+        public void IncreateProgressRingValue() => 
             this.FindControl<ProgressRing>("progressRing2")?.Let(it => it.Value = it.Minimum + (it.Value + 9) % (it.Maximum - it.Minimum));
         
 
@@ -41,18 +41,18 @@ namespace CarinaStudio
         }));
 
 
-        void SetDateTimeToDateTimeTextBox() =>
+        public void SetDateTimeToDateTimeTextBox() =>
             this.FindControl<DateTimeTextBox>("dateTimeTextBox3")?.Let(it => it.Value = DateTime.Now);
 
 
-        void SetIPAddressToIPAddressTextBox() =>
+        public void SetIPAddressToIPAddressTextBox() =>
             this.FindControl<IPAddressTextBox>("ipAddressTextBox3")?.Let(it => it.Object = IPAddress.Loopback);
         
 
-        void SetTimeSpanToTimeSpanTextBox() =>
+        public void SetTimeSpanToTimeSpanTextBox() =>
             this.FindControl<TimeSpanTextBox>("timeSpanTextBox3")?.Let(it => it.Value = DateTime.Now - new DateTime(1970, 1, 1));
 
-        void SetUriToUriTextBox() =>
+        public void SetUriToUriTextBox() =>
             this.FindControl<UriTextBox>("uriTextBox4")?.Let(it => it.Object = new Uri("https://github.com/"));
     }
 }

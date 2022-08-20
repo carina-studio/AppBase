@@ -20,11 +20,11 @@ namespace CarinaStudio.Controls
 		/// <summary>
 		/// Property of <see cref="Object"/>.
 		/// </summary>
-		public static readonly AvaloniaProperty<T?> ObjectProperty = AvaloniaProperty.Register<ObjectTextBox<T>, T?>(nameof(Object), null);
+		public static readonly StyledProperty<T?> ObjectProperty = AvaloniaProperty.Register<ObjectTextBox<T>, T?>(nameof(Object), null);
 		/// <summary>
 		/// Property of <see cref="ValidationDelay"/>.
 		/// </summary>
-		public static readonly AvaloniaProperty<int> ValidationDelayProperty = AvaloniaProperty.Register<ObjectTextBox<T>, int>(nameof(ValidationDelay), 500, coerce: (_, it) => Math.Max(0, it));
+		public static readonly StyledProperty<int> ValidationDelayProperty = AvaloniaProperty.Register<ObjectTextBox<T>, int>(nameof(ValidationDelay), 500, coerce: (_, it) => Math.Max(0, it));
 
 
 		// Fields.
@@ -85,7 +85,7 @@ namespace CarinaStudio.Controls
 
 
 		/// <inheritdoc/>
-		protected override void OnPropertyChanged<TProperty>(AvaloniaPropertyChangedEventArgs<TProperty> change)
+		protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 		{
 			base.OnPropertyChanged(change);
 			var property = change.Property;
@@ -98,7 +98,7 @@ namespace CarinaStudio.Controls
 			}
 			else if (property == ObjectProperty)
 			{
-				var obj = (change.NewValue.Value as T);
+				var obj = (change.NewValue as T);
 				if (obj != null)
 				{
 					if (!this.Validate(false, out var currentObj) || !this.CheckObjectEquality(currentObj, obj))

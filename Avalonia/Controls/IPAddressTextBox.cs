@@ -14,7 +14,7 @@ namespace CarinaStudio.Controls
         /// <summary>
         /// Property of <see cref="IPv4Only"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<bool> IPv4OnlyProperty = AvaloniaProperty.Register<IPAddressTextBox, bool>(nameof(IPv4Only), false);
+        public static readonly StyledProperty<bool> IPv4OnlyProperty = AvaloniaProperty.Register<IPAddressTextBox, bool>(nameof(IPv4Only), false);
 
 
         /// <summary>
@@ -38,7 +38,7 @@ namespace CarinaStudio.Controls
 
 
         /// <inheritdoc/>.
-        protected override void OnPropertyChanged<TProperty>(AvaloniaPropertyChangedEventArgs<TProperty> change)
+        protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
         {
             base.OnPropertyChanged(change);
             if (change.Property == IPv4OnlyProperty)

@@ -27,7 +27,7 @@ namespace CarinaStudio
         }
 
 
-        void Test()
+        public void Test()
         {
             /*
             if (this.OwnedWindows.Count > 0)

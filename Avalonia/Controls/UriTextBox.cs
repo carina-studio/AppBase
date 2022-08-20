@@ -13,11 +13,11 @@ namespace CarinaStudio.Controls
 		/// <summary>
 		/// Property of <see cref="DefaultUriScheme"/>.
 		/// </summary>
-		public static readonly AvaloniaProperty<string?> DefaultUriSchemeProperty = AvaloniaProperty.Register<UriTextBox, string?>(nameof(DefaultUriScheme), null);
+		public static readonly StyledProperty<string?> DefaultUriSchemeProperty = AvaloniaProperty.Register<UriTextBox, string?>(nameof(DefaultUriScheme), null);
 		/// <summary>
 		/// Property of <see cref="UriKind"/>.
 		/// </summary>
-		public static readonly AvaloniaProperty<UriKind> UriKindProperty = AvaloniaProperty.Register<UriTextBox, UriKind>(nameof(IsTextValid), UriKind.Absolute);
+		public static readonly StyledProperty<UriKind> UriKindProperty = AvaloniaProperty.Register<UriTextBox, UriKind>(nameof(IsTextValid), UriKind.Absolute);
 
 
 		// Static fields.
@@ -45,7 +45,7 @@ namespace CarinaStudio.Controls
 
 
 		/// <inheritdoc/>
-		protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+		protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 		{
 			base.OnPropertyChanged(change);
 			var property = change.Property;

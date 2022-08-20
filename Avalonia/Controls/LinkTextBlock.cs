@@ -16,15 +16,15 @@ namespace CarinaStudio.Controls
         /// <summary>
         /// Property of <see cref="Command"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<ICommand?> CommandProperty = AvaloniaProperty.Register<LinkTextBlock, ICommand?>(nameof(Command));
+        public static readonly StyledProperty<ICommand?> CommandProperty = AvaloniaProperty.Register<LinkTextBlock, ICommand?>(nameof(Command));
         /// <summary>
         /// Property of <see cref="CommandParameter"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<object?> CommandParameterProperty = AvaloniaProperty.Register<LinkTextBlock, object?>(nameof(CommandParameter));
+        public static readonly StyledProperty<object?> CommandParameterProperty = AvaloniaProperty.Register<LinkTextBlock, object?>(nameof(CommandParameter));
         /// <summary>
         /// Property of <see cref="Uri"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<Uri?> UriProperty = AvaloniaProperty.Register<LinkTextBlock, Uri?>(nameof(Uri));
+        public static readonly StyledProperty<Uri?> UriProperty = AvaloniaProperty.Register<LinkTextBlock, Uri?>(nameof(Uri));
 
 
         /// <summary>
@@ -117,15 +117,14 @@ namespace CarinaStudio.Controls
         /// <summary>
         /// Called when property changed.
         /// </summary>
-        /// <typeparam name="T">Type of property.</typeparam>
         /// <param name="change">Change data.</param>
-        protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+        protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
         {
             base.OnPropertyChanged(change);
             if (change.Property == CommandProperty)
             {
-                (change.OldValue.Value as ICommand)?.Let(it => it.CanExecuteChanged -= this.OnCommandCanExecuteChanged);
-                (change.NewValue.Value as ICommand)?.Let(it =>
+                (change.OldValue as ICommand)?.Let(it => it.CanExecuteChanged -= this.OnCommandCanExecuteChanged);
+                (change.NewValue as ICommand)?.Let(it =>
                 {
                     it.CanExecuteChanged += this.OnCommandCanExecuteChanged;
                     this.Uri = null;
@@ -139,7 +138,7 @@ namespace CarinaStudio.Controls
             }
             else if (change.Property == UriProperty)
             {
-                if (change.NewValue.Value != null)
+                if (change.NewValue != null)
                 {
                     this.Command = null;
                     this.CommandParameter = null;

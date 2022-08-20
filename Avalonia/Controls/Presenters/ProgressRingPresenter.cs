@@ -60,33 +60,33 @@ namespace CarinaStudio.Controls.Presenters
         /// <summary>
         /// Property of <see cref="BorderBrush"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<IBrush?> BorderBrushProperty = AvaloniaProperty.Register<ProgressRingPresenter, IBrush?>(nameof(BorderBrush), Brushes.Gray);
+        public static readonly StyledProperty<IBrush?> BorderBrushProperty = AvaloniaProperty.Register<ProgressRingPresenter, IBrush?>(nameof(BorderBrush), Brushes.Gray);
         /// <summary>
         /// Property of <see cref="BorderThickness"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<double> BorderThicknessProperty = AvaloniaProperty.Register<ProgressRingPresenter, double>(nameof(BorderThickness), 1,
+        public static readonly StyledProperty<double> BorderThicknessProperty = AvaloniaProperty.Register<ProgressRingPresenter, double>(nameof(BorderThickness), 1,
             coerce: (o, it) => Math.Max(0, it),
             validate: double.IsFinite);
         /// <summary>
         /// Property of <see cref="IsIndeterminate"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<bool> IsIndeterminateProperty = AvaloniaProperty.Register<ProgressRingPresenter, bool>(nameof(IsIndeterminate), false);
+        public static readonly StyledProperty<bool> IsIndeterminateProperty = AvaloniaProperty.Register<ProgressRingPresenter, bool>(nameof(IsIndeterminate), false);
         /// <summary>
         /// Property of <see cref="MaxProgress"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<double> MaxProgressProperty = AvaloniaProperty.Register<ProgressRingPresenter, double>(nameof(MaxProgress), 100,
+        public static readonly StyledProperty<double> MaxProgressProperty = AvaloniaProperty.Register<ProgressRingPresenter, double>(nameof(MaxProgress), 100,
             coerce: (o, it) => Math.Max(o.GetValue<double>(MinProgressProperty.AsNonNull()), it),
             validate: double.IsFinite);
         /// <summary>
         /// Property of <see cref="MinProgress"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<double> MinProgressProperty = AvaloniaProperty.Register<ProgressRingPresenter, double>(nameof(MinProgress), 0,
+        public static readonly StyledProperty<double> MinProgressProperty = AvaloniaProperty.Register<ProgressRingPresenter, double>(nameof(MinProgress), 0,
             coerce: (o, it) => Math.Min(o.GetValue<double>(MaxProgressProperty), it),
             validate: double.IsFinite);
         /// <summary>
         /// Property of <see cref="Progress"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<double> ProgressProperty = AvaloniaProperty.Register<ProgressRingPresenter, double>(nameof(Progress), 0,
+        public static readonly StyledProperty<double> ProgressProperty = AvaloniaProperty.Register<ProgressRingPresenter, double>(nameof(Progress), 0,
             coerce: (o, it) => 
             {
                 if (it < o.GetValue<double>(MinProgressProperty))
@@ -99,15 +99,15 @@ namespace CarinaStudio.Controls.Presenters
         /// <summary>
         /// Property of <see cref="ProgressBrush"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<IBrush?> ProgressBrushProperty = AvaloniaProperty.Register<ProgressRingPresenter, IBrush?>(nameof(ProgressBrush), Brushes.Gray);
+        public static readonly StyledProperty<IBrush?> ProgressBrushProperty = AvaloniaProperty.Register<ProgressRingPresenter, IBrush?>(nameof(ProgressBrush), Brushes.Gray);
         /// <summary>
         /// Property of <see cref="RingBrush"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<IBrush?> RingBrushProperty = AvaloniaProperty.Register<ProgressRingPresenter, IBrush?>(nameof(RingBrush), Brushes.LightGray);
+        public static readonly StyledProperty<IBrush?> RingBrushProperty = AvaloniaProperty.Register<ProgressRingPresenter, IBrush?>(nameof(RingBrush), Brushes.LightGray);
         /// <summary>
         /// Property of <see cref="RingThickness"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<double> RingThicknessProperty = AvaloniaProperty.Register<ProgressRingPresenter, double>(nameof(RingThickness), 5,
+        public static readonly StyledProperty<double> RingThicknessProperty = AvaloniaProperty.Register<ProgressRingPresenter, double>(nameof(RingThickness), 5,
             coerce: (o, it) => Math.Max(1, it),
             validate: double.IsFinite);
 
@@ -118,7 +118,7 @@ namespace CarinaStudio.Controls.Presenters
 
         // Static fields.
         static readonly IndeterminateProgressAnimationTimerImpl IndeterminateProgressAnimationTimer = new IndeterminateProgressAnimationTimerImpl();
-        static readonly AvaloniaProperty<double> IndeterminateProgressProperty = AvaloniaProperty.Register<ProgressRingPresenter, double>("IndeterminateProgress", 0);
+        static readonly StyledProperty<double> IndeterminateProgressProperty = AvaloniaProperty.Register<ProgressRingPresenter, double>("IndeterminateProgress", 0);
         
 
         // Fields.
@@ -279,7 +279,7 @@ namespace CarinaStudio.Controls.Presenters
 
 
         /// <inheritdoc/>
-        protected override void OnPropertyChanged<TProperty>(AvaloniaPropertyChangedEventArgs<TProperty> change)
+        protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
         {
             base.OnPropertyChanged(change);
             var property = change.Property;
