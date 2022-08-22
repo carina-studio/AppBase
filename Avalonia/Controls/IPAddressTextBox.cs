@@ -14,7 +14,7 @@ namespace CarinaStudio.Controls
         /// <summary>
         /// Property of <see cref="IPv4Only"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<bool> IPv4OnlyProperty = AvaloniaProperty.Register<IPAddressTextBox, bool>(nameof(IPv4Only), false);
+        public static readonly StyledProperty<bool> IPv4OnlyProperty = AvaloniaProperty.Register<IPAddressTextBox, bool>(nameof(IPv4Only), false);
 
 
         /// <summary>

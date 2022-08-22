@@ -16,15 +16,15 @@ namespace CarinaStudio.Controls
         /// <summary>
         /// Property of <see cref="Command"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<ICommand?> CommandProperty = AvaloniaProperty.Register<LinkTextBlock, ICommand?>(nameof(Command));
+        public static readonly StyledProperty<ICommand?> CommandProperty = AvaloniaProperty.Register<LinkTextBlock, ICommand?>(nameof(Command));
         /// <summary>
         /// Property of <see cref="CommandParameter"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<object?> CommandParameterProperty = AvaloniaProperty.Register<LinkTextBlock, object?>(nameof(CommandParameter));
+        public static readonly StyledProperty<object?> CommandParameterProperty = AvaloniaProperty.Register<LinkTextBlock, object?>(nameof(CommandParameter));
         /// <summary>
         /// Property of <see cref="Uri"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<Uri?> UriProperty = AvaloniaProperty.Register<LinkTextBlock, Uri?>(nameof(Uri));
+        public static readonly StyledProperty<Uri?> UriProperty = AvaloniaProperty.Register<LinkTextBlock, Uri?>(nameof(Uri));
 
 
         /// <summary>

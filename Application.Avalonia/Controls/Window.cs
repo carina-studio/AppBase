@@ -17,15 +17,15 @@ namespace CarinaStudio.Controls
 		/// <summary>
 		/// Property of <see cref="HasDialogs"/>.
 		/// </summary>
-		public static readonly AvaloniaProperty<bool> HasDialogsProperty = AvaloniaProperty.RegisterDirect<Window, bool>(nameof(HasDialogs), w => w.hasDialogs);
+		public static readonly DirectProperty<Window, bool> HasDialogsProperty = AvaloniaProperty.RegisterDirect<Window, bool>(nameof(HasDialogs), w => w.hasDialogs);
 		/// <summary>
 		/// Property of <see cref="IsClosed"/>.
 		/// </summary>
-		public static readonly AvaloniaProperty<bool> IsClosedProperty = AvaloniaProperty.RegisterDirect<Window, bool>(nameof(IsClosed), w => w.isClosed);
+		public static readonly DirectProperty<Window, bool> IsClosedProperty = AvaloniaProperty.RegisterDirect<Window, bool>(nameof(IsClosed), w => w.isClosed);
 		/// <summary>
 		/// Property of <see cref="IsOpened"/>.
 		/// </summary>
-		public static readonly AvaloniaProperty<bool> IsOpenedProperty = AvaloniaProperty.RegisterDirect<Window, bool>(nameof(IsOpened), w => w.isOpened);
+		public static readonly DirectProperty<Window, bool> IsOpenedProperty = AvaloniaProperty.RegisterDirect<Window, bool>(nameof(IsOpened), w => w.isOpened);
 
 
 		// Static fields.

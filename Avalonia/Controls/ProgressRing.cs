@@ -13,17 +13,17 @@ namespace CarinaStudio.Controls
         /// <summary>
         /// Property of <see cref="IsIndeterminate"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<bool> IsIndeterminateProperty = AvaloniaProperty.Register<ProgressRing, bool>(nameof(IsIndeterminate), false);
+        public static readonly StyledProperty<bool> IsIndeterminateProperty = AvaloniaProperty.Register<ProgressRing, bool>(nameof(IsIndeterminate), false);
         /// <summary>
         /// Property of <see cref="RingBorderThickness"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<double> RingBorderThicknessProperty = AvaloniaProperty.Register<ProgressRing, double>(nameof(RingBorderThickness), 0,
+        public static readonly StyledProperty<double> RingBorderThicknessProperty = AvaloniaProperty.Register<ProgressRing, double>(nameof(RingBorderThickness), 0,
             coerce: (o, it) => Math.Max(0, it),
             validate: double.IsFinite);
         /// <summary>
         /// Property of <see cref="RingThickness"/>.
         /// </summary>
-        public static readonly AvaloniaProperty<double> RingThicknessProperty = AvaloniaProperty.Register<ProgressRing, double>(nameof(RingThickness), 5,
+        public static readonly StyledProperty<double> RingThicknessProperty = AvaloniaProperty.Register<ProgressRing, double>(nameof(RingThickness), 5,
             coerce: (o, it) => Math.Max(1, it),
             validate: double.IsFinite);
         

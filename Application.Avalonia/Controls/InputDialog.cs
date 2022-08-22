@@ -16,7 +16,7 @@ namespace CarinaStudio.Controls
         /// <summary>
 		/// Property of <see cref="IsValidInput"/>.
 		/// </summary>
-		public static readonly AvaloniaProperty<bool> IsValidInputProperty = AvaloniaProperty.RegisterDirect<InputDialog, bool>(nameof(IsValidInput), d => d.isValidInput);
+		public static readonly DirectProperty<InputDialog, bool> IsValidInputProperty = AvaloniaProperty.RegisterDirect<InputDialog, bool>(nameof(IsValidInput), d => d.isValidInput);
 
 
         // Fields.
