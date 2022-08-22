@@ -63,6 +63,12 @@ namespace CarinaStudio.Threading.Tasks
 
 
 		/// <summary>
+		/// Get number of threads which are executing tasks.
+		/// </summary>
+		public int BusyThreadCount { get => this.numberOfBusyThreads; }
+
+
+		/// <summary>
 		/// Dispose the instance.
 		/// </summary>
 		public void Dispose()

@@ -14,5 +14,17 @@ namespace CarinaStudio.Threading.Tasks
 		/// <param name="useBackgroundThreads">True to set execution threads as background thread.</param>
         public FixedThreadsTaskFactory(int maxConcurrencyLevel, bool useBackgroundThreads = true) : base(new FixedThreadsTaskScheduler(maxConcurrencyLevel, useBackgroundThreads))
         { }
+
+
+        /// <summary>
+		/// Get number of threads which are executing tasks.
+		/// </summary>
+        public int BusyThreadCount { get => ((FixedThreadsTaskScheduler)this.Scheduler!).BusyThreadCount; }
+
+
+        /// <summary>
+		/// Get maximum concurrency level supported by its <see cref="TaskFactory.Scheduler"/>.
+		/// </summary>
+        public int MaximumConcurrencyLevel { get => ((FixedThreadsTaskScheduler)this.Scheduler!).MaximumConcurrencyLevel; }
     }
 }
