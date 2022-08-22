@@ -27,6 +27,14 @@ namespace CarinaStudio
 
 
 		/// <summary>
+		/// Get string from resources according to given key as <see cref="IObservable{String}"/>.
+		/// </summary>
+		/// <param name="key">Key of string to get.</param>
+		/// <returns><see cref="IObservable{String}"/>.</returns>
+		IObservable<string?> GetObservableString(string key);
+
+
+		/// <summary>
 		/// Get string from resources according to given key and current settings or system language.
 		/// </summary>
 		/// <param name="key">Key of string to get.</param>

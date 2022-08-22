@@ -40,6 +40,8 @@ namespace CarinaStudio
 		public Assembly Assembly => Assembly.GetExecutingAssembly();
 		public bool CheckAccess() => Thread.CurrentThread == this.thread;
 		public CultureInfo CultureInfo => CultureInfo.CurrentCulture;
+		public IObservable<string?> GetObservableString(string key) =>
+			new FixedObservableValue<string?>(this.GetString(key));
 		public string? GetString(string key, string? defaultValue = null) => key switch
 		{
 			FormatStringKey => FormatString,
