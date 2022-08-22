@@ -3,6 +3,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using CarinaStudio.Configuration;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Globalization;
 
 namespace CarinaStudio
@@ -41,6 +42,7 @@ namespace CarinaStudio
 
         // Implementations.
         public override CultureInfo CultureInfo => CultureInfo.CurrentCulture;
+        public override IObservable<string?> GetObservableString(string key) => new FixedObservableValue<string?>(null);
         public override string? GetString(string key, string? defaultValue = null) => defaultValue;
         public override bool IsShutdownStarted => false;
         public override ILoggerFactory LoggerFactory { get; } = new LoggerFactory();

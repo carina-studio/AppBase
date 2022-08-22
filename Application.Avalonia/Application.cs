@@ -67,6 +67,10 @@ namespace CarinaStudio
 		}
 
 
+		/// <inheritdoc/>
+		public abstract IObservable<string?> GetObservableString(string key);
+
+
 		/// <summary>
 		/// Get string from resources according to given key and current settings or system language.
 		/// </summary>
