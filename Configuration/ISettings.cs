@@ -44,7 +44,7 @@ namespace CarinaStudio.Configuration
 		/// <summary>
 		/// Set value of setting.
 		/// </summary>
-		/// <param name="key">Key og setting.</param>
+		/// <param name="key">Key of setting.</param>
 		/// <param name="value">New value.</param>
 		[Obsolete("Try using generic SetValue() instead, unless you don't know the type of value.")]
 		void SetValue(SettingKey key, object value);
@@ -88,15 +88,37 @@ namespace CarinaStudio.Configuration
 		/// <param name="settings"><see cref="ISettings"/>. The reference can be Null.</param>
 		/// <param name="key">Key of setting.</param>
 		/// <returns>Setting value, or default value.</returns>
-		public static T GetValueOrDefault<T>(this ISettings? settings, SettingKey<T> key) => (T)settings.GetValueOrDefault((SettingKey)key);
+		public static T GetValueOrDefault<T>(this ISettings? settings, SettingKey<T> key) => 
+			(T)settings.GetValueOrDefault((SettingKey)key);
 #pragma warning restore CS0618
+
+
+		/// <summary>
+		/// Check whether the value is False or not.
+		/// </summary>
+		/// <param name="settings"><see cref="ISettings"/>.</param>
+		/// <param name="key">Key of setting.</param>
+		/// <returns>True if the value is False.</returns>
+		public static bool IsFalse(this ISettings settings, SettingKey<bool> key) =>
+			!settings.GetValueOrDefault(key);
+		
+
+		/// <summary>
+		/// Check whether the value is True or not.
+		/// </summary>
+		/// <param name="settings"><see cref="ISettings"/>.</param>
+		/// <param name="key">Key of setting.</param>
+		/// <returns>True if the value is True.</returns>
+		public static bool IsTrue(this ISettings settings, SettingKey<bool> key) =>
+			settings.GetValueOrDefault(key);
 
 
 		/// <summary>
 		/// Reset all values to default.
 		/// </summary>
 		/// <param name="settings"><see cref="ISettings"/>.</param>
-		public static void ResetValues(this ISettings settings) => settings.ResetValues(settings.Keys);
+		public static void ResetValues(this ISettings settings) => 
+			settings.ResetValues(settings.Keys);
 
 
 		/// <summary>
@@ -117,10 +139,25 @@ namespace CarinaStudio.Configuration
 		/// </summary>
 		/// <typeparam name="T">Type of value.</typeparam>
 		/// <param name="settings"><see cref="ISettings"/>.</param>
-		/// <param name="key">Key og setting.</param>
+		/// <param name="key">Key of setting.</param>
 		/// <param name="value">New value.</param>
-		public static void SetValue<T>(this ISettings settings, SettingKey<T> key, T value) => settings.SetValue((SettingKey)key, value);
+		public static void SetValue<T>(this ISettings settings, SettingKey<T> key, T value) => 
+			settings.SetValue((SettingKey)key, value);
 #pragma warning restore CS8604, CS0618
+
+
+		/// <summary>
+		/// Toggle the boolean value.
+		/// </summary>
+		/// <param name="settings"><see cref="ISettings"/>.</param>
+		/// <param name="key">Key of setting.</param>
+		/// <returns>Toggled value.</returns>
+		public static bool ToggleValue(this ISettings settings, SettingKey<bool> key)
+		{
+			var value = !settings.GetValueOrDefault(key);
+			settings.SetValue<bool>(key, value);
+			return value;
+		}
 
 
 		/// <summary>
