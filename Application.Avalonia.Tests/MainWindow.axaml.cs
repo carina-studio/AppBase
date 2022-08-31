@@ -11,6 +11,7 @@ namespace CarinaStudio
     partial class MainWindow : Controls.Window<IApp>
     {
         DoubleAnimator? animator;
+        TestDialog? testDialog;
 
 
         public MainWindow()
@@ -27,15 +28,20 @@ namespace CarinaStudio
         }
 
 
-        void Test()
+        public void Test()
         {
-            /*
-            if (this.OwnedWindows.Count > 0)
-                _ = new TestDialog().ShowDialog(this);
+            if (this.testDialog == null)
+            {
+                this.testDialog = new TestDialog().Also(it =>
+                {
+                    it.Closed += (_, e) => this.testDialog = null;
+                });
+                this.testDialog.Show(this);
+            }
             else
-                new TestDialog().Show(this);
-            */
-
+                new TestDialog().ShowDialog(this.testDialog);
+            
+            /*
             var transform = this.Find<Rectangle>("rect")?.RenderTransform as TranslateTransform;
             if (transform == null)
                 return;
@@ -50,6 +56,7 @@ namespace CarinaStudio
                 it.ProgressChanged += (_, e) => transform.X = it.Value;
                 it.Start();
             });
+            */
         }
     }
 }
