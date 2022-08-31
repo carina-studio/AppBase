@@ -1,4 +1,5 @@
-﻿using Avalonia;
+﻿using System.Threading.Tasks;
+using Avalonia;
 using CarinaStudio.Configuration;
 using CarinaStudio.Threading;
 using Microsoft.Extensions.Logging;
@@ -34,7 +35,7 @@ namespace CarinaStudio.Controls
 
 		// Fields.
 		readonly ScheduledAction checkDialogsAction;
-		readonly List<(Avalonia.Controls.Window, bool)> children;
+		readonly IList<(Avalonia.Controls.Window, bool)> children;
 		bool hasDialogs;
 		bool isClosed;
 		bool isOpened;
@@ -53,30 +54,40 @@ namespace CarinaStudio.Controls
 				var hasDialogs = false;
 				var isAvalonia_0_10_15_OrAbove = AvaloniaVersion.Major == 0 
 					&& (AvaloniaVersion.Minor > 10 || AvaloniaVersion.Build >= 15);
-				var isActive = this.IsActive;
+				void RefreshChildWindowPositions(Avalonia.Controls.Window parent)
+				{
+					var childWindows = parent is Window window
+						? window.children
+						: GetInternalChildWindows(parent);
+					if (childWindows == null || childWindows.Count == 0)
+						return;
+					foreach (var (childWindow, isDialog) in childWindows)
+					{
+						if (!childWindow.Topmost)
+						{
+							childWindow.Topmost = true;
+							childWindow.Topmost = false;
+						}
+						RefreshChildWindowPositions(childWindow);
+					}
+				}
 				foreach (var (childWindow, isDialog) in this.children!)
 				{
 					if (isDialog)
 					{
 						hasDialogs = true;
-						if (!isAvalonia_0_10_15_OrAbove)
-							break;
-					}
-					if (!childWindow.Topmost)
-					{
-						childWindow.Topmost = true;
-						childWindow.Topmost = false;
+						break;
 					}
 				}
+				RefreshChildWindowPositions(this);
 				if (this.hasDialogs != hasDialogs)
 					this.SetAndRaise<bool>(HasDialogsProperty, ref this.hasDialogs, hasDialogs);
 			});
-			this.children = typeof(Avalonia.Controls.Window).GetField("_children", BindingFlags.Instance | BindingFlags.NonPublic)?.Let(it =>
-				(List<(Avalonia.Controls.Window, bool)>)it.GetValue(this).AsNonNull()) ?? Global.Run(() =>
-				{
-					this.Logger.LogError("Unable to get list of child window");
-					return new List<(Avalonia.Controls.Window, bool)>();
-				});
+			this.children = GetInternalChildWindows(this) ?? Global.Run(() =>
+			{
+				this.Logger.LogError("Unable to get list of child window");
+				return new (Avalonia.Controls.Window, bool)[0];
+			});
 			this.GetObservable(IsActiveProperty).Subscribe(_ => this.checkDialogsAction.Schedule());
 			this.AddHandler(PointerWheelChangedEvent, (_, e) =>
 			{
@@ -90,6 +101,11 @@ namespace CarinaStudio.Controls
 		/// Get application instance.
 		/// </summary>
 		public IApplication Application { get; } = CarinaStudio.Application.Current;
+
+
+		// Get internal list of child windows.
+		static IList<(Avalonia.Controls.Window, bool)>? GetInternalChildWindows(Avalonia.Controls.Window window) =>
+			typeof(Avalonia.Controls.Window).GetField("_children", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(window) as IList<ValueTuple<Avalonia.Controls.Window, bool>>;
 
 
 		/// <summary>
