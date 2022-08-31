@@ -22,6 +22,8 @@
 			</Rectangle>
 		</Border>
 
+		<TextBox HorizontalAlignment="Left" Margin="5" Width="200"/>
+
 	</StackPanel>
 	
 </Window>
