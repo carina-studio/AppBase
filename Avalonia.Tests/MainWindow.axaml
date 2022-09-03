@@ -46,6 +46,11 @@
 	<ScrollViewer Margin="10">
 		<StackPanel>
 
+			<!-- Clipboard -->
+			<TextBlock Classes="Header1" Text="Clipboard"/>
+			<Button Command="{Binding $parent[Window].ClipboardTest}" Content="Test" HorizontalAlignment="Left"/>
+			<Separator/>
+
 			<!-- DateTimeTextBox -->
 			<TextBlock Classes="Header1" Text="DateTimeTextBox"/>
 			<abControls:DateTimeTextBox Name="dateTimeTextBox1" DefaultValue="{x:Static sys:DateTime.Now}" HorizontalAlignment="Left" IsNullValueAllowed="False" Width="300"/>

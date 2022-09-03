@@ -5,6 +5,7 @@ using Avalonia.Controls.Shapes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using CarinaStudio.Controls;
+using CarinaStudio.Input.Platform;
 using System;
 
 namespace CarinaStudio
@@ -14,6 +15,16 @@ namespace CarinaStudio
         public MainWindow()
         {
             AvaloniaXamlLoader.Load(this);
+        }
+
+
+        public async void ClipboardTest()
+        {
+            var clipboard = App.Current!.Clipboard!;
+            var data = new byte[] { 128 };
+            await clipboard.SetTextAndDataAsync("Text", "CustomDataFormat", data);
+            var dataAndText = await clipboard.GetDataOrTextAsync("CustomDataFormat");
+            var textAndData = await clipboard.GetTextOrDataAsync("CustomDataFormat");
         }
 
 
