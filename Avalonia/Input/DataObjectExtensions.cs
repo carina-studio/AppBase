@@ -1,5 +1,4 @@
 ﻿using Avalonia.Input;
-using System;
 
 namespace CarinaStudio.Input
 {
@@ -8,6 +7,22 @@ namespace CarinaStudio.Input
 	/// </summary>
 	public static class DataObjectExtensions
 	{
+		/// <summary>
+		/// Clone <see cref="IDataObject"/> as <see cref="DataObject"/>.
+		/// </summary>
+		/// <param name="data"><see cref="IDataObject"/>.</param>
+		/// <returns><see cref="DataObject"/>.</returns>
+		public static DataObject Clone(this IDataObject data) => new DataObject().Also(it =>
+		{
+			foreach (var format in data.GetDataFormats())
+			{
+				var value = data.Get(format);
+				if (value != null)
+					it.Set(format, value);
+			}
+		});
+
+
 		/// <summary>
 		/// Check whether at least one file name is contained in <see cref="IDataObject"/> or not.
 		/// </summary>
