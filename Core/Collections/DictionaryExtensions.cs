@@ -49,9 +49,6 @@ namespace CarinaStudio.Collections
 		/// <returns>True if value has been got as given type successfully.</returns>
 		public static bool TryGetValue<TKey, TValue, TOut>(this IDictionary<TKey, TValue> dictionary, TKey key, out TOut value) where TKey : notnull where TOut : TValue
 		{
-			var d = new Dictionary<string, object?>();
-			d.TryGetValue("", out int v);
-
 			if (dictionary.TryGetValue(key, out var rawValue) && rawValue is TOut outValue)
 			{
 				value = outValue;
