@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -467,6 +468,81 @@ namespace CarinaStudio
 			{
 				Monitor.Exit(obj);
 			}
+		}
+
+
+		/// <summary>
+		/// Try casting given object to target type then perform the action.
+		/// </summary>
+		/// <param name="obj">Object.</param>
+		/// <param name="action">Action to perform if object can be casted to target type.</param>
+		/// <typeparam name="T">Target type.</typeparam>
+		/// <returns>True if object can be casted to target type.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static bool TryCastAndRun<T>(this object? obj, Action<T> action)
+		{
+			if (obj is T target)
+			{
+				action(target);
+				return true;
+			}
+			return false;
+		}
+
+
+		/// <summary>
+		/// Try casting given object to target type then generate a value.
+		/// </summary>
+		/// <param name="obj">Object.</param>
+		/// <param name="func">Function to generate value if object can be casted to target type.</param>
+		/// <typeparam name="T">Target type.</typeparam>
+		/// <typeparam name="R">Type of generated value.</typeparam>
+		/// <returns>Generated value.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		[return: MaybeNull]
+		public static R TryCastAndRun<T, R>(this object? obj, Func<T, R> func)
+		{
+			if (obj is T target)
+				return func(target);
+			return default;
+		}
+
+
+		/// <summary>
+		/// Try casting given object to target type then perform an asynchronous action.
+		/// </summary>
+		/// <param name="obj">Object.</param>
+		/// <param name="action">Action to perform if object can be casted to target type.</param>
+		/// <typeparam name="T">Target type.</typeparam>
+		/// <returns>Task of performing action. The result is True if object can be casted to target type.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static async Task<bool> TryCastAndRunAsync<T>(this object? obj, Func<T, Task> action)
+		{
+			if (obj is T target)
+			{
+				await action(target);
+				return true;
+			}
+			return false;
+		}
+
+
+		/// <summary>
+		/// Try casting given object to target type then generate a value asynchronously.
+		/// </summary>
+		/// <param name="obj">Object.</param>
+		/// <param name="func">Function to generate value if object can be casted to target type.</param>
+		/// <typeparam name="T">Target type.</typeparam>
+		/// <typeparam name="R">Type of generated value.</typeparam>
+		/// <returns>Task of generating value.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static Task<R> TryCastAndRunAsync<T, R>(this object? obj, Func<T, Task<R>> func)
+		{
+			if (obj is T target)
+				return func(target);
+#pragma warning disable CS8604
+			return Task.FromResult<R>(default);
+#pragma warning restore CS8604
 		}
 	}
 }
