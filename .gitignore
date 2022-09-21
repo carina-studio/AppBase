@@ -8,6 +8,7 @@ PublishProfiles
 /Application.Avalonia/CarinaStudio.AppBase.Application.Avalonia.xml
 /AutoUpdate/CarinaStudio.AppBase.AutoUpdate.xml
 /Avalonia/CarinaStudio.AppBase.Avalonia.xml
+/MacOS/CarinaStudio.AppBase.MacOS.xml
 /Tests/CarinaStudio.AppBase.Tests.xml
 /Core.Tests/Collections/~$SortedListTests.xlsx
 /Packages
