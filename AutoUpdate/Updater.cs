@@ -19,6 +19,7 @@ namespace CarinaStudio.AutoUpdate
 	{
 		// Fields.
 		string? applicationDirectoryPath;
+		bool backupApplicationCompletely;
 		readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 		readonly ILogger logger;
 		IPackageInstaller? packageInstaller;
@@ -60,53 +61,15 @@ namespace CarinaStudio.AutoUpdate
 		// Back up application.
 		async Task<string?> BackUpApplicationAsync()
 		{
-			// check state
-			switch (this.state)
-			{
-				case UpdaterState.BackingUpApplication:
-				case UpdaterState.DownloadingPackage:
-				case UpdaterState.ResolvingPackage:
-					break;
-				default:
-					return null;
-			}
-			if (this.cancellationTokenSource.IsCancellationRequested)
+			// create temp directory for backing up
+			var backupDirectory = await this.CreateApplicationBackUpDirectoryAsync();
+			if (this.cancellationTokenSource.IsCancellationRequested || backupDirectory == null)
 				return null;
 
 			this.logger.LogDebug("Start backing up application");
 
 			// check directory
 			var appDirectory = this.applicationDirectoryPath.AsNonNull();
-
-			// create temp directory for backing up
-			var exception = (Exception?)null;
-			var backupDirectory = await Task.Run(() =>
-			{
-				try
-				{
-					var directory = Path.Combine(Path.GetTempPath(), $"CarinaStudio-AutoUpdate-{DateTime.Now.ToBinary()}");
-					Directory.CreateDirectory(directory);
-					this.logger.LogTrace($"Back up application to '{directory}'");
-					return directory;
-				}
-				catch (Exception ex)
-				{
-					this.logger.LogError(ex, $"Unable to create directory to back up application");
-					exception = ex;
-					return null;
-				}
-			});
-			if (backupDirectory == null)
-			{
-				this.CompleteUpdating(exception);
-				return null;
-			}
-			if (this.cancellationTokenSource.IsCancellationRequested)
-			{
-				this.logger.LogWarning("Cancelled while backing up application");
-				this.CompleteUpdating(null);
-				return null;
-			}
 
 			// backup
 			try
@@ -143,6 +106,25 @@ namespace CarinaStudio.AutoUpdate
 			// complete
 			this.logger.LogDebug("Complete backing up application");
 			return backupDirectory;
+		}
+
+
+		/// <summary>
+		/// Get or set whether application should be backed-up completely before installation or not.
+		/// </summary>
+		public bool BackUpApplicationCompletely
+		{
+			get => this.backupApplicationCompletely;
+			set 
+			{
+				this.VerifyAccess();
+				this.VerifyDisposed();
+				this.VerifyInitializing();
+				if (this.backupApplicationCompletely == value)
+					return;
+				this.backupApplicationCompletely = value;
+				this.OnPropertyChanged(nameof(BackUpApplicationCompletely));
+			}
 		}
 
 
@@ -299,6 +281,56 @@ namespace CarinaStudio.AutoUpdate
 				if (throwException)
 					throw;
 			}
+		}
+
+
+		// Create directory for backing-up application.
+		async Task<string?> CreateApplicationBackUpDirectoryAsync()
+		{
+			// check state
+			switch (this.state)
+			{
+				case UpdaterState.BackingUpApplication:
+				case UpdaterState.DownloadingPackage:
+				case UpdaterState.ResolvingPackage:
+					break;
+				default:
+					return null;
+			}
+			if (this.cancellationTokenSource.IsCancellationRequested)
+				return null;
+			
+			// create temp directory for backing up
+			var exception = (Exception?)null;
+			var backupDirectory = await Task.Run(() =>
+			{
+				try
+				{
+					var directory = Path.Combine(Path.GetTempPath(), $"CarinaStudio-AutoUpdate-{DateTime.Now.ToBinary()}");
+					Directory.CreateDirectory(directory);
+					this.logger.LogTrace($"Directory to backup application: '{directory}'");
+					return directory;
+				}
+				catch (Exception ex)
+				{
+					this.logger.LogError(ex, $"Unable to create directory to back up application");
+					exception = ex;
+					return null;
+				}
+			});
+			if (backupDirectory == null)
+			{
+				this.CompleteUpdating(exception);
+				return null;
+			}
+			if (this.cancellationTokenSource.IsCancellationRequested)
+			{
+				this.logger.LogWarning("Cancelled while creating directory for backing-up application");
+				Global.RunWithoutErrorAsync(() => Directory.Delete(backupDirectory, true));
+				this.CompleteUpdating(null);
+				return null;
+			}
+			return backupDirectory;
 		}
 
 
@@ -466,6 +498,27 @@ namespace CarinaStudio.AutoUpdate
 					if (e.PropertyName == nameof(IPackageInstaller.Progress))
 						this.ReportProgress(installer.Progress);
 				};
+				if (!this.backupApplicationCompletely)
+				{
+					installer.InstallingFile += (_, targetFilePath) =>
+					{
+						try
+						{
+							if (!File.Exists(targetFilePath))
+								return true;
+							var backupFilePath = Path.Combine(backupDirectory, Path.GetRelativePath(this.applicationDirectoryPath!, targetFilePath));
+							var backupDirPath = Path.GetDirectoryName(backupFilePath);
+							Directory.CreateDirectory(backupDirPath);
+							File.Copy(targetFilePath, backupFilePath, true);
+							return true;
+						}
+						catch (Exception ex)
+						{
+							this.logger.LogError(ex, $"Failed to backup file '{targetFilePath}' before installation");
+							return false;
+						}
+					};
+				}
 				installer.TargetDirectoryPath = this.applicationDirectoryPath;
 			}
 			catch (Exception ex)
@@ -769,7 +822,9 @@ namespace CarinaStudio.AutoUpdate
 				return;
 
 			// start backing up application
-			var backupTask = this.BackUpApplicationAsync();
+			var backupTask = this.backupApplicationCompletely 
+				? this.BackUpApplicationAsync()
+				: this.CreateApplicationBackUpDirectoryAsync();
 
 			// download package
 			if (!this.ChangeState(UpdaterState.DownloadingPackage))
