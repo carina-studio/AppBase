@@ -508,7 +508,7 @@ namespace CarinaStudio.AutoUpdate
 								return true;
 							var backupFilePath = Path.Combine(backupDirectory, Path.GetRelativePath(this.applicationDirectoryPath!, targetFilePath));
 							var backupDirPath = Path.GetDirectoryName(backupFilePath);
-							Directory.CreateDirectory(backupDirPath);
+							Directory.CreateDirectory(backupDirPath!);
 							File.Copy(targetFilePath, backupFilePath, true);
 							return true;
 						}
