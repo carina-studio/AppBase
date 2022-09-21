@@ -89,6 +89,11 @@ namespace CarinaStudio.AutoUpdate.Installers
 				{
 					try
 					{
+						if (!this.OnInstallingFile(targetFileName))
+						{
+							retryCount = 0;
+							throw new Exception($"Installation of '{targetFileName}' was interrupted");
+						}
 						if (File.Exists(targetFileName))
 						{
 							this.Logger.LogTrace($"Delete file '{targetFileName}'");

@@ -15,6 +15,12 @@ namespace CarinaStudio.AutoUpdate.Installers
 
 
 		/// <summary>
+		/// Raised before installing a file.
+		/// </summary>
+		event Func<IPackageInstaller, string, bool>? InstallingFile;
+
+
+		/// <summary>
 		/// Get or set name of package file to install.
 		/// </summary>
 		string? PackageFileName { get; set; }

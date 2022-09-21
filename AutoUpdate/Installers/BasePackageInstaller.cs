@@ -34,6 +34,19 @@ namespace CarinaStudio.AutoUpdate.Installers
 		public ISet<string> InstalledFilePaths { get; }
 
 
+		/// <inheritdoc/>
+		public event Func<IPackageInstaller, string, bool>? InstallingFile;
+
+
+		/// <summary>
+		/// Raise <see cref="InstallingFile"/> event.
+		/// </summary>
+		/// <param name="filePath">Path of file to be installed.</param>
+		/// <returns>True to continue installation.</returns>
+		protected bool OnInstallingFile(string filePath) =>
+			this.InstallingFile?.Invoke(this, filePath) ?? true;
+
+
 		/// <summary>
 		/// Get or set name of package file to install.
 		/// </summary>
