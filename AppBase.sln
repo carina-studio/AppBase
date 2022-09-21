@@ -19,6 +19,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Application.Tests", "Applic
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{97A787BC-3EE8-4243-AC81-9755C157B8AF}"
 	ProjectSection(SolutionItems) = preProject
+		BuildPackages.bat = BuildPackages.bat
+		BuildPackages.sh = BuildPackages.sh
 		LICENSE = LICENSE
 		README.md = README.md
 	EndProjectSection
@@ -35,9 +37,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Application.Avalonia", "App
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Application.Avalonia.Tests", "Application.Avalonia.Tests\Application.Avalonia.Tests.csproj", "{9C88153A-581F-4012-944F-8A7D47A9617C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Avalonia", "Avalonia\Avalonia.csproj", "{577D785A-528F-439F-89E1-A258C76F8DEE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Avalonia", "Avalonia\Avalonia.csproj", "{577D785A-528F-439F-89E1-A258C76F8DEE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Avalonia.Tests", "Avalonia.Tests\Avalonia.Tests.csproj", "{B403AF63-2B83-4618-B705-13783CE12E7A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Avalonia.Tests", "Avalonia.Tests\Avalonia.Tests.csproj", "{B403AF63-2B83-4618-B705-13783CE12E7A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MacOS", "MacOS\MacOS.csproj", "{3C409F02-83CB-4520-86CC-D5A1333DA260}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -353,6 +357,26 @@ Global
 		{B403AF63-2B83-4618-B705-13783CE12E7A}.Release|x64.Build.0 = Release|Any CPU
 		{B403AF63-2B83-4618-B705-13783CE12E7A}.Release|x86.ActiveCfg = Release|Any CPU
 		{B403AF63-2B83-4618-B705-13783CE12E7A}.Release|x86.Build.0 = Release|Any CPU
+		{3C409F02-83CB-4520-86CC-D5A1333DA260}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C409F02-83CB-4520-86CC-D5A1333DA260}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C409F02-83CB-4520-86CC-D5A1333DA260}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{3C409F02-83CB-4520-86CC-D5A1333DA260}.Debug|ARM.Build.0 = Debug|Any CPU
+		{3C409F02-83CB-4520-86CC-D5A1333DA260}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{3C409F02-83CB-4520-86CC-D5A1333DA260}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{3C409F02-83CB-4520-86CC-D5A1333DA260}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3C409F02-83CB-4520-86CC-D5A1333DA260}.Debug|x64.Build.0 = Debug|Any CPU
+		{3C409F02-83CB-4520-86CC-D5A1333DA260}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3C409F02-83CB-4520-86CC-D5A1333DA260}.Debug|x86.Build.0 = Debug|Any CPU
+		{3C409F02-83CB-4520-86CC-D5A1333DA260}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C409F02-83CB-4520-86CC-D5A1333DA260}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C409F02-83CB-4520-86CC-D5A1333DA260}.Release|ARM.ActiveCfg = Release|Any CPU
+		{3C409F02-83CB-4520-86CC-D5A1333DA260}.Release|ARM.Build.0 = Release|Any CPU
+		{3C409F02-83CB-4520-86CC-D5A1333DA260}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{3C409F02-83CB-4520-86CC-D5A1333DA260}.Release|ARM64.Build.0 = Release|Any CPU
+		{3C409F02-83CB-4520-86CC-D5A1333DA260}.Release|x64.ActiveCfg = Release|Any CPU
+		{3C409F02-83CB-4520-86CC-D5A1333DA260}.Release|x64.Build.0 = Release|Any CPU
+		{3C409F02-83CB-4520-86CC-D5A1333DA260}.Release|x86.ActiveCfg = Release|Any CPU
+		{3C409F02-83CB-4520-86CC-D5A1333DA260}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

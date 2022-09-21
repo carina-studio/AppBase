@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<AssemblyVersion>1.7.4.912</AssemblyVersion>
+		<Version>1.7.4.912</Version>
+		<PackageVersion>1.7.4.912-preview</PackageVersion>
+		<TargetFrameworks>netcoreapp3.1;netstandard2.1;net5.0;net6.0</TargetFrameworks>
+		<RootNamespace>CarinaStudio.MacOS</RootNamespace>
+		<AssemblyName>CarinaStudio.AppBase.MacOS</AssemblyName>
+		<Authors>Carina Studio</Authors>
+		<Company>Carina Studio</Company>
+		<Copyright>©2021 Carina Studio</Copyright>
+		<Nullable>enable</Nullable>
+		<PackageId>CarinaStudio.AppBase.MacOS</PackageId>
+		<Description>AppBase is a base library set for .NET application. CarinaStudio.AppBase.MacOS provides basic layer for accessing functions of macOS.</Description>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageProjectUrl>https://carina-studio.github.io/AppBase/</PackageProjectUrl>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<DocumentationFile>CarinaStudio.AppBase.MacOS.xml</DocumentationFile>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<DocumentationFile>CarinaStudio.AppBase.MacOS.xml</DocumentationFile>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Core\Core.csproj" />
+	</ItemGroup>
+
+</Project>

@@ -1,5 +1,5 @@
-BUILD_PROJECT_LIST=("Application.Avalonia" "Tests")
-PACK_PROJECT_LIST=("Core" "Configuration" "Avalonia" "Application" "Application.Avalonia" "AutoUpdate" "Tests")
+BUILD_PROJECT_LIST=("Application.Avalonia" "MacOS" "Tests")
+PACK_PROJECT_LIST=("Core" "Configuration" "Avalonia" "Application" "Application.Avalonia" "AutoUpdate" "MacOS" "Tests")
 
 # Reset output directory
 rm -r ./Packages

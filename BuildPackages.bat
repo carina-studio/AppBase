@@ -9,6 +9,11 @@ IF %ERRORLEVEL% NEQ 0 (
    exit
 )
 
+dotnet build MacOS -c Release
+IF %ERRORLEVEL% NEQ 0 ( 
+   exit
+)
+
 dotnet build Tests -c Release
 IF %ERRORLEVEL% NEQ 0 ( 
    exit
@@ -20,4 +25,5 @@ dotnet pack Avalonia -c Release -o Packages
 dotnet pack Application -c Release -o Packages
 dotnet pack Application.Avalonia -c Release -o Packages
 dotnet pack AutoUpdate -c Release -o Packages
+dotnet pack MacOS -c Release -o Packages
 dotnet pack Tests -c Release -o Packages
