@@ -11,6 +11,7 @@
 		<Company>Carina Studio</Company>
 		<Copyright>©2021 Carina Studio</Copyright>
 		<Nullable>enable</Nullable>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<PackageId>CarinaStudio.AppBase.MacOS</PackageId>
 		<Description>AppBase is a base library set for .NET application. CarinaStudio.AppBase.MacOS provides basic layer for accessing functions of macOS.</Description>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
