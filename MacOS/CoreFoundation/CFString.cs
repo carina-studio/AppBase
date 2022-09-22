@@ -86,7 +86,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         {
             if (this.Handle == IntPtr.Zero)
                 return null;
-            var buffer = new char[this.length];
+            var buffer = new char[this.Length];
             fixed (char* p = buffer)
             {
                 Native.CFStringGetCharacters(this.Handle, new CFRange(0, buffer.Length), p);
@@ -99,8 +99,9 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// Wrap a native object.
         /// </summary>
         /// <param name="s">Handle of instance.</param>
+        /// <param name="ownsInstance">True to .</param>
         /// <returns>Wrapped object.</returns>
-        public static new CFString Wrap(IntPtr s) =>
-            new CFString(s, false);
+        public static new CFString Wrap(IntPtr s, bool ownsInstance = false) =>
+            new CFString(s, ownsInstance);
     }
 }

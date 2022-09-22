@@ -23,6 +23,14 @@ namespace CarinaStudio.MacOS.CoreFoundation
 
 
         [DllImport(LibName)]
+        public static extern IntPtr CFCopyTypeIDDescription(uint type_id);
+
+
+        [DllImport(LibName)]
+        public static extern uint CFGetTypeID(IntPtr cf);
+
+
+        [DllImport(LibName)]
 		public static extern void CFRelease(IntPtr cf);
 
 

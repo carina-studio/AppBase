@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Reflection;
 
 namespace CarinaStudio.MacOS.CoreFoundation
 {
@@ -7,9 +10,14 @@ namespace CarinaStudio.MacOS.CoreFoundation
     /// </summary>
     public class CFObject : IShareableDisposable<CFObject>
     {
+        // Static fields.
+        static readonly IDictionary<uint, string> CachedTypeDescriptions = new ConcurrentDictionary<uint, string>();
+        static readonly IDictionary<Type, MethodInfo> ObjectWrappingMethods = new ConcurrentDictionary<Type, MethodInfo>();
+
+
         // Fields.
         volatile IntPtr handle;
-        readonly bool ownsInstance;
+        bool ownsInstance;
 
 
         /// <summary>
@@ -17,7 +25,17 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// </summary>
         /// <param name="handle">Handle of instance.</param>
         /// <param name="ownsInstance">True to get ownership of instance.</param>
-        protected CFObject(IntPtr handle, bool ownsInstance)
+        protected CFObject(IntPtr handle, bool ownsInstance) : this(handle, handle != IntPtr.Zero ? Native.CFGetTypeID(handle) : 0, ownsInstance)
+        { }
+
+
+        /// <summary>
+        /// Initialize new <see cref="CFObject"/> instance.
+        /// </summary>
+        /// <param name="handle">Handle of instance.</param>
+        /// <param name="typeId">Type ID.</param>
+        /// <param name="ownsInstance">True to get ownership of instance.</param>
+        protected CFObject(IntPtr handle, uint typeId, bool ownsInstance)
         {
             if (handle == IntPtr.Zero)
             {
@@ -25,6 +43,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
                 throw new ArgumentException("Handle of instance cannot be null.");
             }
             this.handle = handle;
+            this.TypeId = typeId;
             this.ownsInstance = ownsInstance;
         }
 
@@ -35,6 +54,25 @@ namespace CarinaStudio.MacOS.CoreFoundation
         ~CFObject() => this.Release();
 
 
+        /// <summary>
+        /// Cast to object with specific type and release this instance if needed.
+        /// </summary>
+        /// <typeparam name="T">Specific type.</typeparam>
+        /// <returns>Object with specific type</returns>
+        public T Cast<T>() where T : CFObject
+        {
+            if (this is T target)
+                return target;
+            this.VerifyReleased();
+            var wrappingMethod = GetObjectWrappingMethod<T>();
+            var handle = this.handle;
+            var ownsInstance = this.ownsInstance;
+            this.handle = IntPtr.Zero;
+            this.ownsInstance = false;
+            return (T)wrappingMethod.Invoke(null, new object?[] { handle, ownsInstance }).AsNonNull();
+        }
+
+
         /// <inheritdoc/>
         public override bool Equals(object? obj) =>
             obj is CFObject cfo && this.handle == cfo.handle;
@@ -43,6 +81,28 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// <inheritdoc/>
         public override int GetHashCode() =>
             (int)(this.handle.ToInt64() & 0x7fffffff);
+        
+
+        // Get static method to wrap native instance.
+        static MethodInfo GetObjectWrappingMethod<T>() where T : CFObject =>
+            ObjectWrappingMethods.TryGetValue(typeof(T), out var method)
+                ? method
+                : typeof(T).GetMethod("Wrap", BindingFlags.Public | BindingFlags.Static).Let(it =>
+                {
+                    if (it != null)
+                    {
+                        var parameters = it.GetParameters();
+                        if (parameters.Length == 2 
+                            && parameters[0].ParameterType == typeof(IntPtr)
+                            && parameters[1].ParameterType == typeof(bool)
+                            && typeof(T).IsAssignableFrom(it.ReturnType))
+                        {
+                            ObjectWrappingMethods.TryAdd(typeof(T), it);
+                            return it;
+                        }
+                    }
+                    throw new InvalidCastException($"Cannot find method to wrap CFObject as '{typeof(T)}'.");
+                });
 
 
         /// <summary>
@@ -134,6 +194,20 @@ namespace CarinaStudio.MacOS.CoreFoundation
 
 
         /// <summary>
+        /// Retain the object with specific type.
+        /// </summary>
+        /// <typeparam name="T">Specific type.</typeparam>
+        /// <returns>New instanec of retained object.</returns>
+        public T Retain<T>() where T : CFObject
+        {
+            if (this is T)
+                return (T)this.Retain();
+            this.VerifyReleased();
+            return Wrap<T>(Native.CFRetain(this.handle), true);
+        }
+
+
+        /// <summary>
         /// Retain an object.
         /// </summary>
         /// <param name="cf">Handle of instance.</param>
@@ -145,6 +219,39 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// <inheritdoc/>
         public override string? ToString() =>
             string.Format("0x{0:x16}", this.handle.ToInt64());
+        
+
+        /// <summary>
+        /// Get description of type.
+        /// </summary>
+        public unsafe string TypeDescription
+        {
+            get
+            {
+                if (CachedTypeDescriptions.TryGetValue(this.TypeId, out var description))
+                    return description;
+                description = Native.CFCopyTypeIDDescription(this.TypeId).Let(it =>
+                {
+                    var length = Native.CFStringGetLength(it);
+                    var buffer = new char[(int)length];
+                    unsafe
+                    {
+                        fixed (char* p = buffer)
+                            Native.CFStringGetCharacters(it, new CFRange(0, length), p);
+                    }
+                    Native.CFRelease(it);
+                    return new string(buffer);
+                });
+                CachedTypeDescriptions.TryAdd(this.TypeId, description);
+                return description;
+            }
+        }
+        
+
+        /// <summary>
+        /// Get type ID.
+        /// </summary>
+        public uint TypeId { get; }
         
 
         /// <summary>
@@ -161,8 +268,20 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// Wrap a native object.
         /// </summary>
         /// <param name="cf">Handle of instance.</param>
+        /// <param name="ownsInstance">True to owns the native object.</param>
         /// <returns>Wrapped object.</returns>
-        public static CFObject Wrap(IntPtr cf) =>
-            new CFObject(cf, false);
+        public static CFObject Wrap(IntPtr cf, bool ownsInstance = false) =>
+            new CFObject(cf, ownsInstance);
+        
+
+        /// <summary>
+        /// Wrap a native object.
+        /// </summary>
+        /// <param name="cf">Handle of instance.</param>
+        /// <param name="ownsInstance">True to owns the native object.</param>
+        /// <typeparam name="T">Target type.</typeparam>
+        /// <returns>Wrapped object.</returns>
+        public static T Wrap<T>(IntPtr cf, bool ownsInstance = false) where T : CFObject =>
+            (T)GetObjectWrappingMethod<T>().Invoke(null, new object?[] { cf, ownsInstance }).AsNonNull();
     }
 }
