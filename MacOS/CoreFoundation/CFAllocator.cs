@@ -9,18 +9,21 @@ namespace CarinaStudio.MacOS.CoreFoundation
     {
         // Static fields.
         [ThreadStatic]
+        static CFAllocator? defaultAllocator;
+        [ThreadStatic]
         static IntPtr defaultAllocatorHandle;
 
 
         // Constructor.
         CFAllocator(IntPtr allocator, bool ownsInstance) : base(allocator, Global.Run(() =>
         {
-            var defaultHandle = defaultAllocatorHandle != IntPtr.Zero
-                ? defaultAllocatorHandle
-                : Native.CFAllocatorGetDefault().Also((ref IntPtr it) => defaultAllocatorHandle = it);
-            return ownsInstance && allocator != defaultHandle;
+            if (defaultAllocatorHandle == IntPtr.Zero)
+                defaultAllocatorHandle = Native.CFAllocatorGetDefault();
+            return ownsInstance && allocator != defaultAllocatorHandle;
         }))
-        { }
+        { 
+            this.IsDefaultInstance = (allocator == defaultAllocatorHandle);
+        }
 
 
         /// <summary>
@@ -30,10 +33,12 @@ namespace CarinaStudio.MacOS.CoreFoundation
         {
             get
             {
-                var defaultHandle = defaultAllocatorHandle != IntPtr.Zero
-                    ? defaultAllocatorHandle
-                    : Native.CFAllocatorGetDefault().Also((ref IntPtr it) => defaultAllocatorHandle = it);
-                return new CFAllocator(defaultHandle, false);
+                return defaultAllocator ?? Native.CFAllocatorGetDefault().Let(handle =>
+                {
+                    defaultAllocatorHandle = handle;
+                    defaultAllocator = new CFAllocator(handle, false);
+                    return defaultAllocator;
+                });
             }
         }
 

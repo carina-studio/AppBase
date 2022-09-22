@@ -7,6 +7,12 @@ namespace CarinaStudio.MacOS.CoreFoundation
     /// </summary>
     public unsafe class CFNumber : CFObject, IConvertible
     {
+        // Static fields.
+        static volatile CFNumber? nanInstance;
+        static volatile CFNumber? negativeInfinityInstance;
+        static volatile CFNumber? positiveInfinityInstance;
+
+
         /// <summary>
         /// Initialize new <see cref="CFNumber"/> instance.
         /// </summary>
@@ -132,6 +138,57 @@ namespace CarinaStudio.MacOS.CoreFoundation
             CFNumberType.SInt8Type => TypeCode.SByte,
             _ => TypeCode.Object,
         };
+
+
+        /// <summary>
+        /// Get default instance represents Not-a-Number (NaN).
+        /// </summary>
+        public static CFNumber NaN
+        {
+            get
+            {
+                return nanInstance ?? Native.kCFNumberNaN.Let(handle =>
+                {
+                    nanInstance = new CFNumber(handle, Native.CFNumberGetType(handle), false);
+                    nanInstance.IsDefaultInstance = true;
+                    return nanInstance;
+                });
+            }
+        }
+
+
+        /// <summary>
+        /// Get default instance represents negative infinity.
+        /// </summary>
+        public static CFNumber NegativeInfinity
+        {
+            get
+            {
+                return negativeInfinityInstance ?? Native.kCFNumberNegativeInfinity.Let(handle =>
+                {
+                    negativeInfinityInstance = new CFNumber(handle, Native.CFNumberGetType(handle), false);
+                    negativeInfinityInstance.IsDefaultInstance = true;
+                    return negativeInfinityInstance;
+                });
+            }
+        }
+
+
+        /// <summary>
+        /// Get default instance represents positive infinity.
+        /// </summary>
+        public static CFNumber PositiveInfinity
+        {
+            get
+            {
+                return positiveInfinityInstance ?? Native.kCFNumberPositiveInfinity.Let(handle =>
+                {
+                    positiveInfinityInstance = new CFNumber(handle, Native.CFNumberGetType(handle), false);
+                    positiveInfinityInstance.IsDefaultInstance = true;
+                    return positiveInfinityInstance;
+                });
+            }
+        }
 
 
         /// <inheritdoc/>
