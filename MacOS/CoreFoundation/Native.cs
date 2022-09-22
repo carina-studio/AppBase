@@ -13,6 +13,24 @@ namespace CarinaStudio.MacOS.CoreFoundation
         const string LibName = "/System/Library/Frameworks/ApplicationServices.framework/Frameworks/CoreFoundation.framework/CoreFoundation";
 
 
+        // Static initializer.
+        static unsafe Native()
+        {
+            // check platform
+            if (Platform.IsNotMacOS)
+                return;
+            
+            // load symbols
+            var libHandle = NativeLibrary.Load(LibName);
+            if (libHandle != IntPtr.Zero)
+            {
+                kCFNumberNaN = *(IntPtr*)NativeLibrary.GetExport(libHandle, "kCFNumberNaN");
+                kCFNumberNegativeInfinity = *(IntPtr*)NativeLibrary.GetExport(libHandle, "kCFNumberNegativeInfinity");
+                kCFNumberPositiveInfinity = *(IntPtr*)NativeLibrary.GetExport(libHandle, "kCFNumberPositiveInfinity");
+            }
+        }
+
+
         [DllImport(LibName)]
 		public static extern IntPtr CFAllocatorGetDefault();
 
@@ -59,5 +77,14 @@ namespace CarinaStudio.MacOS.CoreFoundation
 
         [DllImport(LibName)]
 		public static extern long CFStringGetLength(IntPtr theString);
+
+
+        public static readonly IntPtr kCFNumberNaN;
+
+
+        public static readonly IntPtr kCFNumberNegativeInfinity;
+
+
+        public static readonly IntPtr kCFNumberPositiveInfinity;
     }
 }

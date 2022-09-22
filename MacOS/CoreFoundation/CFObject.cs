@@ -117,6 +117,12 @@ namespace CarinaStudio.MacOS.CoreFoundation
         void IDisposable.Dispose() => this.Release();
 
 
+        /// <summary>
+        /// Check whether the instance is default instance which cannot be released or not.
+        /// </summary>
+        public bool IsDefaultInstance { get; protected set; }
+
+
         /// <inheritdoc/>
         CFObject IShareableDisposable<CFObject>.Share() => this.Retain();
 
@@ -178,6 +184,8 @@ namespace CarinaStudio.MacOS.CoreFoundation
         {
             if (this.handle == IntPtr.Zero)
                 return;
+            if (this.IsDefaultInstance)
+                throw new InvalidOperationException("Cannot release default instance.");
             GC.SuppressFinalize(this);
             this.OnRelease();
             this.handle = IntPtr.Zero;
