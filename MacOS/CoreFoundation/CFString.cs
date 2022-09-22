@@ -19,7 +19,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         {
             if (s == null)
                 throw new ArgumentNullException(nameof(s));
-            return Native.CFStringCreateWithCharacters(Native.DefaultAllocator, s, s.Length);
+            return Native.CFStringCreateWithCharacters(CFAllocator.Default.Handle, s, s.Length);
         }), true)
         { 
             this.length = s.Length;

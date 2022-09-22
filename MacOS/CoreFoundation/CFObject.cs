@@ -87,18 +87,20 @@ namespace CarinaStudio.MacOS.CoreFoundation
         static MethodInfo GetObjectWrappingMethod<T>() where T : CFObject =>
             ObjectWrappingMethods.TryGetValue(typeof(T), out var method)
                 ? method
-                : typeof(T).GetMethod("Wrap", BindingFlags.Public | BindingFlags.Static).Let(it =>
+                : typeof(T).GetMethods(BindingFlags.Public | BindingFlags.Static).Let(it =>
                 {
-                    if (it != null)
+                    foreach (var m in it)
                     {
-                        var parameters = it.GetParameters();
-                        if (parameters.Length == 2 
-                            && parameters[0].ParameterType == typeof(IntPtr)
-                            && parameters[1].ParameterType == typeof(bool)
-                            && typeof(T).IsAssignableFrom(it.ReturnType))
+                        if (m.Name == "Wrap" && typeof(T).IsAssignableFrom(m.ReturnType))
                         {
-                            ObjectWrappingMethods.TryAdd(typeof(T), it);
-                            return it;
+                            var parameters = m.GetParameters();
+                            if (parameters.Length == 2 
+                                && parameters[0].ParameterType == typeof(IntPtr)
+                                && parameters[1].ParameterType == typeof(bool))
+                            {
+                                ObjectWrappingMethods.TryAdd(typeof(T), m);
+                                return m;
+                            }
                         }
                     }
                     throw new InvalidCastException($"Cannot find method to wrap CFObject as '{typeof(T)}'.");

@@ -4,8 +4,11 @@
     {
         static void Main(string[] args)
         {
-            using var cfs1 = new CoreFoundation.CFString("Hello World!");
-            using var cfs2 = CoreFoundation.CFObject.Wrap<CoreFoundation.CFString>(cfs1.Handle, false);
+            using var number1 = new CoreFoundation.CFNumber(123.456);
+            var b = number1.ToByte();
+            var s = number1.ToInt16();
+            var i = number1.ToInt32();
+            var u = number1.ToUInt32();
         }
     }
 }

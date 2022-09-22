@@ -13,11 +13,6 @@ namespace CarinaStudio.MacOS.CoreFoundation
         const string LibName = "/System/Library/Frameworks/ApplicationServices.framework/Frameworks/CoreFoundation.framework/CoreFoundation";
 
 
-        // Static fields.
-        [ThreadStatic]
-        static volatile IntPtr defaultAllocator;
-
-
         [DllImport(LibName)]
 		public static extern IntPtr CFAllocatorGetDefault();
 
@@ -28,6 +23,18 @@ namespace CarinaStudio.MacOS.CoreFoundation
 
         [DllImport(LibName)]
         public static extern uint CFGetTypeID(IntPtr cf);
+
+
+        [DllImport(LibName)]
+        public static extern IntPtr CFNumberCreate(IntPtr allocator, CFNumberType theType, void* valuePtr);
+
+
+        [DllImport(LibName)]
+        public static extern CFNumberType CFNumberGetType(IntPtr number);
+
+
+        [DllImport(LibName)]
+		public static extern void CFNumberGetValue(IntPtr number, CFNumberType theType, void* value);
 
 
         [DllImport(LibName)]
@@ -52,20 +59,5 @@ namespace CarinaStudio.MacOS.CoreFoundation
 
         [DllImport(LibName)]
 		public static extern long CFStringGetLength(IntPtr theString);
-
-
-        /// <summary>
-        /// Get default allocator of current thread.
-        /// </summary>
-        public static IntPtr DefaultAllocator
-        {
-            get
-            {
-                if (defaultAllocator != IntPtr.Zero)
-                    return defaultAllocator;
-                defaultAllocator = CFAllocatorGetDefault();
-                return defaultAllocator;
-            }
-        }
     }
 }
