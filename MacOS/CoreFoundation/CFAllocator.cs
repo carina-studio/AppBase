@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 
 namespace CarinaStudio.MacOS.CoreFoundation
 {
@@ -7,6 +8,11 @@ namespace CarinaStudio.MacOS.CoreFoundation
     /// </summary>
     public class CFAllocator : CFObject
     {
+        // Native symbols.
+        [DllImport(NativeLibraryNames.CoreFoundation)]
+		static extern IntPtr CFAllocatorGetDefault();
+
+
         // Static fields.
         [ThreadStatic]
         static CFAllocator? defaultAllocator;
@@ -18,7 +24,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         CFAllocator(IntPtr allocator, bool ownsInstance) : base(allocator, Global.Run(() =>
         {
             if (defaultAllocatorHandle == IntPtr.Zero)
-                defaultAllocatorHandle = Native.CFAllocatorGetDefault();
+                defaultAllocatorHandle = CFAllocatorGetDefault();
             return ownsInstance && allocator != defaultAllocatorHandle;
         }))
         { 
@@ -33,7 +39,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         {
             get
             {
-                return defaultAllocator ?? Native.CFAllocatorGetDefault().Let(handle =>
+                return defaultAllocator ?? CFAllocatorGetDefault().Let(handle =>
                 {
                     defaultAllocatorHandle = handle;
                     defaultAllocator = new CFAllocator(handle, false);
