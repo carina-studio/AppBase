@@ -1,12 +1,22 @@
 using System;
+using System.Runtime.InteropServices;
 
 namespace CarinaStudio.MacOS.CoreFoundation
 {
     /// <summary>
     /// String.
     /// </summary>
-    public class CFString : CFObject
+    public unsafe class CFString : CFObject
     {
+        // Native symbols.
+        [DllImport(NativeLibraryNames.CoreFoundation, CharSet = CharSet.Unicode)]
+		static extern IntPtr CFStringCreateWithCharacters(IntPtr alloc, string chars, long numChars);
+        [DllImport(NativeLibraryNames.CoreFoundation)]
+		static extern void CFStringGetCharacters(IntPtr theString, CFRange range, void* buffer);
+        [DllImport(NativeLibraryNames.CoreFoundation)]
+		static extern long CFStringGetLength(IntPtr theString);
+
+
         // Fields.
         int length;
 
@@ -19,7 +29,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         {
             if (s == null)
                 throw new ArgumentNullException(nameof(s));
-            return Native.CFStringCreateWithCharacters(CFAllocator.Default.Handle, s, s.Length);
+            return CFStringCreateWithCharacters(CFAllocator.Default.Handle, s, s.Length);
         }), true)
         { 
             this.length = s.Length;
@@ -46,7 +56,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
                 throw new ArgumentOutOfRangeException(nameof(index));
             fixed (char* p = buffer)
             {
-                Native.CFStringGetCharacters(this.Handle, new CFRange(0, length), p + index);
+                CFStringGetCharacters(this.Handle, new CFRange(0, length), p + index);
             }
         }
 
@@ -61,7 +71,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
                 if (this.length >= 0)
                     return this.length;
                 this.VerifyReleased();
-                var length = Native.CFStringGetLength(this.Handle);
+                var length = CFStringGetLength(this.Handle);
                 if (length > int.MaxValue)
                     throw new NotSupportedException($"Length of string is too long: {length}");
                 this.length = (int)length;
@@ -74,7 +84,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         public override CFObject Retain()
         {
             this.VerifyReleased();
-            return new CFString(Native.CFRetain(this.Handle), true)
+            return new CFString(CFObject.Retain(this.Handle), true)
             {
                 length = this.length
             };
@@ -89,7 +99,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
             var buffer = new char[this.Length];
             fixed (char* p = buffer)
             {
-                Native.CFStringGetCharacters(this.Handle, new CFRange(0, buffer.Length), p);
+                CFStringGetCharacters(this.Handle, new CFRange(0, buffer.Length), p);
                 return new string(p);
             }
         }

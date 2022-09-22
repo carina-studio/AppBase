@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace CarinaStudio.MacOS.CoreFoundation
 {
@@ -10,6 +11,13 @@ namespace CarinaStudio.MacOS.CoreFoundation
     /// </summary>
     public class CFObject : IShareableDisposable<CFObject>
     {
+        // Native symbols.
+        [DllImport(NativeLibraryNames.CoreFoundation)]
+        static extern IntPtr CFCopyTypeIDDescription(uint type_id);
+        [DllImport(NativeLibraryNames.CoreFoundation)]
+        static extern uint CFGetTypeID(IntPtr cf);
+
+
         // Static fields.
         static readonly IDictionary<uint, string> CachedTypeDescriptions = new ConcurrentDictionary<uint, string>();
         static readonly IDictionary<Type, MethodInfo> ObjectWrappingMethods = new ConcurrentDictionary<Type, MethodInfo>();
@@ -25,7 +33,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// </summary>
         /// <param name="handle">Handle of instance.</param>
         /// <param name="ownsInstance">True to get ownership of instance.</param>
-        protected CFObject(IntPtr handle, bool ownsInstance) : this(handle, handle != IntPtr.Zero ? Native.CFGetTypeID(handle) : 0, ownsInstance)
+        protected CFObject(IntPtr handle, bool ownsInstance) : this(handle, handle != IntPtr.Zero ? CFGetTypeID(handle) : 0, ownsInstance)
         { }
 
 
@@ -139,7 +147,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         public virtual void OnRelease()
         { 
             if (this.ownsInstance && this.handle != IntPtr.Zero)
-                Native.CFRelease(this.handle);
+                Release(this.handle);
         }
 
 
@@ -193,13 +201,21 @@ namespace CarinaStudio.MacOS.CoreFoundation
 
 
         /// <summary>
+        /// Release given instance.
+        /// </summary>
+        /// <param name="cf">Handle of instance.</param>
+        [DllImport(NativeLibraryNames.CoreFoundation, EntryPoint="CFRelease")]
+        public static extern void Release(IntPtr cf);
+
+
+        /// <summary>
         /// Retain the object.
         /// </summary>
         /// <returns>New instanec of retained object.</returns>
         public virtual CFObject Retain()
         {
             this.VerifyReleased();
-            return new CFObject(Native.CFRetain(this.handle), true);
+            return new CFObject(Retain(this.handle), true);
         }
 
 
@@ -213,17 +229,17 @@ namespace CarinaStudio.MacOS.CoreFoundation
             if (this is T)
                 return (T)this.Retain();
             this.VerifyReleased();
-            return Wrap<T>(Native.CFRetain(this.handle), true);
+            return Wrap<T>(Retain(this.handle), true);
         }
 
 
         /// <summary>
-        /// Retain an object.
+        /// Retain given instance.
         /// </summary>
         /// <param name="cf">Handle of instance.</param>
-        /// <returns>Retained object.</returns>
-        public static CFObject Retain(IntPtr cf) =>
-            new CFObject(Native.CFRetain(cf), true);
+        /// <returns>Handle of retained instance.</returns>
+        [DllImport(NativeLibraryNames.CoreFoundation, EntryPoint="CFRetain")]
+        public static extern IntPtr Retain(IntPtr cf);
         
 
         /// <inheritdoc/>
@@ -240,17 +256,10 @@ namespace CarinaStudio.MacOS.CoreFoundation
             {
                 if (CachedTypeDescriptions.TryGetValue(this.TypeId, out var description))
                     return description;
-                description = Native.CFCopyTypeIDDescription(this.TypeId).Let(it =>
+                description = CFCopyTypeIDDescription(this.TypeId).Let(it =>
                 {
-                    var length = Native.CFStringGetLength(it);
-                    var buffer = new char[(int)length];
-                    unsafe
-                    {
-                        fixed (char* p = buffer)
-                            Native.CFStringGetCharacters(it, new CFRange(0, length), p);
-                    }
-                    Native.CFRelease(it);
-                    return new string(buffer);
+                    return CFString.Wrap(it, true).Use(it =>
+                        it.ToString().AsNonNull());
                 });
                 CachedTypeDescriptions.TryAdd(this.TypeId, description);
                 return description;

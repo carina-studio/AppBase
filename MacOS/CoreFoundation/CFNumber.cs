@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 
 namespace CarinaStudio.MacOS.CoreFoundation
 {
@@ -7,10 +8,40 @@ namespace CarinaStudio.MacOS.CoreFoundation
     /// </summary>
     public unsafe class CFNumber : CFObject, IConvertible
     {
+        // Native symbols.
+        [DllImport(NativeLibraryNames.CoreFoundation)]
+        static extern IntPtr CFNumberCreate(IntPtr allocator, CFNumberType theType, void* valuePtr);
+        [DllImport(NativeLibraryNames.CoreFoundation)]
+        static extern CFNumberType CFNumberGetType(IntPtr number);
+        [DllImport(NativeLibraryNames.CoreFoundation)]
+		static extern void CFNumberGetValue(IntPtr number, CFNumberType theType, void* value);
+        static readonly IntPtr kCFNumberNaN;
+        static readonly IntPtr kCFNumberNegativeInfinity;
+        static readonly IntPtr kCFNumberPositiveInfinity;
+
+
         // Static fields.
         static volatile CFNumber? nanInstance;
         static volatile CFNumber? negativeInfinityInstance;
         static volatile CFNumber? positiveInfinityInstance;
+
+
+        // Static initializer.
+        static CFNumber()
+        {
+            // check platform
+            if (Platform.IsNotMacOS)
+                return;
+            
+            // load symbols
+            var libHandle = NativeLibrary.Load(NativeLibraryNames.CoreFoundation);
+            if (libHandle != IntPtr.Zero)
+            {
+                kCFNumberNaN = *(IntPtr*)NativeLibrary.GetExport(libHandle, "kCFNumberNaN");
+                kCFNumberNegativeInfinity = *(IntPtr*)NativeLibrary.GetExport(libHandle, "kCFNumberNegativeInfinity");
+                kCFNumberPositiveInfinity = *(IntPtr*)NativeLibrary.GetExport(libHandle, "kCFNumberPositiveInfinity");
+            }
+        }
 
 
         /// <summary>
@@ -18,7 +49,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// </summary>
         /// <param name="value">Value.</param>
         public CFNumber(sbyte value) : this(value.Let(it =>
-            Native.CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.SInt8Type, &it)), 
+            CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.SInt8Type, &it)), 
             CFNumberType.SInt8Type, true)
         { }
 
@@ -28,7 +59,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// </summary>
         /// <param name="value">Value.</param>
         public CFNumber(byte value) : this(value.Let(it =>
-            Native.CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.CharType, &it)), 
+            CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.CharType, &it)), 
             CFNumberType.CharType, true)
         { }
 
@@ -38,7 +69,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// </summary>
         /// <param name="value">Value.</param>
         public CFNumber(short value) : this(value.Let(it =>
-            Native.CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.SInt16Type, &it)), 
+            CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.SInt16Type, &it)), 
             CFNumberType.SInt16Type, true)
         { }
 
@@ -48,7 +79,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// </summary>
         /// <param name="value">Value.</param>
         public CFNumber(ushort value) : this(value.Let(it =>
-            Native.CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.SInt16Type, &it)), 
+            CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.SInt16Type, &it)), 
             CFNumberType.SInt16Type, true)
         { }
 
@@ -58,7 +89,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// </summary>
         /// <param name="value">Value.</param>
         public CFNumber(int value) : this(value.Let(it =>
-            Native.CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.SInt32Type, &it)), 
+            CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.SInt32Type, &it)), 
             CFNumberType.SInt32Type, true)
         { }
 
@@ -68,7 +99,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// </summary>
         /// <param name="value">Value.</param>
         public CFNumber(uint value) : this(value.Let(it =>
-            Native.CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.SInt32Type, &it)), 
+            CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.SInt32Type, &it)), 
             CFNumberType.SInt32Type, true)
         { }
 
@@ -78,7 +109,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// </summary>
         /// <param name="value">Value.</param>
         public CFNumber(long value) : this(value.Let(it =>
-            Native.CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.SInt64Type, &it)), 
+            CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.SInt64Type, &it)), 
             CFNumberType.SInt64Type, true)
         { }
 
@@ -88,7 +119,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// </summary>
         /// <param name="value">Value.</param>
         public CFNumber(ulong value) : this(value.Let(it =>
-            Native.CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.SInt64Type, &it)), 
+            CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.SInt64Type, &it)), 
             CFNumberType.SInt64Type, true)
         { }
 
@@ -98,7 +129,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// </summary>
         /// <param name="value">Value.</param>
         public CFNumber(float value) : this(value.Let(it =>
-            Native.CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.Float32Type, &it)), 
+            CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.Float32Type, &it)), 
             CFNumberType.Float32Type, true)
         { }
 
@@ -108,7 +139,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// </summary>
         /// <param name="value">Value.</param>
         public CFNumber(double value) : this(value.Let(it =>
-            Native.CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.Float64Type, &it)), 
+            CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.Float64Type, &it)), 
             CFNumberType.Float64Type, true)
         { }
 
@@ -147,9 +178,9 @@ namespace CarinaStudio.MacOS.CoreFoundation
         {
             get
             {
-                return nanInstance ?? Native.kCFNumberNaN.Let(handle =>
+                return nanInstance ?? kCFNumberNaN.Let(handle =>
                 {
-                    nanInstance = new CFNumber(handle, Native.CFNumberGetType(handle), false);
+                    nanInstance = new CFNumber(handle, CFNumberGetType(handle), false);
                     nanInstance.IsDefaultInstance = true;
                     return nanInstance;
                 });
@@ -164,9 +195,9 @@ namespace CarinaStudio.MacOS.CoreFoundation
         {
             get
             {
-                return negativeInfinityInstance ?? Native.kCFNumberNegativeInfinity.Let(handle =>
+                return negativeInfinityInstance ?? kCFNumberNegativeInfinity.Let(handle =>
                 {
-                    negativeInfinityInstance = new CFNumber(handle, Native.CFNumberGetType(handle), false);
+                    negativeInfinityInstance = new CFNumber(handle, CFNumberGetType(handle), false);
                     negativeInfinityInstance.IsDefaultInstance = true;
                     return negativeInfinityInstance;
                 });
@@ -181,9 +212,9 @@ namespace CarinaStudio.MacOS.CoreFoundation
         {
             get
             {
-                return positiveInfinityInstance ?? Native.kCFNumberPositiveInfinity.Let(handle =>
+                return positiveInfinityInstance ?? kCFNumberPositiveInfinity.Let(handle =>
                 {
-                    positiveInfinityInstance = new CFNumber(handle, Native.CFNumberGetType(handle), false);
+                    positiveInfinityInstance = new CFNumber(handle, CFNumberGetType(handle), false);
                     positiveInfinityInstance.IsDefaultInstance = true;
                     return positiveInfinityInstance;
                 });
@@ -215,7 +246,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         public override CFObject Retain()
         {
             this.VerifyReleased();
-            return new CFNumber(Native.CFRetain(this.Handle), this.Type, true);
+            return new CFNumber(CFObject.Retain(this.Handle), this.Type, true);
         }
 
 
@@ -228,7 +259,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         {
             this.VerifyReleased();
             var value = (byte)0;
-            Native.CFNumberGetValue(this.Handle, CFNumberType.CharType, &value);
+            CFNumberGetValue(this.Handle, CFNumberType.CharType, &value);
             return value;
         }
 
@@ -242,7 +273,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         {
             this.VerifyReleased();
             var value = (ushort)0;
-            Native.CFNumberGetValue(this.Handle, CFNumberType.SInt16Type, &value);
+            CFNumberGetValue(this.Handle, CFNumberType.SInt16Type, &value);
             return (char)value;
         }
 
@@ -256,7 +287,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         {
             this.VerifyReleased();
             var value = 0.0;
-            Native.CFNumberGetValue(this.Handle, CFNumberType.Float64Type, &value);
+            CFNumberGetValue(this.Handle, CFNumberType.Float64Type, &value);
             return value;
         }
 
@@ -270,7 +301,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         {
             this.VerifyReleased();
             var value = (short)0;
-            Native.CFNumberGetValue(this.Handle, CFNumberType.SInt32Type, &value);
+            CFNumberGetValue(this.Handle, CFNumberType.SInt32Type, &value);
             return value;
         }
 
@@ -284,7 +315,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         {
             this.VerifyReleased();
             var value = 0;
-            Native.CFNumberGetValue(this.Handle, CFNumberType.SInt32Type, &value);
+            CFNumberGetValue(this.Handle, CFNumberType.SInt32Type, &value);
             return value;
         }
 
@@ -298,7 +329,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         {
             this.VerifyReleased();
             var value = 0L;
-            Native.CFNumberGetValue(this.Handle, CFNumberType.SInt64Type, &value);
+            CFNumberGetValue(this.Handle, CFNumberType.SInt64Type, &value);
             return value;
         }
 
@@ -312,7 +343,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         {
             this.VerifyReleased();
             var value = (sbyte)0;
-            Native.CFNumberGetValue(this.Handle, CFNumberType.SInt8Type, &value);
+            CFNumberGetValue(this.Handle, CFNumberType.SInt8Type, &value);
             return value;
         }
 
@@ -326,7 +357,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         {
             this.VerifyReleased();
             var value = 0f;
-            Native.CFNumberGetValue(this.Handle, CFNumberType.Float32Type, &value);
+            CFNumberGetValue(this.Handle, CFNumberType.Float32Type, &value);
             return value;
         }
 
@@ -372,7 +403,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         {
             this.VerifyReleased();
             var value = (ushort)0;
-            Native.CFNumberGetValue(this.Handle, CFNumberType.SInt32Type, &value);
+            CFNumberGetValue(this.Handle, CFNumberType.SInt32Type, &value);
             return value;
         }
 
@@ -386,7 +417,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         {
             this.VerifyReleased();
             var value = 0u;
-            Native.CFNumberGetValue(this.Handle, CFNumberType.SInt32Type, &value);
+            CFNumberGetValue(this.Handle, CFNumberType.SInt32Type, &value);
             return value;
         }
 
@@ -400,7 +431,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         {
             this.VerifyReleased();
             var value = 0uL;
-            Native.CFNumberGetValue(this.Handle, CFNumberType.SInt64Type, &value);
+            CFNumberGetValue(this.Handle, CFNumberType.SInt64Type, &value);
             return value;
         }
 
@@ -421,7 +452,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         {
             if (number == IntPtr.Zero)
                 throw new ArgumentException("Handle of instance cannot be null.");
-            return new CFNumber(number, Native.CFNumberGetType(number), ownsInstance);
+            return new CFNumber(number, CFNumberGetType(number), ownsInstance);
         }
     }
 
