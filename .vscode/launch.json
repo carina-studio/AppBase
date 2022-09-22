@@ -38,6 +38,17 @@
             "stopAtEntry": false
         },
         {
+            "name": "MacOS.Tests",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-MacOS.Tests",
+            "program": "${workspaceFolder}/MacOS.Tests/bin/Debug/net6.0/MacOS.Tests.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/MacOS.Tests",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
             "name": "Core.Tests",
             "type": "coreclr",
             "request": "launch",
