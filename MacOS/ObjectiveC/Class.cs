@@ -30,7 +30,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
 
 
         // Static fields.
-        static readonly Selector AllocSelector = Selector.GetOrCreate("alloc");
+        static readonly Selector? AllocSelector;
         static readonly IDictionary<IntPtr, Class> CachedClassesByHandle = new ConcurrentDictionary<IntPtr, Class>();
         static readonly IDictionary<string, Class> CachedClassesByName = new ConcurrentDictionary<string, Class>();
         static readonly IDictionary<string, MemberDescriptor> CachedIVars = new ConcurrentDictionary<string, MemberDescriptor>();
@@ -40,6 +40,15 @@ namespace CarinaStudio.MacOS.ObjectiveC
         // Fields.
         volatile bool isRootClass;
         volatile Class? superClass;
+
+
+        // Static initializer.
+        static Class()
+        {
+            if (Platform.IsNotMacOS)
+                return;
+            AllocSelector = Selector.GetOrCreate("alloc");
+        }
 
 
         // Constructor.
@@ -55,7 +64,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <returns>Handle of allocated instance.</returns>
         public IntPtr Allocate() =>
-            SendMessageIntPtr(this.Handle, AllocSelector.Handle);
+            SendMessageIntPtr(this.Handle, AllocSelector!.Handle);
 
 
         /// <summary>
