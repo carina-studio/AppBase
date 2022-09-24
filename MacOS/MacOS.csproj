@@ -4,7 +4,7 @@
 		<AssemblyVersion>1.7.4.912</AssemblyVersion>
 		<Version>1.7.4.912</Version>
 		<PackageVersion>1.7.4.912-preview</PackageVersion>
-		<TargetFrameworks>netcoreapp3.1;netstandard2.1;net5.0;net6.0</TargetFrameworks>
+		<TargetFrameworks>net6.0</TargetFrameworks>
 		<RootNamespace>CarinaStudio.MacOS</RootNamespace>
 		<AssemblyName>CarinaStudio.AppBase.MacOS</AssemblyName>
 		<Authors>Carina Studio</Authors>
