@@ -13,7 +13,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// </summary>
         /// <param name="location">Start position.</param>
         /// <param name="length">Length.</param>
-        public CFRange(long location, long length)
+        public CFRange(nint location, nint length)
         {
             this.Location = location;
             this.Length = length;
@@ -23,12 +23,12 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// <summary>
         /// Start position.
         /// </summary>
-        public long Location;
+        public nint Location;
 
 
         /// <summary>
         /// Length.
         /// </summary>
-        public long Length;
+        public nint Length;
     }
 }
