@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace CarinaStudio.MacOS.ObjectiveC
@@ -12,6 +13,10 @@ namespace CarinaStudio.MacOS.ObjectiveC
     {
         // Native symbols.
         [DllImport(NativeLibraryNames.ObjectiveC)]
+        static extern IntPtr* class_copyIvarList(IntPtr cls, out int outCount);
+        [DllImport(NativeLibraryNames.ObjectiveC)]
+        static extern IntPtr* class_copyPropertyList(IntPtr cls, out int outCount);
+        [DllImport(NativeLibraryNames.ObjectiveC)]
         static extern IntPtr class_getClassVariable(IntPtr cls, string name);
         [DllImport(NativeLibraryNames.ObjectiveC)]
         static extern IntPtr class_getInstanceVariable(IntPtr cls, string name);
@@ -22,9 +27,13 @@ namespace CarinaStudio.MacOS.ObjectiveC
         [DllImport(NativeLibraryNames.ObjectiveC)]
         static extern IntPtr class_getSuperclass(IntPtr cls);
         [DllImport(NativeLibraryNames.ObjectiveC)]
+        static extern sbyte* ivar_getName(IntPtr ivar);
+        [DllImport(NativeLibraryNames.ObjectiveC)]
         static extern IntPtr objc_getClass(string name);
         [DllImport(NativeLibraryNames.ObjectiveC)]
         static extern IntPtr property_copyAttributeValue(IntPtr property, string attributeName);
+        [DllImport(NativeLibraryNames.ObjectiveC)]
+        static extern sbyte* property_getName(IntPtr property);
         [DllImport(NativeLibraryNames.ObjectiveC, EntryPoint = NSObject.SendMessageEntryPointName)]
         static extern IntPtr SendMessageIntPtr(IntPtr target, IntPtr selector);
 
@@ -33,6 +42,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         static readonly Selector? AllocSelector;
         static readonly IDictionary<IntPtr, Class> CachedClassesByHandle = new ConcurrentDictionary<IntPtr, Class>();
         static readonly IDictionary<string, Class> CachedClassesByName = new ConcurrentDictionary<string, Class>();
+        static readonly IDictionary<string, MemberDescriptor> CachedCVars = new ConcurrentDictionary<string, MemberDescriptor>();
         static readonly IDictionary<string, MemberDescriptor> CachedIVars = new ConcurrentDictionary<string, MemberDescriptor>();
         static readonly IDictionary<string, PropertyDescriptor> CachedProperties = new ConcurrentDictionary<string, PropertyDescriptor>();
 
@@ -92,6 +102,52 @@ namespace CarinaStudio.MacOS.ObjectiveC
 
 
         /// <summary>
+        /// Get all names of instance variables of the class.
+        /// </summary>
+        /// <returns>Names of instance variables.</returns>
+        public string[] GetInstanceVariableNames()
+        {
+            var varsPtr = class_copyIvarList(this.Handle, out var count);
+            if (varsPtr == null)
+                return new string[0];
+            try
+            {
+                var names = new HashSet<string>();
+                for (var i = count - 1; i >= 0; --i)
+                    names.Add(new string(ivar_getName(varsPtr[i])));
+                return names.ToArray();
+            }
+            finally
+            {
+                NativeMemory.Free(varsPtr);
+            }
+        }
+
+
+        /// <summary>
+        /// Get all names of properties of the class.
+        /// </summary>
+        /// <returns>Names of properties.</returns>
+        public unsafe string[] GetPropertyNames()
+        {
+            var propertiesPtr = class_copyPropertyList(this.Handle, out var count);
+            if (propertiesPtr == null)
+                return new string[0];
+            try
+            {
+                var names = new HashSet<string>();
+                for (var i = count - 1; i >= 0; --i)
+                    names.Add(new string(property_getName(propertiesPtr[i])));
+                return names.ToArray();
+            }
+            finally
+            {
+                NativeMemory.Free(propertiesPtr);
+            }
+        }
+
+
+        /// <summary>
         /// Get handle of class.
         /// </summary>
         public IntPtr Handle { get; }
@@ -130,6 +186,27 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <inheritdoc/>
         public override string ToString() =>
             this.Name;
+        
+
+        /// <summary>
+        /// Try finding class variable of class.
+        /// </summary>
+        /// <param name="name">Name.</param>
+        /// <param name="ivar">Descriptor of class variable.</param>
+        /// <returns>True if variable found.</returns>
+        public unsafe bool TryFindClassVriable(string name, out MemberDescriptor? ivar)
+        {
+            if (CachedCVars.TryGetValue(name, out ivar))
+                return true;
+            var handle = class_getClassVariable(this.Handle, name);
+            if (handle == IntPtr.Zero)
+            {
+                ivar = null;
+                return false;
+            }
+            ivar = new MemberDescriptor(handle, name).Also(it => CachedCVars.TryAdd(name, it));
+            return true;
+        }
         
 
         /// <summary>

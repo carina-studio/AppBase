@@ -275,5 +275,25 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <inheritdoc/>
         public override string ToString() =>
             string.Format("0x{0:x16}", this.handle);
+        
+
+        /// <summary>
+        /// Wrap given handle as <see cref="NSObject"/>.
+        /// </summary>
+        /// <param name="handle">Handle of instance.</param>
+        /// <param name="ownsInstance">True to owns instance.</param>
+        /// <returns><see cref="NSObject"/>.</returns>
+        public static NSObject Wrap(IntPtr handle, bool ownsInstance = false) =>
+            new NSObjectWrapper(handle, ownsInstance);
+    }
+
+
+    /// <summary>
+    /// Wrapper of arbitrary NSObject.
+    /// </summary>
+    internal class NSObjectWrapper : NSObject
+    {
+        public NSObjectWrapper(IntPtr handle, bool ownsInstance) : base(handle, ownsInstance)
+        { }
     }
 }

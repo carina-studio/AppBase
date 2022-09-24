@@ -4,7 +4,9 @@ using Avalonia.Controls.Shapes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using System;
+using System.Runtime.InteropServices;
 using CarinaStudio.Animation;
+using CarinaStudio.MacOS.ObjectiveC;
 
 namespace CarinaStudio
 {
@@ -30,6 +32,14 @@ namespace CarinaStudio
 
         public void Test()
         {
+            if (Platform.IsMacOS)
+            {
+                //var cls = Class.GetClass("NSApplication");
+                //var names = cls.GetPropertyNames().Also(it => Array.Sort(it));
+                var app = NSApplication.Current;
+            }
+            
+            /*
             if (this.testDialog == null)
             {
                 this.testDialog = new TestDialog().Also(it =>
@@ -40,6 +50,7 @@ namespace CarinaStudio
             }
             else
                 new TestDialog().ShowDialog(this.testDialog);
+            */
             
             /*
             var transform = this.Find<Rectangle>("rect")?.RenderTransform as TranslateTransform;
