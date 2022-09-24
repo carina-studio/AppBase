@@ -21,5 +21,6 @@
     <ProjectReference Include="..\AutoUpdate\AutoUpdate.csproj" />
     <ProjectReference Include="..\Configuration\Configuration.csproj" />
     <ProjectReference Include="..\Core\Core.csproj" />
+    <ProjectReference Include="..\MacOS\MacOS.csproj" />
   </ItemGroup>
 </Project>
