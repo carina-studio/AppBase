@@ -14,7 +14,7 @@ namespace CarinaStudio.MacOS.AppKit
 
 
         // Static fields.
-        static readonly Class? Class;
+        static readonly Class? NSApplicationClass;
         static volatile NSApplication? _Current;
         static readonly PropertyDescriptor? DockTileProperty;
         static readonly PropertyDescriptor? IsRunningProperty;
@@ -37,16 +37,19 @@ namespace CarinaStudio.MacOS.AppKit
             {
                 NSAppPtr = (IntPtr*)NativeLibrary.GetExport(libHandle, "NSApp");
             }
-            Class = Class.GetClass("NSApplication");
-            Class!.TryGetProperty("dockTile", out DockTileProperty);
-            Class!.TryGetProperty("mainWindow", out MainWindowProperty);
-            Class!.TryGetProperty("running", out IsRunningProperty);
-            Class!.TryGetProperty("windows", out WindowsProperty);
+            NSApplicationClass = Class.GetClass("NSApplication");
+            if (NSApplicationClass != null)
+            {
+                NSApplicationClass.TryGetProperty("dockTile", out DockTileProperty);
+                NSApplicationClass.TryGetProperty("mainWindow", out MainWindowProperty);
+                NSApplicationClass.TryGetProperty("running", out IsRunningProperty);
+                NSApplicationClass.TryGetProperty("windows", out WindowsProperty);
+            }
         }
 
 
         // Constructor.
-        NSApplication(IntPtr handle) : base(handle, false)
+        NSApplication(InstanceHolder instance) : base(instance, false)
         { }
 
 
@@ -64,7 +67,7 @@ namespace CarinaStudio.MacOS.AppKit
                     var app = NSAppPtr != null ? *NSAppPtr : IntPtr.Zero;
                     if (app == IntPtr.Zero)
                         return null;
-                    _Current = new NSApplication(app);
+                    _Current = new NSApplication(new(app));
                     return _Current;
                 });
             }
@@ -112,29 +115,6 @@ namespace CarinaStudio.MacOS.AppKit
                     this.mainWindow = null;
                 return this.mainWindow;
             }
-        }
-
-
-        /// <summary>
-        /// Wrap given handle as <see cref="NSApplication"/>.
-        /// </summary>
-        /// <param name="handle">Handle of instance.</param>
-        /// <returns>Wrapped instance.</returns>
-        public static NSApplication Wrap(IntPtr handle) =>
-            Wrap(handle, false);
-
-
-        /// <summary>
-        /// Wrap given handle as <see cref="NSApplication"/>.
-        /// </summary>
-        /// <param name="handle">Handle of instance.</param>
-        /// <param name="ownsInstance">True to owns instance.</param>
-        /// <returns>Wrapped instance.</returns>
-        internal static new NSApplication Wrap(IntPtr handle, bool ownsInstance = false)
-        {
-            if (Class?.IsAssignableFrom(Class.GetClass(handle)) != true)
-                throw new InvalidOperationException("Cannot wrap instance as NSApplication.");
-            return new NSApplication(handle);
         }
     }
 }

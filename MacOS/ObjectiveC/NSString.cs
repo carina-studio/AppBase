@@ -13,12 +13,12 @@ namespace CarinaStudio.MacOS.ObjectiveC
 #pragma warning restore CS0661
     {
         // Static fields.
-        static readonly Class? Class = Class.GetClass("NSString");
         static readonly Selector? CompareSelector;
         static readonly Selector? GetCharsSelector;
         static readonly Selector? InitWithCharSelector;
         static readonly Selector? IsEqualToSelector;
         static readonly PropertyDescriptor? LengthProperty;
+        static readonly Class? NSStringClass = Class.GetClass("NSString");
 
 
         // Fields.
@@ -28,13 +28,13 @@ namespace CarinaStudio.MacOS.ObjectiveC
         // Static initializer.
         static NSString()
         {
-            if (Class != null)
+            if (NSStringClass != null)
             {
                 CompareSelector = Selector.FromName("compare:");
                 GetCharsSelector = Selector.FromName("getCharacters:range:");
                 InitWithCharSelector = Selector.FromName("initWithCharacters:length:");
                 IsEqualToSelector = Selector.FromName("isEqualTo:");
-                Class.TryGetProperty("length", out LengthProperty);
+                NSStringClass.TryGetProperty("length", out LengthProperty);
             }
         }
 
@@ -42,7 +42,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <summary>
         /// Initialize new <see cref="NSString"/> instance.
         /// </summary>
-        public NSString() : base(Initialize(Class!.Allocate()), true)
+        public NSString() : base(Initialize(NSStringClass!.Allocate()), true)
         { }
 
 
@@ -50,14 +50,14 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// Initialize new <see cref="NSString"/> instance.
         /// </summary>
         /// <param name="s">Characters.</param>
-        public NSString(string s) : base(Initialize(Class!.Allocate(), s), true)
+        public NSString(string s) : base(Initialize(NSStringClass!.Allocate(), s), true)
         { 
             this.stringRef = new WeakReference<string>(s);
         }
 
 
         // Constructor.
-        NSString(IntPtr handle, bool ownsInstance) : base(handle, ownsInstance)
+        NSString(InstanceHolder instance, bool ownsInstance) : base(instance, ownsInstance)
         { }
 
 
@@ -130,20 +130,6 @@ namespace CarinaStudio.MacOS.ObjectiveC
             s = new string(buffer);
             this.stringRef = new WeakReference<string>(s);
             return s;
-        }
-
-
-        /// <summary>
-        /// Wrap given handle as <see cref="NSString"/>.
-        /// </summary>
-        /// <param name="handle">Handle of instance.</param>
-        /// <param name="ownsInstance">True to owns instance.</param>
-        /// <returns>Wrapped instance.</returns>
-        public static new NSString Wrap(IntPtr handle, bool ownsInstance = false)
-        {
-            if (Class?.IsAssignableFrom(Class.GetClass(handle)) != true)
-                throw new InvalidOperationException("Cannot wrap instance as NSString.");
-            return new NSString(handle, ownsInstance);
         }
     }
 }
