@@ -57,8 +57,8 @@ namespace CarinaStudio.MacOS.ObjectiveC
 
 
         // Constructor.
-        NSString(InstanceHolder instance, bool ownsInstance) : base(instance, ownsInstance)
-        { }
+        NSString(InstanceHolder instance, bool ownsInstance) : base(instance, ownsInstance) =>
+            this.VerifyClass(NSStringClass!);
 
 
         /// <inheritdoc/>

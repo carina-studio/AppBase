@@ -39,7 +39,8 @@ namespace CarinaStudio
                 //var properties = cls.GetProperties().Also(it => Array.Sort(it, (l, r) => l.Name.CompareTo(r.Name)));
                 //var ivars = cls.GetInstanceVariables().Also(it => Array.Sort(it, (l, r) => l.Name.CompareTo(r.Name)));
 
-                var app = NSApplication.Current;
+                var app = NSApplication.Current.AsNonNull();
+                app.DockTile.Display();
             }
             
             /*

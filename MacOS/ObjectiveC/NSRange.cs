@@ -1,8 +1,11 @@
+using System.Runtime.InteropServices;
+
 namespace CarinaStudio.MacOS.ObjectiveC
 {
     /// <summary>
     /// NSRange.
     /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
     public struct NSRange
     {
         /// <summary>

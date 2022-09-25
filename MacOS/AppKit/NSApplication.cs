@@ -7,7 +7,7 @@ namespace CarinaStudio.MacOS.AppKit
     /// <summary>
     /// NSApplication.
     /// </summary>
-    public unsafe class NSApplication : NSObject
+    public unsafe class NSApplication : NSResponder
     {
         // Native symbols.
         static readonly IntPtr* NSAppPtr;
@@ -23,7 +23,7 @@ namespace CarinaStudio.MacOS.AppKit
 
 
         // Fields.
-        NSObject? dockTile;
+        NSDockTile? dockTile;
         NSObject? mainWindow;
     
 
@@ -49,8 +49,8 @@ namespace CarinaStudio.MacOS.AppKit
 
 
         // Constructor.
-        NSApplication(InstanceHolder instance) : base(instance, false)
-        { }
+        NSApplication(InstanceHolder instance) : base(instance) =>
+            this.VerifyClass(NSApplicationClass!);
 
 
         /// <summary>
@@ -77,12 +77,12 @@ namespace CarinaStudio.MacOS.AppKit
         /// <summary>
         /// Get Dock tile.
         /// </summary>
-        public NSObject DockTile
+        public NSDockTile DockTile
         {
             get
             {
                 this.VerifyDisposed();
-                return this.dockTile ?? this.GetObjectProperty<NSObject>(DockTileProperty!).Let(it =>
+                return this.dockTile ?? this.GetObjectProperty<NSDockTile>(DockTileProperty!).Let(it =>
                 {
                     this.dockTile = it.AsNonNull();
                     return this.dockTile;

@@ -144,6 +144,11 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         [DllImport(NativeLibraryNames.ObjectiveC, EntryPoint = SendMessageEntryPointName)]
         internal protected static extern IntPtr SendMessageForIntPtr_IntPtr_Int32(IntPtr target, IntPtr selector, IntPtr arg1, int arg2);
+        /// <summary>
+        /// Send message to instance.
+        /// </summary>
+        [DllImport(NativeLibraryNames.ObjectiveC, EntryPoint = SendMessageEntryPointName)]
+        internal protected static extern NSSize SendMessageForNSSize(IntPtr target, IntPtr selector);
 
 
         // Static fields.
@@ -592,6 +597,17 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <inheritdoc/>
         public override string ToString() =>
             string.Format("0x{0:x16}", this.Handle);
+        
+
+        /// <summary>
+        /// Throw <see cref="ArgumentException"/> if the class of this instance is not assignable to given class.
+        /// </summary>
+        /// <param name="cls">Given class.</param>
+        protected void VerifyClass(Class cls)
+        {
+            if (!cls.IsAssignableFrom(this.instance.Class))
+                throw new ArgumentException($"Instance is not {cls}.");
+        }
         
 
         /// <summary>
