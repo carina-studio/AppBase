@@ -6,6 +6,7 @@ using Avalonia.Media;
 using System;
 using System.Runtime.InteropServices;
 using CarinaStudio.Animation;
+using CarinaStudio.MacOS.AppKit;
 using CarinaStudio.MacOS.ObjectiveC;
 
 namespace CarinaStudio
@@ -35,7 +36,9 @@ namespace CarinaStudio
             if (Platform.IsMacOS)
             {
                 //var cls = Class.GetClass("NSApplication");
-                //var names = cls.GetPropertyNames().Also(it => Array.Sort(it));
+                //var properties = cls.GetProperties().Also(it => Array.Sort(it, (l, r) => l.Name.CompareTo(r.Name)));
+                //var ivars = cls.GetInstanceVariables().Also(it => Array.Sort(it, (l, r) => l.Name.CompareTo(r.Name)));
+
                 var app = NSApplication.Current;
             }
             

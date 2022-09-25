@@ -12,7 +12,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
     {
         // Native symbols.
         [DllImport(NativeLibraryNames.ObjectiveC)]
-		static extern IntPtr sel_getName(IntPtr sel);
+		static extern sbyte* sel_getName(IntPtr sel);
         [DllImport(NativeLibraryNames.ObjectiveC)]
 		static extern IntPtr sel_getUid(string str);
         [DllImport(NativeLibraryNames.ObjectiveC)]
@@ -39,19 +39,14 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <inheritdoc/>
         public override bool Equals(object? obj) =>
             obj is Selector s && this.Equals(s);
-
-
-        /// <inheritdoc/>
-        public override int GetHashCode() =>
-            this.Name.GetHashCode();
-
+        
 
         /// <summary>
         /// Get registered selector or create new one.
         /// </summary>
         /// <param name="name">Name of selector.</param>
         /// <returns>Selector.</returns>
-        public static Selector GetOrCreate(string name)
+        public static Selector FromName(string name)
         {
             if (CachedSelectors.TryGetValue(name, out var selector))
                 return selector;
@@ -67,13 +62,18 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of selector.</param>
         /// <returns>Selector.</returns>
-        internal static Selector GetOrCreateUid(string name)
+        public static Selector FromUid(string name)
         {
             var handle = sel_getUid(name);
             if (handle == IntPtr.Zero)
                 throw new Exception($"Unable to register method '{name}' as selector.");
-            return new Selector(handle, name);
+            return new Selector(handle, new string(sel_getName(handle)));
         }
+
+
+        /// <inheritdoc/>
+        public override int GetHashCode() =>
+            this.Name.GetHashCode();
 
 
         /// <summary>
