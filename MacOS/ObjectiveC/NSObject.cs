@@ -3,14 +3,70 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace CarinaStudio.MacOS.ObjectiveC
 {
     /// <summary>
     /// Object of Objective-C.
     /// </summary>
-    public unsafe class NSObject : BaseDisposable, IEquatable<NSObject>
+    public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     {
+        /// <summary>
+        /// Holder of native instance.
+        /// </summary>
+        public class InstanceHolder : IEquatable<InstanceHolder>
+        {
+            // Constructor.
+            internal InstanceHolder(IntPtr handle)
+            { 
+                this.Class = Class.GetClass(handle);
+                this.Handle = handle;
+            }
+            internal InstanceHolder(IntPtr handle, Class cls)
+            {
+                if (handle == IntPtr.Zero)
+                    throw new ArgumentException("Handle of instance cannot be null.");
+                this.Class = cls;
+                this.Handle = handle;
+            }
+
+            /// <summary>
+            /// Get class of instance.
+            /// </summary>
+            public Class Class { get; }
+
+            /// <inheritdoc/>
+            public bool Equals(InstanceHolder? holder) =>
+                holder is not null && this.Handle == holder.Handle;
+
+            /// <inheritdoc/>
+            public override bool Equals(object? obj) =>
+                obj is InstanceHolder holder && this.Equals(holder);
+
+            /// <inheritdoc/>
+            public override int GetHashCode() =>
+                (int)(this.Handle.ToInt64() & 0x7fffffff);
+
+            /// <summary>
+            /// Get handle of instance.
+            /// </summary>
+            public IntPtr Handle { get; internal set; }
+
+            /// <summary>
+            /// Equality operator.
+            /// </summary>
+            public static bool operator ==(InstanceHolder l, InstanceHolder r) =>
+                l.Handle == r.Handle;
+            
+            /// <summary>
+            /// Inequality operator.
+            /// </summary>
+            public static bool operator !=(InstanceHolder l, InstanceHolder r) =>
+                l.Handle != r.Handle;
+        }
+
+
         /// <summary>
         /// Entry point of function to send message to instance (objc_msgSend).
         /// </summary>
@@ -93,13 +149,14 @@ namespace CarinaStudio.MacOS.ObjectiveC
         // Static fields.
         static readonly Selector? DeallocSelector;
         static readonly Selector? InitSelector;
-        static readonly IDictionary<Type, MethodInfo> WrappingMethods = new ConcurrentDictionary<Type, MethodInfo>();
+        static readonly IDictionary<Type, ConstructorInfo> WrappingConstructors = new ConcurrentDictionary<Type, ConstructorInfo>();
+        static readonly IDictionary<Type, Func<InstanceHolder, bool, NSObject>> WrappingMethods = new ConcurrentDictionary<Type, Func<InstanceHolder, bool, NSObject>>();
 
 
         // Fields.
-        volatile Class? cls;
-        volatile IntPtr handle;
         volatile PropertyDescriptor? hashProperty;
+        readonly InstanceHolder instance;
+        volatile int isDisposed;
         volatile bool ownsInstance;
 
 
@@ -121,15 +178,32 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <summary>
         /// Initialize new <see cref="NSObject"/> instance.
         /// </summary>
+        /// <param name="instance">Native instance.</param>
+        /// <param name="ownsInstance">True to own the instance.</param>
+        internal protected NSObject(InstanceHolder instance, bool ownsInstance)
+        {
+            this.instance = instance;
+            this.ownsInstance = ownsInstance;
+        }
+
+
+        /// <summary>
+        /// Initialize new <see cref="NSObject"/> instance.
+        /// </summary>
         /// <param name="handle">Handle of instance.</param>
         /// <param name="ownsInstance">True to own the instance.</param>
         internal protected NSObject(IntPtr handle, bool ownsInstance)
         {
-            if (handle == IntPtr.Zero)
-                throw new ArgumentException("Handle of instance cannot be null.");
-            this.handle = handle;
+            this.instance = new(handle);
             this.ownsInstance = ownsInstance;
         }
+
+
+        /// <summary>
+        /// Finalizer.
+        /// </summary>
+        ~NSObject() =>
+            this.Dispose(false);
 
 
         /// <summary>
@@ -139,25 +213,47 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <returns>Casted instance.</returns>
         public T Cast<T>() where T : NSObject
         {
-            this.VerifyDisposed();
-            return (T)GetWrappingMethod<T>().Invoke(null, new object?[] { this.handle, this.ownsInstance }).AsNonNull();
+            if (this is T target)
+                return target;
+            var ctor = GetWrappingConstructor<T>();
+            if (ctor.GetParameters().Length == 2)
+                return (T)Activator.CreateInstance(typeof(T), BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ this.instance, this.ownsInstance }, null).AsNonNull();
+            return (T)Activator.CreateInstance(typeof(T), BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ this.instance }, null).AsNonNull();
         }
 
 
+        /// <summary>
+        /// Get class of instance.
+        /// </summary>
+        public Class Class { get => this.instance.Class; }
+
+
         /// <inheritdoc/>
-        protected override void Dispose(bool disposing)
+        public void Dispose()
+        {
+            if (Interlocked.Exchange(ref this.isDisposed, 1) != 0)
+                return;
+            this.Dispose(true);
+        }
+
+
+        /// <summary>
+        /// Dispose the instance.
+        /// </summary>
+        /// <param name="disposing">True to dispose managed resources.</param>
+        protected virtual void Dispose(bool disposing)
         {
             if (this.IsDefaultInstance && disposing)
                 throw new InvalidOperationException("Cannot dispose default instance.");
-            if (this.handle != IntPtr.Zero && this.ownsInstance)
-                SendMessage(this.handle, DeallocSelector!.Handle);
-            this.handle = IntPtr.Zero;
+            if (this.instance.Handle != IntPtr.Zero && this.ownsInstance)
+                SendMessage(this.instance.Handle, DeallocSelector!.Handle);
+            this.instance.Handle = IntPtr.Zero;
         }
 
 
         /// <inheritdoc/>
         public bool Equals(NSObject? obj) =>
-            obj != null && obj.handle == this.handle;
+            obj != null && obj.instance == this.instance;
 
 
         /// <inheritdoc/>
@@ -172,9 +268,9 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <returns>Value.</returns>
         public bool GetBooleanProperty(PropertyDescriptor property)
         {
-            if (!property.Class.IsAssignableFrom(this.GetClass()))
-                throw new ArgumentException($"Property '{property}' is not owned by class '{this.GetClass()}'.");
-            return SendMessageForBoolean(this.handle, property.Getter!.Handle);
+            if (!property.Class.IsAssignableFrom(this.Class))
+                throw new ArgumentException($"Property '{property}' is not owned by class '{this.Class}'.");
+            return SendMessageForBoolean(this.Handle, property.Getter!.Handle);
         }
 
 
@@ -185,9 +281,9 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <returns>Value.</returns>
         public int GetInt32Property(PropertyDescriptor property)
         {
-            if (!property.Class.IsAssignableFrom(this.GetClass()))
-                throw new ArgumentException($"Property '{property}' is not owned by class '{this.GetClass()}'.");
-            return SendMessageForInt32(this.handle, property.Getter!.Handle);
+            if (!property.Class.IsAssignableFrom(this.Class))
+                throw new ArgumentException($"Property '{property}' is not owned by class '{this.Class}'.");
+            return SendMessageForInt32(this.Handle, property.Getter!.Handle);
         }
 
 
@@ -198,9 +294,9 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <returns>Value.</returns>
         public long GetInt64Property(PropertyDescriptor property)
         {
-            if (!property.Class.IsAssignableFrom(this.GetClass()))
-                throw new ArgumentException($"Property '{property}' is not owned by class '{this.GetClass()}'.");
-            return SendMessageForInt64(this.handle, property.Getter!.Handle);
+            if (!property.Class.IsAssignableFrom(this.Class))
+                throw new ArgumentException($"Property '{property}' is not owned by class '{this.Class}'.");
+            return SendMessageForInt64(this.Handle, property.Getter!.Handle);
         }
 
 
@@ -211,9 +307,9 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <returns>Value.</returns>
         public IntPtr GetIntPtrProperty(PropertyDescriptor property)
         {
-            if (!property.Class.IsAssignableFrom(this.GetClass()))
-                throw new ArgumentException($"Property '{property}' is not owned by class '{this.GetClass()}'.");
-            return SendMessageForIntPtr(this.handle, property.Getter!.Handle);
+            if (!property.Class.IsAssignableFrom(this.Class))
+                throw new ArgumentException($"Property '{property}' is not owned by class '{this.Class}'.");
+            return SendMessageForIntPtr(this.Handle, property.Getter!.Handle);
         }
 
 
@@ -224,21 +320,10 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <returns>Value.</returns>
         public T? GetObjectProperty<T>(PropertyDescriptor property) where T : NSObject
         {
-            if (!property.Class.IsAssignableFrom(this.GetClass()))
-                throw new ArgumentException($"Property '{property}' is not owned by class '{this.GetClass()}'.");
-            var handle = SendMessageForIntPtr(this.handle, property.Getter!.Handle);
+            if (!property.Class.IsAssignableFrom(this.Class))
+                throw new ArgumentException($"Property '{property}' is not owned by class '{this.Class}'.");
+            var handle = SendMessageForIntPtr(this.Handle, property.Getter!.Handle);
             return handle == IntPtr.Zero ? null : NSObject.Wrap<T>(handle, false);
-        }
-        
-
-        /// <summary>
-        /// Get <see cref="Class"/> of the instance.
-        /// </summary>
-        /// <returns><see cref="Class"/>.</returns>
-        public virtual Class GetClass()
-        {
-            this.VerifyDisposed();
-            return this.cls ?? Class.GetClass(this.handle).Also(it => this.cls = it);
         }
 
 
@@ -246,12 +331,12 @@ namespace CarinaStudio.MacOS.ObjectiveC
         public override int GetHashCode()
         {
             var property = this.hashProperty 
-                ?? (this.GetClass().TryGetProperty("hash", out var prop)
+                ?? (this.Class.TryGetProperty("hash", out var prop)
                     ? prop.Also(it => this.hashProperty = prop)
                     : null);
             return property != null
                 ? this.SendMessageForInt32(property.Getter!)
-                : (int)(this.handle.ToInt64() & 0x7fffffff);
+                : this.instance.GetHashCode();
         }
         
 
@@ -263,7 +348,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         public int GetInt32Variable(MemberDescriptor ivar)
         {
             this.VerifyDisposed();
-            return object_getIvar_Int32(this.handle, ivar.Handle);
+            return object_getIvar_Int32(this.Handle, ivar.Handle);
         }
 
 
@@ -275,12 +360,47 @@ namespace CarinaStudio.MacOS.ObjectiveC
         public long GetInt64Variable(MemberDescriptor ivar)
         {
             this.VerifyDisposed();
-            return object_getIvar_Int64(this.handle, ivar.Handle);
+            return object_getIvar_Int64(this.Handle, ivar.Handle);
         }
 
 
         // Get static method to wrap native instance.
-        static MethodInfo GetWrappingMethod<T>() where T : NSObject =>
+        static ConstructorInfo GetWrappingConstructor<T>() where T : NSObject =>
+            WrappingConstructors.TryGetValue(typeof(T), out var method)
+                ? method
+                : typeof(T).GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).Let(it =>
+                {
+                    var CtorWith1Arg = (ConstructorInfo?)null;
+                    foreach (var ctor in it)
+                    {
+                        var parameters = ctor.GetParameters();
+                        switch (parameters.Length)
+                        {
+                            case 1:
+                                if (parameters[0].ParameterType == typeof(InstanceHolder))
+                                    CtorWith1Arg = ctor;
+                                break;
+                            case 2:
+                                if (parameters[0].ParameterType == typeof(InstanceHolder)
+                                    && parameters[1].ParameterType == typeof(bool))
+                                {
+                                    WrappingConstructors.TryAdd(typeof(T), ctor);
+                                    return ctor;
+                                }
+                                break;
+                        }
+                    }
+                    if (CtorWith1Arg != null)
+                    {
+                        WrappingConstructors.TryAdd(typeof(T), CtorWith1Arg);
+                        return CtorWith1Arg;
+                    }
+                    throw new InvalidCastException($"Cannot find way to construct {typeof(T).Name}.");
+                });
+
+
+        // Get static method to wrap native instance.
+        static Func<InstanceHolder, bool, NSObject> GetWrappingMethod<T>() where T : NSObject =>
             WrappingMethods.TryGetValue(typeof(T), out var method)
                 ? method
                 : typeof(T).GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static).Let(it =>
@@ -291,11 +411,12 @@ namespace CarinaStudio.MacOS.ObjectiveC
                         {
                             var parameters = m.GetParameters();
                             if (parameters.Length == 2 
-                                && parameters[0].ParameterType == typeof(IntPtr)
+                                && parameters[0].ParameterType == typeof(InstanceHolder)
                                 && parameters[1].ParameterType == typeof(bool))
                             {
-                                WrappingMethods.TryAdd(typeof(T), m);
-                                return m;
+                                var func = (Func<InstanceHolder, bool, NSObject>)Delegate.CreateDelegate(typeof(Func<InstanceHolder, bool, NSObject>), null, m);
+                                WrappingMethods.TryAdd(typeof(T), func);
+                                return func;
                             }
                         }
                     }
@@ -306,7 +427,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <summary>
         /// Get handle of instance.
         /// </summary>
-        public IntPtr Handle { get => this.handle; }
+        public IntPtr Handle { get => this.instance.Handle; }
 
 
         /// <summary>
@@ -329,12 +450,18 @@ namespace CarinaStudio.MacOS.ObjectiveC
 
 
         /// <summary>
+        /// Check whether instance has been disposed or not.
+        /// </summary>
+        public bool IsDisposed { get => this.isDisposed != 0; }
+
+
+        /// <summary>
         /// Equality operator.
         /// </summary>
         public static bool operator ==(NSObject? l, NSObject? r)
         {
-            var lHandle = l?.handle ?? IntPtr.Zero;
-            var rHandle = r?.handle ?? IntPtr.Zero;
+            var lHandle = l?.instance?.Handle ?? IntPtr.Zero;
+            var rHandle = r?.instance?.Handle ?? IntPtr.Zero;
             return lHandle == rHandle;
         }
 
@@ -344,8 +471,8 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         public static bool operator !=(NSObject? l, NSObject? r)
         {
-            var lHandle = l?.handle ?? IntPtr.Zero;
-            var rHandle = r?.handle ?? IntPtr.Zero;
+            var lHandle = l?.instance?.Handle ?? IntPtr.Zero;
+            var rHandle = r?.instance?.Handle ?? IntPtr.Zero;
             return lHandle != rHandle;
         }
 
@@ -357,7 +484,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         public void SendMessage(Selector selector)
         {
             this.VerifyDisposed();
-            SendMessage(this.handle, selector.Handle);
+            SendMessage(this.Handle, selector.Handle);
         }
 
 
@@ -369,7 +496,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         public int SendMessageForInt32(Selector selector)
         {
             this.VerifyDisposed();
-            return SendMessageForInt32(this.handle, selector.Handle);
+            return SendMessageForInt32(this.Handle, selector.Handle);
         }
 
 
@@ -381,7 +508,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         public long SendMessageForInt64(Selector selector)
         {
             this.VerifyDisposed();
-            return SendMessageForInt64(this.handle, selector.Handle);
+            return SendMessageForInt64(this.Handle, selector.Handle);
         }
 
 
@@ -393,7 +520,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         public IntPtr SendMessageForIntPtr(Selector selector)
         {
             this.VerifyDisposed();
-            return SendMessageForIntPtr(this.handle, selector.Handle);
+            return SendMessageForIntPtr(this.Handle, selector.Handle);
         }
 
 
@@ -404,9 +531,9 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="value">Value.</param>
         public void SetProperty(PropertyDescriptor property, bool value)
         {
-            if (!property.Class.IsAssignableFrom(this.GetClass()))
-                throw new ArgumentException($"Property '{property}' is not owned by class '{this.GetClass()}'.");
-            SendMessage_Boolean(this.handle, property.Setter!.Handle, value);
+            if (!property.Class.IsAssignableFrom(this.Class))
+                throw new ArgumentException($"Property '{property}' is not owned by class '{this.Class}'.");
+            SendMessage_Boolean(this.Handle, property.Setter!.Handle, value);
         }
 
 
@@ -417,9 +544,9 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="value">Value.</param>
         public void SetProperty(PropertyDescriptor property, int value)
         {
-            if (!property.Class.IsAssignableFrom(this.GetClass()))
-                throw new ArgumentException($"Property '{property}' is not owned by class '{this.GetClass()}'.");
-            SendMessage_Int32(this.handle, property.Setter!.Handle, value);
+            if (!property.Class.IsAssignableFrom(this.Class))
+                throw new ArgumentException($"Property '{property}' is not owned by class '{this.Class}'.");
+            SendMessage_Int32(this.Handle, property.Setter!.Handle, value);
         }
 
 
@@ -430,9 +557,9 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="value">Value.</param>
         public void SetProperty(PropertyDescriptor property, long value)
         {
-            if (!property.Class.IsAssignableFrom(this.GetClass()))
-                throw new ArgumentException($"Property '{property}' is not owned by class '{this.GetClass()}'.");
-            SendMessage_Int64(this.handle, property.Setter!.Handle, value);
+            if (!property.Class.IsAssignableFrom(this.Class))
+                throw new ArgumentException($"Property '{property}' is not owned by class '{this.Class}'.");
+            SendMessage_Int64(this.Handle, property.Setter!.Handle, value);
         }
 
 
@@ -443,9 +570,9 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="value">Value.</param>
         public void SetProperty(PropertyDescriptor property, IntPtr value)
         {
-            if (!property.Class.IsAssignableFrom(this.GetClass()))
-                throw new ArgumentException($"Property '{property}' is not owned by class '{this.GetClass()}'.");
-            SendMessage_IntPtr(this.handle, property.Setter!.Handle, value);
+            if (!property.Class.IsAssignableFrom(this.Class))
+                throw new ArgumentException($"Property '{property}' is not owned by class '{this.Class}'.");
+            SendMessage_IntPtr(this.Handle, property.Setter!.Handle, value);
         }
 
 
@@ -456,15 +583,25 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="value">Value.</param>
         public void SetProperty(PropertyDescriptor property, NSObject? value)
         {
-            if (!property.Class.IsAssignableFrom(this.GetClass()))
-                throw new ArgumentException($"Property '{property}' is not owned by class '{this.GetClass()}'.");
-            SendMessage_IntPtr(this.handle, property.Setter!.Handle, value?.handle ?? IntPtr.Zero);
+            if (!property.Class.IsAssignableFrom(this.Class))
+                throw new ArgumentException($"Property '{property}' is not owned by class '{this.Class}'.");
+            SendMessage_IntPtr(this.Handle, property.Setter!.Handle, value?.Handle ?? IntPtr.Zero);
         }
 
 
         /// <inheritdoc/>
         public override string ToString() =>
-            string.Format("0x{0:x16}", this.handle);
+            string.Format("0x{0:x16}", this.Handle);
+        
+
+        /// <summary>
+        /// Throw <see cref="ObjectDisposedException"/> if instance has been disposed.
+        /// </summary>
+        protected void VerifyDisposed()
+        {
+            if (this.IsDisposed)
+                throw new ObjectDisposedException(this.GetType().Name);
+        }
         
 
         /// <summary>
@@ -488,7 +625,11 @@ namespace CarinaStudio.MacOS.ObjectiveC
         {
             if (typeof(T) == typeof(NSObject))
                 return (T)Wrap(handle, ownsInstance);
-            return (T)GetWrappingMethod<T>().Invoke(null, new object?[] { handle, ownsInstance }).AsNonNull();
+            var ctor = GetWrappingConstructor<T>();
+            var instance = new InstanceHolder(handle);
+            if (ctor.GetParameters().Length == 2)
+                return (T)Activator.CreateInstance(typeof(T), BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ instance, ownsInstance }, null).AsNonNull();
+            return (T)Activator.CreateInstance(typeof(T), BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ instance }, null).AsNonNull();
         }
     }
 }
