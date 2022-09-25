@@ -30,11 +30,11 @@ namespace CarinaStudio.MacOS.ObjectiveC
         {
             if (Class != null)
             {
-                CompareSelector = Selector.GetOrCreate("compare:");
-                GetCharsSelector = Selector.GetOrCreate("getCharacters:range:");
-                InitWithCharSelector = Selector.GetOrCreate("initWithCharacters:length:");
-                IsEqualToSelector = Selector.GetOrCreate("isEqualTo:");
-                Class.TryFindProperty("length", out LengthProperty);
+                CompareSelector = Selector.FromName("compare:");
+                GetCharsSelector = Selector.FromName("getCharacters:range:");
+                InitWithCharSelector = Selector.FromName("initWithCharacters:length:");
+                IsEqualToSelector = Selector.FromName("isEqualTo:");
+                Class.TryGetProperty("length", out LengthProperty);
             }
         }
 
@@ -54,6 +54,11 @@ namespace CarinaStudio.MacOS.ObjectiveC
         { 
             this.stringRef = new WeakReference<string>(s);
         }
+
+
+        // Constructor.
+        NSString(IntPtr handle, bool ownsInstance) : base(handle, ownsInstance)
+        { }
 
 
         /// <inheritdoc/>
@@ -125,6 +130,20 @@ namespace CarinaStudio.MacOS.ObjectiveC
             s = new string(buffer);
             this.stringRef = new WeakReference<string>(s);
             return s;
+        }
+
+
+        /// <summary>
+        /// Wrap given handle as <see cref="NSString"/>.
+        /// </summary>
+        /// <param name="handle">Handle of instance.</param>
+        /// <param name="ownsInstance">True to owns instance.</param>
+        /// <returns>Wrapped instance.</returns>
+        public static new NSString Wrap(IntPtr handle, bool ownsInstance = false)
+        {
+            if (Class?.IsAssignableFrom(Class.GetClass(handle)) != true)
+                throw new InvalidOperationException("Cannot wrap instance as NSString.");
+            return new NSString(handle, ownsInstance);
         }
     }
 }

@@ -1,7 +1,8 @@
+using CarinaStudio.MacOS.ObjectiveC;
 using System;
 using System.Runtime.InteropServices;
 
-namespace CarinaStudio.MacOS.ObjectiveC
+namespace CarinaStudio.MacOS.AppKit
 {
     /// <summary>
     /// NSApplication.
@@ -37,10 +38,10 @@ namespace CarinaStudio.MacOS.ObjectiveC
                 NSAppPtr = (IntPtr*)NativeLibrary.GetExport(libHandle, "NSApp");
             }
             Class = Class.GetClass("NSApplication");
-            Class!.TryFindProperty("dockTile", out DockTileProperty);
-            Class!.TryFindProperty("mainWindow", out MainWindowProperty);
-            Class!.TryFindProperty("running", out IsRunningProperty);
-            Class!.TryFindProperty("windows", out WindowsProperty);
+            Class!.TryGetProperty("dockTile", out DockTileProperty);
+            Class!.TryGetProperty("mainWindow", out MainWindowProperty);
+            Class!.TryGetProperty("running", out IsRunningProperty);
+            Class!.TryGetProperty("windows", out WindowsProperty);
         }
 
 
@@ -78,9 +79,9 @@ namespace CarinaStudio.MacOS.ObjectiveC
             get
             {
                 this.VerifyDisposed();
-                return this.dockTile ?? SendMessageForIntPtr(this.Handle, DockTileProperty!.Getter!.Handle).Let(it =>
+                return this.dockTile ?? this.GetObjectProperty<NSObject>(DockTileProperty!).Let(it =>
                 {
-                    this.dockTile = NSObject.Wrap(it, false);
+                    this.dockTile = it.AsNonNull();
                     return this.dockTile;
                 });
             }
@@ -90,7 +91,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <summary>
         /// Check whether the main event loop is runnig or not.
         /// </summary>
-        public bool IsRunning { get => SendMessageForBoolean(this.Handle, IsRunningProperty!.Getter!.Handle); }
+        public bool IsRunning { get => this.GetBooleanProperty(IsRunningProperty!); }
 
 
         /// <summary>
@@ -101,7 +102,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
             get
             {
                 this.VerifyDisposed();
-                var handle = SendMessageForIntPtr(this.Handle, MainWindowProperty!.Getter!.Handle);
+                var handle = this.GetIntPtrProperty(MainWindowProperty!);
                 if (handle != IntPtr.Zero)
                 {
                     if (this.mainWindow == null || this.mainWindow.Handle != handle)
@@ -111,6 +112,29 @@ namespace CarinaStudio.MacOS.ObjectiveC
                     this.mainWindow = null;
                 return this.mainWindow;
             }
+        }
+
+
+        /// <summary>
+        /// Wrap given handle as <see cref="NSApplication"/>.
+        /// </summary>
+        /// <param name="handle">Handle of instance.</param>
+        /// <returns>Wrapped instance.</returns>
+        public static NSApplication Wrap(IntPtr handle) =>
+            Wrap(handle, false);
+
+
+        /// <summary>
+        /// Wrap given handle as <see cref="NSApplication"/>.
+        /// </summary>
+        /// <param name="handle">Handle of instance.</param>
+        /// <param name="ownsInstance">True to owns instance.</param>
+        /// <returns>Wrapped instance.</returns>
+        internal static new NSApplication Wrap(IntPtr handle, bool ownsInstance = false)
+        {
+            if (Class?.IsAssignableFrom(Class.GetClass(handle)) != true)
+                throw new InvalidOperationException("Cannot wrap instance as NSApplication.");
+            return new NSApplication(handle);
         }
     }
 }

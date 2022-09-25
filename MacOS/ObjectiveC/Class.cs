@@ -9,7 +9,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
     /// <summary>
     /// Class of Objective-C.
     /// </summary>
-    public sealed unsafe class Class
+    public sealed unsafe class Class : IEquatable<Class>
     {
         // Native symbols.
         [DllImport(NativeLibraryNames.ObjectiveC)]
@@ -31,7 +31,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         [DllImport(NativeLibraryNames.ObjectiveC)]
         static extern IntPtr objc_getClass(string name);
         [DllImport(NativeLibraryNames.ObjectiveC)]
-        static extern IntPtr property_copyAttributeValue(IntPtr property, string attributeName);
+        static extern IntPtr object_getClass(IntPtr obj);
         [DllImport(NativeLibraryNames.ObjectiveC)]
         static extern sbyte* property_getName(IntPtr property);
         [DllImport(NativeLibraryNames.ObjectiveC, EntryPoint = NSObject.SendMessageEntryPointName)]
@@ -42,12 +42,14 @@ namespace CarinaStudio.MacOS.ObjectiveC
         static readonly Selector? AllocSelector;
         static readonly IDictionary<IntPtr, Class> CachedClassesByHandle = new ConcurrentDictionary<IntPtr, Class>();
         static readonly IDictionary<string, Class> CachedClassesByName = new ConcurrentDictionary<string, Class>();
-        static readonly IDictionary<string, MemberDescriptor> CachedCVars = new ConcurrentDictionary<string, MemberDescriptor>();
-        static readonly IDictionary<string, MemberDescriptor> CachedIVars = new ConcurrentDictionary<string, MemberDescriptor>();
-        static readonly IDictionary<string, PropertyDescriptor> CachedProperties = new ConcurrentDictionary<string, PropertyDescriptor>();
 
 
         // Fields.
+        volatile bool areAllIVarsCached;
+        volatile bool areAllPropertiesCached;
+        readonly IDictionary<string, MemberDescriptor> cachedCVars = new ConcurrentDictionary<string, MemberDescriptor>();
+        readonly IDictionary<string, MemberDescriptor> cachedIVars = new ConcurrentDictionary<string, MemberDescriptor>();
+        readonly IDictionary<string, PropertyDescriptor> cachedProperties = new ConcurrentDictionary<string, PropertyDescriptor>();
         volatile bool isRootClass;
         volatile Class? superClass;
 
@@ -57,7 +59,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         {
             if (Platform.IsNotMacOS)
                 return;
-            AllocSelector = Selector.GetOrCreate("alloc");
+            AllocSelector = Selector.FromName("alloc");
         }
 
 
@@ -75,6 +77,16 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <returns>Handle of allocated instance.</returns>
         public IntPtr Allocate() =>
             SendMessageIntPtr(this.Handle, AllocSelector!.Handle);
+        
+
+        /// <inheritdoc/>
+        public bool Equals(Class? cls) =>
+            cls != null && this.Handle == cls.Handle;
+
+
+        /// <inheritdoc/>
+        public override bool Equals(object? obj) =>
+            obj is Class cls && this.Equals(cls);
 
 
         /// <summary>
@@ -102,48 +114,82 @@ namespace CarinaStudio.MacOS.ObjectiveC
 
 
         /// <summary>
-        /// Get all names of instance variables of the class.
+        /// Get class of given instance.
         /// </summary>
-        /// <returns>Names of instance variables.</returns>
-        public string[] GetInstanceVariableNames()
+        /// <param name="obj">Handle of instance.</param>
+        /// <returns>Class.</returns>
+        public static Class GetClass(IntPtr obj)
         {
-            var varsPtr = class_copyIvarList(this.Handle, out var count);
-            if (varsPtr == null)
-                return new string[0];
-            try
+            if (obj == IntPtr.Zero)
+                throw new ArgumentException("Handle of instance cannot be null.");
+            return Wrap(object_getClass(obj));
+        }
+
+
+        /// <inheritdoc/>
+        public override int GetHashCode() =>
+            this.Name.GetHashCode();
+
+
+        /// <summary>
+        /// Get all instance variables of the class.
+        /// </summary>
+        /// <returns>Descriptors of instance variables.</returns>
+        public MemberDescriptor[] GetInstanceVariables()
+        {
+            if (this.areAllIVarsCached)
+                return this.cachedIVars.Values.ToArray();
+            var cls = this;
+            var varNames = new Dictionary<string, IntPtr>();
+            while (cls != null)
             {
-                var names = new HashSet<string>();
-                for (var i = count - 1; i >= 0; --i)
-                    names.Add(new string(ivar_getName(varsPtr[i])));
-                return names.ToArray();
+                var varsPtr = class_copyIvarList(cls.Handle, out var count);
+                try
+                {
+                    for (var i = count - 1; i >= 0; --i)
+                        varNames.TryAdd(new string(ivar_getName(varsPtr[i])), varsPtr[i]);
+                }
+                finally
+                {
+                    NativeMemory.Free(varsPtr);
+                    cls = cls?.SuperClass;
+                }
             }
-            finally
-            {
-                NativeMemory.Free(varsPtr);
-            }
+            foreach (var (name, handle) in varNames)
+                this.cachedIVars.TryAdd(name, new MemberDescriptor(this, handle, name));
+            this.areAllIVarsCached = true;
+            return this.cachedIVars.Values.ToArray();
         }
 
 
         /// <summary>
-        /// Get all names of properties of the class.
+        /// Get all properties of the class.
         /// </summary>
-        /// <returns>Names of properties.</returns>
-        public unsafe string[] GetPropertyNames()
+        /// <returns>Descriptors of properties.</returns>
+        public unsafe PropertyDescriptor[] GetProperties()
         {
-            var propertiesPtr = class_copyPropertyList(this.Handle, out var count);
-            if (propertiesPtr == null)
-                return new string[0];
-            try
+            if (areAllPropertiesCached)
+                return this.cachedProperties.Values.ToArray();
+            var cls = this;
+            var propertyNames = new Dictionary<string, IntPtr>();
+            while (cls != null)
             {
-                var names = new HashSet<string>();
-                for (var i = count - 1; i >= 0; --i)
-                    names.Add(new string(property_getName(propertiesPtr[i])));
-                return names.ToArray();
+                var propertiesPtr = class_copyPropertyList(cls.Handle, out var count);
+                try
+                {
+                    for (var i = count - 1; i >= 0; --i)
+                        propertyNames.TryAdd(new string(property_getName(propertiesPtr[i])), propertiesPtr[i]);
+                }
+                finally
+                {
+                    NativeMemory.Free(propertiesPtr);
+                    cls = cls?.SuperClass;
+                }
             }
-            finally
-            {
-                NativeMemory.Free(propertiesPtr);
-            }
+            foreach (var (name, handle) in propertyNames)
+                this.cachedProperties.TryAdd(name, new PropertyDescriptor(this, handle, name));
+            this.areAllPropertiesCached = true;
+            return this.cachedProperties.Values.ToArray();
         }
 
 
@@ -151,6 +197,26 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// Get handle of class.
         /// </summary>
         public IntPtr Handle { get; }
+
+
+        /// <summary>
+        /// Check whether instances of given class can be casted to this class or not.
+        /// </summary>
+        /// <param name="cls">Given class.</param>
+        /// <returns>True if instances of given class can be casted to this class.</returns>
+        public bool IsAssignableFrom(Class cls)
+        {
+            if (this.Equals(cls))
+                return true;
+            var superCls = cls.SuperClass;
+            while (superCls != null)
+            {
+                if (this.Equals(superCls))
+                    return true;
+                superCls = superCls.SuperClass;
+            }
+            return false;
+        }
 
 
         /// <summary>
@@ -194,9 +260,9 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="name">Name.</param>
         /// <param name="ivar">Descriptor of class variable.</param>
         /// <returns>True if variable found.</returns>
-        public unsafe bool TryFindClassVriable(string name, out MemberDescriptor? ivar)
+        public unsafe bool TryGetClassVriable(string name, out MemberDescriptor? ivar)
         {
-            if (CachedCVars.TryGetValue(name, out ivar))
+            if (this.cachedCVars.TryGetValue(name, out ivar))
                 return true;
             var handle = class_getClassVariable(this.Handle, name);
             if (handle == IntPtr.Zero)
@@ -204,7 +270,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
                 ivar = null;
                 return false;
             }
-            ivar = new MemberDescriptor(handle, name).Also(it => CachedCVars.TryAdd(name, it));
+            ivar = new MemberDescriptor(this, handle, name).Also(it => this.cachedCVars.TryAdd(name, it));
             return true;
         }
         
@@ -215,17 +281,22 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="name">Name.</param>
         /// <param name="ivar">Descriptor of instance variable.</param>
         /// <returns>True if variable found.</returns>
-        public unsafe bool TryFindInstanceVriable(string name, out MemberDescriptor? ivar)
+        public unsafe bool TryGetInstanceVriable(string name, out MemberDescriptor? ivar)
         {
-            if (CachedIVars.TryGetValue(name, out ivar))
+            if (this.cachedIVars.TryGetValue(name, out ivar))
                 return true;
+            if (this.areAllIVarsCached)
+            {
+                ivar = null;
+                return false;
+            }
             var handle = class_getInstanceVariable(this.Handle, name);
             if (handle == IntPtr.Zero)
             {
                 ivar = null;
                 return false;
             }
-            ivar = new MemberDescriptor(handle, name).Also(it => CachedIVars.TryAdd(name, it));
+            ivar = new MemberDescriptor(this, handle, name).Also(it => this.cachedIVars.TryAdd(name, it));
             return true;
         }
         
@@ -236,46 +307,22 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="name">Name.</param>
         /// <param name="property">Descriptor of found property.</param>
         /// <returns>True if property found.</returns>
-        public unsafe bool TryFindProperty(string name, out PropertyDescriptor? property)
+        public unsafe bool TryGetProperty(string name, out PropertyDescriptor? property)
         {
-            if (CachedProperties.TryGetValue(name, out property))
+            if (this.cachedProperties.TryGetValue(name, out property))
                 return true;
+            if (this.areAllPropertiesCached)
+            {
+                property = null;
+                return false;
+            }
             var handle = class_getProperty(this.Handle, name);
             if (handle == IntPtr.Zero)
             {
                 property = null;
                 return false;
             }
-            var getter = property_copyAttributeValue(handle, "G").Let(it =>
-            {
-                if (it != IntPtr.Zero)
-                {
-                    var selector = Selector.GetOrCreate(new string((sbyte*)it));
-                    NativeMemory.Free((void*)it);
-                    return selector;
-                }
-                return Selector.GetOrCreateUid(name);
-            });
-            var isReadOnly = property_copyAttributeValue(handle, "R").Let(it =>
-            {
-                if (it != IntPtr.Zero)
-                {
-                    NativeMemory.Free((void*)it);
-                    return true;
-                }
-                return false;
-            });
-            var setter = isReadOnly ? null : property_copyAttributeValue(handle, "S").Let(it =>
-            {
-                if (it != IntPtr.Zero)
-                {
-                    var selector = Selector.GetOrCreate(new string((sbyte*)it));
-                    NativeMemory.Free((void*)it);
-                    return selector;
-                }
-                return Selector.GetOrCreateUid(name);
-            });
-            property = new PropertyDescriptor(handle, name, getter, setter).Also(it => CachedProperties.TryAdd(name, it));
+            property = new PropertyDescriptor(this, handle, name).Also(it => this.cachedProperties.TryAdd(name, it));
             return true;
         }
         

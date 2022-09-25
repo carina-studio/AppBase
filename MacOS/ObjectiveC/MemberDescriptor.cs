@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 
 namespace CarinaStudio.MacOS.ObjectiveC
 {
@@ -8,11 +9,18 @@ namespace CarinaStudio.MacOS.ObjectiveC
     public class MemberDescriptor
     {
         // Constructor.
-        internal MemberDescriptor(IntPtr handle, string name)
+        internal MemberDescriptor(Class cls, IntPtr handle, string name)
         {
+            this.Class = cls;
             this.Handle = handle;
             this.Name = name;
         }
+
+
+        /// <summary>
+        /// Get class which owns this member.
+        /// </summary>
+        public Class Class { get; }
 
 
         /// <summary>
@@ -36,13 +44,45 @@ namespace CarinaStudio.MacOS.ObjectiveC
     /// <summary>
     /// Descriptor of property of class.
     /// </summary>
-    public class PropertyDescriptor : MemberDescriptor
+    public unsafe class PropertyDescriptor : MemberDescriptor
     {
+        // Native symbols.
+        [DllImport(NativeLibraryNames.ObjectiveC)]
+        static extern IntPtr property_copyAttributeValue(IntPtr property, string attributeName);
+
+
         // Constructor.
-        internal PropertyDescriptor(IntPtr handle, string name, Selector? getter, Selector? setter) : base(handle, name)
+        internal PropertyDescriptor(Class cls, IntPtr handle, string name) : base(cls, handle, name)
         {
-            this.Getter = getter;
-            this.Setter = setter;
+            this.Getter = property_copyAttributeValue(handle, "G").Let(it =>
+            {
+                if (it != IntPtr.Zero)
+                {
+                    var selector = Selector.FromName(new string((sbyte*)it));
+                    NativeMemory.Free((void*)it);
+                    return selector;
+                }
+                return Selector.FromUid(name);
+            });
+            this.IsReadOnly = property_copyAttributeValue(handle, "R").Let(it =>
+            {
+                if (it != IntPtr.Zero)
+                {
+                    NativeMemory.Free((void*)it);
+                    return true;
+                }
+                return false;
+            });
+            this.Setter = this.IsReadOnly ? null : property_copyAttributeValue(handle, "S").Let(it =>
+            {
+                if (it != IntPtr.Zero)
+                {
+                    var selector = Selector.FromName(new string((sbyte*)it));
+                    NativeMemory.Free((void*)it);
+                    return selector;
+                }
+                return Selector.FromUid(name);
+            });
         }
         
 
@@ -50,6 +90,12 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// Get selector of getter of property.
         /// </summary>
         public Selector? Getter { get; }
+
+
+        /// <summary>
+        /// Check whether this is a read-only property or not.
+        /// </summary>
+        public bool IsReadOnly { get; }
 
 
         /// <summary>

@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Reflection;
 using System.Runtime.InteropServices;
 
 namespace CarinaStudio.MacOS.ObjectiveC
@@ -16,8 +19,6 @@ namespace CarinaStudio.MacOS.ObjectiveC
 
         // Native symbols.
         static readonly IntPtr objc_msgSend;
-        [DllImport(NativeLibraryNames.ObjectiveC)]
-        static extern IntPtr object_getClass(IntPtr obj);
         [DllImport(NativeLibraryNames.ObjectiveC, EntryPoint = "object_getIvar")]
         static extern int object_getIvar_Int32(IntPtr obj, IntPtr ivar);
         [DllImport(NativeLibraryNames.ObjectiveC, EntryPoint = "object_getIvar")]
@@ -27,6 +28,26 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         [DllImport(NativeLibraryNames.ObjectiveC, EntryPoint = SendMessageEntryPointName)]
         internal protected static extern void SendMessage(IntPtr target, IntPtr selector);
+        /// <summary>
+        /// Send message to instance.
+        /// </summary>
+        [DllImport(NativeLibraryNames.ObjectiveC, EntryPoint = SendMessageEntryPointName)]
+        internal protected static extern void SendMessage_Boolean(IntPtr target, IntPtr selector, bool arg1);
+        /// <summary>
+        /// Send message to instance.
+        /// </summary>
+        [DllImport(NativeLibraryNames.ObjectiveC, EntryPoint = SendMessageEntryPointName)]
+        internal protected static extern void SendMessage_Int32(IntPtr target, IntPtr selector, int arg1);
+        /// <summary>
+        /// Send message to instance.
+        /// </summary>
+        [DllImport(NativeLibraryNames.ObjectiveC, EntryPoint = SendMessageEntryPointName)]
+        internal protected static extern void SendMessage_Int64(IntPtr target, IntPtr selector, long arg1);
+        /// <summary>
+        /// Send message to instance.
+        /// </summary>
+        [DllImport(NativeLibraryNames.ObjectiveC, EntryPoint = SendMessageEntryPointName)]
+        internal protected static extern void SendMessage_IntPtr(IntPtr target, IntPtr selector, IntPtr arg1);
         /// <summary>
         /// Send message to instance.
         /// </summary>
@@ -72,9 +93,11 @@ namespace CarinaStudio.MacOS.ObjectiveC
         // Static fields.
         static readonly Selector? DeallocSelector;
         static readonly Selector? InitSelector;
+        static readonly IDictionary<Type, MethodInfo> WrappingMethods = new ConcurrentDictionary<Type, MethodInfo>();
 
 
         // Fields.
+        volatile Class? cls;
         volatile IntPtr handle;
         volatile PropertyDescriptor? hashProperty;
         volatile bool ownsInstance;
@@ -90,8 +113,8 @@ namespace CarinaStudio.MacOS.ObjectiveC
             {
                 objc_msgSend = *(IntPtr*)NativeLibrary.GetExport(libHandle, "objc_msgSend");
             }
-            DeallocSelector = Selector.GetOrCreate("dealloc");
-            InitSelector = Selector.GetOrCreate("init");
+            DeallocSelector = Selector.FromName("dealloc");
+            InitSelector = Selector.FromName("init");
         }
 
 
@@ -100,12 +123,24 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="handle">Handle of instance.</param>
         /// <param name="ownsInstance">True to own the instance.</param>
-        protected NSObject(IntPtr handle, bool ownsInstance)
+        internal protected NSObject(IntPtr handle, bool ownsInstance)
         {
             if (handle == IntPtr.Zero)
                 throw new ArgumentException("Handle of instance cannot be null.");
             this.handle = handle;
             this.ownsInstance = ownsInstance;
+        }
+
+
+        /// <summary>
+        /// Cast instance as given type.
+        /// </summary>
+        /// <typeparam name="T">Type.</typeparam>
+        /// <returns>Casted instance.</returns>
+        public T Cast<T>() where T : NSObject
+        {
+            this.VerifyDisposed();
+            return (T)GetWrappingMethod<T>().Invoke(null, new object?[] { this.handle, this.ownsInstance }).AsNonNull();
         }
 
 
@@ -131,13 +166,79 @@ namespace CarinaStudio.MacOS.ObjectiveC
         
 
         /// <summary>
+        /// Get value of property as <see cref="Boolean"/>.
+        /// </summary>
+        /// <param name="property">Property.</param>
+        /// <returns>Value.</returns>
+        public bool GetBooleanProperty(PropertyDescriptor property)
+        {
+            if (!property.Class.IsAssignableFrom(this.GetClass()))
+                throw new ArgumentException($"Property '{property}' is not owned by class '{this.GetClass()}'.");
+            return SendMessageForBoolean(this.handle, property.Getter!.Handle);
+        }
+
+
+        /// <summary>
+        /// Get value of property as <see cref="Int32"/>.
+        /// </summary>
+        /// <param name="property">Property.</param>
+        /// <returns>Value.</returns>
+        public int GetInt32Property(PropertyDescriptor property)
+        {
+            if (!property.Class.IsAssignableFrom(this.GetClass()))
+                throw new ArgumentException($"Property '{property}' is not owned by class '{this.GetClass()}'.");
+            return SendMessageForInt32(this.handle, property.Getter!.Handle);
+        }
+
+
+        /// <summary>
+        /// Get value of property as <see cref="Int64"/>.
+        /// </summary>
+        /// <param name="property">Property.</param>
+        /// <returns>Value.</returns>
+        public long GetInt64Property(PropertyDescriptor property)
+        {
+            if (!property.Class.IsAssignableFrom(this.GetClass()))
+                throw new ArgumentException($"Property '{property}' is not owned by class '{this.GetClass()}'.");
+            return SendMessageForInt64(this.handle, property.Getter!.Handle);
+        }
+
+
+        /// <summary>
+        /// Get value of property as <see cref="IntPtr"/>.
+        /// </summary>
+        /// <param name="property">Property.</param>
+        /// <returns>Value.</returns>
+        public IntPtr GetIntPtrProperty(PropertyDescriptor property)
+        {
+            if (!property.Class.IsAssignableFrom(this.GetClass()))
+                throw new ArgumentException($"Property '{property}' is not owned by class '{this.GetClass()}'.");
+            return SendMessageForIntPtr(this.handle, property.Getter!.Handle);
+        }
+
+
+        /// <summary>
+        /// Get value of property as <see cref="NSObject"/>.
+        /// </summary>
+        /// <param name="property">Property.</param>
+        /// <returns>Value.</returns>
+        public T? GetObjectProperty<T>(PropertyDescriptor property) where T : NSObject
+        {
+            if (!property.Class.IsAssignableFrom(this.GetClass()))
+                throw new ArgumentException($"Property '{property}' is not owned by class '{this.GetClass()}'.");
+            var handle = SendMessageForIntPtr(this.handle, property.Getter!.Handle);
+            return handle == IntPtr.Zero ? null : NSObject.Wrap<T>(handle, false);
+        }
+        
+
+        /// <summary>
         /// Get <see cref="Class"/> of the instance.
         /// </summary>
         /// <returns><see cref="Class"/>.</returns>
         public virtual Class GetClass()
         {
             this.VerifyDisposed();
-            return Class.Wrap(object_getClass(this.handle));
+            return this.cls ?? Class.GetClass(this.handle).Also(it => this.cls = it);
         }
 
 
@@ -145,7 +246,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         public override int GetHashCode()
         {
             var property = this.hashProperty 
-                ?? (this.GetClass().TryFindProperty("hash", out var prop)
+                ?? (this.GetClass().TryGetProperty("hash", out var prop)
                     ? prop.Also(it => this.hashProperty = prop)
                     : null);
             return property != null
@@ -176,6 +277,30 @@ namespace CarinaStudio.MacOS.ObjectiveC
             this.VerifyDisposed();
             return object_getIvar_Int64(this.handle, ivar.Handle);
         }
+
+
+        // Get static method to wrap native instance.
+        static MethodInfo GetWrappingMethod<T>() where T : NSObject =>
+            WrappingMethods.TryGetValue(typeof(T), out var method)
+                ? method
+                : typeof(T).GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static).Let(it =>
+                {
+                    foreach (var m in it)
+                    {
+                        if (m.Name == "Wrap" && typeof(T).IsAssignableFrom(m.ReturnType))
+                        {
+                            var parameters = m.GetParameters();
+                            if (parameters.Length == 2 
+                                && parameters[0].ParameterType == typeof(IntPtr)
+                                && parameters[1].ParameterType == typeof(bool))
+                            {
+                                WrappingMethods.TryAdd(typeof(T), m);
+                                return m;
+                            }
+                        }
+                    }
+                    throw new InvalidCastException($"Cannot find method to wrap NSObject as '{typeof(T)}'.");
+                });
 
 
         /// <summary>
@@ -272,6 +397,71 @@ namespace CarinaStudio.MacOS.ObjectiveC
         }
 
 
+        /// <summary>
+        /// Set value of property.
+        /// </summary>
+        /// <param name="property">Property.</param>
+        /// <param name="value">Value.</param>
+        public void SetProperty(PropertyDescriptor property, bool value)
+        {
+            if (!property.Class.IsAssignableFrom(this.GetClass()))
+                throw new ArgumentException($"Property '{property}' is not owned by class '{this.GetClass()}'.");
+            SendMessage_Boolean(this.handle, property.Setter!.Handle, value);
+        }
+
+
+        /// <summary>
+        /// Set value of property.
+        /// </summary>
+        /// <param name="property">Property.</param>
+        /// <param name="value">Value.</param>
+        public void SetProperty(PropertyDescriptor property, int value)
+        {
+            if (!property.Class.IsAssignableFrom(this.GetClass()))
+                throw new ArgumentException($"Property '{property}' is not owned by class '{this.GetClass()}'.");
+            SendMessage_Int32(this.handle, property.Setter!.Handle, value);
+        }
+
+
+        /// <summary>
+        /// Set value of property.
+        /// </summary>
+        /// <param name="property">Property.</param>
+        /// <param name="value">Value.</param>
+        public void SetProperty(PropertyDescriptor property, long value)
+        {
+            if (!property.Class.IsAssignableFrom(this.GetClass()))
+                throw new ArgumentException($"Property '{property}' is not owned by class '{this.GetClass()}'.");
+            SendMessage_Int64(this.handle, property.Setter!.Handle, value);
+        }
+
+
+        /// <summary>
+        /// Set value of property.
+        /// </summary>
+        /// <param name="property">Property.</param>
+        /// <param name="value">Value.</param>
+        public void SetProperty(PropertyDescriptor property, IntPtr value)
+        {
+            if (!property.Class.IsAssignableFrom(this.GetClass()))
+                throw new ArgumentException($"Property '{property}' is not owned by class '{this.GetClass()}'.");
+            SendMessage_IntPtr(this.handle, property.Setter!.Handle, value);
+        }
+
+
+        /// <summary>
+        /// Set value of property.
+        /// </summary>
+        /// <param name="property">Property.</param>
+        /// <param name="value">Value.</param>
+        public void SetProperty(PropertyDescriptor property, NSObject? value)
+        {
+            if (!property.Class.IsAssignableFrom(this.GetClass()))
+                throw new ArgumentException($"Property '{property}' is not owned by class '{this.GetClass()}'.");
+            SendMessage_IntPtr(this.handle, property.Setter!.Handle, value?.handle ?? IntPtr.Zero);
+        }
+
+
         /// <inheritdoc/>
         public override string ToString() =>
             string.Format("0x{0:x16}", this.handle);
@@ -282,18 +472,23 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="handle">Handle of instance.</param>
         /// <param name="ownsInstance">True to owns instance.</param>
-        /// <returns><see cref="NSObject"/>.</returns>
+        /// <returns>Wrapped instance.</returns>
         public static NSObject Wrap(IntPtr handle, bool ownsInstance = false) =>
-            new NSObjectWrapper(handle, ownsInstance);
-    }
+            new NSObject(handle, ownsInstance);
+        
 
-
-    /// <summary>
-    /// Wrapper of arbitrary NSObject.
-    /// </summary>
-    internal class NSObjectWrapper : NSObject
-    {
-        public NSObjectWrapper(IntPtr handle, bool ownsInstance) : base(handle, ownsInstance)
-        { }
+        /// <summary>
+        /// Wrap given handle as given type.
+        /// </summary>
+        /// <param name="handle">Handle of instance.</param>
+        /// <param name="ownsInstance">True to owns instance.</param>
+        /// <typeparam name="T">Type to wrap the instance.</typeparam>
+        /// <returns>Wrapped instance.</returns>
+        public static T Wrap<T>(IntPtr handle, bool ownsInstance = false) where T : NSObject
+        {
+            if (typeof(T) == typeof(NSObject))
+                return (T)Wrap(handle, ownsInstance);
+            return (T)GetWrappingMethod<T>().Invoke(null, new object?[] { handle, ownsInstance }).AsNonNull();
+        }
     }
 }
