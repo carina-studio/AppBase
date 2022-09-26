@@ -25,8 +25,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
             }
             internal InstanceHolder(IntPtr handle, Class cls)
             {
-                if (handle == IntPtr.Zero)
-                    throw new ArgumentException("Handle of instance cannot be null.");
+                NSObject.VerifyHandle(handle);
                 this.Class = cls;
                 this.Handle = handle;
             }
@@ -76,9 +75,21 @@ namespace CarinaStudio.MacOS.ObjectiveC
         // Native symbols.
         static readonly IntPtr objc_msgSend;
         [DllImport(NativeLibraryNames.ObjectiveC, EntryPoint = "object_getIvar")]
+        static extern bool object_getIvar_Boolean(IntPtr obj, IntPtr ivar);
+        [DllImport(NativeLibraryNames.ObjectiveC, EntryPoint = "object_getIvar")]
         static extern int object_getIvar_Int32(IntPtr obj, IntPtr ivar);
         [DllImport(NativeLibraryNames.ObjectiveC, EntryPoint = "object_getIvar")]
         static extern long object_getIvar_Int64(IntPtr obj, IntPtr ivar);
+        [DllImport(NativeLibraryNames.ObjectiveC, EntryPoint = "object_getIvar")]
+        static extern IntPtr object_getIvar_IntPtr(IntPtr obj, IntPtr ivar);
+        [DllImport(NativeLibraryNames.ObjectiveC)]
+        static extern void object_setIvar(IntPtr obj, IntPtr ivar, bool value);
+        [DllImport(NativeLibraryNames.ObjectiveC)]
+        static extern void object_setIvar(IntPtr obj, IntPtr ivar, int value);
+        [DllImport(NativeLibraryNames.ObjectiveC)]
+        static extern void object_setIvar(IntPtr obj, IntPtr ivar, long value);
+        [DllImport(NativeLibraryNames.ObjectiveC)]
+        static extern void object_setIvar(IntPtr obj, IntPtr ivar, IntPtr value);
         /// <summary>
         /// Send message to instance.
         /// </summary>
@@ -128,6 +139,11 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// Send message to instance.
         /// </summary>
         [DllImport(NativeLibraryNames.ObjectiveC, EntryPoint = SendMessageEntryPointName)]
+        internal protected static extern int SendMessageForInt32_Int32(IntPtr target, IntPtr selector, int arg1);
+        /// <summary>
+        /// Send message to instance.
+        /// </summary>
+        [DllImport(NativeLibraryNames.ObjectiveC, EntryPoint = SendMessageEntryPointName)]
         internal protected static extern int SendMessageForInt32_IntPtr(IntPtr target, IntPtr selector, IntPtr arg1);
         /// <summary>
         /// Send message to instance.
@@ -155,8 +171,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         static readonly Selector? DeallocSelector;
         static readonly Selector? InitSelector;
         static readonly IDictionary<Type, ConstructorInfo> WrappingConstructors = new ConcurrentDictionary<Type, ConstructorInfo>();
-        static readonly IDictionary<Type, Func<InstanceHolder, bool, NSObject>> WrappingMethods = new ConcurrentDictionary<Type, Func<InstanceHolder, bool, NSObject>>();
-
+        
 
         // Fields.
         volatile PropertyDescriptor? hashProperty;
@@ -343,6 +358,31 @@ namespace CarinaStudio.MacOS.ObjectiveC
                 ? this.SendMessageForInt32(property.Getter!)
                 : this.instance.GetHashCode();
         }
+
+
+        /// <summary>
+        /// Get instance variable as <see cref="Boolean"/>.
+        /// </summary>
+        /// <param name="ivar">Descriptor of instance variable.</param>
+        /// <returns>Value of variable.</returns>
+        public bool GetBooleanVariable(MemberDescriptor ivar)
+        {
+            this.VerifyDisposed();
+            return object_getIvar_Boolean(this.Handle, ivar.Handle);
+        }
+
+
+        /// <summary>
+        /// Get instance variable as <see cref="Boolean"/>.
+        /// </summary>
+        /// <param name="obj">Handle of instance.</param>
+        /// <param name="ivar">Descriptor of instance variable.</param>
+        /// <returns>Value of variable.</returns>
+        public static bool GetBooleanVariable(IntPtr obj, MemberDescriptor ivar)
+        {
+            VerifyHandle(obj);
+            return object_getIvar_Boolean(obj, ivar.Handle);
+        }
         
 
         /// <summary>
@@ -358,6 +398,19 @@ namespace CarinaStudio.MacOS.ObjectiveC
 
 
         /// <summary>
+        /// Get instance variable as <see cref="Int32"/>.
+        /// </summary>
+        /// <param name="obj">Handle of instance.</param>
+        /// <param name="ivar">Descriptor of instance variable.</param>
+        /// <returns>Value of variable.</returns>
+        public static int GetInt32Variable(IntPtr obj, MemberDescriptor ivar)
+        {
+            VerifyHandle(obj);
+            return object_getIvar_Int32(obj, ivar.Handle);
+        }
+
+
+        /// <summary>
         /// Get instance variable as <see cref="Int64"/>.
         /// </summary>
         /// <param name="ivar">Descriptor of instance variable.</param>
@@ -366,6 +419,100 @@ namespace CarinaStudio.MacOS.ObjectiveC
         {
             this.VerifyDisposed();
             return object_getIvar_Int64(this.Handle, ivar.Handle);
+        }
+
+
+        /// <summary>
+        /// Get instance variable as <see cref="Int64"/>.
+        /// </summary>
+        /// <param name="obj">Handle of instance.</param>
+        /// <param name="ivar">Descriptor of instance variable.</param>
+        /// <returns>Value of variable.</returns>
+        public static long GetInt64Variable(IntPtr obj, MemberDescriptor ivar)
+        {
+            VerifyHandle(obj);
+            return object_getIvar_Int64(obj, ivar.Handle);
+        }
+
+
+        /// <summary>
+        /// Get instance variable as <see cref="IntPtr"/>.
+        /// </summary>
+        /// <param name="ivar">Descriptor of instance variable.</param>
+        /// <returns>Value of variable.</returns>
+        public IntPtr GetIntPtrVariable(MemberDescriptor ivar)
+        {
+            this.VerifyDisposed();
+            return object_getIvar_IntPtr(this.Handle, ivar.Handle);
+        }
+
+
+        /// <summary>
+        /// Get instance variable as <see cref="IntPtr"/>.
+        /// </summary>
+        /// <param name="obj">Handle of instance.</param>
+        /// <param name="ivar">Descriptor of instance variable.</param>
+        /// <returns>Value of variable.</returns>
+        public static IntPtr GetIntPtrVariable(IntPtr obj, MemberDescriptor ivar)
+        {
+            VerifyHandle(obj);
+            return object_getIvar_IntPtr(obj, ivar.Handle);
+        }
+
+
+        /// <summary>
+        /// Get instance variable as <see cref="GCHandle"/>.
+        /// </summary>
+        /// <param name="ivar">Descriptor of instance variable.</param>
+        /// <returns>Value of variable.</returns>
+        public GCHandle GetGCHandleVariable(MemberDescriptor ivar)
+        {
+            this.VerifyDisposed();
+            var handle = object_getIvar_IntPtr(this.Handle, ivar.Handle);
+            return GCHandle.FromIntPtr(handle);
+        }
+
+
+        /// <summary>
+        /// Get instance variable as <see cref="GCHandle"/>.
+        /// </summary>
+        /// <param name="obj">Handle of instance.</param>
+        /// <param name="ivar">Descriptor of instance variable.</param>
+        /// <returns>Value of variable.</returns>
+        public static GCHandle GetGCHandleVariable(IntPtr obj, MemberDescriptor ivar)
+        {
+            VerifyHandle(obj);
+            var handle = object_getIvar_IntPtr(obj, ivar.Handle);
+            if (handle == IntPtr.Zero)
+                return default;
+            return GCHandle.FromIntPtr(handle);
+        }
+
+
+        /// <summary>
+        /// Get instance variable as <see cref="IntPtr"/>.
+        /// </summary>
+        /// <param name="ivar">Descriptor of instance variable.</param>
+        /// <returns>Value of variable.</returns>
+        public T? GetObjectVariable<T>(MemberDescriptor ivar) where T : NSObject
+        {
+            this.VerifyDisposed();
+            var handle = object_getIvar_IntPtr(this.Handle, ivar.Handle);
+            return handle != IntPtr.Zero ? NSObject.Wrap<T>(handle, false) : null;
+        }
+
+
+        /// <summary>
+        /// Get instance variable as <see cref="IntPtr"/>.
+        /// </summary>
+        /// <param name="obj">Handle of instance.</param>
+        /// <param name="ivar">Descriptor of instance variable.</param>
+        /// <returns>Value of variable.</returns>
+        public static T? GetObjectVariable<T>(IntPtr obj, MemberDescriptor ivar) where T : NSObject
+        {
+            VerifyHandle(obj);
+            var handle = object_getIvar_IntPtr(obj, ivar.Handle);
+            return handle != IntPtr.Zero ? NSObject.Wrap<T>(handle, false) : null;
         }
 
 
@@ -404,35 +551,10 @@ namespace CarinaStudio.MacOS.ObjectiveC
                 });
 
 
-        // Get static method to wrap native instance.
-        static Func<InstanceHolder, bool, NSObject> GetWrappingMethod<T>() where T : NSObject =>
-            WrappingMethods.TryGetValue(typeof(T), out var method)
-                ? method
-                : typeof(T).GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static).Let(it =>
-                {
-                    foreach (var m in it)
-                    {
-                        if (m.Name == "Wrap" && typeof(T).IsAssignableFrom(m.ReturnType))
-                        {
-                            var parameters = m.GetParameters();
-                            if (parameters.Length == 2 
-                                && parameters[0].ParameterType == typeof(InstanceHolder)
-                                && parameters[1].ParameterType == typeof(bool))
-                            {
-                                var func = (Func<InstanceHolder, bool, NSObject>)Delegate.CreateDelegate(typeof(Func<InstanceHolder, bool, NSObject>), null, m);
-                                WrappingMethods.TryAdd(typeof(T), func);
-                                return func;
-                            }
-                        }
-                    }
-                    throw new InvalidCastException($"Cannot find method to wrap NSObject as '{typeof(T)}'.");
-                });
-
-
         /// <summary>
         /// Get handle of instance.
         /// </summary>
-        public IntPtr Handle { get => this.instance.Handle; }
+        public IntPtr Handle { get => this.isDisposed == 0 ? this.instance.Handle : IntPtr.Zero; }
 
 
         /// <summary>
@@ -442,8 +564,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <returns>Handle of initialized instance.</returns>
         protected static IntPtr Initialize(IntPtr obj)
         {
-            if (obj == IntPtr.Zero)
-                throw new ArgumentException("Handle of instance cannot be null.");
+            VerifyHandle(obj);
             return SendMessageForIntPtr(obj, InitSelector!.Handle);
         }
 
@@ -594,6 +715,156 @@ namespace CarinaStudio.MacOS.ObjectiveC
         }
 
 
+        /// <summary>
+        /// Set instance variable.
+        /// </summary>
+        /// <param name="ivar">Instance variable.</param>
+        /// <param name="value">Value.</param>
+        public void SetVariable(MemberDescriptor ivar, bool value)
+        {
+            this.VerifyDisposed();
+            object_setIvar(this.Handle, ivar.Handle, value);
+        }
+
+
+        /// <summary>
+        /// Set instance variable.
+        /// </summary>
+        /// <param name="obj">Handle of instance.</param>
+        /// <param name="ivar">Instance variable.</param>
+        /// <param name="value">Value.</param>
+        public static void SetVariable(IntPtr obj, MemberDescriptor ivar, bool value)
+        {
+            VerifyHandle(obj);
+            object_setIvar(obj, ivar.Handle, value);
+        }
+
+
+        /// <summary>
+        /// Set instance variable.
+        /// </summary>
+        /// <param name="ivar">Instance variable.</param>
+        /// <param name="value">Value.</param>
+        public void SetVariable(MemberDescriptor ivar, int value)
+        {
+            this.VerifyDisposed();
+            object_setIvar(this.Handle, ivar.Handle, value);
+        }
+
+
+        /// <summary>
+        /// Set instance variable.
+        /// </summary>
+        /// <param name="obj">Handle of instance.</param>
+        /// <param name="ivar">Instance variable.</param>
+        /// <param name="value">Value.</param>
+        public static void SetVariable(IntPtr obj, MemberDescriptor ivar, int value)
+        {
+            VerifyHandle(obj);
+            object_setIvar(obj, ivar.Handle, value);
+        }
+
+
+        /// <summary>
+        /// Set instance variable.
+        /// </summary>
+        /// <param name="ivar">Instance variable.</param>
+        /// <param name="value">Value.</param>
+        public void SetVariable(MemberDescriptor ivar, long value)
+        {
+            this.VerifyDisposed();
+            object_setIvar(this.Handle, ivar.Handle, value);
+        }
+
+
+        /// <summary>
+        /// Set instance variable.
+        /// </summary>
+        /// <param name="obj">Handle of instance.</param>
+        /// <param name="ivar">Instance variable.</param>
+        /// <param name="value">Value.</param>
+        public static void SetVariable(IntPtr obj, MemberDescriptor ivar, long value)
+        {
+            VerifyHandle(obj);
+            object_setIvar(obj, ivar.Handle, value);
+        }
+
+
+        /// <summary>
+        /// Set instance variable.
+        /// </summary>
+        /// <param name="ivar">Instance variable.</param>
+        /// <param name="value">Value.</param>
+        public void SetVariable(MemberDescriptor ivar, IntPtr value)
+        {
+            this.VerifyDisposed();
+            object_setIvar(this.Handle, ivar.Handle, value);
+        }
+
+
+        /// <summary>
+        /// Set instance variable.
+        /// </summary>
+        /// <param name="obj">Handle of instance.</param>
+        /// <param name="ivar">Instance variable.</param>
+        /// <param name="value">Value.</param>
+        public static void SetVariable(IntPtr obj, MemberDescriptor ivar, IntPtr value)
+        {
+            VerifyHandle(obj);
+            object_setIvar(obj, ivar.Handle, value);
+        }
+
+
+        /// <summary>
+        /// Set instance variable.
+        /// </summary>
+        /// <param name="ivar">Instance variable.</param>
+        /// <param name="value">Value.</param>
+        public void SetVariable(MemberDescriptor ivar, GCHandle value)
+        {
+            this.VerifyDisposed();
+            object_setIvar(this.Handle, ivar.Handle, GCHandle.ToIntPtr(value));
+        }
+
+
+        /// <summary>
+        /// Set instance variable.
+        /// </summary>
+        /// <param name="obj">Handle of instance.</param>
+        /// <param name="ivar">Instance variable.</param>
+        /// <param name="value">Value.</param>
+        public static void SetVariable(IntPtr obj, MemberDescriptor ivar, GCHandle value)
+        {
+            VerifyHandle(obj);
+            object_setIvar(obj, ivar.Handle, GCHandle.ToIntPtr(value));
+        }
+
+
+        /// <summary>
+        /// Set instance variable.
+        /// </summary>
+        /// <param name="ivar">Instance variable.</param>
+        /// <param name="value">Value.</param>
+        public void SetVariable(MemberDescriptor ivar, NSObject? value)
+        {
+            this.VerifyDisposed();
+            object_setIvar(this.Handle, ivar.Handle, value?.Handle ?? IntPtr.Zero);
+        }
+
+
+        /// <summary>
+        /// Set instance variable.
+        /// </summary>
+        /// <param name="obj">Handle of instance.</param>
+        /// <param name="ivar">Instance variable.</param>
+        /// <param name="value">Value.</param>
+        public static void SetVariable(IntPtr obj, MemberDescriptor ivar, NSObject? value)
+        {
+            VerifyHandle(obj);
+            object_setIvar(obj, ivar.Handle, value?.Handle ?? IntPtr.Zero);
+        }
+
+
         /// <inheritdoc/>
         public override string ToString() =>
             string.Format("0x{0:x16}", this.Handle);
@@ -617,6 +888,14 @@ namespace CarinaStudio.MacOS.ObjectiveC
         {
             if (this.IsDisposed)
                 throw new ObjectDisposedException(this.GetType().Name);
+        }
+
+
+        // Make sure that handle is not 0.
+        static void VerifyHandle(IntPtr handle)
+        {
+            if (handle == IntPtr.Zero)
+                throw new ArgumentException("Handle of instance cannot be null.");
         }
         
 

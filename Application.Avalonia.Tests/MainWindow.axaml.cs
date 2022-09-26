@@ -31,16 +31,86 @@ namespace CarinaStudio
         }
 
 
+        class MyClass : NSObject
+        {
+            // Static fields.
+            static readonly Selector? BarSelector;
+            static readonly Class? Cls;
+            static readonly Selector? FooSelector;
+            static PropertyDescriptor? TestProperty;
+
+            // Static initializer.
+            static MyClass()
+            {
+                if (Platform.IsNotMacOS)
+                    return;
+                BarSelector = Selector.FromName("bar");
+                FooSelector = Selector.FromName("foo");
+                Cls = Class.DefineClass("MyClass", cls =>
+                {
+                    cls.DefineMethod(BarSelector, new MethodImplForInt32_Int32((self, cmd, value) =>
+                    {
+                        if (cls.TryGetClrObject(self, out var clrObj) && clrObj is MyClass myClass)
+                            return myClass.BarImpl(value);
+                        return 0;
+                    }));
+                    cls.DefineMethod(FooSelector, new MethodImpl((self, cmd) =>
+                    {
+                        //
+                    }));
+                    TestProperty = cls.DefineProperty<int>("test",
+                        new Int32PropertyGetterImpl((self, _) =>
+                        {
+                            return 5566;
+                        }),
+                        new Int32PropertySetterImpl((self, _, value) =>
+                        {
+                            //
+                        }));
+                });
+
+            }
+
+            // Constructor.
+            public MyClass() : base(Initialize(Cls!.Allocate()), true)
+            { 
+                this.Class.TrySetClrObject(this.Handle, this);
+            }
+
+            // Bar
+            public int Bar(int value) =>
+                SendMessageForInt32_Int32(this.Handle, BarSelector!.Handle, value);
+            int BarImpl(int value)
+            {
+                return 54321;
+            }
+
+            // Dispose.
+            protected override void Dispose(bool disposing)
+            {
+                //this.Class.TrySetClrObject(this.Handle, null);
+                base.Dispose(disposing);
+            }
+
+            // Foo
+            public void Foo() =>
+                SendMessage(FooSelector!);
+            
+            // Test
+            public int Test
+            {
+                get => this.GetInt32Property(TestProperty!);
+                set => this.SetProperty(TestProperty!, value);
+            }
+        }
+
+
         public void Test()
         {
             if (Platform.IsMacOS)
             {
-                //var cls = Class.GetClass("NSApplication");
-                //var properties = cls.GetProperties().Also(it => Array.Sort(it, (l, r) => l.Name.CompareTo(r.Name)));
-                //var ivars = cls.GetInstanceVariables().Also(it => Array.Sort(it, (l, r) => l.Name.CompareTo(r.Name)));
-
-                var app = NSApplication.Current.AsNonNull();
-                app.DockTile.Display();
+                using var obj = new MyClass();
+                //
             }
             
             /*
