@@ -71,7 +71,7 @@ static class NativeTypeConversion
         {
             if (*valuePtr == 0)
                 return null;
-            return NSObject.Wrap(targetType, (IntPtr)(*valuePtr), false);
+            return NSObject.FromHandle(targetType, (IntPtr)(*valuePtr), false);
         }
         throw new NotSupportedException($"Cannot convert native value to {targetType.Name}.");
     }

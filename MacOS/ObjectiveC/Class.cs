@@ -882,6 +882,32 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <inheritdoc/>
         public override bool Equals(object? obj) =>
             obj is Class cls && this.Equals(cls);
+        
+
+        /// <summary>
+        /// Wrap native instance as <see cref="Class"/>.
+        /// </summary>
+        /// <param name="handle">Handle of instance.</param>
+        /// <returns><see cref="Class"/>.</returns>
+        public static unsafe Class FromHandle(IntPtr handle)
+        {
+            if (handle == IntPtr.Zero)
+                throw new ArgumentException("Handle of instance cannot be null.");
+            if (CachedClassesByHandle.TryGetValue(handle, out var nsClass))
+                return nsClass;
+            var namePtr = class_getName(handle);
+            if (namePtr == null)
+                throw new ArgumentException("Unable to get name of class.");
+            var name = new string(namePtr);
+            if (CachedClassesByName.TryGetValue(name, out nsClass))
+                return nsClass;
+            return new Class(handle, name, false, false).Also(it => 
+            {
+                it.isRegistered = true;
+                CachedClassesByName.TryAdd(name, it);
+                CachedClassesByHandle.TryAdd(handle, it);
+            });
+        }
 
 
         /// <summary>
@@ -918,7 +944,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         {
             if (obj == IntPtr.Zero)
                 throw new ArgumentException("Handle of instance cannot be null.");
-            return Wrap(object_getClass(obj));
+            return FromHandle(object_getClass(obj));
         }
 
 
@@ -996,7 +1022,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
                     {
                         for (var i = 0; i < count; ++i)
                         {
-                            var selector = new Selector(method_getName(methodsPtr[i]));
+                            var selector = Selector.FromHandle(method_getName(methodsPtr[i]));
                             var method = new Method(this, methodsPtr[i], selector);
                             this.cachedMethods.TryAdd(selector, method);
                         }
@@ -1167,7 +1193,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
                                     this.isRootClass = true;
                                     return null;
                                 }
-                                this.superClass = Wrap(it);
+                                this.superClass = FromHandle(it);
                                 return this.superClass;
                             })));
             }
@@ -1341,32 +1367,6 @@ namespace CarinaStudio.MacOS.ObjectiveC
         {
             if (this.isRegistered)
                 throw new InvalidOperationException($"Cannot define member of class '{this.Name}' after registering to Objective-C runtime.");
-        }
-        
-
-        /// <summary>
-        /// Wrap native instance as <see cref="Class"/>.
-        /// </summary>
-        /// <param name="handle">Handle of instance.</param>
-        /// <returns><see cref="Class"/>.</returns>
-        public static unsafe Class Wrap(IntPtr handle)
-        {
-            if (handle == IntPtr.Zero)
-                throw new ArgumentException("Handle of instance cannot be null.");
-            if (CachedClassesByHandle.TryGetValue(handle, out var nsClass))
-                return nsClass;
-            var namePtr = class_getName(handle);
-            if (namePtr == null)
-                throw new ArgumentException("Unable to get name of class.");
-            var name = new string(namePtr);
-            if (CachedClassesByName.TryGetValue(name, out nsClass))
-                return nsClass;
-            return new Class(handle, name, false, false).Also(it => 
-            {
-                it.isRegistered = true;
-                CachedClassesByName.TryAdd(name, it);
-                CachedClassesByHandle.TryAdd(handle, it);
-            });
         }
     }
     

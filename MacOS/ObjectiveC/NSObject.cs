@@ -201,6 +201,40 @@ namespace CarinaStudio.MacOS.ObjectiveC
         
 
         /// <summary>
+        /// Wrap given handle as <see cref="NSObject"/>.
+        /// </summary>
+        /// <param name="handle">Handle of instance.</param>
+        /// <param name="ownsInstance">True to owns instance.</param>
+        /// <returns>Wrapped instance.</returns>
+        public static NSObject FromHandle(IntPtr handle, bool ownsInstance = false) =>
+            new NSObject(handle, ownsInstance);
+        
+
+        /// <summary>
+        /// Wrap given handle as given type.
+        /// </summary>
+        /// <param name="handle">Handle of instance.</param>
+        /// <param name="ownsInstance">True to owns instance.</param>
+        /// <typeparam name="T">Type to wrap the instance.</typeparam>
+        /// <returns>Wrapped instance.</returns>
+        public static T FromHandle<T>(IntPtr handle, bool ownsInstance = false) where T : NSObject =>
+            (T)FromHandle(typeof(T), handle, ownsInstance);
+
+
+        // Wrap given handle as given type.
+        internal static NSObject FromHandle(Type type, IntPtr handle, bool ownsInstance = false)
+        {
+            if (type == typeof(NSObject))
+                return FromHandle(handle, ownsInstance);
+            var ctor = GetWrappingConstructor(type);
+            var instance = new InstanceHolder(handle);
+            if (ctor.GetParameters().Length == 2)
+                return (NSObject)Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ instance, ownsInstance }, null).AsNonNull();
+            return (NSObject)Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ instance }, null).AsNonNull();
+        }
+        
+
+        /// <summary>
         /// Get value of property as given type.
         /// </summary>
         /// <param name="property">Property.</param>
@@ -677,40 +711,6 @@ namespace CarinaStudio.MacOS.ObjectiveC
         {
             if (handle == IntPtr.Zero)
                 throw new ArgumentException("Handle of instance cannot be null.");
-        }
-        
-
-        /// <summary>
-        /// Wrap given handle as <see cref="NSObject"/>.
-        /// </summary>
-        /// <param name="handle">Handle of instance.</param>
-        /// <param name="ownsInstance">True to owns instance.</param>
-        /// <returns>Wrapped instance.</returns>
-        public static NSObject Wrap(IntPtr handle, bool ownsInstance = false) =>
-            new NSObject(handle, ownsInstance);
-        
-
-        /// <summary>
-        /// Wrap given handle as given type.
-        /// </summary>
-        /// <param name="handle">Handle of instance.</param>
-        /// <param name="ownsInstance">True to owns instance.</param>
-        /// <typeparam name="T">Type to wrap the instance.</typeparam>
-        /// <returns>Wrapped instance.</returns>
-        public static T Wrap<T>(IntPtr handle, bool ownsInstance = false) where T : NSObject =>
-            (T)Wrap(typeof(T), handle, ownsInstance);
-
-
-        // Wrap given handle as given type.
-        internal static NSObject Wrap(Type type, IntPtr handle, bool ownsInstance = false)
-        {
-            if (type == typeof(NSObject))
-                return Wrap(handle, ownsInstance);
-            var ctor = GetWrappingConstructor(type);
-            var instance = new InstanceHolder(handle);
-            if (ctor.GetParameters().Length == 2)
-                return (NSObject)Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ instance, ownsInstance }, null).AsNonNull();
-            return (NSObject)Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ instance }, null).AsNonNull();
         }
     }
 }

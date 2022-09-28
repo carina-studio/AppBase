@@ -125,7 +125,7 @@ namespace CarinaStudio.MacOS.AppKit
                 if (handle != IntPtr.Zero)
                 {
                     if (this.mainWindow == null || this.mainWindow.Handle != handle)
-                        this.mainWindow = NSObject.Wrap(handle, false);
+                        this.mainWindow = NSObject.FromHandle(handle, false);
                 }
                 else if (this.mainWindow != null)
                     this.mainWindow = null;
