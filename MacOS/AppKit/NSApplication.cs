@@ -15,11 +15,13 @@ namespace CarinaStudio.MacOS.AppKit
 
         // Static fields.
         static readonly Class? NSApplicationClass;
+        static readonly Class? NSApplicationDelegateClass;
         static volatile NSApplication? _Current;
-        static readonly PropertyDescriptor? DockTileProperty;
-        static readonly PropertyDescriptor? IsRunningProperty;
-        static readonly PropertyDescriptor? MainWindowProperty;
-        static readonly PropertyDescriptor? WindowsProperty;
+        static readonly Property? DelegateProperty;
+        static readonly Property? DockTileProperty;
+        static readonly Property? IsRunningProperty;
+        static readonly Property? MainWindowProperty;
+        static readonly Property? WindowsProperty;
 
 
         // Fields.
@@ -37,14 +39,13 @@ namespace CarinaStudio.MacOS.AppKit
             {
                 NSAppPtr = (IntPtr*)NativeLibrary.GetExport(libHandle, "NSApp");
             }
-            NSApplicationClass = Class.GetClass("NSApplication");
-            if (NSApplicationClass != null)
-            {
-                NSApplicationClass.TryGetProperty("dockTile", out DockTileProperty);
-                NSApplicationClass.TryGetProperty("mainWindow", out MainWindowProperty);
-                NSApplicationClass.TryGetProperty("running", out IsRunningProperty);
-                NSApplicationClass.TryGetProperty("windows", out WindowsProperty);
-            }
+            NSApplicationClass = Class.GetClass("NSApplication").AsNonNull();
+            NSApplicationDelegateClass = Class.GetProtocol("NSApplicationDelegate").AsNonNull();
+            NSApplicationClass.TryGetProperty("delegate", out DelegateProperty);
+            NSApplicationClass.TryGetProperty("dockTile", out DockTileProperty);
+            NSApplicationClass.TryGetProperty("mainWindow", out MainWindowProperty);
+            NSApplicationClass.TryGetProperty("running", out IsRunningProperty);
+            NSApplicationClass.TryGetProperty("windows", out WindowsProperty);
         }
 
 
@@ -75,6 +76,21 @@ namespace CarinaStudio.MacOS.AppKit
 
 
         /// <summary>
+        /// Get or set object which conforms to NSApplicationDelegate protocol to receive call-back from application.
+        /// </summary>
+        public NSObject? Delegate
+        {
+            get => this.GetProperty<NSObject>(DelegateProperty!);
+            set
+            {
+                if (value != null && NSApplicationDelegateClass?.IsAssignableFrom(value.Class) != true)
+                    throw new ArgumentException($"The value must conforms to protocol '{NSApplicationDelegateClass?.Name}'.");
+                this.SetProperty(DelegateProperty!, value);
+            }
+        }
+
+
+        /// <summary>
         /// Get Dock tile.
         /// </summary>
         public NSDockTile DockTile
@@ -82,7 +98,7 @@ namespace CarinaStudio.MacOS.AppKit
             get
             {
                 this.VerifyDisposed();
-                return this.dockTile ?? this.GetObjectProperty<NSDockTile>(DockTileProperty!).Let(it =>
+                return this.dockTile ?? this.GetProperty<NSDockTile>(DockTileProperty!).Let(it =>
                 {
                     this.dockTile = it.AsNonNull();
                     return this.dockTile;
@@ -94,7 +110,7 @@ namespace CarinaStudio.MacOS.AppKit
         /// <summary>
         /// Check whether the main event loop is runnig or not.
         /// </summary>
-        public bool IsRunning { get => this.GetBooleanProperty(IsRunningProperty!); }
+        public bool IsRunning { get => this.GetProperty<bool>(IsRunningProperty!); }
 
 
         /// <summary>
@@ -105,7 +121,7 @@ namespace CarinaStudio.MacOS.AppKit
             get
             {
                 this.VerifyDisposed();
-                var handle = this.GetIntPtrProperty(MainWindowProperty!);
+                var handle = this.GetProperty<IntPtr>(MainWindowProperty!);
                 if (handle != IntPtr.Zero)
                 {
                     if (this.mainWindow == null || this.mainWindow.Handle != handle)

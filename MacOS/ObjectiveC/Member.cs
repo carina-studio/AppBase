@@ -4,12 +4,12 @@ using System.Runtime.InteropServices;
 namespace CarinaStudio.MacOS.ObjectiveC
 {
     /// <summary>
-    /// Descriptor of member of class.
+    /// Represent member of class.
     /// </summary>
-    public class MemberDescriptor
+    public class Member
     {
         // Constructor.
-        internal MemberDescriptor(Class cls, IntPtr handle, string name)
+        internal Member(Class cls, IntPtr handle, string name)
         {
             this.Class = cls;
             this.Handle = handle;
@@ -42,9 +42,28 @@ namespace CarinaStudio.MacOS.ObjectiveC
 
 
     /// <summary>
-    /// Descriptor of property of class.
+    /// Represent method of class.
     /// </summary>
-    public unsafe class PropertyDescriptor : MemberDescriptor
+    public unsafe class Method : Member
+    {
+        // Constructor.
+        internal Method(Class cls, IntPtr handle, Selector selector) : base(cls, handle, selector.Name)
+        {
+            this.Selector = selector;
+        }
+
+
+        /// <summary>
+        /// Get selector of this method.
+        /// </summary>
+        public Selector Selector { get; }
+    }
+
+
+    /// <summary>
+    /// Represent property of class.
+    /// </summary>
+    public unsafe class Property : Member
     {
         // Native symbols.
         [DllImport(NativeLibraryNames.ObjectiveC)]
@@ -52,17 +71,17 @@ namespace CarinaStudio.MacOS.ObjectiveC
 
 
         // Constructor.
-        internal PropertyDescriptor(Class cls, IntPtr handle, string name) : base(cls, handle, name)
+        internal Property(Class cls, IntPtr handle, string name) : base(cls, handle, name)
         {
             this.Getter = property_copyAttributeValue(handle, "G").Let(it =>
             {
                 if (it != IntPtr.Zero)
                 {
-                    var selector = Selector.FromName(new string((sbyte*)it));
+                    var selector = Selector.FromUid(new string((sbyte*)it));
                     NativeMemory.Free((void*)it);
                     return selector;
                 }
-                return Selector.FromUid(name);
+                return Selector.FromName(name);
             });
             this.IsReadOnly = property_copyAttributeValue(handle, "R").Let(it =>
             {
@@ -77,17 +96,17 @@ namespace CarinaStudio.MacOS.ObjectiveC
             {
                 if (it != IntPtr.Zero)
                 {
-                    var selector = Selector.FromName(new string((sbyte*)it));
+                    var selector = Selector.FromUid(new string((sbyte*)it));
                     NativeMemory.Free((void*)it);
                     return selector;
                 }
-                return Selector.FromUid(name);
+                return Selector.FromName($"set{char.ToUpper(name[0])}{name.Substring(1)}:");
             });
         }
         
 
         /// <summary>
-        /// Get selector of getter of property.
+        /// Get getter of property.
         /// </summary>
         public Selector? Getter { get; }
 
@@ -99,7 +118,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
 
 
         /// <summary>
-        /// Get selector of setter of property.
+        /// Get setter of property.
         /// </summary>
         public Selector? Setter { get; }
     }

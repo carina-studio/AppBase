@@ -71,100 +71,17 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         public const string SendMessageEntryPointName = "objc_msgSend";
 
+        [StructLayout(LayoutKind.Sequential)]
+        struct NativeResult
+        {
+            public nint Value1;
+            public double Value2;
+        }
 
         // Native symbols.
-        static readonly IntPtr objc_msgSend;
-        [DllImport(NativeLibraryNames.ObjectiveC, EntryPoint = "object_getIvar")]
-        static extern bool object_getIvar_Boolean(IntPtr obj, IntPtr ivar);
-        [DllImport(NativeLibraryNames.ObjectiveC, EntryPoint = "object_getIvar")]
-        static extern int object_getIvar_Int32(IntPtr obj, IntPtr ivar);
-        [DllImport(NativeLibraryNames.ObjectiveC, EntryPoint = "object_getIvar")]
-        static extern long object_getIvar_Int64(IntPtr obj, IntPtr ivar);
-        [DllImport(NativeLibraryNames.ObjectiveC, EntryPoint = "object_getIvar")]
-        static extern IntPtr object_getIvar_IntPtr(IntPtr obj, IntPtr ivar);
-        [DllImport(NativeLibraryNames.ObjectiveC)]
-        static extern void object_setIvar(IntPtr obj, IntPtr ivar, bool value);
-        [DllImport(NativeLibraryNames.ObjectiveC)]
-        static extern void object_setIvar(IntPtr obj, IntPtr ivar, int value);
-        [DllImport(NativeLibraryNames.ObjectiveC)]
-        static extern void object_setIvar(IntPtr obj, IntPtr ivar, long value);
-        [DllImport(NativeLibraryNames.ObjectiveC)]
-        static extern void object_setIvar(IntPtr obj, IntPtr ivar, IntPtr value);
-        /// <summary>
-        /// Send message to instance.
-        /// </summary>
-        [DllImport(NativeLibraryNames.ObjectiveC, EntryPoint = SendMessageEntryPointName)]
-        internal protected static extern void SendMessage(IntPtr target, IntPtr selector);
-        /// <summary>
-        /// Send message to instance.
-        /// </summary>
-        [DllImport(NativeLibraryNames.ObjectiveC, EntryPoint = SendMessageEntryPointName)]
-        internal protected static extern void SendMessage_Boolean(IntPtr target, IntPtr selector, bool arg1);
-        /// <summary>
-        /// Send message to instance.
-        /// </summary>
-        [DllImport(NativeLibraryNames.ObjectiveC, EntryPoint = SendMessageEntryPointName)]
-        internal protected static extern void SendMessage_Int32(IntPtr target, IntPtr selector, int arg1);
-        /// <summary>
-        /// Send message to instance.
-        /// </summary>
-        [DllImport(NativeLibraryNames.ObjectiveC, EntryPoint = SendMessageEntryPointName)]
-        internal protected static extern void SendMessage_Int64(IntPtr target, IntPtr selector, long arg1);
-        /// <summary>
-        /// Send message to instance.
-        /// </summary>
-        [DllImport(NativeLibraryNames.ObjectiveC, EntryPoint = SendMessageEntryPointName)]
-        internal protected static extern void SendMessage_IntPtr(IntPtr target, IntPtr selector, IntPtr arg1);
-        /// <summary>
-        /// Send message to instance.
-        /// </summary>
-        [DllImport(NativeLibraryNames.ObjectiveC, EntryPoint = SendMessageEntryPointName)]
-        internal protected static extern void SendMessage_IntPtr_NSRange(IntPtr target, IntPtr selector, IntPtr arg1, NSRange arg2);
-        /// <summary>
-        /// Send message to instance.
-        /// </summary>
-        [DllImport(NativeLibraryNames.ObjectiveC, EntryPoint = SendMessageEntryPointName)]
-        internal protected static extern bool SendMessageForBoolean(IntPtr target, IntPtr selector);
-        /// <summary>
-        /// Send message to instance.
-        /// </summary>
-        [DllImport(NativeLibraryNames.ObjectiveC, EntryPoint = SendMessageEntryPointName)]
-        internal protected static extern bool SendMessageForBoolean_IntPtr(IntPtr target, IntPtr selector, IntPtr arg1);
-        /// <summary>
-        /// Send message to instance.
-        /// </summary>
-        [DllImport(NativeLibraryNames.ObjectiveC, EntryPoint = SendMessageEntryPointName)]
-        internal protected static extern int SendMessageForInt32(IntPtr target, IntPtr selector);
-        /// <summary>
-        /// Send message to instance.
-        /// </summary>
-        [DllImport(NativeLibraryNames.ObjectiveC, EntryPoint = SendMessageEntryPointName)]
-        internal protected static extern int SendMessageForInt32_Int32(IntPtr target, IntPtr selector, int arg1);
-        /// <summary>
-        /// Send message to instance.
-        /// </summary>
-        [DllImport(NativeLibraryNames.ObjectiveC, EntryPoint = SendMessageEntryPointName)]
-        internal protected static extern int SendMessageForInt32_IntPtr(IntPtr target, IntPtr selector, IntPtr arg1);
-        /// <summary>
-        /// Send message to instance.
-        /// </summary>
-        [DllImport(NativeLibraryNames.ObjectiveC, EntryPoint = SendMessageEntryPointName)]
-        internal protected static extern int SendMessageForInt64(IntPtr target, IntPtr selector);
-        /// <summary>
-        /// Send message to instance.
-        /// </summary>
-        [DllImport(NativeLibraryNames.ObjectiveC, EntryPoint = SendMessageEntryPointName)]
-        internal protected static extern IntPtr SendMessageForIntPtr(IntPtr target, IntPtr selector);
-        /// <summary>
-        /// Send message to instance.
-        /// </summary>
-        [DllImport(NativeLibraryNames.ObjectiveC, EntryPoint = SendMessageEntryPointName)]
-        internal protected static extern IntPtr SendMessageForIntPtr_IntPtr_Int32(IntPtr target, IntPtr selector, IntPtr arg1, int arg2);
-        /// <summary>
-        /// Send message to instance.
-        /// </summary>
-        [DllImport(NativeLibraryNames.ObjectiveC, EntryPoint = SendMessageEntryPointName)]
-        internal protected static extern NSSize SendMessageForNSSize(IntPtr target, IntPtr selector);
+        static readonly void* objc_msgSend;
+        static readonly void* object_getIvar;
+        static readonly void* object_setIvar;
 
 
         // Static fields.
@@ -174,7 +91,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         
 
         // Fields.
-        volatile PropertyDescriptor? hashProperty;
+        volatile Property? hashProperty;
         readonly InstanceHolder instance;
         volatile int isDisposed;
         volatile bool ownsInstance;
@@ -188,7 +105,9 @@ namespace CarinaStudio.MacOS.ObjectiveC
             var libHandle = NativeLibrary.Load(NativeLibraryNames.ObjectiveC);
             if (libHandle != IntPtr.Zero)
             {
-                objc_msgSend = *(IntPtr*)NativeLibrary.GetExport(libHandle, "objc_msgSend");
+                objc_msgSend = (void*)NativeLibrary.GetExport(libHandle, nameof(objc_msgSend));
+                object_getIvar = (void*)NativeLibrary.GetExport(libHandle, nameof(object_getIvar));
+                object_setIvar = (void*)NativeLibrary.GetExport(libHandle, nameof(object_setIvar));
             }
             DeallocSelector = Selector.FromName("dealloc");
             InitSelector = Selector.FromName("init");
@@ -266,7 +185,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
             if (this.IsDefaultInstance && disposing)
                 throw new InvalidOperationException("Cannot dispose default instance.");
             if (this.instance.Handle != IntPtr.Zero && this.ownsInstance)
-                SendMessage(this.instance.Handle, DeallocSelector!.Handle);
+                ((delegate*<IntPtr, IntPtr, void>)objc_msgSend)(this.instance.Handle, DeallocSelector!.Handle);
             this.instance.Handle = IntPtr.Zero;
         }
 
@@ -282,68 +201,15 @@ namespace CarinaStudio.MacOS.ObjectiveC
         
 
         /// <summary>
-        /// Get value of property as <see cref="Boolean"/>.
+        /// Get value of property as given type.
         /// </summary>
         /// <param name="property">Property.</param>
         /// <returns>Value.</returns>
-        public bool GetBooleanProperty(PropertyDescriptor property)
+        public T GetProperty<T>(Property property)
         {
             if (!property.Class.IsAssignableFrom(this.Class))
                 throw new ArgumentException($"Property '{property}' is not owned by class '{this.Class}'.");
-            return SendMessageForBoolean(this.Handle, property.Getter!.Handle);
-        }
-
-
-        /// <summary>
-        /// Get value of property as <see cref="Int32"/>.
-        /// </summary>
-        /// <param name="property">Property.</param>
-        /// <returns>Value.</returns>
-        public int GetInt32Property(PropertyDescriptor property)
-        {
-            if (!property.Class.IsAssignableFrom(this.Class))
-                throw new ArgumentException($"Property '{property}' is not owned by class '{this.Class}'.");
-            return SendMessageForInt32(this.Handle, property.Getter!.Handle);
-        }
-
-
-        /// <summary>
-        /// Get value of property as <see cref="Int64"/>.
-        /// </summary>
-        /// <param name="property">Property.</param>
-        /// <returns>Value.</returns>
-        public long GetInt64Property(PropertyDescriptor property)
-        {
-            if (!property.Class.IsAssignableFrom(this.Class))
-                throw new ArgumentException($"Property '{property}' is not owned by class '{this.Class}'.");
-            return SendMessageForInt64(this.Handle, property.Getter!.Handle);
-        }
-
-
-        /// <summary>
-        /// Get value of property as <see cref="IntPtr"/>.
-        /// </summary>
-        /// <param name="property">Property.</param>
-        /// <returns>Value.</returns>
-        public IntPtr GetIntPtrProperty(PropertyDescriptor property)
-        {
-            if (!property.Class.IsAssignableFrom(this.Class))
-                throw new ArgumentException($"Property '{property}' is not owned by class '{this.Class}'.");
-            return SendMessageForIntPtr(this.Handle, property.Getter!.Handle);
-        }
-
-
-        /// <summary>
-        /// Get value of property as <see cref="NSObject"/>.
-        /// </summary>
-        /// <param name="property">Property.</param>
-        /// <returns>Value.</returns>
-        public T? GetObjectProperty<T>(PropertyDescriptor property) where T : NSObject
-        {
-            if (!property.Class.IsAssignableFrom(this.Class))
-                throw new ArgumentException($"Property '{property}' is not owned by class '{this.Class}'.");
-            var handle = SendMessageForIntPtr(this.Handle, property.Getter!.Handle);
-            return handle == IntPtr.Zero ? null : NSObject.Wrap<T>(handle, false);
+            return this.SendMessage<T>(property.Getter!);
         }
 
 
@@ -355,172 +221,105 @@ namespace CarinaStudio.MacOS.ObjectiveC
                     ? prop.Also(it => this.hashProperty = prop)
                     : null);
             return property != null
-                ? this.SendMessageForInt32(property.Getter!)
+                ? this.SendMessage<int>(property.Getter!)
                 : this.instance.GetHashCode();
         }
 
 
         /// <summary>
-        /// Get instance variable as <see cref="Boolean"/>.
+        /// Get instance variable as given type.
         /// </summary>
         /// <param name="ivar">Descriptor of instance variable.</param>
+        /// <typeparam name="T">Type of variable.</typeparam>
         /// <returns>Value of variable.</returns>
-        public bool GetBooleanVariable(MemberDescriptor ivar)
+        public T GetVariable<T>(Member ivar)
         {
             this.VerifyDisposed();
-            return object_getIvar_Boolean(this.Handle, ivar.Handle);
+            return GetVariable<T>(this.Handle, ivar);
         }
 
 
+#pragma warning disable CS8600
+#pragma warning disable CS8603
         /// <summary>
-        /// Get instance variable as <see cref="Boolean"/>.
+        /// Get instance variable as given type.
         /// </summary>
         /// <param name="obj">Handle of instance.</param>
         /// <param name="ivar">Descriptor of instance variable.</param>
+        /// <typeparam name="T">Type of variable.</typeparam>
         /// <returns>Value of variable.</returns>
-        public static bool GetBooleanVariable(IntPtr obj, MemberDescriptor ivar)
+        public static T GetVariable<T>(IntPtr obj, Member ivar)
         {
             VerifyHandle(obj);
-            return object_getIvar_Boolean(obj, ivar.Handle);
+            var isFpStructure = NativeTypeConversion.IsFloatingPointStructure(typeof(T));
+            return (T)(NativeTypeConversion.GetNativeValueCount<T>() switch
+            {
+                1 => Global.Run(() =>
+                {
+                    if (isFpStructure)
+                    {
+                        var nr = ((delegate*unmanaged<IntPtr, IntPtr, NativeFpResult1>)object_getIvar)(obj, ivar.Handle);
+                        return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 1);
+                    }
+                    else
+                    {
+                        var nr = ((delegate*unmanaged<IntPtr, IntPtr, NativeResult1>)object_getIvar)(obj, ivar.Handle);
+                        return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 1);
+                    }
+                }),
+                2 => Global.Run(() =>
+                {
+                    if (isFpStructure)
+                    {
+                        var nr = ((delegate*unmanaged<IntPtr, IntPtr, NativeFpResult2>)object_getIvar)(obj, ivar.Handle);
+                        return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 2);
+                    }
+                    else
+                    {
+                        var nr = ((delegate*unmanaged<IntPtr, IntPtr, NativeResult2>)object_getIvar)(obj, ivar.Handle);
+                        return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 2);
+                    }
+                }),
+                3 => Global.Run(() =>
+                {
+                    if (isFpStructure)
+                    {
+                        var nr = ((delegate*unmanaged<IntPtr, IntPtr, NativeFpResult3>)object_getIvar)(obj, ivar.Handle);
+                        return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 3);
+                    }
+                    else
+                    {
+                        var nr = ((delegate*unmanaged<IntPtr, IntPtr, NativeResult3>)object_getIvar)(obj, ivar.Handle);
+                        return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 3);
+                    }
+                }),
+                4 => Global.Run(() =>
+                {
+                    if (isFpStructure)
+                    {
+                        var nr = ((delegate*unmanaged<IntPtr, IntPtr, NativeFpResult4>)object_getIvar)(obj, ivar.Handle);
+                        return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 4);
+                    }
+                    else
+                    {
+                        var nr = ((delegate*unmanaged<IntPtr, IntPtr, NativeResult4>)object_getIvar)(obj, ivar.Handle);
+                        return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 4);
+                    }
+                }),
+                _ => throw new NotSupportedException($"Unsupported variable type '{typeof(T).Name}'."),
+            });
         }
-        
-
-        /// <summary>
-        /// Get instance variable as <see cref="Int32"/>.
-        /// </summary>
-        /// <param name="ivar">Descriptor of instance variable.</param>
-        /// <returns>Value of variable.</returns>
-        public int GetInt32Variable(MemberDescriptor ivar)
-        {
-            this.VerifyDisposed();
-            return object_getIvar_Int32(this.Handle, ivar.Handle);
-        }
-
-
-        /// <summary>
-        /// Get instance variable as <see cref="Int32"/>.
-        /// </summary>
-        /// <param name="obj">Handle of instance.</param>
-        /// <param name="ivar">Descriptor of instance variable.</param>
-        /// <returns>Value of variable.</returns>
-        public static int GetInt32Variable(IntPtr obj, MemberDescriptor ivar)
-        {
-            VerifyHandle(obj);
-            return object_getIvar_Int32(obj, ivar.Handle);
-        }
-
-
-        /// <summary>
-        /// Get instance variable as <see cref="Int64"/>.
-        /// </summary>
-        /// <param name="ivar">Descriptor of instance variable.</param>
-        /// <returns>Value of variable.</returns>
-        public long GetInt64Variable(MemberDescriptor ivar)
-        {
-            this.VerifyDisposed();
-            return object_getIvar_Int64(this.Handle, ivar.Handle);
-        }
-
-
-        /// <summary>
-        /// Get instance variable as <see cref="Int64"/>.
-        /// </summary>
-        /// <param name="obj">Handle of instance.</param>
-        /// <param name="ivar">Descriptor of instance variable.</param>
-        /// <returns>Value of variable.</returns>
-        public static long GetInt64Variable(IntPtr obj, MemberDescriptor ivar)
-        {
-            VerifyHandle(obj);
-            return object_getIvar_Int64(obj, ivar.Handle);
-        }
-
-
-        /// <summary>
-        /// Get instance variable as <see cref="IntPtr"/>.
-        /// </summary>
-        /// <param name="ivar">Descriptor of instance variable.</param>
-        /// <returns>Value of variable.</returns>
-        public IntPtr GetIntPtrVariable(MemberDescriptor ivar)
-        {
-            this.VerifyDisposed();
-            return object_getIvar_IntPtr(this.Handle, ivar.Handle);
-        }
-
-
-        /// <summary>
-        /// Get instance variable as <see cref="IntPtr"/>.
-        /// </summary>
-        /// <param name="obj">Handle of instance.</param>
-        /// <param name="ivar">Descriptor of instance variable.</param>
-        /// <returns>Value of variable.</returns>
-        public static IntPtr GetIntPtrVariable(IntPtr obj, MemberDescriptor ivar)
-        {
-            VerifyHandle(obj);
-            return object_getIvar_IntPtr(obj, ivar.Handle);
-        }
-
-
-        /// <summary>
-        /// Get instance variable as <see cref="GCHandle"/>.
-        /// </summary>
-        /// <param name="ivar">Descriptor of instance variable.</param>
-        /// <returns>Value of variable.</returns>
-        public GCHandle GetGCHandleVariable(MemberDescriptor ivar)
-        {
-            this.VerifyDisposed();
-            var handle = object_getIvar_IntPtr(this.Handle, ivar.Handle);
-            return GCHandle.FromIntPtr(handle);
-        }
-
-
-        /// <summary>
-        /// Get instance variable as <see cref="GCHandle"/>.
-        /// </summary>
-        /// <param name="obj">Handle of instance.</param>
-        /// <param name="ivar">Descriptor of instance variable.</param>
-        /// <returns>Value of variable.</returns>
-        public static GCHandle GetGCHandleVariable(IntPtr obj, MemberDescriptor ivar)
-        {
-            VerifyHandle(obj);
-            var handle = object_getIvar_IntPtr(obj, ivar.Handle);
-            if (handle == IntPtr.Zero)
-                return default;
-            return GCHandle.FromIntPtr(handle);
-        }
-
-
-        /// <summary>
-        /// Get instance variable as <see cref="IntPtr"/>.
-        /// </summary>
-        /// <param name="ivar">Descriptor of instance variable.</param>
-        /// <returns>Value of variable.</returns>
-        public T? GetObjectVariable<T>(MemberDescriptor ivar) where T : NSObject
-        {
-            this.VerifyDisposed();
-            var handle = object_getIvar_IntPtr(this.Handle, ivar.Handle);
-            return handle != IntPtr.Zero ? NSObject.Wrap<T>(handle, false) : null;
-        }
-
-
-        /// <summary>
-        /// Get instance variable as <see cref="IntPtr"/>.
-        /// </summary>
-        /// <param name="obj">Handle of instance.</param>
-        /// <param name="ivar">Descriptor of instance variable.</param>
-        /// <returns>Value of variable.</returns>
-        public static T? GetObjectVariable<T>(IntPtr obj, MemberDescriptor ivar) where T : NSObject
-        {
-            VerifyHandle(obj);
-            var handle = object_getIvar_IntPtr(obj, ivar.Handle);
-            return handle != IntPtr.Zero ? NSObject.Wrap<T>(handle, false) : null;
-        }
+#pragma warning restore CS8600
+#pragma warning restore CS8603
 
 
         // Get static method to wrap native instance.
         static ConstructorInfo GetWrappingConstructor<T>() where T : NSObject =>
-            WrappingConstructors.TryGetValue(typeof(T), out var method)
+            GetWrappingConstructor(typeof(T));
+        static ConstructorInfo GetWrappingConstructor(Type type) =>
+            WrappingConstructors.TryGetValue(type, out var method)
                 ? method
-                : typeof(T).GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).Let(it =>
+                : type.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).Let(it =>
                 {
                     var CtorWith1Arg = (ConstructorInfo?)null;
                     foreach (var ctor in it)
@@ -536,7 +335,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
                                 if (parameters[0].ParameterType == typeof(InstanceHolder)
                                     && parameters[1].ParameterType == typeof(bool))
                                 {
-                                    WrappingConstructors.TryAdd(typeof(T), ctor);
+                                    WrappingConstructors.TryAdd(type, ctor);
                                     return ctor;
                                 }
                                 break;
@@ -544,10 +343,10 @@ namespace CarinaStudio.MacOS.ObjectiveC
                     }
                     if (CtorWith1Arg != null)
                     {
-                        WrappingConstructors.TryAdd(typeof(T), CtorWith1Arg);
+                        WrappingConstructors.TryAdd(type, CtorWith1Arg);
                         return CtorWith1Arg;
                     }
-                    throw new InvalidCastException($"Cannot find way to construct {typeof(T).Name}.");
+                    throw new InvalidCastException($"Cannot find way to construct {type.Name}.");
                 });
 
 
@@ -565,7 +364,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         protected static IntPtr Initialize(IntPtr obj)
         {
             VerifyHandle(obj);
-            return SendMessageForIntPtr(obj, InitSelector!.Handle);
+            return ((delegate*unmanaged<IntPtr, IntPtr, IntPtr>)objc_msgSend)(obj, InitSelector!.Handle);
         }
 
 
@@ -607,47 +406,184 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// Send message to instance.
         /// </summary>
         /// <param name="selector">Selector.</param>
-        public void SendMessage(Selector selector)
-        {
-            this.VerifyDisposed();
-            SendMessage(this.Handle, selector.Handle);
-        }
+        /// <param name="args">Arguments</param>
+        public void SendMessage(Selector selector, params object?[] args) =>
+            SendMessage(this.Handle, selector, args);
 
 
         /// <summary>
-        /// Send message to instance and get result as <see cref="Int32"/>.
+        /// Send message to instance.
+        /// </summary>
+        /// <param name="obj">Handle of instance.</param>
+        /// <param name="selector">Selector.</param>
+        /// <param name="args">Arguments</param>
+        public static void SendMessage(IntPtr obj, Selector selector, params object?[] args) =>
+            SendMessage<nint>(obj, selector, args);
+
+
+        /// <summary>
+        /// Send message to instance.
         /// </summary>
         /// <param name="selector">Selector.</param>
-        /// <returns>Result.</returns>
-        public int SendMessageForInt32(Selector selector)
-        {
-            this.VerifyDisposed();
-            return SendMessageForInt32(this.Handle, selector.Handle);
-        }
+        /// <param name="args">Arguments</param>
+        /// <typeparam name="T">Type of returned value.</typeparam>
+        public T SendMessage<T>(Selector selector, params object?[] args) =>
+            SendMessage<T>(this.Handle, selector, args);
 
 
+#pragma warning disable CS8600
+#pragma warning disable CS8603
         /// <summary>
-        /// Send message to instance and get result as <see cref="Int64"/>.
+        /// Send message to instance.
         /// </summary>
+        /// <param name="obj">Handle of instance.</param>
         /// <param name="selector">Selector.</param>
-        /// <returns>Result.</returns>
-        public long SendMessageForInt64(Selector selector)
+        /// <param name="args">Arguments</param>
+        /// <typeparam name="T">Type of returned value.</typeparam>
+        public static T SendMessage<T>(IntPtr obj, Selector selector, params object?[] args)
         {
-            this.VerifyDisposed();
-            return SendMessageForInt64(this.Handle, selector.Handle);
+            VerifyHandle(obj);
+            var nvs = NativeTypeConversion.ToNativeValues(args);
+            var isFpResult = NativeTypeConversion.IsFloatingPointStructure(typeof(T));
+            return (T)(NativeTypeConversion.GetNativeValueCount<T>() switch
+            {
+                1 => Global.Run(() =>
+                {
+                    if (isFpResult)
+                    {
+                        var nr = nvs.Length switch
+                        {
+                            0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeFpResult1>)objc_msgSend)(obj, selector.Handle),
+                            1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeFpResult1>)objc_msgSend)(obj, selector.Handle, nvs[0]),
+                            2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeFpResult1>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1]),
+                            3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeFpResult1>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2]),
+                            4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeFpResult1>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3]),
+                            5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeFpResult1>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4]),
+                            6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeFpResult1>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4], nvs[5]),
+                            _ => throw new NotSupportedException("Too many arguments to send."),
+                        };
+                        return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 1);
+                    }
+                    else
+                    {
+                        var nr = nvs.Length switch
+                        {
+                            0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeResult1>)objc_msgSend)(obj, selector.Handle),
+                            1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeResult1>)objc_msgSend)(obj, selector.Handle, nvs[0]),
+                            2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeResult1>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1]),
+                            3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeResult1>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2]),
+                            4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeResult1>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3]),
+                            5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeResult1>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4]),
+                            6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeResult1>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4], nvs[5]),
+                            _ => throw new NotSupportedException("Too many arguments to send."),
+                        };
+                        return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 1);
+                    }
+                }),
+                2 => Global.Run(() =>
+                {
+                    if (isFpResult)
+                    {
+                        var nr = nvs.Length switch
+                        {
+                            0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeFpResult2>)objc_msgSend)(obj, selector.Handle),
+                            1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeFpResult2>)objc_msgSend)(obj, selector.Handle, nvs[0]),
+                            2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeFpResult2>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1]),
+                            3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeFpResult2>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2]),
+                            4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeFpResult2>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3]),
+                            5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeFpResult2>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4]),
+                            6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeFpResult2>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4], nvs[5]),
+                            _ => throw new NotSupportedException("Too many arguments to send."),
+                        };
+                        return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 2);
+                    }
+                    else
+                    {
+                        var nr = nvs.Length switch
+                        {
+                            0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeResult2>)objc_msgSend)(obj, selector.Handle),
+                            1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeResult2>)objc_msgSend)(obj, selector.Handle, nvs[0]),
+                            2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeResult2>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1]),
+                            3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeResult2>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2]),
+                            4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeResult2>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3]),
+                            5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeResult2>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4]),
+                            6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeResult2>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4], nvs[5]),
+                            _ => throw new NotSupportedException("Too many arguments to send."),
+                        };
+                        return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 2);
+                    }
+                }),
+                3 => Global.Run(() =>
+                {
+                    if (isFpResult)
+                    {
+                        var nr = nvs.Length switch
+                        {
+                            0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeFpResult3>)objc_msgSend)(obj, selector.Handle),
+                            1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeFpResult3>)objc_msgSend)(obj, selector.Handle, nvs[0]),
+                            2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeFpResult3>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1]),
+                            3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeFpResult3>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2]),
+                            4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeFpResult3>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3]),
+                            5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeFpResult3>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4]),
+                            6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeFpResult3>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4], nvs[5]),
+                            _ => throw new NotSupportedException("Too many arguments to send."),
+                        };
+                        return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 3);
+                    }
+                    else
+                    {
+                        var nr = nvs.Length switch
+                        {
+                            0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeResult3>)objc_msgSend)(obj, selector.Handle),
+                            1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeResult3>)objc_msgSend)(obj, selector.Handle, nvs[0]),
+                            2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeResult3>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1]),
+                            3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeResult3>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2]),
+                            4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeResult3>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3]),
+                            5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeResult3>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4]),
+                            6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeResult3>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4], nvs[5]),
+                            _ => throw new NotSupportedException("Too many arguments to send."),
+                        };
+                        return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 3);
+                    }
+                }),
+                4 => Global.Run(() =>
+                {
+                    if (isFpResult)
+                    {
+                        var nr = nvs.Length switch
+                        {
+                            0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeFpResult4>)objc_msgSend)(obj, selector.Handle),
+                            1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeFpResult4>)objc_msgSend)(obj, selector.Handle, nvs[0]),
+                            2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeFpResult4>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1]),
+                            3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeFpResult4>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2]),
+                            4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeFpResult4>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3]),
+                            5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeFpResult4>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4]),
+                            6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeFpResult4>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4], nvs[5]),
+                            _ => throw new NotSupportedException("Too many arguments to send."),
+                        };
+                        return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 4);
+                    }
+                    else
+                    {
+                        var nr = nvs.Length switch
+                        {
+                            0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeResult4>)objc_msgSend)(obj, selector.Handle),
+                            1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeResult4>)objc_msgSend)(obj, selector.Handle, nvs[0]),
+                            2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeResult4>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1]),
+                            3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeResult4>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2]),
+                            4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeResult4>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3]),
+                            5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeResult4>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4]),
+                            6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeResult4>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4], nvs[5]),
+                            _ => throw new NotSupportedException("Too many arguments to send."),
+                        };
+                        return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 4);
+                    }
+                }),
+                _ => throw new NotSupportedException($"Unsupported return type '{typeof(T).Name}'."),
+            });
         }
-
-
-        /// <summary>
-        /// Send message to instance and get result as <see cref="IntPtr"/>.
-        /// </summary>
-        /// <param name="selector">Selector.</param>
-        /// <returns>Result.</returns>
-        public IntPtr SendMessageForIntPtr(Selector selector)
-        {
-            this.VerifyDisposed();
-            return SendMessageForIntPtr(this.Handle, selector.Handle);
-        }
+#pragma warning restore CS8600
+#pragma warning restore CS8603
 
 
         /// <summary>
@@ -655,63 +591,14 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="property">Property.</param>
         /// <param name="value">Value.</param>
-        public void SetProperty(PropertyDescriptor property, bool value)
+        /// <typeparam name="T">Type of property.</typeparam>
+        public void SetProperty<T>(Property property, T value)
         {
             if (!property.Class.IsAssignableFrom(this.Class))
                 throw new ArgumentException($"Property '{property}' is not owned by class '{this.Class}'.");
-            SendMessage_Boolean(this.Handle, property.Setter!.Handle, value);
-        }
-
-
-        /// <summary>
-        /// Set value of property.
-        /// </summary>
-        /// <param name="property">Property.</param>
-        /// <param name="value">Value.</param>
-        public void SetProperty(PropertyDescriptor property, int value)
-        {
-            if (!property.Class.IsAssignableFrom(this.Class))
-                throw new ArgumentException($"Property '{property}' is not owned by class '{this.Class}'.");
-            SendMessage_Int32(this.Handle, property.Setter!.Handle, value);
-        }
-
-
-        /// <summary>
-        /// Set value of property.
-        /// </summary>
-        /// <param name="property">Property.</param>
-        /// <param name="value">Value.</param>
-        public void SetProperty(PropertyDescriptor property, long value)
-        {
-            if (!property.Class.IsAssignableFrom(this.Class))
-                throw new ArgumentException($"Property '{property}' is not owned by class '{this.Class}'.");
-            SendMessage_Int64(this.Handle, property.Setter!.Handle, value);
-        }
-
-
-        /// <summary>
-        /// Set value of property.
-        /// </summary>
-        /// <param name="property">Property.</param>
-        /// <param name="value">Value.</param>
-        public void SetProperty(PropertyDescriptor property, IntPtr value)
-        {
-            if (!property.Class.IsAssignableFrom(this.Class))
-                throw new ArgumentException($"Property '{property}' is not owned by class '{this.Class}'.");
-            SendMessage_IntPtr(this.Handle, property.Setter!.Handle, value);
-        }
-
-
-        /// <summary>
-        /// Set value of property.
-        /// </summary>
-        /// <param name="property">Property.</param>
-        /// <param name="value">Value.</param>
-        public void SetProperty(PropertyDescriptor property, NSObject? value)
-        {
-            if (!property.Class.IsAssignableFrom(this.Class))
-                throw new ArgumentException($"Property '{property}' is not owned by class '{this.Class}'.");
-            SendMessage_IntPtr(this.Handle, property.Setter!.Handle, value?.Handle ?? IntPtr.Zero);
+            if (property.IsReadOnly)
+                throw new InvalidOperationException($"Cannot set value to read-only property '{property.Name}'.");
+            this.SendMessage(property.Setter!, value);
         }
 
 
@@ -720,10 +607,11 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="ivar">Instance variable.</param>
         /// <param name="value">Value.</param>
-        public void SetVariable(MemberDescriptor ivar, bool value)
+        /// <typeparam name="T">Type of variable.</typeparam>
+        public void SetVariable<T>(Member ivar, T value)
         {
             this.VerifyDisposed();
-            object_setIvar(this.Handle, ivar.Handle, value);
+            SetVariable<T>(this.Handle, ivar, value);
         }
 
 
@@ -733,135 +621,28 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="obj">Handle of instance.</param>
         /// <param name="ivar">Instance variable.</param>
         /// <param name="value">Value.</param>
-        public static void SetVariable(IntPtr obj, MemberDescriptor ivar, bool value)
+        /// <typeparam name="T">Type of variable.</typeparam>
+        public static void SetVariable<T>(IntPtr obj, Member ivar, T value)
         {
             VerifyHandle(obj);
-            object_setIvar(obj, ivar.Handle, value);
-        }
-
-
-        /// <summary>
-        /// Set instance variable.
-        /// </summary>
-        /// <param name="ivar">Instance variable.</param>
-        /// <param name="value">Value.</param>
-        public void SetVariable(MemberDescriptor ivar, int value)
-        {
-            this.VerifyDisposed();
-            object_setIvar(this.Handle, ivar.Handle, value);
-        }
-
-
-        /// <summary>
-        /// Set instance variable.
-        /// </summary>
-        /// <param name="obj">Handle of instance.</param>
-        /// <param name="ivar">Instance variable.</param>
-        /// <param name="value">Value.</param>
-        public static void SetVariable(IntPtr obj, MemberDescriptor ivar, int value)
-        {
-            VerifyHandle(obj);
-            object_setIvar(obj, ivar.Handle, value);
-        }
-
-
-        /// <summary>
-        /// Set instance variable.
-        /// </summary>
-        /// <param name="ivar">Instance variable.</param>
-        /// <param name="value">Value.</param>
-        public void SetVariable(MemberDescriptor ivar, long value)
-        {
-            this.VerifyDisposed();
-            object_setIvar(this.Handle, ivar.Handle, value);
-        }
-
-
-        /// <summary>
-        /// Set instance variable.
-        /// </summary>
-        /// <param name="obj">Handle of instance.</param>
-        /// <param name="ivar">Instance variable.</param>
-        /// <param name="value">Value.</param>
-        public static void SetVariable(IntPtr obj, MemberDescriptor ivar, long value)
-        {
-            VerifyHandle(obj);
-            object_setIvar(obj, ivar.Handle, value);
-        }
-
-
-        /// <summary>
-        /// Set instance variable.
-        /// </summary>
-        /// <param name="ivar">Instance variable.</param>
-        /// <param name="value">Value.</param>
-        public void SetVariable(MemberDescriptor ivar, IntPtr value)
-        {
-            this.VerifyDisposed();
-            object_setIvar(this.Handle, ivar.Handle, value);
-        }
-
-
-        /// <summary>
-        /// Set instance variable.
-        /// </summary>
-        /// <param name="obj">Handle of instance.</param>
-        /// <param name="ivar">Instance variable.</param>
-        /// <param name="value">Value.</param>
-        public static void SetVariable(IntPtr obj, MemberDescriptor ivar, IntPtr value)
-        {
-            VerifyHandle(obj);
-            object_setIvar(obj, ivar.Handle, value);
-        }
-
-
-        /// <summary>
-        /// Set instance variable.
-        /// </summary>
-        /// <param name="ivar">Instance variable.</param>
-        /// <param name="value">Value.</param>
-        public void SetVariable(MemberDescriptor ivar, GCHandle value)
-        {
-            this.VerifyDisposed();
-            object_setIvar(this.Handle, ivar.Handle, GCHandle.ToIntPtr(value));
-        }
-
-
-        /// <summary>
-        /// Set instance variable.
-        /// </summary>
-        /// <param name="obj">Handle of instance.</param>
-        /// <param name="ivar">Instance variable.</param>
-        /// <param name="value">Value.</param>
-        public static void SetVariable(IntPtr obj, MemberDescriptor ivar, GCHandle value)
-        {
-            VerifyHandle(obj);
-            object_setIvar(obj, ivar.Handle, GCHandle.ToIntPtr(value));
-        }
-
-
-        /// <summary>
-        /// Set instance variable.
-        /// </summary>
-        /// <param name="ivar">Instance variable.</param>
-        /// <param name="value">Value.</param>
-        public void SetVariable(MemberDescriptor ivar, NSObject? value)
-        {
-            this.VerifyDisposed();
-            object_setIvar(this.Handle, ivar.Handle, value?.Handle ?? IntPtr.Zero);
-        }
-
-
-        /// <summary>
-        /// Set instance variable.
-        /// </summary>
-        /// <param name="obj">Handle of instance.</param>
-        /// <param name="ivar">Instance variable.</param>
-        /// <param name="value">Value.</param>
-        public static void SetVariable(IntPtr obj, MemberDescriptor ivar, NSObject? value)
-        {
-            VerifyHandle(obj);
-            object_setIvar(obj, ivar.Handle, value?.Handle ?? IntPtr.Zero);
+            var nValues = NativeTypeConversion.ToNativeValues(new object?[] { value });
+            switch (nValues.Length)
+            {
+                case 1:
+                    ((delegate*unmanaged<IntPtr, IntPtr, nint, void>)object_setIvar)(obj, ivar.Handle, nValues[0]);
+                    break;
+                case 2:
+                    ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, void>)object_setIvar)(obj, ivar.Handle, nValues[0], nValues[1]);
+                    break;
+                case 3:
+                    ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, void>)object_setIvar)(obj, ivar.Handle, nValues[0], nValues[1], nValues[2]);
+                    break;
+                case 4:
+                    ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, void>)object_setIvar)(obj, ivar.Handle, nValues[0], nValues[1], nValues[2], nValues[3]);
+                    break;
+                default:
+                    throw new NotSupportedException($"Unsupported variable type '{typeof(T).Name}'.");
+            }
         }
 
 
@@ -916,15 +697,20 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="ownsInstance">True to owns instance.</param>
         /// <typeparam name="T">Type to wrap the instance.</typeparam>
         /// <returns>Wrapped instance.</returns>
-        public static T Wrap<T>(IntPtr handle, bool ownsInstance = false) where T : NSObject
+        public static T Wrap<T>(IntPtr handle, bool ownsInstance = false) where T : NSObject =>
+            (T)Wrap(typeof(T), handle, ownsInstance);
+
+
+        // Wrap given handle as given type.
+        internal static NSObject Wrap(Type type, IntPtr handle, bool ownsInstance = false)
         {
-            if (typeof(T) == typeof(NSObject))
-                return (T)Wrap(handle, ownsInstance);
-            var ctor = GetWrappingConstructor<T>();
+            if (type == typeof(NSObject))
+                return Wrap(handle, ownsInstance);
+            var ctor = GetWrappingConstructor(type);
             var instance = new InstanceHolder(handle);
             if (ctor.GetParameters().Length == 2)
-                return (T)Activator.CreateInstance(typeof(T), BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ instance, ownsInstance }, null).AsNonNull();
-            return (T)Activator.CreateInstance(typeof(T), BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ instance }, null).AsNonNull();
+                return (NSObject)Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ instance, ownsInstance }, null).AsNonNull();
+            return (NSObject)Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ instance }, null).AsNonNull();
         }
     }
 }

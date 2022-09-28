@@ -17,7 +17,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         static readonly Selector? GetCharsSelector;
         static readonly Selector? InitWithCharSelector;
         static readonly Selector? IsEqualToSelector;
-        static readonly PropertyDescriptor? LengthProperty;
+        static readonly Property? LengthProperty;
         static readonly Class? NSStringClass = Class.GetClass("NSString");
 
 
@@ -28,14 +28,14 @@ namespace CarinaStudio.MacOS.ObjectiveC
         // Static initializer.
         static NSString()
         {
-            if (NSStringClass != null)
-            {
-                CompareSelector = Selector.FromName("compare:");
-                GetCharsSelector = Selector.FromName("getCharacters:range:");
-                InitWithCharSelector = Selector.FromName("initWithCharacters:length:");
-                IsEqualToSelector = Selector.FromName("isEqualTo:");
-                NSStringClass.TryGetProperty("length", out LengthProperty);
-            }
+            if (Platform.IsNotMacOS)
+                return;
+            NSStringClass = Class.GetClass("NSString").AsNonNull();
+            CompareSelector = Selector.FromName("compare:");
+            GetCharsSelector = Selector.FromName("getCharacters:range:");
+            InitWithCharSelector = Selector.FromName("initWithCharacters:length:");
+            IsEqualToSelector = Selector.FromName("isEqualTo:");
+            NSStringClass.TryGetProperty("length", out LengthProperty);
         }
 
 
@@ -68,7 +68,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
                 return 1;
             this.VerifyDisposed();
             s.VerifyDisposed();
-            return SendMessageForInt32_IntPtr(this.Handle, CompareSelector!.Handle, s.Handle);
+            return this.SendMessage<int>(CompareSelector!, s);
         }
 
 
@@ -77,7 +77,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         {
             if (s == null || s.IsDisposed || this.IsDisposed)
                 return false;
-            return SendMessageForBoolean_IntPtr(this.Handle, IsEqualToSelector!.Handle, s.Handle);
+            return this.SendMessage<bool>(IsEqualToSelector!, s);
         }
 
 
@@ -90,7 +90,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         static IntPtr Initialize(IntPtr obj, string s)
         {
             var pStr = Marshal.StringToHGlobalUni(s);
-            var newObj = SendMessageForIntPtr_IntPtr_Int32(obj, InitWithCharSelector!.Handle, pStr, s.Length);
+            var newObj = SendMessage<IntPtr>(obj, InitWithCharSelector!, pStr, s.Length);
             Marshal.FreeHGlobal(pStr);
             return newObj;
         }
@@ -99,7 +99,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <summary>
         /// Get number of characters.
         /// </summary>
-        public int Length { get => this.SendMessageForInt32(LengthProperty!.Getter!); }
+        public int Length { get => this.GetProperty<int>(LengthProperty!); }
 
 
         /// <summary>
@@ -126,7 +126,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
             var length = this.Length;
             var buffer = new char[length];
             fixed (char* p = buffer)
-                SendMessage_IntPtr_NSRange(this.Handle, GetCharsSelector!.Handle, (IntPtr)p, new NSRange(0, length));
+                this.SendMessage(GetCharsSelector!, (IntPtr)p, new NSRange(0, length));
             s = new string(buffer);
             this.stringRef = new WeakReference<string>(s);
             return s;

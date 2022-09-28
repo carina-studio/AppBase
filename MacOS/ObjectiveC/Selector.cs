@@ -24,6 +24,11 @@ namespace CarinaStudio.MacOS.ObjectiveC
 
 
         // Constructor.
+        internal Selector(IntPtr handle)
+        {
+            this.Handle = handle;
+            this.Name = new string(sel_getName(handle));
+        }
         internal Selector(IntPtr handle, string name)
         {
             this.Handle = handle;
@@ -33,7 +38,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
 
         /// <inheritdoc/>
         public bool Equals(Selector? selector) =>
-            selector != null && selector.Name == this.Name;
+            selector is not null && selector.Name == this.Name;
 
 
         /// <inheritdoc/>
@@ -67,7 +72,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
             var handle = sel_getUid(name);
             if (handle == IntPtr.Zero)
                 throw new Exception($"Unable to register method '{name}' as selector.");
-            return new Selector(handle, new string(sel_getName(handle)));
+            return new Selector(handle);
         }
 
 
@@ -99,7 +104,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// Inequality operator.
         /// </summary>
         public static bool operator !=(Selector? l, Selector? r) =>
-            l?.Equals(r) == true ? false : true;
+            l?.Equals(r) == false ? true : (l is null) != (r is null);
 
 
         /// <inheritdoc/>
