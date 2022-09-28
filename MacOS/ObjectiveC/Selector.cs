@@ -20,16 +20,18 @@ namespace CarinaStudio.MacOS.ObjectiveC
 
 
         // Static fields.
-        static readonly IDictionary<string, Selector> CachedSelectors = new ConcurrentDictionary<string, Selector>();
+        static readonly IDictionary<IntPtr, Selector> CachedSelectorsByHandle = new ConcurrentDictionary<IntPtr, Selector>();
+        static readonly IDictionary<string, Selector> CachedSelectorsByName = new ConcurrentDictionary<string, Selector>();
+        static readonly IDictionary<string, Selector> CachedSelectorsByUid = new ConcurrentDictionary<string, Selector>();
 
 
         // Constructor.
-        internal Selector(IntPtr handle)
+        Selector(IntPtr handle)
         {
             this.Handle = handle;
             this.Name = new string(sel_getName(handle));
         }
-        internal Selector(IntPtr handle, string name)
+        Selector(IntPtr handle, string name)
         {
             this.Handle = handle;
             this.Name = name;
@@ -47,32 +49,68 @@ namespace CarinaStudio.MacOS.ObjectiveC
         
 
         /// <summary>
-        /// Get registered selector or create new one.
+        /// Get registered selector by its handle.
         /// </summary>
-        /// <param name="name">Name of selector.</param>
+        /// <param name="handle">Handle of selector.</param>
         /// <returns>Selector.</returns>
-        public static Selector FromName(string name)
+        public static Selector FromHandle(IntPtr handle)
         {
-            if (CachedSelectors.TryGetValue(name, out var selector))
-                return selector;
-            var handle = sel_registerName(name);
             if (handle == IntPtr.Zero)
-                throw new Exception($"Unable to register selector '{name}'.");
-            return new Selector(handle, name).Also(it => CachedSelectors.TryAdd(name, it));
+                throw new ArgumentException("Handle of selector cannot be null.");
+            if (CachedSelectorsByHandle.TryGetValue(handle, out var selector))
+                return selector;
+            return new Selector(handle).Also(it =>
+            {
+                CachedSelectorsByHandle.TryAdd(handle, it);
+            });
         }
-
+        
 
         /// <summary>
         /// Get registered selector or create new one.
         /// </summary>
         /// <param name="name">Name of selector.</param>
         /// <returns>Selector.</returns>
-        public static Selector FromUid(string name)
+        public static Selector FromName(string name)
         {
-            var handle = sel_getUid(name);
+            if (string.IsNullOrEmpty(name))
+                throw new ArgumentException($"Invalid selector name: {name}");
+            if (CachedSelectorsByName.TryGetValue(name, out var selector))
+                return selector;
+            var handle = sel_registerName(name);
             if (handle == IntPtr.Zero)
-                throw new Exception($"Unable to register method '{name}' as selector.");
-            return new Selector(handle);
+                throw new Exception($"Unable to register selector '{name}'.");
+            if (CachedSelectorsByHandle.TryGetValue(handle, out selector))
+                return selector;
+            return new Selector(handle, name).Also(it => 
+            {
+                CachedSelectorsByHandle.TryAdd(handle, it);
+                CachedSelectorsByName.TryAdd(name, it);
+            });
+        }
+
+
+        /// <summary>
+        /// Get registered selector or create new one.
+        /// </summary>
+        /// <param name="uid">Name of selector.</param>
+        /// <returns>Selector.</returns>
+        public static Selector FromUid(string uid)
+        {
+            if (string.IsNullOrEmpty(uid))
+                throw new ArgumentException($"Invalid selector UID: {uid}");
+            if (CachedSelectorsByUid.TryGetValue(uid, out var selector))
+                return selector;
+            var handle = sel_getUid(uid);
+            if (handle == IntPtr.Zero)
+                throw new Exception($"Unable to register method '{uid}' as selector.");
+            if (CachedSelectorsByHandle.TryGetValue(handle, out selector))
+                return selector;
+            return new Selector(handle).Also(it => 
+            {
+                CachedSelectorsByHandle.TryAdd(handle, it);
+                CachedSelectorsByUid.TryAdd(uid, it);
+            });
         }
 
 

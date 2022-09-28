@@ -119,13 +119,11 @@ namespace CarinaStudio
                 AvnAppDelegateClass = Class.GetClass("AvnAppDelegate");
                 MyAppDelegateClass = Class.DefineClass(AvnAppDelegateClass ?? Class.GetClass("NSObject"), "MyAppDelegate", cls => {});
                 Class.GetProtocol("NSApplicationDelegate")?.Let(it => MyAppDelegateClass.AddProtocol(it));
-                /*
-                MyAppDelegateClass.DefineMethod(Selector.FromUid("applicationWillBecomeActive:"),
-                    new MethodImpl_IntPtr((self, _, notification) =>
+                MyAppDelegateClass.DefineMethod<IntPtr>(Selector.FromName("applicationWillBecomeActive:"),
+                    (self, _, notification) =>
                     {
                         //
-                    }));
-                */
+                    });
             }
 
             // Constructor.
@@ -144,20 +142,13 @@ namespace CarinaStudio
         {
             if (Platform.IsMacOS)
             {
-                using var myClass = new MyClass();
-                var r = myClass.Bar(1234);
-                var d = myClass.Foo(5566, 1.41421, new NSSize(1920, 1080));
+                myAppDelegate ??= new();
 
-                var p = myClass.Test;
-                myClass.Test = 9521;
-                //myAppDelegate ??= new();
-
-                //var app = NSApplication.Current.AsNonNull();
+                var app = NSApplication.Current.AsNonNull();
+                var currentDelegate = app.Delegate;
                 
-                //var currentDelegate = app.Delegate;
-                
-                //if (currentDelegate != this.myAppDelegate)
-                    //app.Delegate = this.myAppDelegate;
+                if (currentDelegate != this.myAppDelegate)
+                    app.Delegate = this.myAppDelegate;
             }
             
             /*
