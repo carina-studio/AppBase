@@ -8,12 +8,12 @@ namespace CarinaStudio.MacOS.AppKit
     public class NSDockTile : NSObject
     {
         // Static fields.
-        static readonly PropertyDescriptor? BadgeLabelProperty;
-        static readonly PropertyDescriptor? ContentViewProperty;
+        static readonly Property? BadgeLabelProperty;
+        static readonly Property? ContentViewProperty;
         static readonly Selector? DisplaySelector;
         static readonly Class? NSDockTileClass;
-        static readonly PropertyDescriptor? ShowBadgeProperty;
-        static readonly PropertyDescriptor? SizeProperty;
+        static readonly Property? ShowBadgeProperty;
+        static readonly Property? SizeProperty;
 
 
         // Static initializer.
@@ -45,13 +45,13 @@ namespace CarinaStudio.MacOS.AppKit
         {
             get
             {
-                using var label = this.GetObjectProperty<NSString>(BadgeLabelProperty!);
+                using var label = this.GetProperty<NSString>(BadgeLabelProperty!);
                 return label?.ToString();
             }
             set
             {
                 if (value == null)
-                    this.SetProperty(BadgeLabelProperty!, null);
+                    this.SetProperty<NSString?>(BadgeLabelProperty!, null);
                 else
                 {
                     using var label = new NSString(value);
@@ -66,7 +66,7 @@ namespace CarinaStudio.MacOS.AppKit
         /// </summary>
         public NSObject? ContentView
         {
-            get => this.GetObjectProperty<NSObject>(ContentViewProperty!);
+            get => this.GetProperty<NSObject>(ContentViewProperty!);
             set => this.SetProperty(ContentViewProperty!, value);
         }
 
@@ -83,7 +83,7 @@ namespace CarinaStudio.MacOS.AppKit
         /// </summary>
         public bool ShowsApplicationBadge
         {
-            get => this.GetBooleanProperty(ShowBadgeProperty!);
+            get => this.GetProperty<bool>(ShowBadgeProperty!);
             set => this.SetProperty(ShowBadgeProperty!, value);
         }
 
@@ -91,6 +91,6 @@ namespace CarinaStudio.MacOS.AppKit
         /// <summary>
         /// Get size of tile.
         /// </summary>
-        public NSSize Size { get => SendMessageForNSSize(this.Handle, SizeProperty!.Getter!.Handle); }
+        public NSSize Size { get => this.GetProperty<NSSize>(SizeProperty!); }
     }
 }

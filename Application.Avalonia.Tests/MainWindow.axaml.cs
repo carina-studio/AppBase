@@ -37,7 +37,7 @@ namespace CarinaStudio
             static readonly Selector? BarSelector;
             static readonly Class? Cls;
             static readonly Selector? FooSelector;
-            static PropertyDescriptor? TestProperty;
+            static Property? TestProperty;
 
             // Static initializer.
             static MyClass()
@@ -48,25 +48,26 @@ namespace CarinaStudio
                 FooSelector = Selector.FromName("foo");
                 Cls = Class.DefineClass("MyClass", cls =>
                 {
-                    cls.DefineMethod(BarSelector, new MethodImplForInt32_Int32((self, cmd, value) =>
+                    Class.GetProtocol("NSApplicationDelegate")?.Let(it => cls.AddProtocol(it));
+                    cls.DefineMethod<int, int>(BarSelector, (self, cmd, value) =>
                     {
-                        if (cls.TryGetClrObject(self, out var clrObj) && clrObj is MyClass myClass)
-                            return myClass.BarImpl(value);
+                        if (cls.TryGetClrObject<MyClass>(self, out var clrObj))
+                            return clrObj.BarImpl(value);
                         return 0;
-                    }));
-                    cls.DefineMethod(FooSelector, new MethodImpl((self, cmd) =>
+                    });
+                    cls.DefineMethod<int, double, NSSize, double>(FooSelector, (self, cmd, arg1, arg2, arg3) =>
                     {
-                        //
-                    }));
+                        return 3.14159;
+                    });
                     TestProperty = cls.DefineProperty<int>("test",
-                        new Int32PropertyGetterImpl((self, _) =>
+                        (self, _) =>
                         {
                             return 5566;
-                        }),
-                        new Int32PropertySetterImpl((self, _, value) =>
+                        },
+                        (self, _, value) =>
                         {
                             //
-                        }));
+                        });
                 });
 
             }
@@ -79,7 +80,7 @@ namespace CarinaStudio
 
             // Bar
             public int Bar(int value) =>
-                SendMessageForInt32_Int32(this.Handle, BarSelector!.Handle, value);
+                this.SendMessage<int>(BarSelector!, value);
             int BarImpl(int value)
             {
                 return 54321;
@@ -88,29 +89,75 @@ namespace CarinaStudio
             // Dispose.
             protected override void Dispose(bool disposing)
             {
-                //this.Class.TrySetClrObject(this.Handle, null);
                 base.Dispose(disposing);
             }
 
             // Foo
-            public void Foo() =>
-                SendMessage(FooSelector!);
+            public double Foo(int arg1, double arg2, NSSize arg3) =>
+                SendMessage<double>(FooSelector!, arg1, arg2, arg3);
             
             // Test
             public int Test
             {
-                get => this.GetInt32Property(TestProperty!);
+                get => this.GetProperty<int>(TestProperty!);
                 set => this.SetProperty(TestProperty!, value);
             }
         }
+
+
+        class MyAppDelegate : NSObject
+        {
+            // Static fields.
+            static readonly Class? AvnAppDelegateClass;
+            static readonly Class? MyAppDelegateClass;
+
+            // Static initializer.
+            static MyAppDelegate()
+            {
+                if (Platform.IsNotMacOS)
+                    return;
+                AvnAppDelegateClass = Class.GetClass("AvnAppDelegate");
+                MyAppDelegateClass = Class.DefineClass(AvnAppDelegateClass ?? Class.GetClass("NSObject"), "MyAppDelegate", cls => {});
+                Class.GetProtocol("NSApplicationDelegate")?.Let(it => MyAppDelegateClass.AddProtocol(it));
+                /*
+                MyAppDelegateClass.DefineMethod(Selector.FromUid("applicationWillBecomeActive:"),
+                    new MethodImpl_IntPtr((self, _, notification) =>
+                    {
+                        //
+                    }));
+                */
+            }
+
+            // Constructor.
+            public MyAppDelegate() : base(Initialize(MyAppDelegateClass!.Allocate()), true)
+            { 
+                //this.Class.TrySetClrObject(this.Handle, this);
+            }
+        }
+
+
+        MyAppDelegate? myAppDelegate;
+        MyClass? myClass;
 
 
         public void Test()
         {
             if (Platform.IsMacOS)
             {
-                using var obj = new MyClass();
-                //
+                using var myClass = new MyClass();
+                var r = myClass.Bar(1234);
+                var d = myClass.Foo(5566, 1.41421, new NSSize(1920, 1080));
+
+                var p = myClass.Test;
+                myClass.Test = 9521;
+                //myAppDelegate ??= new();
+
+                //var app = NSApplication.Current.AsNonNull();
+                
+                //var currentDelegate = app.Delegate;
+                
+                //if (currentDelegate != this.myAppDelegate)
+                    //app.Delegate = this.myAppDelegate;
             }
             
             /*
