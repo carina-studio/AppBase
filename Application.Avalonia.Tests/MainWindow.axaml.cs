@@ -131,7 +131,7 @@ namespace CarinaStudio
                 MyAppDelegateClass.DefineMethod<IntPtr>(Selector.FromName("applicationWillBecomeActive:"),
                     (self, cmd, notification) =>
                     {
-                        if (AvnAppDelegateClass?.GetMethod(cmd) != null)
+                        if (AvnAppDelegateClass?.HasMethod(cmd) == true)
                             NSObject.SendMessageToSuper(self, cmd, notification);
                         if (MyAppDelegateClass.TryGetClrObject<MyAppDelegate>(self, out var myAppDelegate))
                         {
@@ -142,19 +142,19 @@ namespace CarinaStudio
                 MyAppDelegateClass.DefineMethod<IntPtr>(Selector.FromName("applicationWillResignActive:"),
                     (self, cmd, notification) =>
                     {
-                        if (AvnAppDelegateClass?.GetMethod(cmd) != null)
+                        if (AvnAppDelegateClass?.HasMethod(cmd) == true)
                             NSObject.SendMessageToSuper(self, cmd, notification);
                     });
                 MyAppDelegateClass.DefineMethod<IntPtr>(Selector.FromName("applicationWillUnhide:"),
                     (self, cmd, notification) =>
                     {
-                        if (AvnAppDelegateClass?.GetMethod(cmd) != null)
+                        if (AvnAppDelegateClass?.HasMethod(cmd) == true)
                             NSObject.SendMessageToSuper(self, cmd, notification);
                     });
                 MyAppDelegateClass.DefineMethod<IntPtr>(Selector.FromName("applicationWillHide:"),
                     (self, cmd, notification) =>
                     {
-                        if (AvnAppDelegateClass?.GetMethod(cmd) != null)
+                        if (AvnAppDelegateClass?.HasMethod(cmd) == true)
                             NSObject.SendMessageToSuper(self, cmd, notification);
                     });
             }
