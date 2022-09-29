@@ -33,6 +33,8 @@ static class NativeTypeConversion
         consumedValues = 1;
         if (targetType.IsValueType)
         {
+            if (targetType.IsEnum)
+                targetType = targetType.GetEnumUnderlyingType();
             if (targetType == typeof(bool))
                 return (*valuePtr != 0);
             if (targetType == typeof(IntPtr))
@@ -51,6 +53,11 @@ static class NativeTypeConversion
                 return *(float*)valuePtr;
             if (targetType == typeof(double))
                 return *(double*)valuePtr;
+            if (targetType == typeof(GCHandle))
+            {
+                var handle = *(IntPtr*)valuePtr;
+                return handle == default ? new GCHandle() : GCHandle.FromIntPtr(handle);
+            }
             try
             {
                 var size = Marshal.SizeOf(targetType);
@@ -84,6 +91,8 @@ static class NativeTypeConversion
         GetNativeValueCount(typeof(T));
     public static int GetNativeValueCount(Type type)
     {
+        if (type.IsEnum)
+            type = type.GetEnumUnderlyingType();
         if (typeof(NSObject).IsAssignableFrom(type))
             return 1;
         else if (type == typeof(bool)
@@ -94,7 +103,8 @@ static class NativeTypeConversion
             || type == typeof(long)
             || type == typeof(ulong)
             || type == typeof(float)
-            || type == typeof(double))
+            || type == typeof(double)
+            || type == typeof(GCHandle))
         {
             return 1;
         }
@@ -124,7 +134,7 @@ static class NativeTypeConversion
     // Check whether given type is structure contains float-point fields only or not.
     public static bool IsFloatingPointStructure(Type type)
     {
-        if (!type.IsValueType)
+        if (!type.IsValueType || type.IsEnum)
             return false;
         if (CachedFloatingPointStructures.TryGetValue(type, out var isFpStructure))
             return isFpStructure;
@@ -145,6 +155,23 @@ static class NativeTypeConversion
     // Convert from CLR object to native value.
     public static unsafe int ToNativeValue(object? obj, nint* valuePtr)
     {
+        obj?.GetType()?.Let(t =>
+        {
+            if (t.IsEnum)
+            {
+                t = t.GetEnumUnderlyingType();
+                if (t == typeof(int))
+                    obj = (int)obj;
+                else if (t == typeof(uint))
+                    obj = (uint)obj;
+                else if (t == typeof(long))
+                    obj = (uint)obj;
+                else if (t == typeof(ulong))
+                    obj = (uint)obj;
+                else
+                    throw new NotSupportedException($"Cannot convert {obj.GetType().Name} to native type.");
+            }
+        });
         if (obj == null)
             *valuePtr = 0;
         else if (obj is NSObject nsObj)
@@ -167,6 +194,8 @@ static class NativeTypeConversion
             *valuePtr = (nint)(*(nint*)&floatValue);
         else if (obj is double doubleValue)
             *valuePtr = (nint)(*(nint*)&doubleValue);
+        else if (obj is GCHandle gcHandle)
+            *valuePtr = gcHandle == default ? 0 : GCHandle.ToIntPtr(gcHandle);
         else if (obj is ValueType)
         {
             try

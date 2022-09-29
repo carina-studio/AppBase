@@ -9,6 +9,19 @@ namespace CarinaStudio.MacOS.AppKit
     /// </summary>
     public unsafe class NSApplication : NSResponder
     {
+#pragma warning disable CS1591
+        /// <summary>
+        /// TerminateReply.
+        /// </summary>
+        public enum TerminateReply : uint
+        {
+            TerminateNow = 1,
+            TerminateCancel = 0,
+            TerminateLater = 2,
+        }
+#pragma warning restore CS1591
+
+
         // Native symbols.
         static readonly IntPtr* NSAppPtr;
 

@@ -71,15 +71,18 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         public const string SendMessageEntryPointName = "objc_msgSend";
 
+
         [StructLayout(LayoutKind.Sequential)]
-        struct NativeResult
+        ref struct objc_super
         {
-            public nint Value1;
-            public double Value2;
+            public IntPtr receiver;
+            public IntPtr super_class;
         }
+
 
         // Native symbols.
         static readonly void* objc_msgSend;
+        static readonly void* objc_msgSendSuper;
         static readonly void* object_getIvar;
         static readonly void* object_setIvar;
 
@@ -106,6 +109,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
             if (libHandle != IntPtr.Zero)
             {
                 objc_msgSend = (void*)NativeLibrary.GetExport(libHandle, nameof(objc_msgSend));
+                objc_msgSendSuper = (void*)NativeLibrary.GetExport(libHandle, nameof(objc_msgSendSuper));
                 object_getIvar = (void*)NativeLibrary.GetExport(libHandle, nameof(object_getIvar));
                 object_setIvar = (void*)NativeLibrary.GetExport(libHandle, nameof(object_setIvar));
             }
@@ -461,12 +465,11 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="selector">Selector.</param>
         /// <param name="args">Arguments</param>
         /// <typeparam name="T">Type of returned value.</typeparam>
+        /// <returns>Result.</returns>
         public T SendMessage<T>(Selector selector, params object?[] args) =>
             SendMessage<T>(this.Handle, selector, args);
+        
 
-
-#pragma warning disable CS8600
-#pragma warning disable CS8603
         /// <summary>
         /// Send message to instance.
         /// </summary>
@@ -474,7 +477,15 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="selector">Selector.</param>
         /// <param name="args">Arguments</param>
         /// <typeparam name="T">Type of returned value.</typeparam>
-        public static T SendMessage<T>(IntPtr obj, Selector selector, params object?[] args)
+        /// <returns>Result.</returns>
+        public static T SendMessage<T>(IntPtr obj, Selector selector, params object?[] args) =>
+            SendMessage<T>(objc_msgSend, obj, selector, args);
+
+
+#pragma warning disable CS8600
+#pragma warning disable CS8603
+        // Send message.
+        static T SendMessage<T>(void* sendMsgFunction, IntPtr obj, Selector selector, params object?[] args)
         {
             VerifyHandle(obj);
             var nvs = NativeTypeConversion.ToNativeValues(args);
@@ -487,13 +498,13 @@ namespace CarinaStudio.MacOS.ObjectiveC
                     {
                         var nr = nvs.Length switch
                         {
-                            0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeFpResult1>)objc_msgSend)(obj, selector.Handle),
-                            1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeFpResult1>)objc_msgSend)(obj, selector.Handle, nvs[0]),
-                            2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeFpResult1>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1]),
-                            3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeFpResult1>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2]),
-                            4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeFpResult1>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3]),
-                            5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeFpResult1>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4]),
-                            6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeFpResult1>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4], nvs[5]),
+                            0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeFpResult1>)sendMsgFunction)(obj, selector.Handle),
+                            1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeFpResult1>)sendMsgFunction)(obj, selector.Handle, nvs[0]),
+                            2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeFpResult1>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1]),
+                            3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeFpResult1>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2]),
+                            4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeFpResult1>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3]),
+                            5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeFpResult1>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4]),
+                            6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeFpResult1>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4], nvs[5]),
                             _ => throw new NotSupportedException("Too many arguments to send."),
                         };
                         return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 1);
@@ -502,13 +513,13 @@ namespace CarinaStudio.MacOS.ObjectiveC
                     {
                         var nr = nvs.Length switch
                         {
-                            0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeResult1>)objc_msgSend)(obj, selector.Handle),
-                            1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeResult1>)objc_msgSend)(obj, selector.Handle, nvs[0]),
-                            2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeResult1>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1]),
-                            3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeResult1>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2]),
-                            4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeResult1>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3]),
-                            5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeResult1>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4]),
-                            6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeResult1>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4], nvs[5]),
+                            0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeResult1>)sendMsgFunction)(obj, selector.Handle),
+                            1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeResult1>)sendMsgFunction)(obj, selector.Handle, nvs[0]),
+                            2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeResult1>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1]),
+                            3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeResult1>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2]),
+                            4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeResult1>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3]),
+                            5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeResult1>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4]),
+                            6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeResult1>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4], nvs[5]),
                             _ => throw new NotSupportedException("Too many arguments to send."),
                         };
                         return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 1);
@@ -520,13 +531,13 @@ namespace CarinaStudio.MacOS.ObjectiveC
                     {
                         var nr = nvs.Length switch
                         {
-                            0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeFpResult2>)objc_msgSend)(obj, selector.Handle),
-                            1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeFpResult2>)objc_msgSend)(obj, selector.Handle, nvs[0]),
-                            2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeFpResult2>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1]),
-                            3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeFpResult2>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2]),
-                            4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeFpResult2>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3]),
-                            5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeFpResult2>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4]),
-                            6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeFpResult2>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4], nvs[5]),
+                            0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeFpResult2>)sendMsgFunction)(obj, selector.Handle),
+                            1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeFpResult2>)sendMsgFunction)(obj, selector.Handle, nvs[0]),
+                            2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeFpResult2>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1]),
+                            3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeFpResult2>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2]),
+                            4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeFpResult2>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3]),
+                            5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeFpResult2>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4]),
+                            6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeFpResult2>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4], nvs[5]),
                             _ => throw new NotSupportedException("Too many arguments to send."),
                         };
                         return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 2);
@@ -535,13 +546,13 @@ namespace CarinaStudio.MacOS.ObjectiveC
                     {
                         var nr = nvs.Length switch
                         {
-                            0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeResult2>)objc_msgSend)(obj, selector.Handle),
-                            1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeResult2>)objc_msgSend)(obj, selector.Handle, nvs[0]),
-                            2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeResult2>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1]),
-                            3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeResult2>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2]),
-                            4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeResult2>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3]),
-                            5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeResult2>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4]),
-                            6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeResult2>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4], nvs[5]),
+                            0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeResult2>)sendMsgFunction)(obj, selector.Handle),
+                            1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeResult2>)sendMsgFunction)(obj, selector.Handle, nvs[0]),
+                            2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeResult2>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1]),
+                            3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeResult2>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2]),
+                            4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeResult2>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3]),
+                            5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeResult2>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4]),
+                            6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeResult2>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4], nvs[5]),
                             _ => throw new NotSupportedException("Too many arguments to send."),
                         };
                         return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 2);
@@ -553,13 +564,13 @@ namespace CarinaStudio.MacOS.ObjectiveC
                     {
                         var nr = nvs.Length switch
                         {
-                            0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeFpResult3>)objc_msgSend)(obj, selector.Handle),
-                            1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeFpResult3>)objc_msgSend)(obj, selector.Handle, nvs[0]),
-                            2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeFpResult3>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1]),
-                            3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeFpResult3>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2]),
-                            4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeFpResult3>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3]),
-                            5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeFpResult3>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4]),
-                            6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeFpResult3>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4], nvs[5]),
+                            0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeFpResult3>)sendMsgFunction)(obj, selector.Handle),
+                            1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeFpResult3>)sendMsgFunction)(obj, selector.Handle, nvs[0]),
+                            2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeFpResult3>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1]),
+                            3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeFpResult3>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2]),
+                            4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeFpResult3>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3]),
+                            5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeFpResult3>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4]),
+                            6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeFpResult3>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4], nvs[5]),
                             _ => throw new NotSupportedException("Too many arguments to send."),
                         };
                         return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 3);
@@ -568,13 +579,13 @@ namespace CarinaStudio.MacOS.ObjectiveC
                     {
                         var nr = nvs.Length switch
                         {
-                            0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeResult3>)objc_msgSend)(obj, selector.Handle),
-                            1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeResult3>)objc_msgSend)(obj, selector.Handle, nvs[0]),
-                            2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeResult3>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1]),
-                            3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeResult3>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2]),
-                            4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeResult3>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3]),
-                            5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeResult3>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4]),
-                            6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeResult3>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4], nvs[5]),
+                            0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeResult3>)sendMsgFunction)(obj, selector.Handle),
+                            1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeResult3>)sendMsgFunction)(obj, selector.Handle, nvs[0]),
+                            2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeResult3>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1]),
+                            3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeResult3>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2]),
+                            4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeResult3>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3]),
+                            5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeResult3>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4]),
+                            6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeResult3>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4], nvs[5]),
                             _ => throw new NotSupportedException("Too many arguments to send."),
                         };
                         return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 3);
@@ -586,13 +597,13 @@ namespace CarinaStudio.MacOS.ObjectiveC
                     {
                         var nr = nvs.Length switch
                         {
-                            0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeFpResult4>)objc_msgSend)(obj, selector.Handle),
-                            1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeFpResult4>)objc_msgSend)(obj, selector.Handle, nvs[0]),
-                            2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeFpResult4>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1]),
-                            3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeFpResult4>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2]),
-                            4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeFpResult4>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3]),
-                            5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeFpResult4>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4]),
-                            6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeFpResult4>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4], nvs[5]),
+                            0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeFpResult4>)sendMsgFunction)(obj, selector.Handle),
+                            1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeFpResult4>)sendMsgFunction)(obj, selector.Handle, nvs[0]),
+                            2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeFpResult4>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1]),
+                            3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeFpResult4>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2]),
+                            4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeFpResult4>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3]),
+                            5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeFpResult4>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4]),
+                            6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeFpResult4>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4], nvs[5]),
                             _ => throw new NotSupportedException("Too many arguments to send."),
                         };
                         return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 4);
@@ -601,13 +612,13 @@ namespace CarinaStudio.MacOS.ObjectiveC
                     {
                         var nr = nvs.Length switch
                         {
-                            0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeResult4>)objc_msgSend)(obj, selector.Handle),
-                            1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeResult4>)objc_msgSend)(obj, selector.Handle, nvs[0]),
-                            2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeResult4>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1]),
-                            3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeResult4>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2]),
-                            4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeResult4>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3]),
-                            5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeResult4>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4]),
-                            6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeResult4>)objc_msgSend)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4], nvs[5]),
+                            0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeResult4>)sendMsgFunction)(obj, selector.Handle),
+                            1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeResult4>)sendMsgFunction)(obj, selector.Handle, nvs[0]),
+                            2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeResult4>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1]),
+                            3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeResult4>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2]),
+                            4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeResult4>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3]),
+                            5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeResult4>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4]),
+                            6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeResult4>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4], nvs[5]),
                             _ => throw new NotSupportedException("Too many arguments to send."),
                         };
                         return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 4);
@@ -618,6 +629,74 @@ namespace CarinaStudio.MacOS.ObjectiveC
         }
 #pragma warning restore CS8600
 #pragma warning restore CS8603
+
+
+        /// <summary>
+        /// Send message to super class of instance.
+        /// </summary>
+        /// <param name="selector">Selector.</param>
+        /// <param name="args">Arguments</param>
+        public void SendMessageToSuper(Selector selector, params object?[] args)
+        {
+            this.VerifyDisposed();
+            var superClass = this.Class.SuperClass;
+            if (superClass == null)
+                return;
+            var superInfo = new objc_super() { receiver = this.Handle, super_class = superClass.Handle };
+            SendMessage<nint>(objc_msgSendSuper, new IntPtr(&superInfo), selector, args);
+        }
+
+
+        /// <summary>
+        /// Send message to super class of instance.
+        /// </summary>
+        /// <param name="selector">Selector.</param>
+        /// <param name="args">Arguments</param>
+        /// <typeparam name="T">Type of returned value.</typeparam>
+        /// <returns>Result.</returns>
+        public T SendMessageToSuper<T>(Selector selector, params object?[] args)
+        {
+            this.VerifyDisposed();
+            var superClass = this.Class.SuperClass;
+            if (superClass == null)
+                throw new InvalidOperationException("No super class found.");
+            var superInfo = new objc_super() { receiver = this.Handle, super_class = superClass.Handle };
+            return SendMessage<T>(objc_msgSendSuper, new IntPtr(&superInfo), selector, args);
+        }
+
+
+        /// <summary>
+        /// Send message to super class of instance.
+        /// </summary>
+        /// <param name="obj">Handle of instance.</param>
+        /// <param name="selector">Selector.</param>
+        /// <param name="args">Arguments</param>
+        public static void SendMessageToSuper(IntPtr obj, Selector selector, params object?[] args)
+        {
+            var superClass = Class.GetClass(obj).SuperClass;
+            if (superClass == null)
+                return;
+            var superInfo = new objc_super() { receiver = obj, super_class = superClass.Handle };
+            SendMessage<nint>(objc_msgSendSuper, new IntPtr(&superInfo), selector, args);
+        }
+
+
+        /// <summary>
+        /// Send message to super class of instance.
+        /// </summary>
+        /// <param name="obj">Handle of instance.</param>
+        /// <param name="selector">Selector.</param>
+        /// <param name="args">Arguments</param>
+        /// <typeparam name="T">Type of returned value.</typeparam>
+        /// <returns>Result.</returns>
+        public static T SendMessageToSuper<T>(IntPtr obj, Selector selector, params object?[] args)
+        {
+            var superClass = Class.GetClass(obj).SuperClass;
+            if (superClass == null)
+                throw new InvalidOperationException("No super class found.");
+            var superInfo = new objc_super() { receiver = obj, super_class = superClass.Handle };
+            return SendMessage<T>(objc_msgSendSuper, new IntPtr(&superInfo), selector, args);
+        }
 
 
         /// <summary>

@@ -259,7 +259,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Selector.</param>
         /// <param name="implementation">Implementation.</param>
-        public void DefineMethod(Selector name, Action<IntPtr, IntPtr> implementation) =>
+        public void DefineMethod(Selector name, Action<IntPtr, Selector> implementation) =>
             this.DefineMethod(name, implementation, null);
 
 
@@ -268,7 +268,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Selector.</param>
         /// <param name="implementation">Implementation.</param>
-        public void DefineMethod<R>(Selector name, Func<IntPtr, IntPtr, R> implementation) =>
+        public void DefineMethod<R>(Selector name, Func<IntPtr, Selector, R> implementation) =>
             this.DefineMethod(name, implementation, typeof(R));
 
 
@@ -277,7 +277,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Selector.</param>
         /// <param name="implementation">Implementation.</param>
-        public void DefineMethod<TArg1>(Selector name, Action<IntPtr, IntPtr, TArg1> implementation)
+        public void DefineMethod<TArg1>(Selector name, Action<IntPtr, Selector, TArg1> implementation)
         {
             switch (NativeTypeConversion.GetNativeValueCount<TArg1>())
             {
@@ -307,7 +307,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Selector.</param>
         /// <param name="implementation">Implementation.</param>
-        public void DefineMethod<TArg1, R>(Selector name, Func<IntPtr, IntPtr, TArg1, R> implementation)
+        public void DefineMethod<TArg1, R>(Selector name, Func<IntPtr, Selector, TArg1, R> implementation)
         {
             switch (NativeTypeConversion.GetNativeValueCount<TArg1>())
             {
@@ -337,7 +337,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Selector.</param>
         /// <param name="implementation">Implementation.</param>
-        public void DefineMethod<TArg1, TArg2>(Selector name, Action<IntPtr, IntPtr, TArg1, TArg2> implementation)
+        public void DefineMethod<TArg1, TArg2>(Selector name, Action<IntPtr, Selector, TArg1, TArg2> implementation)
         {
             var nArgCount = NativeTypeConversion.GetNativeValueCount<TArg1>()
                 + NativeTypeConversion.GetNativeValueCount<TArg2>();
@@ -366,7 +366,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Selector.</param>
         /// <param name="implementation">Implementation.</param>
-        public void DefineMethod<TArg1, TArg2, R>(Selector name, Func<IntPtr, IntPtr, TArg1, TArg2, R> implementation)
+        public void DefineMethod<TArg1, TArg2, R>(Selector name, Func<IntPtr, Selector, TArg1, TArg2, R> implementation)
         {
             var nArgCount = NativeTypeConversion.GetNativeValueCount<TArg1>()
                 + NativeTypeConversion.GetNativeValueCount<TArg2>();
@@ -395,7 +395,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Selector.</param>
         /// <param name="implementation">Implementation.</param>
-        public void DefineMethod<TArg1, TArg2, TArg3>(Selector name, Action<IntPtr, IntPtr, TArg1, TArg2, TArg3> implementation)
+        public void DefineMethod<TArg1, TArg2, TArg3>(Selector name, Action<IntPtr, Selector, TArg1, TArg2, TArg3> implementation)
         {
             var nArgCount = NativeTypeConversion.GetNativeValueCount<TArg1>()
                 + NativeTypeConversion.GetNativeValueCount<TArg2>()
@@ -422,7 +422,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Selector.</param>
         /// <param name="implementation">Implementation.</param>
-        public void DefineMethod<TArg1, TArg2, TArg3, R>(Selector name, Func<IntPtr, IntPtr, TArg1, TArg2, TArg3, R> implementation)
+        public void DefineMethod<TArg1, TArg2, TArg3, R>(Selector name, Func<IntPtr, Selector, TArg1, TArg2, TArg3, R> implementation)
         {
             var nArgCount = NativeTypeConversion.GetNativeValueCount<TArg1>()
                 + NativeTypeConversion.GetNativeValueCount<TArg2>()
@@ -449,7 +449,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Selector.</param>
         /// <param name="implementation">Implementation.</param>
-        public void DefineMethod<TArg1, TArg2, TArg3, TArg4>(Selector name, Action<IntPtr, IntPtr, TArg1, TArg2, TArg3, TArg4> implementation)
+        public void DefineMethod<TArg1, TArg2, TArg3, TArg4>(Selector name, Action<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4> implementation)
         {
             var nArgCount = NativeTypeConversion.GetNativeValueCount<TArg1>()
                 + NativeTypeConversion.GetNativeValueCount<TArg2>()
@@ -474,7 +474,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Selector.</param>
         /// <param name="implementation">Implementation.</param>
-        public void DefineMethod<TArg1, TArg2, TArg3, TArg4, R>(Selector name, Func<IntPtr, IntPtr, TArg1, TArg2, TArg3, TArg4, R> implementation)
+        public void DefineMethod<TArg1, TArg2, TArg3, TArg4, R>(Selector name, Func<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4, R> implementation)
         {
             var nArgCount = NativeTypeConversion.GetNativeValueCount<TArg1>()
                 + NativeTypeConversion.GetNativeValueCount<TArg2>()
@@ -499,7 +499,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Selector.</param>
         /// <param name="implementation">Implementation.</param>
-        public void DefineMethod<TArg1, TArg2, TArg3, TArg4, TArg5>(Selector name, Action<IntPtr, IntPtr, TArg1, TArg2, TArg3, TArg4, TArg5> implementation)
+        public void DefineMethod<TArg1, TArg2, TArg3, TArg4, TArg5>(Selector name, Action<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4, TArg5> implementation)
         {
             var nArgCount = NativeTypeConversion.GetNativeValueCount<TArg1>()
                 + NativeTypeConversion.GetNativeValueCount<TArg2>()
@@ -522,7 +522,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Selector.</param>
         /// <param name="implementation">Implementation.</param>
-        public void DefineMethod<TArg1, TArg2, TArg3, TArg4, TArg5, R>(Selector name, Func<IntPtr, IntPtr, TArg1, TArg2, TArg3, TArg4, TArg5, R> implementation)
+        public void DefineMethod<TArg1, TArg2, TArg3, TArg4, TArg5, R>(Selector name, Func<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4, TArg5, R> implementation)
         {
             var nArgCount = NativeTypeConversion.GetNativeValueCount<TArg1>()
                 + NativeTypeConversion.GetNativeValueCount<TArg2>()
@@ -824,7 +824,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="setter">Implementation of setter.</param>
         /// <typeparam name="T">Type of property value.</typeparam>
         /// <returns>Descriptor of added property.</returns>
-        public Property DefineProperty<T>(string name, Func<IntPtr, IntPtr, T> getter, Action<IntPtr, IntPtr, T>? setter = null) where T : struct
+        public Property DefineProperty<T>(string name, Func<IntPtr, Selector, T> getter, Action<IntPtr, Selector, T>? setter = null) where T : struct
         {
             // check state
             if (this.cachedProperties.ContainsKey(name))
@@ -954,31 +954,26 @@ namespace CarinaStudio.MacOS.ObjectiveC
 
 
         /// <summary>
-        /// Get all instance variables of the class.
+        /// Get all instance variables of the class. Instance variables defined by super classes are excluded.
         /// </summary>
         /// <returns>Descriptors of instance variables.</returns>
         public Member[] GetInstanceVariables()
         {
             if (this.areAllIVarsCached || this.IsProtocol)
                 return this.cachedIVars.Values.ToArray();
-            var cls = this;
-            var varNames = new Dictionary<string, IntPtr>();
-            while (cls != null)
+            var varsPtr = class_copyIvarList(this.Handle, out var count);
+            try
             {
-                var varsPtr = class_copyIvarList(cls.Handle, out var count);
-                try
+                for (var i = count - 1; i >= 0; --i)
                 {
-                    for (var i = count - 1; i >= 0; --i)
-                        varNames.TryAdd(new string(ivar_getName(varsPtr[i])), varsPtr[i]);
-                }
-                finally
-                {
-                    NativeMemory.Free(varsPtr);
-                    cls = cls?.SuperClass;
+                    var name = new string(ivar_getName(varsPtr[i]));
+                    this.cachedIVars.TryAdd(name, new Member(this, varsPtr[i], name));
                 }
             }
-            foreach (var (name, handle) in varNames)
-                this.cachedIVars.TryAdd(name, new Member(this, handle, name));
+            finally
+            {
+                NativeMemory.Free(varsPtr);
+            }
             this.areAllIVarsCached = true;
             return this.cachedIVars.Values.ToArray();
         }
@@ -1039,34 +1034,29 @@ namespace CarinaStudio.MacOS.ObjectiveC
 
 
         /// <summary>
-        /// Get all properties of the class.
+        /// Get all properties of the class. Properties defined by super classes are excluded.
         /// </summary>
         /// <returns>Descriptors of properties.</returns>
         public unsafe Property[] GetProperties()
         {
             if (areAllPropertiesCached)
                 return this.cachedProperties.Values.ToArray();
-            var cls = this;
-            var propertyNames = new Dictionary<string, IntPtr>();
-            while (cls != null)
+            var count = 0u;
+            var propertiesPtr = this.IsProtocol
+                ? protocol_copyPropertyList(this.Handle, out count)
+                : class_copyPropertyList(this.Handle, out count);
+            try
             {
-                var count = 0u;
-                var propertiesPtr = cls.IsProtocol
-                    ? protocol_copyPropertyList(cls.Handle, out count)
-                    : class_copyPropertyList(cls.Handle, out count);
-                try
+                for (var i = 0; i < count; --i)
                 {
-                    for (var i = 0; i < count; --i)
-                        propertyNames.TryAdd(new string(property_getName(propertiesPtr[i])), propertiesPtr[i]);
-                }
-                finally
-                {
-                    NativeMemory.Free(propertiesPtr);
-                    cls = cls.IsProtocol ? null : cls?.SuperClass;
+                    var name = new string(property_getName(propertiesPtr[i]));
+                    this.cachedProperties.TryAdd(name, new Property(this, propertiesPtr[i], name));
                 }
             }
-            foreach (var (name, handle) in propertyNames)
-                this.cachedProperties.TryAdd(name, new Property(this, handle, name));
+            finally
+            {
+                NativeMemory.Free(propertiesPtr);
+            }
             this.areAllPropertiesCached = true;
             return this.cachedProperties.Values.ToArray();
         }
@@ -1103,6 +1093,15 @@ namespace CarinaStudio.MacOS.ObjectiveC
         public IntPtr Handle { get; }
 
 
+        /// <summary>
+        /// Check whether given method is implemented by this class or not.
+        /// </summary>
+        /// <param name="name">Name.</param>
+        /// <returns>True if method is implemented by this class.</returns>
+        public bool HasMethod(Selector name) =>
+            this.GetMethod(name) != null;
+
+
         // Invoke actual method implementation.
         unsafe object? InvokeMethodImplementation(Delegate implementation, IntPtr self, IntPtr cmd, params nint[] nativeArgs)
         {
@@ -1111,7 +1110,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
             var argCount = parameters.Length;
             var args = new object?[argCount];
             args[0] = self;
-            args[1] = cmd;
+            args[1] = Selector.FromHandle(cmd);
             if (argCount >= 3)
             {
                 fixed (nint* p = nativeArgs)

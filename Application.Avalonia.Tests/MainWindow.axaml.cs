@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using CarinaStudio.Animation;
 using CarinaStudio.MacOS.AppKit;
 using CarinaStudio.MacOS.ObjectiveC;
+using System.ComponentModel;
 
 namespace CarinaStudio
 {
@@ -28,6 +29,14 @@ namespace CarinaStudio
         private void InitializeComponent()
         {
             AvaloniaXamlLoader.Load(this);
+        }
+
+
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            e.Cancel = true;
+            base.OnClosing(e);
+            this.Hide();
         }
 
 
@@ -120,16 +129,44 @@ namespace CarinaStudio
                 MyAppDelegateClass = Class.DefineClass(AvnAppDelegateClass ?? Class.GetClass("NSObject"), "MyAppDelegate", cls => {});
                 Class.GetProtocol("NSApplicationDelegate")?.Let(it => MyAppDelegateClass.AddProtocol(it));
                 MyAppDelegateClass.DefineMethod<IntPtr>(Selector.FromName("applicationWillBecomeActive:"),
-                    (self, _, notification) =>
+                    (self, cmd, notification) =>
                     {
-                        //
+                        if (AvnAppDelegateClass?.HasMethod(cmd) == true)
+                            NSObject.SendMessageToSuper(self, cmd, notification);
+                        if (MyAppDelegateClass.TryGetClrObject<MyAppDelegate>(self, out var myAppDelegate))
+                        {
+                            myAppDelegate.window.Show();
+                            myAppDelegate.window.Activate();
+                        }
+                    });
+                MyAppDelegateClass.DefineMethod<IntPtr>(Selector.FromName("applicationWillResignActive:"),
+                    (self, cmd, notification) =>
+                    {
+                        if (AvnAppDelegateClass?.HasMethod(cmd) == true)
+                            NSObject.SendMessageToSuper(self, cmd, notification);
+                    });
+                MyAppDelegateClass.DefineMethod<IntPtr>(Selector.FromName("applicationWillUnhide:"),
+                    (self, cmd, notification) =>
+                    {
+                        if (AvnAppDelegateClass?.HasMethod(cmd) == true)
+                            NSObject.SendMessageToSuper(self, cmd, notification);
+                    });
+                MyAppDelegateClass.DefineMethod<IntPtr>(Selector.FromName("applicationWillHide:"),
+                    (self, cmd, notification) =>
+                    {
+                        if (AvnAppDelegateClass?.HasMethod(cmd) == true)
+                            NSObject.SendMessageToSuper(self, cmd, notification);
                     });
             }
 
+            // Fields.
+            readonly Window window;
+
             // Constructor.
-            public MyAppDelegate() : base(Initialize(MyAppDelegateClass!.Allocate()), true)
+            public MyAppDelegate(Window window) : base(Initialize(MyAppDelegateClass!.Allocate()), true)
             { 
-                //this.Class.TrySetClrObject(this.Handle, this);
+                this.Class.TrySetClrObject(this.Handle, this);
+                this.window = window;
             }
         }
 
@@ -142,7 +179,7 @@ namespace CarinaStudio
         {
             if (Platform.IsMacOS)
             {
-                myAppDelegate ??= new();
+                myAppDelegate ??= new(this);
 
                 var app = NSApplication.Current.AsNonNull();
                 var currentDelegate = app.Delegate;
