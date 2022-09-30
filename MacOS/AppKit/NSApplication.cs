@@ -32,12 +32,14 @@ namespace CarinaStudio.MacOS.AppKit
         static volatile NSApplication? _Current;
         static readonly Property? DelegateProperty;
         static readonly Property? DockTileProperty;
+        static readonly Property? IconImageProperty;
         static readonly Property? IsRunningProperty;
         static readonly Property? MainWindowProperty;
         static readonly Property? WindowsProperty;
 
 
         // Fields.
+        NSImage? appIconImage;
         NSDockTile? dockTile;
         NSObject? mainWindow;
     
@@ -57,6 +59,7 @@ namespace CarinaStudio.MacOS.AppKit
             DelegateProperty = NSApplicationClass.GetProperty("delegate");
             DockTileProperty = NSApplicationClass.GetProperty("dockTile");
             MainWindowProperty = NSApplicationClass.GetProperty("mainWindow");
+            IconImageProperty = NSApplicationClass.GetProperty("applicationIconImage");
             IsRunningProperty = NSApplicationClass.GetProperty("running");
             WindowsProperty = NSApplicationClass.GetProperty("windows");
         }
@@ -65,6 +68,37 @@ namespace CarinaStudio.MacOS.AppKit
         // Constructor.
         NSApplication(InstanceHolder instance) : base(instance) =>
             this.VerifyClass(NSApplicationClass!);
+        
+
+        /// <summary>
+        /// Get or set icon of application.
+        /// </summary>
+        /// <value></value>
+        public NSImage? ApplicationIconImage
+        {
+            get
+            {
+                this.VerifyDisposed();
+                var handle = this.GetProperty<IntPtr>(IconImageProperty!);
+                if (this.appIconImage is null)
+                {
+                    if (handle == IntPtr.Zero)
+                        return null;
+                    this.appIconImage = NSObject.FromHandle<NSImage>(handle, false);
+                }
+                else if (handle != this.appIconImage.Handle)
+                    this.appIconImage = handle != IntPtr.Zero ? NSObject.FromHandle<NSImage>(handle, false) : null;
+                return this.appIconImage;
+            }
+            set
+            {
+                this.VerifyDisposed();
+                if (this.appIconImage == value)
+                    return;
+                this.appIconImage = value;
+                this.SetProperty<NSObject>(IconImageProperty!, value);
+            }
+        }
 
 
         /// <summary>
