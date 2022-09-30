@@ -20,7 +20,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
 
         // Static fields.
         static readonly IDictionary<uint, string> CachedTypeDescriptions = new ConcurrentDictionary<uint, string>();
-        static readonly IDictionary<Type, MethodInfo> ObjectWrappingMethods = new ConcurrentDictionary<Type, MethodInfo>();
+        static readonly IDictionary<Type, ConstructorInfo> WrappingConstructors = new ConcurrentDictionary<Type, ConstructorInfo>();
 
 
         // Fields.
@@ -72,12 +72,14 @@ namespace CarinaStudio.MacOS.CoreFoundation
             if (this is T target)
                 return target;
             this.VerifyReleased();
-            var wrappingMethod = GetObjectWrappingMethod<T>();
+            var ctor = GetWrappingConstructor<T>();
             var handle = this.handle;
             var ownsInstance = this.ownsInstance;
             this.handle = IntPtr.Zero;
             this.ownsInstance = false;
-            return (T)wrappingMethod.Invoke(null, new object?[] { handle, ownsInstance }).AsNonNull();
+            if (ctor.GetParameters().Length == 2)
+                return (T)Activator.CreateInstance(typeof(T), BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ handle, ownsInstance }, null).AsNonNull();
+            return (T)Activator.CreateInstance(typeof(T), BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ handle }, null).AsNonNull();
         }
 
 
@@ -92,26 +94,39 @@ namespace CarinaStudio.MacOS.CoreFoundation
         
 
         // Get static method to wrap native instance.
-        static MethodInfo GetObjectWrappingMethod<T>() where T : CFObject =>
-            ObjectWrappingMethods.TryGetValue(typeof(T), out var method)
+        static ConstructorInfo GetWrappingConstructor<T>() where T : CFObject =>
+            GetWrappingConstructor(typeof(T));
+        static ConstructorInfo GetWrappingConstructor(Type type) =>
+            WrappingConstructors.TryGetValue(type, out var method)
                 ? method
-                : typeof(T).GetMethods(BindingFlags.Public | BindingFlags.Static).Let(it =>
+                : type.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).Let(it =>
                 {
-                    foreach (var m in it)
+                    var CtorWith1Arg = (ConstructorInfo?)null;
+                    foreach (var ctor in it)
                     {
-                        if (m.Name == "Wrap" && typeof(T).IsAssignableFrom(m.ReturnType))
+                        var parameters = ctor.GetParameters();
+                        switch (parameters.Length)
                         {
-                            var parameters = m.GetParameters();
-                            if (parameters.Length == 2 
-                                && parameters[0].ParameterType == typeof(IntPtr)
-                                && parameters[1].ParameterType == typeof(bool))
-                            {
-                                ObjectWrappingMethods.TryAdd(typeof(T), m);
-                                return m;
-                            }
+                            case 1:
+                                if (parameters[0].ParameterType == typeof(IntPtr))
+                                    CtorWith1Arg = ctor;
+                                break;
+                            case 2:
+                                if (parameters[0].ParameterType == typeof(IntPtr)
+                                    && parameters[1].ParameterType == typeof(bool))
+                                {
+                                    WrappingConstructors.TryAdd(type, ctor);
+                                    return ctor;
+                                }
+                                break;
                         }
                     }
-                    throw new InvalidCastException($"Cannot find method to wrap CFObject as '{typeof(T)}'.");
+                    if (CtorWith1Arg != null)
+                    {
+                        WrappingConstructors.TryAdd(type, CtorWith1Arg);
+                        return CtorWith1Arg;
+                    }
+                    throw new InvalidCastException($"Cannot find way to construct {type.Name}.");
                 });
 
 
@@ -123,6 +138,34 @@ namespace CarinaStudio.MacOS.CoreFoundation
 
         /// <inheritdoc/>
         void IDisposable.Dispose() => this.Release();
+
+
+        /// <summary>
+        /// Wrap a native object.
+        /// </summary>
+        /// <param name="cf">Handle of instance.</param>
+        /// <param name="ownsInstance">True to owns the native object.</param>
+        /// <returns>Wrapped object.</returns>
+        public static CFObject FromHandle(IntPtr cf, bool ownsInstance = false) =>
+            new CFObject(cf, ownsInstance);
+        
+
+        /// <summary>
+        /// Wrap a native object.
+        /// </summary>
+        /// <param name="cf">Handle of instance.</param>
+        /// <param name="ownsInstance">True to owns the native object.</param>
+        /// <typeparam name="T">Target type.</typeparam>
+        /// <returns>Wrapped object.</returns>
+        public static T FromHandle<T>(IntPtr cf, bool ownsInstance = false) where T : CFObject
+        {
+            if (typeof(T) == typeof(CFObject))
+                return (T)new CFObject(cf, ownsInstance);
+            var ctor = GetWrappingConstructor<T>();
+            if (ctor.GetParameters().Length == 2)
+                return (T)Activator.CreateInstance(typeof(T), BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ cf, ownsInstance }, null).AsNonNull();
+            return (T)Activator.CreateInstance(typeof(T), BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ cf }, null).AsNonNull();
+        }
 
 
         /// <summary>
@@ -229,7 +272,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
             if (this is T)
                 return (T)this.Retain();
             this.VerifyReleased();
-            return Wrap<T>(Retain(this.handle), true);
+            return FromHandle<T>(Retain(this.handle), true);
         }
 
 
@@ -258,7 +301,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
                     return description;
                 description = CFCopyTypeIDDescription(this.TypeId).Let(it =>
                 {
-                    return CFString.Wrap(it, true).Use(it =>
+                    return new CFString(it, true).Use(it =>
                         it.ToString().AsNonNull());
                 });
                 CachedTypeDescriptions.TryAdd(this.TypeId, description);
@@ -281,26 +324,5 @@ namespace CarinaStudio.MacOS.CoreFoundation
             if (this.handle == IntPtr.Zero)
                 throw new ObjectDisposedException(this.GetType().Name);
         }
-
-
-        /// <summary>
-        /// Wrap a native object.
-        /// </summary>
-        /// <param name="cf">Handle of instance.</param>
-        /// <param name="ownsInstance">True to owns the native object.</param>
-        /// <returns>Wrapped object.</returns>
-        public static CFObject Wrap(IntPtr cf, bool ownsInstance = false) =>
-            new CFObject(cf, ownsInstance);
-        
-
-        /// <summary>
-        /// Wrap a native object.
-        /// </summary>
-        /// <param name="cf">Handle of instance.</param>
-        /// <param name="ownsInstance">True to owns the native object.</param>
-        /// <typeparam name="T">Target type.</typeparam>
-        /// <returns>Wrapped object.</returns>
-        public static T Wrap<T>(IntPtr cf, bool ownsInstance = false) where T : CFObject =>
-            (T)GetObjectWrappingMethod<T>().Invoke(null, new object?[] { cf, ownsInstance }).AsNonNull();
     }
 }
