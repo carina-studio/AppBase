@@ -255,11 +255,9 @@ namespace CarinaStudio.MacOS.ObjectiveC
         public override int GetHashCode()
         {
             var property = this.hashProperty 
-                ?? (this.Class.TryGetProperty("hash", out var prop)
-                    ? prop.Also(it => this.hashProperty = prop)
-                    : null);
+                ?? this.Class.GetProperty("hash").Also(it => this.hashProperty = it);
             return property != null
-                ? this.SendMessage<int>(property.Getter!)
+                ? this.GetProperty<int>(property)
                 : this.instance.GetHashCode();
         }
 
@@ -404,6 +402,12 @@ namespace CarinaStudio.MacOS.ObjectiveC
             VerifyHandle(obj);
             return ((delegate*unmanaged<IntPtr, IntPtr, IntPtr>)objc_msgSend)(obj, InitSelector!.Handle);
         }
+
+
+        /// <summary>
+        /// Get native instance held by this <see cref="NSObject"/>.
+        /// </summary>
+        protected InstanceHolder Instance { get => this.instance; }
 
 
         /// <summary>

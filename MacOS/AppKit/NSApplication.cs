@@ -54,11 +54,11 @@ namespace CarinaStudio.MacOS.AppKit
             }
             NSApplicationClass = Class.GetClass("NSApplication").AsNonNull();
             NSApplicationDelegateClass = Class.GetProtocol("NSApplicationDelegate").AsNonNull();
-            NSApplicationClass.TryGetProperty("delegate", out DelegateProperty);
-            NSApplicationClass.TryGetProperty("dockTile", out DockTileProperty);
-            NSApplicationClass.TryGetProperty("mainWindow", out MainWindowProperty);
-            NSApplicationClass.TryGetProperty("running", out IsRunningProperty);
-            NSApplicationClass.TryGetProperty("windows", out WindowsProperty);
+            DelegateProperty = NSApplicationClass.GetProperty("delegate");
+            DockTileProperty = NSApplicationClass.GetProperty("dockTile");
+            MainWindowProperty = NSApplicationClass.GetProperty("mainWindow");
+            IsRunningProperty = NSApplicationClass.GetProperty("running");
+            WindowsProperty = NSApplicationClass.GetProperty("windows");
         }
 
 
