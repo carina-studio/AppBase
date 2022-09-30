@@ -709,7 +709,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="property">Property.</param>
         /// <param name="value">Value.</param>
         /// <typeparam name="T">Type of property.</typeparam>
-        public void SetProperty<T>(Property property, T value)
+        public void SetProperty<T>(Property property, T? value)
         {
             if (!property.Class.IsAssignableFrom(this.Class))
                 throw new ArgumentException($"Property '{property}' is not owned by class '{this.Class}'.");
@@ -725,7 +725,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="ivar">Instance variable.</param>
         /// <param name="value">Value.</param>
         /// <typeparam name="T">Type of variable.</typeparam>
-        public void SetVariable<T>(Member ivar, T value)
+        public void SetVariable<T>(Member ivar, T? value)
         {
             this.VerifyDisposed();
             SetVariable<T>(this.Handle, ivar, value);
@@ -739,7 +739,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="ivar">Instance variable.</param>
         /// <param name="value">Value.</param>
         /// <typeparam name="T">Type of variable.</typeparam>
-        public static void SetVariable<T>(IntPtr obj, Member ivar, T value)
+        public static void SetVariable<T>(IntPtr obj, Member ivar, T? value)
         {
             VerifyHandle(obj);
             var nValues = NativeTypeConversion.ToNativeValues(new object?[] { value });
