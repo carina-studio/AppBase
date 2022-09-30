@@ -301,7 +301,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
                     return description;
                 description = CFCopyTypeIDDescription(this.TypeId).Let(it =>
                 {
-                    return new CFString(it, true).Use(it =>
+                    return new CFString(it, false, true).Use(it =>
                         it.ToString().AsNonNull());
                 });
                 CachedTypeDescriptions.TryAdd(this.TypeId, description);
