@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CarinaStudio.Collections
 {
@@ -47,7 +48,7 @@ namespace CarinaStudio.Collections
 		/// <typeparam name="TValue">Type of value in dictionary.</typeparam>
 		/// <typeparam name="TOut">Desired type of value.</typeparam>
 		/// <returns>True if value has been got as given type successfully.</returns>
-		public static bool TryGetValue<TKey, TValue, TOut>(this IDictionary<TKey, TValue> dictionary, TKey key, out TOut value) where TKey : notnull where TOut : TValue
+		public static bool TryGetValue<TKey, TValue, TOut>(this IDictionary<TKey, TValue> dictionary, TKey key, [NotNullWhen(true)] out TOut value) where TKey : notnull where TOut : TValue
 		{
 			if (dictionary.TryGetValue(key, out var rawValue) && rawValue is TOut outValue)
 			{
