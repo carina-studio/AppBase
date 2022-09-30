@@ -4,7 +4,7 @@
     <AssemblyVersion>1.6.15.809</AssemblyVersion>
     <Version>1.6.15.809</Version>
     <PackageVersion>1.6.15.809-preview</PackageVersion>
-    <TargetFrameworks>netcoreapp3.1;netstandard2.1;net5.0;net6.0</TargetFrameworks>
+    <TargetFrameworks>net5.0;net6.0</TargetFrameworks>
     <RootNamespace>CarinaStudio</RootNamespace>
     <AssemblyName>CarinaStudio.AppBase.Core</AssemblyName>
     <Authors>Carina Studio</Authors>
