@@ -145,18 +145,17 @@ namespace CarinaStudio.MacOS.CoreFoundation
 
 
         // Constructor.
-        CFNumber(IntPtr number, bool ownsInstance) : base(number, ownsInstance)
+        CFNumber(IntPtr number, bool ownsInstance) : this(number, true, ownsInstance)
+        { }
+        CFNumber(IntPtr number, bool checkType, bool ownsInstance) : base(number, ownsInstance)
         {
             if (number != IntPtr.Zero)
             {
-                if (this.TypeDescription != "CFNumber")
-                    throw new ArgumentException("Type of native instance is not a CFNumber.");
+                if (checkType && this.TypeDescription != "CFNumber")
+                    throw new ArgumentException("Type of instance is CFNumber.");
                 this.Type = CFNumberGetType(number);
             }
         }
-
-
-        // Constructor.
         CFNumber(IntPtr number, CFNumberType type, bool ownsInstance) : base(number, ownsInstance)
         {
             this.Type = type;

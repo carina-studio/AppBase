@@ -37,8 +37,12 @@ namespace CarinaStudio.MacOS.CoreFoundation
 
 
         // Constructor.
-        internal CFString(IntPtr s, bool ownsInstance) : base(s, ownsInstance)
+        CFString(IntPtr s, bool ownsInstance) : this(s, true, ownsInstance)
+        { }
+        internal CFString(IntPtr s, bool checkType, bool ownsInstance) : base(s, ownsInstance)
         { 
+            if (checkType && s != IntPtr.Zero && this.TypeDescription != "CFString")
+                throw new ArgumentException("Type of instance is not CFString.");
             this.length = -1;
         }
 
