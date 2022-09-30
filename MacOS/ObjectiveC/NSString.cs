@@ -35,7 +35,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
             GetCharsSelector = Selector.FromName("getCharacters:range:");
             InitWithCharSelector = Selector.FromName("initWithCharacters:length:");
             IsEqualToSelector = Selector.FromName("isEqualTo:");
-            NSStringClass.TryGetProperty("length", out LengthProperty);
+            LengthProperty = NSStringClass.GetProperty("length");
         }
 
 

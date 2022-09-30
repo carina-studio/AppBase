@@ -42,6 +42,8 @@ namespace CarinaStudio.MacOS.ObjectiveC
         [DllImport(NativeLibraryNames.ObjectiveC)]
         static extern IntPtr class_getSuperclass(IntPtr cls);
         [DllImport(NativeLibraryNames.ObjectiveC)]
+        static extern bool class_respondsToSelector(IntPtr cls, IntPtr sel);
+        [DllImport(NativeLibraryNames.ObjectiveC)]
         static extern sbyte* ivar_getName(IntPtr ivar);
         [DllImport(NativeLibraryNames.ObjectiveC)]
         static extern IntPtr method_getName(IntPtr m);
@@ -842,11 +844,10 @@ namespace CarinaStudio.MacOS.ObjectiveC
                 attrs[2] = new() { Name = "R", Value = "" };
             
             // add property
-            if (!class_addProperty(this.Handle, name, attrs, (uint)attrs.Length)
-                || !this.TryGetProperty(name, out var property))
-            {
+            if (!class_addProperty(this.Handle, name, attrs, (uint)attrs.Length))
                 throw new ArgumentException($"Unagle to add property '{name}' to '{this.Name}'.");
-            }
+            var property = this.GetProperty(name) 
+                ?? throw new ArgumentException($"Unagle to add property '{name}' to '{this.Name}'.");
 
             // register getter and setter methods
             try
@@ -862,7 +863,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
             }
 
             // complete
-            return property.AsNonNull();
+            return property;
         }
         
 
@@ -948,9 +949,51 @@ namespace CarinaStudio.MacOS.ObjectiveC
         }
 
 
+        /// <summary>
+        /// Get class variable defined by this class.
+        /// </summary>
+        /// <param name="name">Name.</param>
+        /// <returns>Descriptor of class variable.</returns>
+        public unsafe Member? GetClassVriable(string name)
+        {
+            if (this.IsProtocol)
+                return null;
+            if (this.cachedCVars.TryGetValue(name, out var ivar))
+                return ivar;
+            if (string.IsNullOrEmpty(name))
+                throw new ArgumentException($"Invalid variable name: {name}.");
+            var handle = class_getClassVariable(this.Handle, name);
+            if (handle == IntPtr.Zero)
+                return null;
+            return new Member(this, handle, name).Also(it => this.cachedCVars.TryAdd(name, it));
+        }
+
+
         /// <inheritdoc/>
         public override int GetHashCode() =>
             this.Name.GetHashCode();
+        
+
+        /// <summary>
+        /// Get instance variable defined by this class.
+        /// </summary>
+        /// <param name="name">Name.</param>
+        /// <returns>Descriptor of instance variable.</returns>
+        public unsafe Member? GetInstanceVriable(string name)
+        {
+            if (this.IsProtocol)
+                return null;
+            if (this.cachedIVars.TryGetValue(name, out var ivar))
+                return ivar;
+            if (this.areAllIVarsCached)
+                return null;
+            if (string.IsNullOrEmpty(name))
+                throw new ArgumentException($"Invalid variable name: {name}.");
+            var handle = class_getInstanceVariable(this.Handle, name);
+            if (handle == IntPtr.Zero)
+                return null;
+            return new Member(this, handle, name).Also(it => this.cachedIVars.TryAdd(name, it));
+        }
 
 
         /// <summary>
@@ -1047,7 +1090,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
                 : class_copyPropertyList(this.Handle, out count);
             try
             {
-                for (var i = 0; i < count; --i)
+                for (var i = 0; i < count; ++i)
                 {
                     var name = new string(property_getName(propertiesPtr[i]));
                     this.cachedProperties.TryAdd(name, new Property(this, propertiesPtr[i], name));
@@ -1059,6 +1102,28 @@ namespace CarinaStudio.MacOS.ObjectiveC
             }
             this.areAllPropertiesCached = true;
             return this.cachedProperties.Values.ToArray();
+        }
+
+
+        /// <summary>
+        /// Get property defined by this class.
+        /// </summary>
+        /// <param name="name">Name.</param>
+        /// <returns>Descriptor of found property.</returns>
+        public unsafe Property? GetProperty(string name)
+        {
+            if (this.IsProtocol)
+                this.GetProperties();
+            if (this.cachedProperties.TryGetValue(name, out var property))
+                return property;
+            if (this.areAllPropertiesCached)
+                return null;
+            if (string.IsNullOrEmpty(name))
+                throw new ArgumentException($"Invalid property name: {name}.");
+            var handle = class_getProperty(this.Handle, name);
+            if (handle == IntPtr.Zero)
+                return null;
+            return new Property(this, handle, name).Also(it => this.cachedProperties.TryAdd(name, it));
         }
 
 
@@ -1099,7 +1164,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="name">Name.</param>
         /// <returns>True if method is implemented by this class.</returns>
         public bool HasMethod(Selector name) =>
-            this.GetMethod(name) != null;
+            class_respondsToSelector(this.Handle, name.Handle);
 
 
         // Invoke actual method implementation.
@@ -1226,97 +1291,6 @@ namespace CarinaStudio.MacOS.ObjectiveC
                 return true;
             }
             return false;
-        }
-        
-
-        /// <summary>
-        /// Try finding class variable of class.
-        /// </summary>
-        /// <param name="name">Name.</param>
-        /// <param name="ivar">Descriptor of class variable.</param>
-        /// <returns>True if variable found.</returns>
-        public unsafe bool TryGetClassVriable(string name, out Member? ivar)
-        {
-            if (this.IsProtocol)
-            {
-                ivar = null;
-                return false;
-            }
-            if (this.cachedCVars.TryGetValue(name, out ivar))
-                return true;
-            if (string.IsNullOrEmpty(name))
-                throw new ArgumentException($"Invalid variable name: {name}.");
-            var handle = class_getClassVariable(this.Handle, name);
-            if (handle == IntPtr.Zero)
-            {
-                ivar = null;
-                return false;
-            }
-            ivar = new Member(this, handle, name).Also(it => this.cachedCVars.TryAdd(name, it));
-            return true;
-        }
-        
-
-        /// <summary>
-        /// Try finding instance variable of class.
-        /// </summary>
-        /// <param name="name">Name.</param>
-        /// <param name="ivar">Descriptor of instance variable.</param>
-        /// <returns>True if variable found.</returns>
-        public unsafe bool TryGetInstanceVriable(string name, out Member? ivar)
-        {
-            if (this.IsProtocol)
-            {
-                ivar = null;
-                return false;
-            }
-            if (this.cachedIVars.TryGetValue(name, out ivar))
-                return true;
-            if (this.areAllIVarsCached)
-            {
-                ivar = null;
-                return false;
-            }
-            if (string.IsNullOrEmpty(name))
-                throw new ArgumentException($"Invalid variable name: {name}.");
-            var handle = class_getInstanceVariable(this.Handle, name);
-            if (handle == IntPtr.Zero)
-            {
-                ivar = null;
-                return false;
-            }
-            ivar = new Member(this, handle, name).Also(it => this.cachedIVars.TryAdd(name, it));
-            return true;
-        }
-        
-
-        /// <summary>
-        /// Try finding property of class.
-        /// </summary>
-        /// <param name="name">Name.</param>
-        /// <param name="property">Descriptor of found property.</param>
-        /// <returns>True if property found.</returns>
-        public unsafe bool TryGetProperty(string name, out Property? property)
-        {
-            if (this.IsProtocol)
-                this.GetProperties();
-            if (this.cachedProperties.TryGetValue(name, out property))
-                return true;
-            if (this.areAllPropertiesCached)
-            {
-                property = null;
-                return false;
-            }
-            if (string.IsNullOrEmpty(name))
-                throw new ArgumentException($"Invalid property name: {name}.");
-            var handle = class_getProperty(this.Handle, name);
-            if (handle == IntPtr.Zero)
-            {
-                property = null;
-                return false;
-            }
-            property = new Property(this, handle, name).Also(it => this.cachedProperties.TryAdd(name, it));
-            return true;
         }
 
 

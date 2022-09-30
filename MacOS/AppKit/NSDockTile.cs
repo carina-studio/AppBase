@@ -12,7 +12,6 @@ namespace CarinaStudio.MacOS.AppKit
         static readonly Property? ContentViewProperty;
         static readonly Selector? DisplaySelector;
         static readonly Class? NSDockTileClass;
-        static readonly Property? ShowBadgeProperty;
         static readonly Property? SizeProperty;
 
 
@@ -24,11 +23,10 @@ namespace CarinaStudio.MacOS.AppKit
             NSDockTileClass = Class.GetClass("NSDockTile");
             if (NSDockTileClass != null)
             {
-                NSDockTileClass.TryGetProperty("badgeLabel", out BadgeLabelProperty);
-                NSDockTileClass.TryGetProperty("contentView", out ContentViewProperty);
+                BadgeLabelProperty = NSDockTileClass.GetProperty("badgeLabel");
+                ContentViewProperty = NSDockTileClass.GetProperty("contentView");
                 DisplaySelector = Selector.FromName("display");
-                NSDockTileClass.TryGetProperty("showsApplicationBadge", out ShowBadgeProperty);
-                NSDockTileClass.TryGetProperty("size", out SizeProperty);
+                SizeProperty = NSDockTileClass.GetProperty("size");
             }
         }
 
@@ -76,16 +74,6 @@ namespace CarinaStudio.MacOS.AppKit
         /// </summary>
         public void Display() =>
             this.SendMessage(DisplaySelector!);
-        
-
-        /// <summary>
-        /// Get or set whether application badge is visible or not.
-        /// </summary>
-        public bool ShowsApplicationBadge
-        {
-            get => this.GetProperty<bool>(ShowBadgeProperty!);
-            set => this.SetProperty(ShowBadgeProperty!, value);
-        }
 
 
         /// <summary>
