@@ -47,15 +47,5 @@ namespace CarinaStudio.MacOS.CoreFoundation
                 });
             }
         }
-
-
-        /// <summary>
-        /// Wrap a native object.
-        /// </summary>
-        /// <param name="s">Handle of instance.</param>
-        /// <param name="ownsInstance">True to .</param>
-        /// <returns>Wrapped object.</returns>
-        public static new CFAllocator Wrap(IntPtr s, bool ownsInstance = false) =>
-            new CFAllocator(s, ownsInstance);
     }
 }

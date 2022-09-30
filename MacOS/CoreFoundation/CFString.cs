@@ -37,7 +37,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
 
 
         // Constructor.
-        CFString(IntPtr s, bool ownsInstance) : base(s, ownsInstance)
+        internal CFString(IntPtr s, bool ownsInstance) : base(s, ownsInstance)
         { 
             this.length = -1;
         }
@@ -103,15 +103,5 @@ namespace CarinaStudio.MacOS.CoreFoundation
                 return new string(p);
             }
         }
-
-
-        /// <summary>
-        /// Wrap a native object.
-        /// </summary>
-        /// <param name="s">Handle of instance.</param>
-        /// <param name="ownsInstance">True to .</param>
-        /// <returns>Wrapped object.</returns>
-        public static new CFString Wrap(IntPtr s, bool ownsInstance = false) =>
-            new CFString(s, ownsInstance);
     }
 }

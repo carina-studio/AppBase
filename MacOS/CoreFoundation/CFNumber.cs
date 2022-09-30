@@ -145,6 +145,18 @@ namespace CarinaStudio.MacOS.CoreFoundation
 
 
         // Constructor.
+        CFNumber(IntPtr number, bool ownsInstance) : base(number, ownsInstance)
+        {
+            if (number != IntPtr.Zero)
+            {
+                if (this.TypeDescription != "CFNumber")
+                    throw new ArgumentException("Type of native instance is not a CFNumber.");
+                this.Type = CFNumberGetType(number);
+            }
+        }
+
+
+        // Constructor.
         CFNumber(IntPtr number, CFNumberType type, bool ownsInstance) : base(number, ownsInstance)
         {
             this.Type = type;
@@ -440,20 +452,6 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// Get type of number.
         /// </summary>
         public CFNumberType Type { get; }
-
-
-        /// <summary>
-        /// Wrap a native object.
-        /// </summary>
-        /// <param name="number">Handle of instance.</param>
-        /// <param name="ownsInstance">True to .</param>
-        /// <returns>Wrapped object.</returns>
-        public static new CFNumber Wrap(IntPtr number, bool ownsInstance = false)
-        {
-            if (number == IntPtr.Zero)
-                throw new ArgumentException("Handle of instance cannot be null.");
-            return new CFNumber(number, CFNumberGetType(number), ownsInstance);
-        }
     }
 
 
