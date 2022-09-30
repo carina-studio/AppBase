@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace CarinaStudio.Collections
@@ -48,7 +49,7 @@ namespace CarinaStudio.Collections
 		/// <param name="collection">Collection to check.</param>
 		/// <returns>True if collection is not empty.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static bool IsNotEmpty<T>(this ICollection<T>? collection) => collection != null && collection.Count > 0;
+		public static bool IsNotEmpty<T>([NotNullWhen(true)] this ICollection<T>? collection) => collection != null && collection.Count > 0;
 
 
 		/// <summary>
@@ -58,7 +59,7 @@ namespace CarinaStudio.Collections
 		/// <param name="collection">Collection to check.</param>
 		/// <returns>True if collection is null or empty.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static bool IsNullOrEmpty<T>(this ICollection<T>? collection) => collection == null || collection.Count <= 0;
+		public static bool IsNullOrEmpty<T>([NotNullWhen(false)] this ICollection<T>? collection) => collection == null || collection.Count <= 0;
 
 
 		/// <summary>
