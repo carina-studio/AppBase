@@ -1,4 +1,4 @@
-namespace CarinaStudio.MacOS.CoreGraphics;
+namespace CarinaStudio.MacOS.ImageIO;
 
 #pragma warning disable CS1591
 

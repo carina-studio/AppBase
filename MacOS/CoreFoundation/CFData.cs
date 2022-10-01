@@ -92,17 +92,16 @@ public unsafe class CFData : CFObject
         }
         if (size > int.MaxValue)
             throw new NotSupportedException($"Size of data in stream is too large: {size}.");
-        var handle = IntPtr.Zero;
+        var handle = CFDataCreateMutable(allocator.Handle, (nint)size);
         try
         {
-            handle = CFDataCreateMutable(allocator.Handle, (nint)size);
             var bufferPtr = CFDataGetMutableBytePtr(handle);
+            CFDataSetLength(handle, (nint)size);
             CFDataSetLength(handle, stream.Read(new Span<byte>(bufferPtr, (int)size)));
         }
         catch
         {
-            if (handle != IntPtr.Zero)
-                CFObject.Release(handle);
+            CFObject.Release(handle);
             throw;
         }
         return handle;

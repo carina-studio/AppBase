@@ -269,8 +269,6 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// <returns>New instanec of retained object.</returns>
         public T Retain<T>() where T : CFObject
         {
-            if (this is T)
-                return (T)this.Retain();
             this.VerifyReleased();
             return FromHandle<T>(Retain(this.handle), true);
         }

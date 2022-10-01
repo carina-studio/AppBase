@@ -28,18 +28,6 @@ public class CGImage : CFObject
     static extern CGImagePixelFormatInfo CGImageGetPixelFormatInfo(IntPtr image);
     [DllImport(NativeLibraryNames.CoreGraphics)]
     static extern nuint CGImageGetWidth(IntPtr image);
-    [DllImport(NativeLibraryNames.ImageIO)]
-    static extern IntPtr CGImageSourceCopyPropertiesAtIndex(IntPtr isrc, nuint index, IntPtr options);
-    [DllImport(NativeLibraryNames.ImageIO)]
-    static extern IntPtr CGImageSourceCreateImageAtIndex(IntPtr isrc, nuint index, IntPtr options);
-    [DllImport(NativeLibraryNames.ImageIO)]
-    static extern IntPtr CGImageSourceCreateWithData(IntPtr data, IntPtr options);
-    [DllImport(NativeLibraryNames.ImageIO)]
-    static extern nuint CGImageSourceGetCount(IntPtr isrc);
-    [DllImport(NativeLibraryNames.ImageIO)]
-    static extern nuint CGImageSourceGetPrimaryImageIndex(IntPtr isrc);
-    [DllImport(NativeLibraryNames.ImageIO)]
-    static extern CGImageSourceStatus CGImageSourceGetStatus(IntPtr isrc);
 
 
     // Constructor.
@@ -49,5 +37,97 @@ public class CGImage : CFObject
     { 
         if (checkType && image != IntPtr.Zero && this.TypeDescription != "CGImage")
             throw new ArgumentException("Type of instance is not CGImage.");
+    }
+
+
+    /// <summary>
+    /// Get number of bits for each pixel.
+    /// </summary>
+    public int BitsPerPixel
+    {
+        get
+        {
+            this.VerifyReleased();
+            return (int)CGImageGetBitsPerPixel(this.Handle);
+        }
+    }
+
+
+    /// <summary>
+    /// Get byte order.
+    /// </summary>
+    public CGImageByteOrderInfo ByteOrder
+    {
+        get
+        {
+            this.VerifyReleased();
+            return CGImageGetByteOrderInfo(this.Handle);
+        }
+    }
+
+
+    /// <summary>
+    /// Get number of bytes for each row of image.
+    /// </summary>
+    public int BytesPerRow
+    {
+        get
+        {
+            this.VerifyReleased();
+            return (int)CGImageGetBytesPerRow(this.Handle);
+        }
+    }
+
+
+    /// <summary>
+    /// Get color space of image.
+    /// </summary>
+    public CGColorSpace? ColorSpace
+    {
+        get
+        {
+            this.VerifyReleased();
+            var handle = CGImageGetColorSpace(this.Handle);
+            return handle != IntPtr.Zero ? CFObject.FromHandle<CGColorSpace>(handle, false) : null;
+        }
+    }
+
+
+    /// <summary>
+    /// Get height of image in pixels.
+    /// </summary>
+    public int Height
+    {
+        get
+        {
+            this.VerifyReleased();
+            return (int)CGImageGetHeight(this.Handle);
+        }
+    }
+
+
+    /// <summary>
+    /// Get pixel format.
+    /// </summary>
+    public CGImagePixelFormatInfo PixelFormat
+    {
+        get
+        {
+            this.VerifyReleased();
+            return CGImageGetPixelFormatInfo(this.Handle);
+        }
+    }
+
+
+    /// <summary>
+    /// Get width of image in pixels.
+    /// </summary>
+    public int Width
+    {
+        get
+        {
+            this.VerifyReleased();
+            return (int)CGImageGetWidth(this.Handle);
+        }
     }
 }
