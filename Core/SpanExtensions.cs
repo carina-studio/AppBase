@@ -1,5 +1,5 @@
 using System;
-using  System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 
 namespace CarinaStudio
 {
@@ -17,8 +17,7 @@ namespace CarinaStudio
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Pin<T>(this Span<T> span, Action<IntPtr> action) where T : unmanaged
         {
-            ref readonly T valueRef = ref span.GetPinnableReference();
-            fixed (T* ptr = &valueRef)
+            fixed (T* ptr = span)
                 action((IntPtr)ptr);
         }
 
@@ -32,8 +31,7 @@ namespace CarinaStudio
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Pin<T>(this ReadOnlySpan<T> span, Action<IntPtr> action) where T : unmanaged
         {
-            ref readonly T valueRef = ref span.GetPinnableReference();
-            fixed (T* ptr = &valueRef)
+            fixed (T* ptr = span)
                 action((IntPtr)ptr);
         }
 
@@ -47,8 +45,7 @@ namespace CarinaStudio
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Pin<T>(this Span<T> span, Action<IntPtr, int> action) where T : unmanaged
         {
-            ref readonly T valueRef = ref span.GetPinnableReference();
-            fixed (T* ptr = &valueRef)
+            fixed (T* ptr = span)
                 action((IntPtr)ptr, span.Length);
         }
 
@@ -62,8 +59,7 @@ namespace CarinaStudio
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Pin<T>(this ReadOnlySpan<T> span, Action<IntPtr, int> action) where T : unmanaged
         {
-            ref readonly T valueRef = ref span.GetPinnableReference();
-            fixed (T* ptr = &valueRef)
+            fixed (T* ptr = span)
                 action((IntPtr)ptr, span.Length);
         }
 
@@ -79,8 +75,7 @@ namespace CarinaStudio
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static R Pin<T, R>(this Span<T> span, Func<IntPtr, R> func) where T : unmanaged
         {
-            ref readonly T valueRef = ref span.GetPinnableReference();
-            fixed (T* ptr = &valueRef)
+            fixed (T* ptr = span)
                 return func((IntPtr)ptr);
         }
 
@@ -96,8 +91,7 @@ namespace CarinaStudio
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static R Pin<T, R>(this ReadOnlySpan<T> span, Func<IntPtr, R> func) where T : unmanaged
         {
-            ref readonly T valueRef = ref span.GetPinnableReference();
-            fixed (T* ptr = &valueRef)
+            fixed (T* ptr = span)
                 return func((IntPtr)ptr);
         }
 
@@ -113,8 +107,7 @@ namespace CarinaStudio
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static R Pin<T, R>(this Span<T> span, Func<IntPtr, int, R> func) where T : unmanaged
         {
-            ref readonly T valueRef = ref span.GetPinnableReference();
-            fixed (T* ptr = &valueRef)
+            fixed (T* ptr = span)
                 return func((IntPtr)ptr, span.Length);
         }
 
@@ -130,8 +123,7 @@ namespace CarinaStudio
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static R Pin<T, R>(this ReadOnlySpan<T> span, Func<IntPtr, int, R> func) where T : unmanaged
         {
-            ref readonly T valueRef = ref span.GetPinnableReference();
-            fixed (T* ptr = &valueRef)
+            fixed (T* ptr = span)
                 return func((IntPtr)ptr, span.Length);
         }
     }
