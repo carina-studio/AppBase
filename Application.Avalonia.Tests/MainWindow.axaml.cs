@@ -6,9 +6,14 @@ using Avalonia.Media;
 using System;
 using System.Runtime.InteropServices;
 using CarinaStudio.Animation;
+using CarinaStudio.Collections;
 using CarinaStudio.MacOS.AppKit;
+using CarinaStudio.MacOS.CoreFoundation;
+using CarinaStudio.MacOS.CoreGraphics;
+using CarinaStudio.MacOS.ImageIO;
 using CarinaStudio.MacOS.ObjectiveC;
 using System.ComponentModel;
+using System.IO;
 
 namespace CarinaStudio
 {
@@ -29,14 +34,6 @@ namespace CarinaStudio
         private void InitializeComponent()
         {
             AvaloniaXamlLoader.Load(this);
-        }
-
-
-        protected override void OnClosing(CancelEventArgs e)
-        {
-            e.Cancel = true;
-            base.OnClosing(e);
-            this.Hide();
         }
 
 
@@ -168,6 +165,13 @@ namespace CarinaStudio
                 this.Class.TrySetClrObject(this.Handle, this);
                 this.window = window;
             }
+
+            // Dispose.
+            protected override void Dispose(bool disposing)
+            {
+                MyAppDelegateClass?.TrySetClrObject(this.Instance.Handle, null);
+                base.Dispose(disposing);
+            }
         }
 
 
@@ -175,17 +179,33 @@ namespace CarinaStudio
         MyClass? myClass;
 
 
-        public void Test()
+        public async void Test()
         {
             if (Platform.IsMacOS)
             {
-                myAppDelegate ??= new(this);
-
-                var app = NSApplication.Current.AsNonNull();
-                var currentDelegate = app.Delegate;
+                var fileNames = await new OpenFileDialog().Also(d =>
+                {
+                    d.Filters!.Add(new FileDialogFilter().Also(f =>
+                    {
+                        f.Extensions.Add("jpg");
+                        f.Extensions.Add("png");
+                        f.Name = "Image";
+                    }));
+                }).ShowAsync(this);
+                if (fileNames.IsNullOrEmpty())
+                    return;
                 
-                if (currentDelegate != this.myAppDelegate)
-                    app.Delegate = this.myAppDelegate;
+                try
+                {
+                    using var imageSource = CGImageSource.FromFile(fileNames[0]);
+                    using var image = imageSource.CreateImage();
+                
+                    imageSource.Release();
+                }
+                catch
+                {
+                    //
+                }
             }
             
             /*

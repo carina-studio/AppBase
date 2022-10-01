@@ -34,8 +34,8 @@ namespace CarinaStudio
             base.OnFrameworkInitializationCompleted();
             (this.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.Let(it =>
             {
-                if (Platform.IsMacOS)
-                    it.ShutdownMode = Avalonia.Controls.ShutdownMode.OnExplicitShutdown;
+                //if (Platform.IsMacOS)
+                    //it.ShutdownMode = Avalonia.Controls.ShutdownMode.OnExplicitShutdown;
                 it.MainWindow = new MainWindow();
             });
         }
