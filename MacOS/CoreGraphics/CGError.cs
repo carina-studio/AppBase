@@ -1,3 +1,4 @@
+using System;
 namespace CarinaStudio.MacOS.CoreGraphics;
 
 #pragma warning disable CS1591
@@ -18,4 +19,20 @@ public enum CGError : int
     TypeCheck = 1008,
     InvalidOperation = 1010,
     NoneAvailable = 1011,
+}
+
+
+/// <summary>
+/// Extensions for CGError.
+/// </summary>
+static class CGErrorExtensions
+{
+    public static Exception ToException(this CGError error) => error switch
+    {
+        CGError.IllegalArgument => new ArgumentException(),
+        CGError.InvalidOperation => new InvalidOperationException(),
+        CGError.NotImplemented => new NotImplementedException(),
+        CGError.RangeCheck => new ArgumentOutOfRangeException(),
+        _ => new Exception($"Error of Core Graphics occurred: {(int)error}"),
+    };
 }

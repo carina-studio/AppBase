@@ -6,7 +6,7 @@ namespace CarinaStudio.MacOS.CoreGraphics;
 /// CGRect.
 /// </summary>
 [StructLayout(LayoutKind.Sequential)]
-public class CGRect
+public struct CGRect
 {
     /// <summary>
     /// Initialize <see cref="CGRect"/> structure.
