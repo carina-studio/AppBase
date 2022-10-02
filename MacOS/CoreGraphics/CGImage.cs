@@ -30,6 +30,10 @@ public class CGImage : CFObject
     static extern nuint CGImageGetWidth(IntPtr image);
 
 
+    // Fields.
+    CGDataProvider? dataProvider;
+
+
     // Constructor.
     CGImage(IntPtr image, bool ownsInstance) : this(image, true, ownsInstance)
     { }
@@ -89,6 +93,22 @@ public class CGImage : CFObject
             this.VerifyReleased();
             var handle = CGImageGetColorSpace(this.Handle);
             return handle != IntPtr.Zero ? CFObject.FromHandle<CGColorSpace>(handle, false) : null;
+        }
+    }
+
+
+    /// <summary>
+    /// Get <see cref="CGDataProvider"/> to access data of image.
+    /// </summary>
+    public CGDataProvider DataProvider
+    {
+        get
+        {
+            this.VerifyReleased();
+            return this.dataProvider ?? CFObject.FromHandle<CGDataProvider>(CGImageGetDataProvider(this.Handle), false).Also(it =>
+            {
+                this.dataProvider = it;
+            });
         }
     }
 
