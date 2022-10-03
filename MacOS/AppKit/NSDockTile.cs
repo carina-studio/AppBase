@@ -62,9 +62,9 @@ namespace CarinaStudio.MacOS.AppKit
         /// <summary>
         /// Get or set view to draw content of tile.
         /// </summary>
-        public NSObject? ContentView
+        public NSView? ContentView
         {
-            get => this.GetProperty<NSObject>(ContentViewProperty!);
+            get => this.GetProperty<NSView>(ContentViewProperty!);
             set => this.SetProperty(ContentViewProperty!, value);
         }
 
