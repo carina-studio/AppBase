@@ -23,6 +23,7 @@ public class CGColorSpace : CFObject
     [DllImport(NativeLibraryNames.CoreGraphics)]
 	static extern IntPtr CGDisplayCopyColorSpace(uint display);
     static readonly CFString? kCGColorSpaceAdobeRGB1998;
+    static readonly CFString? kCGColorSpaceDisplayP3;
     static readonly CFString? kCGColorSpaceGenericCMYK;
     static readonly CFString? kCGColorSpaceGenericGray;
     static readonly CFString? kCGColorSpaceGenericGrayGamma2_2;
@@ -33,6 +34,7 @@ public class CGColorSpace : CFObject
 
     // Static fields.
     static volatile CGColorSpace? adobeRGB1998;
+    static volatile CGColorSpace? displayP3;
     static volatile CGColorSpace? genericCmyk;
     static volatile CGColorSpace? genericGray;
     static volatile CGColorSpace? genericGrayGamma2_2;
@@ -50,6 +52,7 @@ public class CGColorSpace : CFObject
         if (libHandle != default)
         {
             kCGColorSpaceAdobeRGB1998 = CFObject.FromHandle<CFString>(*(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCGColorSpaceAdobeRGB1998)));
+            kCGColorSpaceDisplayP3 = CFObject.FromHandle<CFString>(*(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCGColorSpaceDisplayP3)));
             kCGColorSpaceGenericCMYK = CFObject.FromHandle<CFString>(*(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCGColorSpaceGenericCMYK)));
             kCGColorSpaceGenericGray = CFObject.FromHandle<CFString>(*(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCGColorSpaceGenericGray)));
             kCGColorSpaceGenericGrayGamma2_2 = CFObject.FromHandle<CFString>(*(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCGColorSpaceGenericGrayGamma2_2)));
@@ -81,6 +84,22 @@ public class CGColorSpace : CFObject
             {
                 it.IsDefaultInstance = true;
                 adobeRGB1998 = it;
+            });
+        }
+    }
+
+
+    /// <summary>
+    /// Get Display-P3 color space.
+    /// </summary>
+    public static CGColorSpace DisplayP3
+    {
+        get
+        {
+            return displayP3 ?? new CGColorSpace(CGColorSpaceCreateWithName(kCGColorSpaceDisplayP3!.Handle), false).Also(it =>
+            {
+                it.IsDefaultInstance = true;
+                displayP3 = it;
             });
         }
     }
