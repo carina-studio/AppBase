@@ -229,7 +229,7 @@ namespace CarinaStudio
 		/// <param name="obj">Given nullable value.</param>
 		/// <returns>Non-null value.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static T AsNonNull<T>(this T? obj) where T : class => obj ?? throw new NullReferenceException();
+		public static T AsNonNull<T>([NotNull] this T? obj) where T : class => obj ?? throw new NullReferenceException();
 
 
 		/// <summary>
