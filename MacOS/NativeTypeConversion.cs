@@ -17,6 +17,20 @@ static class NativeTypeConversion
     static readonly IDictionary<Type, bool> CachedFloatingPointStructures = new ConcurrentDictionary<Type, bool>();
 
 
+    // Check whether all types are floating-point structures or not.
+    public static bool AreAllFloatingPointStructures(params Type[] types)
+    {
+        if (types.IsEmpty())
+            return false;
+        for (var i = types.Length - 1; i >= 0; --i)
+        {
+            if (!IsFloatingPointStructure(types[i]))
+                return false;
+        }
+        return true;
+    }
+
+
     // Check whether all values are floating-point values or not.
     public static bool AreAllFloatingPointValues(object?[] values)
     {
@@ -29,6 +43,45 @@ static class NativeTypeConversion
                 return false;
         }
         return true;
+    }
+
+
+    // Convert from native value to CLR value.
+#pragma warning disable CS8600
+#pragma warning disable CS8603
+    public static unsafe T FromNativeFpValue<T>(double* valuePtr, int valueCount) =>
+        (T)FromNativeFpValue(valuePtr, valueCount, typeof(T), out var _);
+    public static unsafe T FromNativeFpValue<T>(double* valuePtr, int valueCount, out int consumedValues) =>
+        (T)FromNativeFpValue(valuePtr, valueCount, typeof(T), out consumedValues);
+#pragma warning restore CS8600
+#pragma warning restore CS8603
+    public static unsafe object? FromNativeFpValue(double* valuePtr, int valueCount, Type targetType, out int consumedValues)
+    {
+        if (valueCount < 1)
+            throw new ArgumentException("Insufficient native floating-point values for conversion.");
+        consumedValues = 1;
+        if (targetType.IsValueType)
+        {
+            if (targetType == typeof(float))
+                return *(float*)valuePtr;
+            if (targetType == typeof(double))
+                return *(double*)valuePtr;
+            try
+            {
+                var size = Marshal.SizeOf(targetType);
+                consumedValues = (size >> 3);
+                if ((size & 0x3) != 0)
+                    ++consumedValues;
+                if (valueCount < consumedValues)
+                    throw new ArgumentException("Insufficient native floating-point values for conversion.");
+                return Marshal.PtrToStructure((IntPtr)valuePtr, targetType);
+            }
+            catch (Exception ex)
+            {
+                throw new NotSupportedException($"Cannot convert native floating-point value to {targetType.Name}.", ex);
+            }
+        }
+        throw new NotSupportedException($"Cannot convert native floating-point value to {targetType.Name}.");
     }
 
 
@@ -129,6 +182,13 @@ static class NativeTypeConversion
         }
         throw new NotSupportedException($"Cannot convert {type.Name} to native float-point type.");
     }
+    public static int GetNativeFpValueCount(params Type[] types)
+    {
+        var count = 0;
+        for (var i = types.Length - 1; i >= 0; --i)
+            count += GetNativeFpValueCount(types[i]);
+        return count;
+    }
 
 
     // Calculate number of native values needed for CLR object.
@@ -170,6 +230,13 @@ static class NativeTypeConversion
             }
         }
         throw new NotSupportedException($"Cannot convert {type.Name} to native type.");
+    }
+    public static int GetNativeValueCount(params Type[] types)
+    {
+        var count = 0;
+        for (var i = types.Length - 1; i >= 0; --i)
+            count += GetNativeValueCount(types[i]);
+        return count;
     }
 
 
