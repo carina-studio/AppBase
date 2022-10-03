@@ -17,6 +17,21 @@ static class NativeTypeConversion
     static readonly IDictionary<Type, bool> CachedFloatingPointStructures = new ConcurrentDictionary<Type, bool>();
 
 
+    // Check whether all values are floating-point values or not.
+    public static bool AreAllFloatingPointValues(object?[] values)
+    {
+        if (values.IsEmpty())
+            return false;
+        for (var i = values.Length - 1; i >= 0; --i)
+        {
+            var type = values[i]?.GetType();
+            if (type == null || !IsFloatingPointStructure(type))
+                return false;
+        }
+        return true;
+    }
+
+
     // Convert from native value to CLR value.
 #pragma warning disable CS8600
 #pragma warning disable CS8603
@@ -85,6 +100,38 @@ static class NativeTypeConversion
 
 
     // Calculate number of native values needed for CLR object.
+    public static int GetNativeFpValueCount(object? obj) =>
+        obj != null ? GetNativeFpValueCount(obj.GetType()) : 1;
+    public static int GetNativeFpValueCount<T>() =>
+        GetNativeFpValueCount(typeof(T));
+    public static int GetNativeFpValueCount(Type type)
+    {
+        if (type.IsEnum)
+            type = type.GetEnumUnderlyingType();
+        else if (type == typeof(float)
+            || type == typeof(double))
+        {
+            return 1;
+        }
+        else if (type.IsValueType)
+        {
+            try
+            {
+                var size = Marshal.SizeOf(type);
+                if ((size & 0x3) == 0)
+                    return size >> 3;
+                return (size >> 3) + 1;
+            }
+            catch (Exception ex)
+            {
+                throw new NotSupportedException($"Cannot convert {type.Name} to native float-point type.", ex);
+            }
+        }
+        throw new NotSupportedException($"Cannot convert {type.Name} to native float-point type.");
+    }
+
+
+    // Calculate number of native values needed for CLR object.
     public static int GetNativeValueCount(object? obj) =>
         obj != null ? GetNativeValueCount(obj.GetType()) : 1;
     public static int GetNativeValueCount<T>() =>
@@ -128,7 +175,7 @@ static class NativeTypeConversion
 
     // Check whether given field is a float-point value or not.
     static bool IsFloatingPointField(FieldInfo fieldInfo) => fieldInfo.FieldType.Let(it =>
-        it == typeof(float) || it == typeof(double));
+        it == typeof(float) || it == typeof(double) || IsFloatingPointStructure(it));
 
 
     // Check whether given type is structure contains float-point fields only or not.
@@ -138,6 +185,23 @@ static class NativeTypeConversion
             return false;
         if (CachedFloatingPointStructures.TryGetValue(type, out var isFpStructure))
             return isFpStructure;
+        if (type == typeof(float) || type == typeof(double))
+            return true;
+        if (type == typeof(bool)
+            || type == typeof(byte)
+            || type == typeof(sbyte)
+            || type == typeof(char)
+            || type == typeof(short)
+            || type == typeof(ushort)
+            || type == typeof(int)
+            || type == typeof(uint)
+            || type == typeof(long)
+            || type == typeof(ulong)
+            || type == typeof(nint)
+            || type == typeof(nuint))
+        {
+            return false;
+        }
         var fields = type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
         if (fields.IsEmpty())
             return false;
@@ -149,6 +213,36 @@ static class NativeTypeConversion
         }
         CachedFloatingPointStructures.TryAdd(type, isFpStructure);
         return isFpStructure;
+    }
+
+
+    // Convert from CLR object to native value.
+    public static unsafe int ToNativeFpValue(object? obj, double* valuePtr)
+    {
+        if (obj == null)
+            throw new ArgumentNullException();
+        if (obj is float floatValue)
+            *valuePtr = floatValue;
+        else if (obj is double doubleValue)
+            *valuePtr = doubleValue;
+        else if (obj is ValueType)
+        {
+            try
+            {
+                var size = Marshal.SizeOf(obj);
+                Marshal.StructureToPtr(obj, (IntPtr)valuePtr, false);
+                if ((size & 0x3) == 0)
+                    return size >> 3;
+                return (size >> 3) + 1;
+            }
+            catch (Exception ex)
+            {
+                throw new NotSupportedException($"Cannot convert {obj.GetType().Name} to native floating-point type.", ex);
+            }
+        }
+        else
+            throw new NotSupportedException($"Cannot convert {obj.GetType().Name} to native floating-point type.");
+        return 1;
     }
 
 
@@ -234,6 +328,25 @@ static class NativeTypeConversion
             var nvp = p;
             for (var i = 0; i< objs.Length; ++i)
                 nvp += ToNativeValue(objs[i], nvp);
+        }
+        return nvs;
+    }
+    public static unsafe double[] ToNativeFpValues(object?[] objs)
+    {
+        // calculate number of native values needed
+        if (objs.Length == 0)
+            return new double[0];
+        var nvCount = 0;
+        for (var i = objs.Length - 1; i >= 0; --i)
+            nvCount += GetNativeFpValueCount(objs[i]);
+        
+        // convert to native values
+        var nvs = new double[nvCount];
+        fixed (double* p = nvs)
+        {
+            var nvp = p;
+            for (var i = 0; i< objs.Length; ++i)
+                nvp += ToNativeFpValue(objs[i], nvp);
         }
         return nvs;
     }

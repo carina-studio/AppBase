@@ -89,6 +89,8 @@ namespace CarinaStudio.MacOS.ObjectiveC
 
         // Static fields.
         static readonly Selector? DeallocSelector;
+        static readonly nint[] EmptyNativeArgs = new nint[0];
+        static readonly double[] EmptyNativeFpArgs = new double[0];
         static readonly Selector? InitSelector;
         static readonly IDictionary<Type, ConstructorInfo> WrappingConstructors = new ConcurrentDictionary<Type, ConstructorInfo>();
         
@@ -492,7 +494,9 @@ namespace CarinaStudio.MacOS.ObjectiveC
         static T SendMessage<T>(void* sendMsgFunction, IntPtr obj, Selector selector, params object?[] args)
         {
             VerifyHandle(obj);
-            var nvs = NativeTypeConversion.ToNativeValues(args);
+            var areFpArgs = NativeTypeConversion.AreAllFloatingPointValues(args);
+            var nArgs = areFpArgs ? EmptyNativeArgs : NativeTypeConversion.ToNativeValues(args);
+            var nFpArgs = areFpArgs ? NativeTypeConversion.ToNativeFpValues(args) : EmptyNativeFpArgs;
             var isFpResult = NativeTypeConversion.IsFloatingPointStructure(typeof(T));
             return (T)(NativeTypeConversion.GetNativeValueCount<T>() switch
             {
@@ -500,32 +504,56 @@ namespace CarinaStudio.MacOS.ObjectiveC
                 {
                     if (isFpResult)
                     {
-                        var nr = nvs.Length switch
-                        {
-                            0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeFpResult1>)sendMsgFunction)(obj, selector.Handle),
-                            1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeFpResult1>)sendMsgFunction)(obj, selector.Handle, nvs[0]),
-                            2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeFpResult1>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1]),
-                            3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeFpResult1>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2]),
-                            4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeFpResult1>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3]),
-                            5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeFpResult1>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4]),
-                            6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeFpResult1>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4], nvs[5]),
-                            _ => throw new NotSupportedException("Too many arguments to send."),
-                        };
+                        var nr = areFpArgs
+                            ? nFpArgs.Length switch
+                            {
+                                0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeFpResult1>)sendMsgFunction)(obj, selector.Handle),
+                                1 => ((delegate*unmanaged<IntPtr, IntPtr, double, NativeFpResult1>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0]),
+                                2 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, NativeFpResult1>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1]),
+                                3 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, double, NativeFpResult1>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1], nFpArgs[2]),
+                                4 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, double, double, NativeFpResult1>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1], nFpArgs[2], nFpArgs[3]),
+                                5 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, double, double, double, NativeFpResult1>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1], nFpArgs[2], nFpArgs[3], nFpArgs[4]),
+                                6 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, double, double, double, double, NativeFpResult1>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1], nFpArgs[2], nFpArgs[3], nFpArgs[4], nFpArgs[5]),
+                                _ => throw new NotSupportedException("Too many arguments to send."),
+                            }
+                            : nArgs.Length switch
+                            {
+                                0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeFpResult1>)sendMsgFunction)(obj, selector.Handle),
+                                1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeFpResult1>)sendMsgFunction)(obj, selector.Handle, nArgs[0]),
+                                2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeFpResult1>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1]),
+                                3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeFpResult1>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1], nArgs[2]),
+                                4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeFpResult1>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1], nArgs[2], nArgs[3]),
+                                5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeFpResult1>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1], nArgs[2], nArgs[3], nArgs[4]),
+                                6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeFpResult1>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1], nArgs[2], nArgs[3], nArgs[4], nArgs[5]),
+                                _ => throw new NotSupportedException("Too many arguments to send."),
+                            };
                         return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 1);
                     }
                     else
                     {
-                        var nr = nvs.Length switch
-                        {
-                            0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeResult1>)sendMsgFunction)(obj, selector.Handle),
-                            1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeResult1>)sendMsgFunction)(obj, selector.Handle, nvs[0]),
-                            2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeResult1>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1]),
-                            3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeResult1>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2]),
-                            4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeResult1>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3]),
-                            5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeResult1>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4]),
-                            6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeResult1>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4], nvs[5]),
-                            _ => throw new NotSupportedException("Too many arguments to send."),
-                        };
+                        var nr = areFpArgs
+                            ? nFpArgs.Length switch
+                            {
+                                0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeResult1>)sendMsgFunction)(obj, selector.Handle),
+                                1 => ((delegate*unmanaged<IntPtr, IntPtr, double, NativeResult1>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0]),
+                                2 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, NativeResult1>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1]),
+                                3 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, double, NativeResult1>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1], nFpArgs[2]),
+                                4 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, double, double, NativeResult1>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1], nFpArgs[2], nFpArgs[3]),
+                                5 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, double, double, double, NativeResult1>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1], nFpArgs[2], nFpArgs[3], nFpArgs[4]),
+                                6 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, double, double, double, double, NativeResult1>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1], nFpArgs[2], nFpArgs[3], nFpArgs[4], nFpArgs[5]),
+                                _ => throw new NotSupportedException("Too many arguments to send."),
+                            }
+                            : nArgs.Length switch
+                            {
+                                0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeResult1>)sendMsgFunction)(obj, selector.Handle),
+                                1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeResult1>)sendMsgFunction)(obj, selector.Handle, nArgs[0]),
+                                2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeResult1>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1]),
+                                3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeResult1>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1], nArgs[2]),
+                                4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeResult1>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1], nArgs[2], nArgs[3]),
+                                5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeResult1>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1], nArgs[2], nArgs[3], nArgs[4]),
+                                6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeResult1>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1], nArgs[2], nArgs[3], nArgs[4], nArgs[5]),
+                                _ => throw new NotSupportedException("Too many arguments to send."),
+                            };
                         return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 1);
                     }
                 }),
@@ -533,32 +561,56 @@ namespace CarinaStudio.MacOS.ObjectiveC
                 {
                     if (isFpResult)
                     {
-                        var nr = nvs.Length switch
-                        {
-                            0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeFpResult2>)sendMsgFunction)(obj, selector.Handle),
-                            1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeFpResult2>)sendMsgFunction)(obj, selector.Handle, nvs[0]),
-                            2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeFpResult2>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1]),
-                            3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeFpResult2>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2]),
-                            4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeFpResult2>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3]),
-                            5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeFpResult2>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4]),
-                            6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeFpResult2>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4], nvs[5]),
-                            _ => throw new NotSupportedException("Too many arguments to send."),
-                        };
+                        var nr = areFpArgs
+                            ? nFpArgs.Length switch
+                            {
+                                0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeFpResult2>)sendMsgFunction)(obj, selector.Handle),
+                                1 => ((delegate*unmanaged<IntPtr, IntPtr, double, NativeFpResult2>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0]),
+                                2 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, NativeFpResult2>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1]),
+                                3 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, double, NativeFpResult2>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1], nFpArgs[2]),
+                                4 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, double, double, NativeFpResult2>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1], nFpArgs[2], nFpArgs[3]),
+                                5 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, double, double, double, NativeFpResult2>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1], nFpArgs[2], nFpArgs[3], nFpArgs[4]),
+                                6 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, double, double, double, double, NativeFpResult2>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1], nFpArgs[2], nFpArgs[3], nFpArgs[4], nFpArgs[5]),
+                                _ => throw new NotSupportedException("Too many arguments to send."),
+                            }
+                            : nArgs.Length switch
+                            {
+                                0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeFpResult2>)sendMsgFunction)(obj, selector.Handle),
+                                1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeFpResult2>)sendMsgFunction)(obj, selector.Handle, nArgs[0]),
+                                2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeFpResult2>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1]),
+                                3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeFpResult2>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1], nArgs[2]),
+                                4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeFpResult2>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1], nArgs[2], nArgs[3]),
+                                5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeFpResult2>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1], nArgs[2], nArgs[3], nArgs[4]),
+                                6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeFpResult2>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1], nArgs[2], nArgs[3], nArgs[4], nArgs[5]),
+                                _ => throw new NotSupportedException("Too many arguments to send."),
+                            };
                         return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 2);
                     }
                     else
                     {
-                        var nr = nvs.Length switch
-                        {
-                            0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeResult2>)sendMsgFunction)(obj, selector.Handle),
-                            1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeResult2>)sendMsgFunction)(obj, selector.Handle, nvs[0]),
-                            2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeResult2>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1]),
-                            3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeResult2>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2]),
-                            4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeResult2>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3]),
-                            5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeResult2>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4]),
-                            6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeResult2>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4], nvs[5]),
-                            _ => throw new NotSupportedException("Too many arguments to send."),
-                        };
+                        var nr = areFpArgs
+                            ? nFpArgs.Length switch
+                            {
+                                0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeResult2>)sendMsgFunction)(obj, selector.Handle),
+                                1 => ((delegate*unmanaged<IntPtr, IntPtr, double, NativeResult2>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0]),
+                                2 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, NativeResult2>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1]),
+                                3 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, double, NativeResult2>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1], nFpArgs[2]),
+                                4 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, double, double, NativeResult2>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1], nFpArgs[2], nFpArgs[3]),
+                                5 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, double, double, double, NativeResult2>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1], nFpArgs[2], nFpArgs[3], nFpArgs[4]),
+                                6 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, double, double, double, double, NativeResult2>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1], nFpArgs[2], nFpArgs[3], nFpArgs[4], nFpArgs[5]),
+                                _ => throw new NotSupportedException("Too many arguments to send."),
+                            }
+                            : nArgs.Length switch
+                            {
+                                0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeResult2>)sendMsgFunction)(obj, selector.Handle),
+                                1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeResult2>)sendMsgFunction)(obj, selector.Handle, nArgs[0]),
+                                2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeResult2>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1]),
+                                3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeResult2>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1], nArgs[2]),
+                                4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeResult2>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1], nArgs[2], nArgs[3]),
+                                5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeResult2>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1], nArgs[2], nArgs[3], nArgs[4]),
+                                6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeResult2>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1], nArgs[2], nArgs[3], nArgs[4], nArgs[5]),
+                                _ => throw new NotSupportedException("Too many arguments to send."),
+                            };
                         return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 2);
                     }
                 }),
@@ -566,32 +618,56 @@ namespace CarinaStudio.MacOS.ObjectiveC
                 {
                     if (isFpResult)
                     {
-                        var nr = nvs.Length switch
-                        {
-                            0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeFpResult3>)sendMsgFunction)(obj, selector.Handle),
-                            1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeFpResult3>)sendMsgFunction)(obj, selector.Handle, nvs[0]),
-                            2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeFpResult3>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1]),
-                            3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeFpResult3>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2]),
-                            4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeFpResult3>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3]),
-                            5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeFpResult3>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4]),
-                            6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeFpResult3>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4], nvs[5]),
-                            _ => throw new NotSupportedException("Too many arguments to send."),
-                        };
+                        var nr = areFpArgs
+                            ? nFpArgs.Length switch
+                            {
+                                0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeFpResult3>)sendMsgFunction)(obj, selector.Handle),
+                                1 => ((delegate*unmanaged<IntPtr, IntPtr, double, NativeFpResult3>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0]),
+                                2 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, NativeFpResult3>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1]),
+                                3 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, double, NativeFpResult3>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1], nFpArgs[2]),
+                                4 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, double, double, NativeFpResult3>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1], nFpArgs[2], nFpArgs[3]),
+                                5 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, double, double, double, NativeFpResult3>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1], nFpArgs[2], nFpArgs[3], nFpArgs[4]),
+                                6 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, double, double, double, double, NativeFpResult3>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1], nFpArgs[2], nFpArgs[3], nFpArgs[4], nFpArgs[5]),
+                                _ => throw new NotSupportedException("Too many arguments to send."),
+                            }
+                            : nArgs.Length switch
+                            {
+                                0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeFpResult3>)sendMsgFunction)(obj, selector.Handle),
+                                1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeFpResult3>)sendMsgFunction)(obj, selector.Handle, nArgs[0]),
+                                2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeFpResult3>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1]),
+                                3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeFpResult3>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1], nArgs[2]),
+                                4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeFpResult3>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1], nArgs[2], nArgs[3]),
+                                5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeFpResult3>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1], nArgs[2], nArgs[3], nArgs[4]),
+                                6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeFpResult3>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1], nArgs[2], nArgs[3], nArgs[4], nArgs[5]),
+                                _ => throw new NotSupportedException("Too many arguments to send."),
+                            };
                         return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 3);
                     }
                     else
                     {
-                        var nr = nvs.Length switch
-                        {
-                            0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeResult3>)sendMsgFunction)(obj, selector.Handle),
-                            1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeResult3>)sendMsgFunction)(obj, selector.Handle, nvs[0]),
-                            2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeResult3>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1]),
-                            3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeResult3>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2]),
-                            4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeResult3>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3]),
-                            5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeResult3>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4]),
-                            6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeResult3>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4], nvs[5]),
-                            _ => throw new NotSupportedException("Too many arguments to send."),
-                        };
+                        var nr = areFpArgs
+                            ? nFpArgs.Length switch
+                            {
+                                0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeResult3>)sendMsgFunction)(obj, selector.Handle),
+                                1 => ((delegate*unmanaged<IntPtr, IntPtr, double, NativeResult3>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0]),
+                                2 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, NativeResult3>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1]),
+                                3 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, double, NativeResult3>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1], nFpArgs[2]),
+                                4 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, double, double, NativeResult3>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1], nFpArgs[2], nFpArgs[3]),
+                                5 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, double, double, double, NativeResult3>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1], nFpArgs[2], nFpArgs[3], nFpArgs[4]),
+                                6 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, double, double, double, double, NativeResult3>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1], nFpArgs[2], nFpArgs[3], nFpArgs[4], nFpArgs[5]),
+                                _ => throw new NotSupportedException("Too many arguments to send."),
+                            }
+                            : nArgs.Length switch
+                            {
+                                0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeResult3>)sendMsgFunction)(obj, selector.Handle),
+                                1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeResult3>)sendMsgFunction)(obj, selector.Handle, nArgs[0]),
+                                2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeResult3>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1]),
+                                3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeResult3>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1], nArgs[2]),
+                                4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeResult3>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1], nArgs[2], nArgs[3]),
+                                5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeResult3>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1], nArgs[2], nArgs[3], nArgs[4]),
+                                6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeResult3>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1], nArgs[2], nArgs[3], nArgs[4], nArgs[5]),
+                                _ => throw new NotSupportedException("Too many arguments to send."),
+                            };
                         return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 3);
                     }
                 }),
@@ -599,32 +675,56 @@ namespace CarinaStudio.MacOS.ObjectiveC
                 {
                     if (isFpResult)
                     {
-                        var nr = nvs.Length switch
-                        {
-                            0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeFpResult4>)sendMsgFunction)(obj, selector.Handle),
-                            1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeFpResult4>)sendMsgFunction)(obj, selector.Handle, nvs[0]),
-                            2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeFpResult4>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1]),
-                            3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeFpResult4>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2]),
-                            4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeFpResult4>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3]),
-                            5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeFpResult4>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4]),
-                            6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeFpResult4>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4], nvs[5]),
-                            _ => throw new NotSupportedException("Too many arguments to send."),
-                        };
+                        var nr = areFpArgs
+                            ? nFpArgs.Length switch
+                            {
+                                0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeFpResult4>)sendMsgFunction)(obj, selector.Handle),
+                                1 => ((delegate*unmanaged<IntPtr, IntPtr, double, NativeFpResult4>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0]),
+                                2 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, NativeFpResult4>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1]),
+                                3 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, double, NativeFpResult4>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1], nFpArgs[2]),
+                                4 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, double, double, NativeFpResult4>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1], nFpArgs[2], nFpArgs[3]),
+                                5 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, double, double, double, NativeFpResult4>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1], nFpArgs[2], nFpArgs[3], nFpArgs[4]),
+                                6 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, double, double, double, double, NativeFpResult4>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1], nFpArgs[2], nFpArgs[3], nFpArgs[4], nFpArgs[5]),
+                                _ => throw new NotSupportedException("Too many arguments to send."),
+                            }
+                            : nArgs.Length switch
+                            {
+                                0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeFpResult4>)sendMsgFunction)(obj, selector.Handle),
+                                1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeFpResult4>)sendMsgFunction)(obj, selector.Handle, nArgs[0]),
+                                2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeFpResult4>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1]),
+                                3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeFpResult4>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1], nArgs[2]),
+                                4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeFpResult4>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1], nArgs[2], nArgs[3]),
+                                5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeFpResult4>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1], nArgs[2], nArgs[3], nArgs[4]),
+                                6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeFpResult4>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1], nArgs[2], nArgs[3], nArgs[4], nArgs[5]),
+                                _ => throw new NotSupportedException("Too many arguments to send."),
+                            };
                         return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 4);
                     }
                     else
                     {
-                        var nr = nvs.Length switch
-                        {
-                            0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeResult4>)sendMsgFunction)(obj, selector.Handle),
-                            1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeResult4>)sendMsgFunction)(obj, selector.Handle, nvs[0]),
-                            2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeResult4>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1]),
-                            3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeResult4>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2]),
-                            4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeResult4>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3]),
-                            5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeResult4>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4]),
-                            6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeResult4>)sendMsgFunction)(obj, selector.Handle, nvs[0], nvs[1], nvs[2], nvs[3], nvs[4], nvs[5]),
-                            _ => throw new NotSupportedException("Too many arguments to send."),
-                        };
+                        var nr = areFpArgs
+                            ? nFpArgs.Length switch
+                            {
+                                0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeResult4>)sendMsgFunction)(obj, selector.Handle),
+                                1 => ((delegate*unmanaged<IntPtr, IntPtr, double, NativeResult4>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0]),
+                                2 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, NativeResult4>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1]),
+                                3 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, double, NativeResult4>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1], nFpArgs[2]),
+                                4 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, double, double, NativeResult4>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1], nFpArgs[2], nFpArgs[3]),
+                                5 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, double, double, double, NativeResult4>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1], nFpArgs[2], nFpArgs[3], nFpArgs[4]),
+                                6 => ((delegate*unmanaged<IntPtr, IntPtr, double, double, double, double, double, double, NativeResult4>)sendMsgFunction)(obj, selector.Handle, nFpArgs[0], nFpArgs[1], nFpArgs[2], nFpArgs[3], nFpArgs[4], nFpArgs[5]),
+                                _ => throw new NotSupportedException("Too many arguments to send."),
+                            }
+                            : nArgs.Length switch
+                            {
+                                0 => ((delegate*unmanaged<IntPtr, IntPtr, NativeResult4>)sendMsgFunction)(obj, selector.Handle),
+                                1 => ((delegate*unmanaged<IntPtr, IntPtr, nint, NativeResult4>)sendMsgFunction)(obj, selector.Handle, nArgs[0]),
+                                2 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, NativeResult4>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1]),
+                                3 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, NativeResult4>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1], nArgs[2]),
+                                4 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, NativeResult4>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1], nArgs[2], nArgs[3]),
+                                5 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, NativeResult4>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1], nArgs[2], nArgs[3], nArgs[4]),
+                                6 => ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, nint, nint, NativeResult4>)sendMsgFunction)(obj, selector.Handle, nArgs[0], nArgs[1], nArgs[2], nArgs[3], nArgs[4], nArgs[5]),
+                                _ => throw new NotSupportedException("Too many arguments to send."),
+                            };
                         return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 4);
                     }
                 }),
