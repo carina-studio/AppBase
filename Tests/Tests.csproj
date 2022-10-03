@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AssemblyVersion>1.7.5.924</AssemblyVersion>
-    <Version>1.7.5.924</Version>
-    <PackageVersion>1.7.5.924-preview</PackageVersion>
+    <AssemblyVersion>1.7.6.1003</AssemblyVersion>
+    <Version>1.7.6.1003</Version>
+    <PackageVersion>1.7.6.1003-preview</PackageVersion>
     <TargetFrameworks>net5.0;net6.0</TargetFrameworks>
     <RootNamespace>CarinaStudio.Tests</RootNamespace>
     <AssemblyName>CarinaStudio.AppBase.Tests</AssemblyName>
