@@ -12,7 +12,7 @@ public enum CGImageAlphaInfo : uint
     AlphaPremultipliedFirst, /* For example, premultiplied ARGB */
     AlphaLast,               /* For example, non-premultiplied RGBA */
     AlphaFirst,              /* For example, non-premultiplied ARGB */
-    AlphaNoneSkipLast,       /* For example, RGBX. */
+    AlphaNoneSkipLast,       /* For example, RBGX. */
     AlphaNoneSkipFirst,      /* For example, XRGB. */
-    AlphaOnly                /* No color data, alpha data only */
+    AlphaOnly,                /* No color data, alpha data only */
 }
