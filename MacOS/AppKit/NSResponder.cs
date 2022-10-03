@@ -24,7 +24,8 @@ namespace CarinaStudio.MacOS.AppKit
         /// Initialize new <see cref="NSResponder"/> instance.
         /// </summary>
         /// <param name="instance">Instance.</param>
-        protected NSResponder(InstanceHolder instance) : base(instance, false) =>
+        /// <param name="ownsInstance">True to own the instance.</param>
+        protected NSResponder(InstanceHolder instance, bool ownsInstance) : base(instance, ownsInstance) =>
             this.VerifyClass(NSResponderClass!);
     }
 }

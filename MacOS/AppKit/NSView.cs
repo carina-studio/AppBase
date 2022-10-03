@@ -1,0 +1,113 @@
+using System;
+using CarinaStudio.MacOS.ObjectiveC;
+
+namespace CarinaStudio.MacOS.AppKit;
+
+/// <summary>
+/// NSView.
+/// </summary>
+public class NSView : NSResponder
+{
+    // Static fields.
+    static readonly Selector? InitWithFrameSelector;
+    static readonly Property? IsHiddenOrHasHiddenAncestorProperty;
+    static readonly Property? IsHiddenProperty;
+    static readonly Selector? LayoutSelector;
+    static readonly Class? NSViewClass;
+    static readonly Property? SafeAreaRectProperty;
+    static readonly Property? SuperViewProperty;
+    static readonly Property? VisibleRectProperty;
+    static readonly Property? WindowProperty;
+
+
+    // Static initializer.
+    static NSView()
+    {
+        if (Platform.IsNotMacOS)
+            return;
+        NSViewClass = Class.GetClass("NSView").AsNonNull();
+        InitWithFrameSelector = Selector.FromName("initWithFrame:");
+        IsHiddenOrHasHiddenAncestorProperty = NSViewClass.GetProperty("hiddenOrHasHiddenAncestor");
+        IsHiddenProperty = NSViewClass.GetProperty("hidden");
+        LayoutSelector = Selector.FromName("layout");
+        SafeAreaRectProperty = NSViewClass.GetProperty("safeAreaRect");
+        SuperViewProperty = NSViewClass.GetProperty("superview");
+        VisibleRectProperty = NSViewClass.GetProperty("visibleRect");
+        WindowProperty = NSViewClass.GetProperty("window");
+    }
+
+
+    /// <summary>
+    /// Initialize new <see cref="NSView"/> instance.
+    /// </summary>
+    /// <param name="handle">Handle of allocated instance.</param>
+    /// <param name="frame">Frame.</param>
+    protected NSView(IntPtr handle, NSRect frame) : this(new InstanceHolder(Initialize(handle, frame)), true)
+    { }
+
+
+    /// <summary>
+    /// Initialize new <see cref="NSView"/> instance.
+    /// </summary>
+    /// <param name="instance">Instance.</param>
+    /// <param name="ownsInstance">True to own the instance.</param>
+    protected NSView(InstanceHolder instance, bool ownsInstance) : base(instance, ownsInstance)
+    { }
+
+
+    /// <summary>
+    /// Initialize <see cref="NSView"/> with frame.
+    /// </summary>
+    /// <param name="view">Handle of allocated <see cref="NSView"/>.</param>
+    /// <param name="frame">Frame.</param>
+    /// <returns>Handle of initialized <see cref="NSView"/>.</returns>
+    protected static IntPtr Initialize(IntPtr view, NSRect frame) =>
+        NSObject.SendMessage<IntPtr>(view, InitWithFrameSelector!, frame);
+    
+
+    /// <summary>
+    /// Check whether view or its ancestor is hidden or not.
+    /// </summary>
+    public bool IsHiddenOrHasHiddenAncestor { get => this.GetProperty<bool>(IsHiddenOrHasHiddenAncestorProperty!); }
+    
+
+    /// <summary>
+    /// Get or set whether view is hidden or not.
+    /// </summary>
+    public bool IsHidden
+    {
+        get => this.GetProperty<bool>(IsHiddenProperty!);
+        set => this.SetProperty(IsHiddenProperty!, value);
+    }
+    
+
+    /// <summary>
+    /// Perform layout.
+    /// </summary>
+    public void Layout() =>
+        this.SendMessage(LayoutSelector!);
+    
+
+    /// <summary>
+    /// A rectangle in the view’s coordinate system that contains the unobscured portion of the view.
+    /// </summary>
+    public NSRect SafeAreaRect { get => this.GetProperty<NSRect>(SafeAreaRectProperty!); }
+
+
+    /// <summary>
+    /// Get parent view.
+    /// </summary>
+    public NSView? SuperView { get => this.GetProperty<NSView>(SuperViewProperty!); }
+
+
+    /// <summary>
+    /// Get bounds of view which is not clipped by its super view.
+    /// </summary>
+    public NSRect VisibleRect { get => this.GetProperty<NSRect>(VisibleRectProperty!); }
+
+
+    /// <summary>
+    /// Get window which contains the view.
+    /// </summary>
+    public NSObject? Window { get => this.GetProperty<NSObject>(WindowProperty!); }
+}

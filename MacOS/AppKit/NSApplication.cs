@@ -66,7 +66,7 @@ namespace CarinaStudio.MacOS.AppKit
 
 
         // Constructor.
-        NSApplication(InstanceHolder instance) : base(instance) =>
+        NSApplication(InstanceHolder instance) : base(instance, false) =>
             this.VerifyClass(NSApplicationClass!);
         
 
