@@ -296,16 +296,34 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <summary>
         /// Define method without argument.
         /// </summary>
-        /// <param name="name">Selector.</param>
+        /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
-        public void DefineMethod(Selector name, Action<IntPtr, Selector> implementation) =>
-            this.DefineMethod(name, implementation, null);
+        public void DefineMethod(string name, Action<IntPtr, Selector> implementation) =>
+            this.DefineMethod(Selector.FromName(name), implementation, null);
 
 
         /// <summary>
         /// Define method without argument.
         /// </summary>
-        /// <param name="name">Selector.</param>
+        /// <param name="name">Name of method.</param>
+        /// <param name="implementation">Implementation.</param>
+        public void DefineMethod(Selector name, Action<IntPtr, Selector> implementation) =>
+            this.DefineMethod(name, implementation, null);
+        
+
+        /// <summary>
+        /// Define method without argument.
+        /// </summary>
+        /// <param name="name">Name of method.</param>
+        /// <param name="implementation">Implementation.</param>
+        public void DefineMethod<R>(string name, Func<IntPtr, Selector, R> implementation) =>
+            this.DefineMethod(Selector.FromName(name), implementation, typeof(R));
+
+
+        /// <summary>
+        /// Define method without argument.
+        /// </summary>
+        /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
         public void DefineMethod<R>(Selector name, Func<IntPtr, Selector, R> implementation) =>
             this.DefineMethod(name, implementation, typeof(R));
@@ -314,7 +332,16 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <summary>
         /// Define method with 1 argument.
         /// </summary>
-        /// <param name="name">Selector.</param>
+        /// <param name="name">Name of method.</param>
+        /// <param name="implementation">Implementation.</param>
+        public void DefineMethod<TArg1>(string name, Action<IntPtr, Selector, TArg1> implementation) =>
+            this.DefineMethod<TArg1>(Selector.FromName(name), implementation);
+
+
+        /// <summary>
+        /// Define method with 1 argument.
+        /// </summary>
+        /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
         public void DefineMethod<TArg1>(Selector name, Action<IntPtr, Selector, TArg1> implementation)
         {
@@ -328,7 +355,16 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <summary>
         /// Define method with 1 argument.
         /// </summary>
-        /// <param name="name">Selector.</param>
+        /// <param name="name">Name of method.</param>
+        /// <param name="implementation">Implementation.</param>
+        public void DefineMethod<TArg1, R>(string name, Func<IntPtr, Selector, TArg1, R> implementation) =>
+            this.DefineMethod<TArg1, R>(Selector.FromName(name), implementation);
+
+
+        /// <summary>
+        /// Define method with 1 argument.
+        /// </summary>
+        /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
         public void DefineMethod<TArg1, R>(Selector name, Func<IntPtr, Selector, TArg1, R> implementation)
         {
@@ -342,7 +378,16 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <summary>
         /// Define method with 2 arguments.
         /// </summary>
-        /// <param name="name">Selector.</param>
+        /// <param name="name">Name of method.</param>
+        /// <param name="implementation">Implementation.</param>
+        public void DefineMethod<TArg1, TArg2>(string name, Action<IntPtr, Selector, TArg1, TArg2> implementation) =>
+            this.DefineMethod<TArg1, TArg2>(Selector.FromName(name), implementation);
+
+
+        /// <summary>
+        /// Define method with 2 arguments.
+        /// </summary>
+        /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
         public void DefineMethod<TArg1, TArg2>(Selector name, Action<IntPtr, Selector, TArg1, TArg2> implementation)
         {
@@ -360,7 +405,16 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <summary>
         /// Define method with 2 arguments.
         /// </summary>
-        /// <param name="name">Selector.</param>
+        /// <param name="name">Name of method.</param>
+        /// <param name="implementation">Implementation.</param>
+        public void DefineMethod<TArg1, TArg2, R>(string name, Func<IntPtr, Selector, TArg1, TArg2, R> implementation) =>
+            this.DefineMethod<TArg1, TArg2, R>(Selector.FromName(name), implementation);
+
+
+        /// <summary>
+        /// Define method with 2 arguments.
+        /// </summary>
+        /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
         public void DefineMethod<TArg1, TArg2, R>(Selector name, Func<IntPtr, Selector, TArg1, TArg2, R> implementation)
         {
@@ -378,7 +432,16 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <summary>
         /// Define method with 3 arguments.
         /// </summary>
-        /// <param name="name">Selector.</param>
+        /// <param name="name">Name of method.</param>
+        /// <param name="implementation">Implementation.</param>
+        public void DefineMethod<TArg1, TArg2, TArg3>(string name, Action<IntPtr, Selector, TArg1, TArg2, TArg3> implementation) =>
+            this.DefineMethod<TArg1, TArg2, TArg3>(Selector.FromName(name), implementation);
+
+
+        /// <summary>
+        /// Define method with 3 arguments.
+        /// </summary>
+        /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
         public void DefineMethod<TArg1, TArg2, TArg3>(Selector name, Action<IntPtr, Selector, TArg1, TArg2, TArg3> implementation)
         {
@@ -396,7 +459,16 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <summary>
         /// Define method with 3 arguments.
         /// </summary>
-        /// <param name="name">Selector.</param>
+        /// <param name="name">Name of method.</param>
+        /// <param name="implementation">Implementation.</param>
+        public void DefineMethod<TArg1, TArg2, TArg3, R>(string name, Func<IntPtr, Selector, TArg1, TArg2, TArg3, R> implementation) =>
+            this.DefineMethod<TArg1, TArg2, TArg3, R>(Selector.FromName(name), implementation);
+
+
+        /// <summary>
+        /// Define method with 3 arguments.
+        /// </summary>
+        /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
         public void DefineMethod<TArg1, TArg2, TArg3, R>(Selector name, Func<IntPtr, Selector, TArg1, TArg2, TArg3, R> implementation)
         {
@@ -414,7 +486,16 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <summary>
         /// Define method with 4 arguments.
         /// </summary>
-        /// <param name="name">Selector.</param>
+        /// <param name="name">Name of method.</param>
+        /// <param name="implementation">Implementation.</param>
+        public void DefineMethod<TArg1, TArg2, TArg3, TArg4>(string name, Action<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4> implementation) =>
+            this.DefineMethod<TArg1, TArg2, TArg3, TArg4>(Selector.FromName(name), implementation);
+
+
+        /// <summary>
+        /// Define method with 4 arguments.
+        /// </summary>
+        /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
         public void DefineMethod<TArg1, TArg2, TArg3, TArg4>(Selector name, Action<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4> implementation)
         {
@@ -432,7 +513,16 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <summary>
         /// Define method with 4 arguments.
         /// </summary>
-        /// <param name="name">Selector.</param>
+        /// <param name="name">Name of method.</param>
+        /// <param name="implementation">Implementation.</param>
+        public void DefineMethod<TArg1, TArg2, TArg3, TArg4, R>(string name, Func<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4, R> implementation) =>
+            this.DefineMethod<TArg1, TArg2, TArg3, TArg4, R>(Selector.FromName(name), implementation);
+
+
+        /// <summary>
+        /// Define method with 4 arguments.
+        /// </summary>
+        /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
         public void DefineMethod<TArg1, TArg2, TArg3, TArg4, R>(Selector name, Func<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4, R> implementation)
         {
@@ -450,7 +540,16 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <summary>
         /// Define method with 5 arguments.
         /// </summary>
-        /// <param name="name">Selector.</param>
+        /// <param name="name">Name of method.</param>
+        /// <param name="implementation">Implementation.</param>
+        public void DefineMethod<TArg1, TArg2, TArg3, TArg4, TArg5>(string name, Action<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4, TArg5> implementation) =>
+            this.DefineMethod<TArg1, TArg2, TArg3, TArg4, TArg5>(Selector.FromName(name), implementation);
+
+
+        /// <summary>
+        /// Define method with 5 arguments.
+        /// </summary>
+        /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
         public void DefineMethod<TArg1, TArg2, TArg3, TArg4, TArg5>(Selector name, Action<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4, TArg5> implementation)
         {
@@ -468,7 +567,16 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <summary>
         /// Define method with 5 arguments.
         /// </summary>
-        /// <param name="name">Selector.</param>
+        /// <param name="name">Name of method.</param>
+        /// <param name="implementation">Implementation.</param>
+        public void DefineMethod<TArg1, TArg2, TArg3, TArg4, TArg5, R>(string name, Func<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4, TArg5, R> implementation) =>
+            this.DefineMethod<TArg1, TArg2, TArg3, TArg4, TArg5, R>(Selector.FromName(name), implementation);
+
+
+        /// <summary>
+        /// Define method with 5 arguments.
+        /// </summary>
+        /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
         public void DefineMethod<TArg1, TArg2, TArg3, TArg4, TArg5, R>(Selector name, Func<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4, TArg5, R> implementation)
         {
