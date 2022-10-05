@@ -9,5 +9,9 @@
         Title="TestDialog"
 		Width="400"
 		WindowStartupLocation="CenterScreen">
-  Welcome to Avalonia!
+    
+    <StackPanel>
+        <Button Command="{Binding $parent[Window].GenerateResult}" Content="Generate result" HorizontalAlignment="Left" Margin="5"/>
+    </StackPanel>
+
 </Window>

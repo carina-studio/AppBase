@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using AvnWindow = Avalonia.Controls.Window;
 using Avalonia.Controls.Shapes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
@@ -7,6 +8,7 @@ using System;
 using System.Runtime.InteropServices;
 using CarinaStudio.Animation;
 using CarinaStudio.Collections;
+using CarinaStudio.Controls;
 using CarinaStudio.MacOS.AppKit;
 using CarinaStudio.MacOS.CoreFoundation;
 using CarinaStudio.MacOS.CoreGraphics;
@@ -170,10 +172,10 @@ namespace CarinaStudio
             }
 
             // Fields.
-            readonly Window window;
+            readonly AvnWindow window;
 
             // Constructor.
-            public MyAppDelegate(Window window) : base(Initialize(MyAppDelegateClass!.Allocate()), true)
+            public MyAppDelegate(AvnWindow window) : base(Initialize(MyAppDelegateClass!.Allocate()), true)
             { 
                 this.Class.TrySetClrObject(this.Handle, this);
                 this.window = window;
@@ -194,14 +196,7 @@ namespace CarinaStudio
 
         public async void Test()
         {
-            if (Platform.IsMacOS)
-            {
-                using var myClass = new MyClass();
-                var vars = myClass.Class.GetInstanceVariables();
-
-                myClass.ToString();
-            }
-            
+            var r = await new TestDialog().ShowDialog<int>();
             /*
             if (this.testDialog == null)
             {
