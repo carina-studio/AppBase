@@ -9,11 +9,14 @@ namespace CarinaStudio.MacOS.AppKit;
 public class NSView : NSResponder
 {
     // Static fields.
+    static readonly Selector? AddSubViewPositionedSelector;
+    static readonly Selector? AddSubViewSelector;
     static readonly Selector? InitWithFrameSelector;
     static readonly Property? IsHiddenOrHasHiddenAncestorProperty;
     static readonly Property? IsHiddenProperty;
     static readonly Selector? LayoutSelector;
     static readonly Class? NSViewClass;
+    static readonly Selector? RemoveFromSuperViewSelector;
     static readonly Property? SafeAreaRectProperty;
     static readonly Property? SubViewsProperty;
     static readonly Property? SuperViewProperty;
@@ -27,10 +30,13 @@ public class NSView : NSResponder
         if (Platform.IsNotMacOS)
             return;
         NSViewClass = Class.GetClass("NSView").AsNonNull();
+        AddSubViewPositionedSelector = Selector.FromName("addSubview:positioned:relativeTo:");
+        AddSubViewSelector = Selector.FromName("addSubview:");
         InitWithFrameSelector = Selector.FromName("initWithFrame:");
         IsHiddenOrHasHiddenAncestorProperty = NSViewClass.GetProperty("hiddenOrHasHiddenAncestor");
         IsHiddenProperty = NSViewClass.GetProperty("hidden");
         LayoutSelector = Selector.FromName("layout");
+        RemoveFromSuperViewSelector = Selector.FromName("removeFromSuperview:");
         SafeAreaRectProperty = NSViewClass.GetProperty("safeAreaRect");
         SubViewsProperty = NSViewClass.GetProperty("subviews");
         SuperViewProperty = NSViewClass.GetProperty("superview");
@@ -55,6 +61,24 @@ public class NSView : NSResponder
     /// <param name="ownsInstance">True to own the instance.</param>
     protected NSView(InstanceHolder instance, bool ownsInstance) : base(instance, ownsInstance)
     { }
+
+
+    /// <summary>
+    /// Add given view as sub-view.
+    /// </summary>
+    /// <param name="view">View.</param>
+    public void AddSubView(NSView view) =>
+        this.SendMessage(AddSubViewSelector!, view);
+    
+
+    /// <summary>
+    /// Add given view as sub-view.
+    /// </summary>
+    /// <param name="view">View.</param>
+    /// <param name="place">Relation to other view.</param>
+    /// <param name="otherView">Other view which the sub-view relative to.</param>
+    public void AddSubView(NSView view, NSWindow.OrderingMode place, NSView? otherView) =>
+        this.SendMessage(AddSubViewSelector!, view, place, otherView);
 
 
     /// <summary>
@@ -88,6 +112,13 @@ public class NSView : NSResponder
     /// </summary>
     public void Layout() =>
         this.SendMessage(LayoutSelector!);
+    
+
+    /// <summary>
+    /// Remove from its super view.
+    /// </summary>
+    public void RemoveFromSuperView() =>
+        this.SendMessage(RemoveFromSuperViewSelector!);
     
 
     /// <summary>
