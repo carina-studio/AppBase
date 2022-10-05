@@ -15,6 +15,7 @@ public class NSView : NSResponder
     static readonly Selector? LayoutSelector;
     static readonly Class? NSViewClass;
     static readonly Property? SafeAreaRectProperty;
+    static readonly Property? SubViewsProperty;
     static readonly Property? SuperViewProperty;
     static readonly Property? VisibleRectProperty;
     static readonly Property? WindowProperty;
@@ -31,6 +32,7 @@ public class NSView : NSResponder
         IsHiddenProperty = NSViewClass.GetProperty("hidden");
         LayoutSelector = Selector.FromName("layout");
         SafeAreaRectProperty = NSViewClass.GetProperty("safeAreaRect");
+        SubViewsProperty = NSViewClass.GetProperty("subviews");
         SuperViewProperty = NSViewClass.GetProperty("superview");
         VisibleRectProperty = NSViewClass.GetProperty("visibleRect");
         WindowProperty = NSViewClass.GetProperty("window");
@@ -95,6 +97,12 @@ public class NSView : NSResponder
 
 
     /// <summary>
+    /// Get all child views.
+    /// </summary>
+    public NSArray<NSView> SubViews { get => this.GetProperty<NSArray<NSView>>(SubViewsProperty!); }
+
+
+    /// <summary>
     /// Get parent view.
     /// </summary>
     public NSView? SuperView { get => this.GetProperty<NSView>(SuperViewProperty!); }
@@ -109,5 +117,5 @@ public class NSView : NSResponder
     /// <summary>
     /// Get window which contains the view.
     /// </summary>
-    public NSObject? Window { get => this.GetProperty<NSObject>(WindowProperty!); }
+    public NSWindow? Window { get => this.GetProperty<NSWindow>(WindowProperty!); }
 }
