@@ -1,5 +1,8 @@
+using CarinaStudio.MacOS.CoreGraphics;
 using CarinaStudio.MacOS.ObjectiveC;
 using System;
+using System.IO;
+using System.Runtime.InteropServices;
 
 namespace CarinaStudio.MacOS.AppKit;
 
@@ -8,8 +11,15 @@ namespace CarinaStudio.MacOS.AppKit;
 /// </summary>
 public class NSImage : NSObject
 {
+    // Native symbols.
+    [DllImport(NativeLibraryNames.ObjectiveC, EntryPoint = NSObject.SendMessageEntryPointName)]
+    static extern IntPtr InitWithCGImage(IntPtr obj, IntPtr sel, IntPtr cgImage, NSSize size);
+
+
     // Static fields.
     static readonly Selector? InitByRefFileSelector;
+    static readonly Selector? InitWithCGImageSelector;
+    static readonly Selector? InitWithDataSelector;
     static readonly Property? IsValidProperty;
     static readonly Class? NSImageClass;
     static readonly Property? SizeProperty;
@@ -22,6 +32,8 @@ public class NSImage : NSObject
             return;
         NSImageClass = Class.GetClass("NSImage").AsNonNull();
         InitByRefFileSelector = Selector.FromName("initByReferencingFile:");
+        InitWithCGImageSelector = Selector.FromName("initWithCGImage:size:");
+        InitWithDataSelector = Selector.FromName("initWithData:");
         IsValidProperty = NSImageClass.GetProperty("valid");
         SizeProperty = NSImageClass.GetProperty("size");
     }
@@ -43,7 +55,69 @@ public class NSImage : NSObject
             throw new ArgumentException($"Invalid file name: {fileName}.");
         using var nsFileName = new NSString(fileName);
         var handle = NSObject.SendMessage<IntPtr>(NSImageClass!.Allocate(), InitByRefFileSelector!, nsFileName);
-        return new NSImage(new InstanceHolder(handle), true);
+        return new(new InstanceHolder(handle), true);
+    }
+
+
+    /// <summary>
+    /// Create <see cref="NSImage"/> from <see cref="CGImage"/>.
+    /// </summary>
+    /// <param name="image"><see cref="CGImage"/>.</param>
+    /// <returns><see cref="NSImage"/>.</returns>
+    public static NSImage FromCGImage(CGImage image)
+    {
+        if (image.IsReleased)
+            throw new ObjectDisposedException(nameof(CGImage));
+        var handle = InitWithCGImage(NSImageClass!.Allocate(), InitWithCGImageSelector!.Handle, image.Handle, new NSSize());
+        return new(new InstanceHolder(handle), true);
+    }
+
+
+    /// <summary>
+    /// Create <see cref="NSImage"/> from <see cref="CGImage"/>.
+    /// </summary>
+    /// <param name="image"><see cref="CGImage"/>.</param>
+    /// <param name="size">Size.</param>
+    /// <returns><see cref="NSImage"/>.</returns>
+    public static NSImage FromCGImage(CGImage image, NSSize size)
+    {
+        if (image.IsReleased)
+            throw new ObjectDisposedException(nameof(CGImage));
+        if (size.Width <= 0 || size.Height <= 0 || !double.IsFinite(size.Width) || !double.IsFinite(size.Height))
+            throw new ArgumentException($"Invalid size: {size}.");
+        var handle = InitWithCGImage(NSImageClass!.Allocate(), InitWithCGImageSelector!.Handle, image.Handle, size);
+        return new(new InstanceHolder(handle), true);
+    }
+
+
+    /// <summary>
+    /// Create <see cref="NSImage"/> from data.
+    /// </summary>
+    /// <param name="data">Data.</param>
+    /// <returns><see cref="NSImage"/>.</returns>
+    public static NSImage FromData(CoreFoundation.CFData data)
+    {
+        if (data.IsReleased)
+            throw new ObjectDisposedException(nameof(CoreFoundation.CFData));
+        var handle = NSObject.SendMessage<IntPtr>(NSImageClass!.Allocate(), InitWithDataSelector!, data.Handle);
+        if (handle != default)
+            return new(new InstanceHolder(handle), true);
+        throw new ArgumentException($"Cannot create image from data.");
+    }
+
+
+    /// <summary>
+    /// Create <see cref="NSImage"/> from data.
+    /// </summary>
+    /// <param name="stream">Stream.</param>
+    /// <returns><see cref="NSImage"/>.</returns>
+    public static NSImage FromStream(Stream stream)
+    {
+        using var data = CoreFoundation.CFData.FromStream(stream);
+        var handle = NSObject.SendMessage<IntPtr>(NSImageClass!.Allocate(), InitWithDataSelector!, data.Handle);
+        if (handle != default)
+            return new(new InstanceHolder(handle), true);
+        throw new ArgumentException($"Cannot create image from data of stream.");
     }
 
 

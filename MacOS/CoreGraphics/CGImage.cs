@@ -1,5 +1,6 @@
 using CarinaStudio.MacOS.CoreFoundation;
 using System;
+using System.IO;
 using System.Runtime.InteropServices;
 
 namespace CarinaStudio.MacOS.CoreGraphics;
@@ -270,6 +271,42 @@ public class CGImage : CFObject
                 this.dataProvider = it;
             });
         }
+    }
+
+
+    /// <summary>
+    /// Create <see cref="CGImage"/> from data.
+    /// </summary>
+    /// <param name="data">Data.</param>
+    /// <returns><see cref="CGImage"/>.</returns>
+    public static CGImage FromData(CFData data)
+    {
+        using var imageSource = ImageIO.CGImageSource.FromData(data);
+        return imageSource.CreateImage();
+    }
+
+
+    /// <summary>
+    /// Create <see cref="CGImage"/> from file.
+    /// </summary>
+    /// <param name="fileName">File name.</param>
+    /// <returns><see cref="CGImage"/>.</returns>
+    public static CGImage FromFile(string fileName)
+    {
+        using var imageSource = ImageIO.CGImageSource.FromFile(fileName);
+        return imageSource.CreateImage();
+    }
+
+
+    /// <summary>
+    /// Create <see cref="CGImage"/> from data.
+    /// </summary>
+    /// <param name="stream">Stream.</param>
+    /// <returns><see cref="CGImage"/>.</returns>
+    public static CGImage FromStream(Stream stream)
+    {
+        using var data = CFData.FromStream(stream);
+        return FromData(data);
     }
 
 

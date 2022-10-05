@@ -22,12 +22,13 @@ static class NativeTypeConversion
     {
         if (types.IsEmpty())
             return false;
-        for (var i = types.Length - 1; i >= 0; --i)
+        var isFpStructure = IsFloatingPointStructure(types[0]);
+        for (var i = types.Length - 1; i > 0; --i)
         {
-            if (!IsFloatingPointStructure(types[i]))
-                return false;
+            if (isFpStructure != IsFloatingPointStructure(types[i]))
+                throw new NotSupportedException("Not all types are consist of integer type or floating-point type.");
         }
-        return true;
+        return isFpStructure;
     }
 
 
@@ -36,13 +37,18 @@ static class NativeTypeConversion
     {
         if (values.IsEmpty())
             return false;
+        var isFpValue = (bool?)null;
         for (var i = values.Length - 1; i >= 0; --i)
         {
             var type = values[i]?.GetType();
-            if (type == null || !IsFloatingPointStructure(type))
-                return false;
+            if (type == null)
+                continue;
+            if (!isFpValue.HasValue)
+                isFpValue = IsFloatingPointStructure(type);
+            else if (isFpValue != IsFloatingPointStructure(type))
+                throw new NotSupportedException("Not all values are consist of integer type or floating-point type.");
         }
-        return true;
+        return isFpValue.GetValueOrDefault();
     }
 
 

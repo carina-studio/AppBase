@@ -65,53 +65,6 @@ public unsafe class CFData : CFObject
     /// <summary>
     /// Initialize new <see cref="CFData"/> instance.
     /// </summary>
-    /// <param name="stream">Stream to copy data from.</param>
-    public CFData(Stream stream) : this(CFAllocator.Default, stream)
-    { }
-
-
-    /// <summary>
-    /// Initialize new <see cref="CFData"/> instance.
-    /// </summary>
-    /// <param name="allocator">Allocator.</param>
-    /// <param name="stream">Stream to copy data from.</param>
-    public CFData(CFAllocator allocator, Stream stream) : this(Global.Run(() =>
-    {
-        var size = 0L;
-        try
-        {
-            size = stream.Length - stream.Position;
-        }
-        catch
-        {
-            var memoryStream = new MemoryStream();
-            stream.CopyTo(memoryStream);
-            memoryStream.Position = 0;
-            stream = memoryStream;
-            size = memoryStream.Length;
-        }
-        if (size > int.MaxValue)
-            throw new NotSupportedException($"Size of data in stream is too large: {size}.");
-        var handle = CFDataCreateMutable(allocator.Handle, (nint)size);
-        try
-        {
-            var bufferPtr = CFDataGetMutableBytePtr(handle);
-            CFDataSetLength(handle, (nint)size);
-            CFDataSetLength(handle, stream.Read(new Span<byte>(bufferPtr, (int)size)));
-        }
-        catch
-        {
-            CFObject.Release(handle);
-            throw;
-        }
-        return handle;
-    }), false, true)
-    { }
-
-
-    /// <summary>
-    /// Initialize new <see cref="CFData"/> instance.
-    /// </summary>
     /// <param name="data">Address of data to copy from.</param>
     /// <param name="size">Size of data to copy.</param>
     public CFData(IntPtr data, int size) : this(CFAllocator.Default, data, size)
@@ -229,6 +182,54 @@ public unsafe class CFData : CFObject
         if (size <= 0 || offset + size > length)
             throw new ArgumentOutOfRangeException(nameof(size));
         return new(CFDataGetBytePtr(this.Handle) + offset, size);
+    }
+
+
+    /// <summary>
+    /// Create <see cref="CFData"/> from stream.
+    /// </summary>
+    /// <param name="stream">Stream.</param>
+    /// <returns><see cref="CFData"/>.</returns>
+    public static CFData FromStream(Stream stream) =>
+        FromStream(CFAllocator.Default, stream);
+
+
+    /// <summary>
+    /// Create <see cref="CFData"/> from stream.
+    /// </summary>
+    /// <param name="allocator">Allocator.</param>
+    /// <param name="stream">Stream.</param>
+    /// <returns><see cref="CFData"/>.</returns>
+    public static CFData FromStream(CFAllocator allocator, Stream stream)
+    {
+        var size = 0L;
+        try
+        {
+            size = stream.Length - stream.Position;
+        }
+        catch
+        {
+            var memoryStream = new MemoryStream();
+            stream.CopyTo(memoryStream);
+            memoryStream.Position = 0;
+            stream = memoryStream;
+            size = memoryStream.Length;
+        }
+        if (size > int.MaxValue)
+            throw new NotSupportedException($"Size of data in stream is too large: {size}.");
+        var handle = CFDataCreateMutable(allocator.Handle, (nint)size);
+        try
+        {
+            var bufferPtr = CFDataGetMutableBytePtr(handle);
+            CFDataSetLength(handle, (nint)size);
+            CFDataSetLength(handle, stream.Read(new Span<byte>(bufferPtr, (int)size)));
+        }
+        catch
+        {
+            CFObject.Release(handle);
+            throw;
+        }
+        return new(handle, true);
     }
 
 
