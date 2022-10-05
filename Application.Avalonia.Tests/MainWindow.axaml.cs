@@ -43,6 +43,7 @@ namespace CarinaStudio
             static readonly Selector? BarSelector;
             static readonly Class? Cls;
             static readonly Selector? FooSelector;
+            static Variable? IntPtrVariableVar;
             static Property? TestProperty;
 
             // Static initializer.
@@ -74,14 +75,26 @@ namespace CarinaStudio
                         {
                             //
                         });
+                    IntPtrVariableVar = cls.DefineInstanceVariable<IntPtr>("_intPtrVar");
+                    cls.DefineInstanceVariable<byte[]>("byteVar", 10);
+                    cls.DefineInstanceVariable<NSObject>("nsObjectVar");
+                    cls.DefineInstanceVariable<NSObject[]>("nsObjectsVar", 4);
                 });
-
             }
 
             // Constructor.
             public MyClass() : base(Initialize(Cls!.Allocate()), true)
             { 
                 this.Class.TrySetClrObject(this.Handle, this);
+                this.SetVariable(IntPtrVariableVar!, (IntPtr)12345);
+
+                var value = (object)this.GetVariable<IntPtr>(IntPtrVariableVar!);
+
+                var nsObjects = new NSObject?[] { null, this };
+                var variable = this.Class.GetInstanceVriable("nsObjectsVar");
+                this.SetVariable(variable!, nsObjects);
+
+                value = this.GetVariable<NSObject?[]>(variable!);
             }
 
             // Bar
@@ -183,29 +196,10 @@ namespace CarinaStudio
         {
             if (Platform.IsMacOS)
             {
-                var fileNames = await new OpenFileDialog().Also(d =>
-                {
-                    d.Filters!.Add(new FileDialogFilter().Also(f =>
-                    {
-                        f.Extensions.Add("jpg");
-                        f.Extensions.Add("png");
-                        f.Name = "Image";
-                    }));
-                }).ShowAsync(this);
-                if (fileNames.IsNullOrEmpty())
-                    return;
-                
-                try
-                {
-                    using var imageSource = CGImageSource.FromFile(fileNames[0]);
-                    using var image = imageSource.CreateImage();
-                
-                    imageSource.Release();
-                }
-                catch
-                {
-                    //
-                }
+                using var myClass = new MyClass();
+                var vars = myClass.Class.GetInstanceVariables();
+
+                myClass.ToString();
             }
             
             /*

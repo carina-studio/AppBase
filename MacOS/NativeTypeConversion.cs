@@ -96,43 +96,75 @@ static class NativeTypeConversion
 #pragma warning restore CS8603
     public static unsafe object? FromNativeValue(nint* valuePtr, int valueCount, Type targetType, out int consumedValues)
     {
+        var obj = FromNativeValue((byte*)valuePtr, valueCount * sizeof(nint), targetType, out var consumedBytes);
+        consumedValues = (consumedBytes / sizeof(nint));
+        if ((consumedBytes % sizeof(nint)) != 0)
+            ++consumedValues;
+        return obj;
+    }
+    public static unsafe object? FromNativeValue(byte* valuePtr, int valueCount, Type targetType, out int consumedBytes)
+    {
         if (valueCount < 1)
             throw new ArgumentException("Insufficient native values for conversion.");
-        consumedValues = 1;
         if (targetType.IsValueType)
         {
             if (targetType.IsEnum)
                 targetType = targetType.GetEnumUnderlyingType();
             if (targetType == typeof(bool))
+            {
+                consumedBytes = sizeof(bool);
                 return (*valuePtr != 0);
+            }
             if (targetType == typeof(IntPtr))
+            {
+                consumedBytes = IntPtr.Size;
                 return *(IntPtr*)valuePtr;
+            }
             if (targetType == typeof(UIntPtr))
+            {
+                consumedBytes = UIntPtr.Size;
                 return *(UIntPtr*)valuePtr;
+            }
             if (targetType == typeof(int))
+            {
+                consumedBytes = sizeof(int);
                 return *(int*)valuePtr;
+            }
             if (targetType == typeof(uint))
+            {
+                consumedBytes = sizeof(uint);
                 return *(uint*)valuePtr;
+            }
             if (targetType == typeof(long))
+            {
+                consumedBytes = sizeof(long);
                 return *(long*)valuePtr;
+            }
             if (targetType == typeof(ulong))
+            {
+                consumedBytes = sizeof(ulong);
                 return *(ulong*)valuePtr;
+            }
             if (targetType == typeof(float))
+            {
+                consumedBytes = sizeof(float);
                 return *(float*)valuePtr;
+            }
             if (targetType == typeof(double))
+            {
+                consumedBytes = sizeof(double);
                 return *(double*)valuePtr;
+            }
             if (targetType == typeof(GCHandle))
             {
                 var handle = *(IntPtr*)valuePtr;
+                consumedBytes = IntPtr.Size;
                 return handle == default ? new GCHandle() : GCHandle.FromIntPtr(handle);
             }
             try
             {
-                var size = Marshal.SizeOf(targetType);
-                consumedValues = (size / IntPtr.Size);
-                if ((size % IntPtr.Size) > 0)
-                    ++consumedValues;
-                if (valueCount < consumedValues)
+                consumedBytes = Marshal.SizeOf(targetType);
+                if (valueCount < consumedBytes)
                     throw new ArgumentException("Insufficient native values for conversion.");
                 return Marshal.PtrToStructure((IntPtr)valuePtr, targetType);
             }
@@ -141,14 +173,202 @@ static class NativeTypeConversion
                 throw new NotSupportedException($"Cannot convert native value to {targetType.Name}.", ex);
             }
         }
-        else if (targetType.IsClass
-            && typeof(NSObject).IsAssignableFrom(targetType))
+        else if (targetType.IsClass)
         {
-            if (*valuePtr == 0)
+            consumedBytes = IntPtr.Size;
+            var handle = *(IntPtr*)valuePtr;
+            if (handle == default)
                 return null;
-            return NSObject.FromHandle(targetType, (IntPtr)(*valuePtr), false);
+            if (typeof(NSObject).IsAssignableFrom(targetType))
+                return NSObject.FromHandle(targetType,handle, false);
+            if (targetType == typeof(Class))
+                return Class.FromHandle(handle);
+            if (targetType == typeof(Selector))
+                return Selector.FromHandle(handle);
+        }
+        else if (targetType == typeof(string))
+        {
+            var s = new string((sbyte*)valuePtr);
+            consumedBytes = s.Length + 1;
+            return s;
         }
         throw new NotSupportedException($"Cannot convert native value to {targetType.Name}.");
+    }
+
+
+    // Convert from Objective-C type encoding.
+    public static Type FromTypeEncoding(string typeEncoding, out int elementCount) =>
+        FromTypeEncoding(typeEncoding.AsSpan(), out elementCount, out var _);
+    static Type FromTypeEncoding(ReadOnlySpan<char> typeEncoding, out int elementCount, out int consumedChars)
+    {
+        elementCount = 1;
+        consumedChars = 1;
+        var typeEncodingLength = typeEncoding.Length;
+        if (typeEncodingLength == 0)
+            throw new ArgumentException("Empty type encoding.");
+        var subIndex = 1;
+        switch (typeEncoding[0])
+        {
+            case 'B': 
+                return typeof(bool);
+            case 'c':
+                return typeof(sbyte);
+            case 'C':
+                return typeof(byte);
+            case 's':
+                return typeof(short);
+            case 'S':
+                return typeof(ushort);
+            case 'i':
+                return typeof(int);
+            case 'I':
+                return typeof(uint);
+            case 'q':
+                return typeof(long);
+            case 'Q':
+                return typeof(ulong);
+            case 'f':
+                return typeof(float);
+            case 'd':
+                return typeof(double);
+            case '*':
+                return typeof(string);
+            case 'v':
+                return typeof(void);
+            case '@':
+                return typeof(NSObject);
+            case '#':
+                return typeof(Class);
+            case ':':
+                return typeof(Selector);
+            case '?':
+                return typeof(IntPtr);
+            case '^':
+                FromTypeEncoding(typeEncoding.Slice(1), out elementCount, out consumedChars);
+                elementCount = 1;
+                consumedChars += 1;
+                return typeof(IntPtr);
+            case '[': // array
+                {
+                    elementCount = -1;
+                    while (subIndex < typeEncodingLength)
+                    {
+                        if (!char.IsDigit(typeEncoding[subIndex]))
+                        {
+                            if (subIndex > 1)
+                                elementCount = int.Parse(typeEncoding.Slice(1, subIndex - 1));
+                            else
+                                elementCount = 0;
+                            break;
+                        }
+                        ++subIndex;
+                    }
+                    if (elementCount < 0)
+                        goto default;
+                    var elementType = FromTypeEncoding(typeEncoding.Slice(subIndex, typeEncodingLength - subIndex), out var subElementCount, out consumedChars);
+                    if (subIndex + consumedChars > typeEncodingLength || typeEncoding[subIndex + consumedChars] != ']')
+                        goto default;
+                    consumedChars += subIndex + 1;
+                    return elementType.MakeArrayType();
+                }
+            case '{': // structure
+                {
+                    while (subIndex < typeEncodingLength)
+                    {
+                        var c = typeEncoding[subIndex];
+                        if (c == '=')
+                        {
+                            ++subIndex;
+                            break;
+                        }
+                        if (c == '}')
+                            goto default;
+                        ++subIndex;
+                    }
+                    if (subIndex == typeEncodingLength || typeEncoding[subIndex] == '}')
+                        goto default;
+                    var fieldSize = 0;
+                    while (typeEncoding[subIndex] != '}')
+                    {
+                        var fieldType = FromTypeEncoding(typeEncoding.Slice(subIndex), out elementCount, out consumedChars);
+                        if (fieldType.IsArray)
+                            fieldSize += elementCount > 0 ? (Marshal.SizeOf(fieldType.GetElementType()!)) : IntPtr.Size;
+                        else
+                            fieldSize += Marshal.SizeOf(fieldType);
+                        subIndex += consumedChars;
+                        if (subIndex >= typeEncodingLength)
+                            goto default;
+                        if (typeEncoding[subIndex] == '}')
+                            break;
+                    }
+                    if ((fieldSize % IntPtr.Size) > 0)
+                        fieldSize = (fieldSize / IntPtr.Size) + 1;
+                    elementCount = fieldSize;
+                    consumedChars = (subIndex + 1);
+                    return typeof(byte[]);
+                }
+            case '(': // union
+                {
+                    while (subIndex < typeEncodingLength)
+                    {
+                        var c = typeEncoding[subIndex];
+                        if (c == '=')
+                        {
+                            ++subIndex;
+                            break;
+                        }
+                        if (c == '}')
+                            goto default;
+                        ++subIndex;
+                    }
+                    if (subIndex == typeEncodingLength || typeEncoding[subIndex] == ')')
+                        goto default;
+                    var maxFieldSize = 0;
+                    while (typeEncoding[subIndex] != '}')
+                    {
+                        var fieldType = FromTypeEncoding(typeEncoding.Slice(subIndex), out elementCount, out consumedChars);
+                        if (fieldType.IsArray)
+                            maxFieldSize = Math.Max(maxFieldSize, elementCount > 0 ? (Marshal.SizeOf(fieldType.GetElementType()!)) : IntPtr.Size);
+                        else
+                            maxFieldSize = Math.Max(maxFieldSize, Marshal.SizeOf(fieldType));
+                        subIndex += consumedChars;
+                        if (subIndex >= typeEncodingLength)
+                            goto default;
+                        if (typeEncoding[subIndex] == ')')
+                            break;
+                    }
+                    if ((maxFieldSize % IntPtr.Size) > 0)
+                        maxFieldSize = (maxFieldSize / IntPtr.Size) + 1;
+                    elementCount = maxFieldSize;
+                    consumedChars = (subIndex + 1);
+                    return typeof(byte[]);
+                }
+            case 'b': // bit fields
+                {
+                    int bitCount = -1;
+                    while (subIndex < typeEncodingLength)
+                    {
+                        if (!char.IsDigit(typeEncoding[subIndex]))
+                        {
+                            bitCount = int.Parse(typeEncoding.Slice(1, subIndex - 1));
+                            break;
+                        }
+                    }
+                    if (bitCount < 0)
+                        goto default;
+                    consumedChars = subIndex;
+                    if (bitCount <= 32)
+                        return typeof(int);
+                    if (bitCount <= 64)
+                        return typeof(long);
+                    elementCount = (bitCount >> 5);
+                    if ((bitCount % 0x1f) != 0)
+                        ++elementCount;
+                    return typeof(int[]);
+                }
+            default:
+                throw new ArgumentException($"Invalid type encoding: {typeEncoding}.");
+        }
     }
 
 
@@ -200,9 +420,7 @@ static class NativeTypeConversion
     {
         if (type.IsEnum)
             type = type.GetEnumUnderlyingType();
-        if (typeof(NSObject).IsAssignableFrom(type))
-            return 1;
-        else if (type == typeof(bool)
+        if (type == typeof(bool)
             || type == typeof(IntPtr)
             || type == typeof(UIntPtr)
             || type == typeof(int)
@@ -228,6 +446,12 @@ static class NativeTypeConversion
             {
                 throw new NotSupportedException($"Cannot convert {type.Name} to native type.", ex);
             }
+        }
+        else if (typeof(NSObject).IsAssignableFrom(type)
+            || type == typeof(Class)
+            || type == typeof(Selector))
+        {
+            return 1;
         }
         throw new NotSupportedException($"Cannot convert {type.Name} to native type.");
     }
@@ -316,6 +540,13 @@ static class NativeTypeConversion
     // Convert from CLR object to native value.
     public static unsafe int ToNativeValue(object? obj, nint* valuePtr)
     {
+        var byteCount = ToNativeValue(obj, (byte*)valuePtr);
+        if ((byteCount % sizeof(nint)) != 0)
+            return (byteCount / sizeof(nint)) + 1;
+        return (byteCount / sizeof(nint));
+    }
+    public static unsafe int ToNativeValue(object? obj, byte* valuePtr)
+    {
         obj?.GetType()?.Let(t =>
         {
             if (t.IsEnum)
@@ -334,47 +565,90 @@ static class NativeTypeConversion
             }
         });
         if (obj == null)
-            *valuePtr = 0;
-        else if (obj is NSObject nsObj)
-            *valuePtr = (nint)nsObj.Handle;
+        {
+            *(nint*)valuePtr = 0;
+            return IntPtr.Size;
+        }
         else if (obj is bool boolValue)
-            *valuePtr = (boolValue ? 1: 0);
+        {
+            *(bool*)valuePtr = boolValue;
+            return sizeof(bool);
+        }
         else if (obj is IntPtr intPtrValue)
-            *valuePtr = (nint)intPtrValue.ToPointer();
+        {
+            *(IntPtr*)valuePtr = intPtrValue;
+            return IntPtr.Size;
+        }
         else if (obj is UIntPtr uintPtrValue)
-            *valuePtr = (nint)uintPtrValue.ToPointer();
+        {
+            *(UIntPtr*)valuePtr = uintPtrValue;
+            return UIntPtr.Size;
+        }
         else if (obj is int intValue)
-            *valuePtr = (nint)intValue;
+        {
+            *(int*)valuePtr = intValue;
+            return sizeof(int);
+        }
         else if (obj is uint uintValue)
-            *valuePtr = (nint)uintValue;
+        {
+            *(uint*)valuePtr = uintValue;
+            return sizeof(uint);
+        }
         else if (obj is long longValue)
-            *valuePtr = (nint)longValue;
+        {
+            *(long*)valuePtr = longValue;
+            return sizeof(long);
+        }
         else if (obj is ulong ulongValue)
-            *valuePtr = (nint)ulongValue;
+        {
+            *(ulong*)valuePtr = ulongValue;
+            return sizeof(ulong);
+        }
         else if (obj is float floatValue)
-            *valuePtr = (nint)(*(nint*)&floatValue);
+        {
+            *(float*)valuePtr = floatValue;
+            return sizeof(float);
+        }
         else if (obj is double doubleValue)
-            *valuePtr = (nint)(*(nint*)&doubleValue);
+        {
+            *(double*)valuePtr = doubleValue;
+            return sizeof(double);
+        }
         else if (obj is GCHandle gcHandle)
-            *valuePtr = gcHandle == default ? 0 : GCHandle.ToIntPtr(gcHandle);
+        {
+            *(IntPtr*)valuePtr = gcHandle == default ? default : GCHandle.ToIntPtr(gcHandle);
+            return IntPtr.Size;
+        }
         else if (obj is ValueType)
         {
             try
             {
                 var size = Marshal.SizeOf(obj);
                 Marshal.StructureToPtr(obj, (IntPtr)valuePtr, false);
-                if ((size % IntPtr.Size) == 0)
-                    return size / IntPtr.Size;
-                return size / IntPtr.Size + 1;
+                return size;
             }
             catch (Exception ex)
             {
                 throw new NotSupportedException($"Cannot convert {obj.GetType().Name} to native type.", ex);
             }
         }
+        else if (obj is NSObject nsObj)
+        {
+            *(IntPtr*)valuePtr = nsObj.Handle;
+            return IntPtr.Size;
+        }
+        else if (obj is Class cls)
+        {
+            *(IntPtr*)valuePtr = cls.Handle;
+            return IntPtr.Size;
+        }
+        else if (obj is Selector selector)
+        {
+            *(IntPtr*)valuePtr = selector.Handle;
+            return IntPtr.Size;
+        }
         else
             throw new NotSupportedException($"Cannot convert {obj.GetType().Name} to native type.");
-        return 1;
     }
 
 
@@ -416,5 +690,68 @@ static class NativeTypeConversion
                 nvp += ToNativeFpValue(objs[i], nvp);
         }
         return nvs;
+    }
+
+
+    // Convert to Objective-C type encoding.
+    public static string ToTypeEncoding<T>(int elementCount = 1) =>
+        ToTypeEncoding(typeof(T), elementCount);
+    public static string ToTypeEncoding(object obj)
+    {
+        if (obj is Type type)
+            return ToTypeEncoding(type);
+        if (obj is Array array)
+            return ToTypeEncoding(obj.GetType(), array.GetLength(0));
+        return ToTypeEncoding(obj.GetType());
+    }
+    public static string ToTypeEncoding(Type type, int elementCount = 1)
+    {
+        var isArray = type.IsArray;
+        var arrayLengthPrefix = "";
+        if (isArray)
+        {
+            if (type.GetArrayRank() != 1)
+                throw new NotSupportedException($"Only 1-dimensional array is supported for Objective-C.");
+            if (elementCount < 0)
+                throw new ArgumentOutOfRangeException(nameof(elementCount));
+            type = type.GetElementType().AsNonNull();
+            arrayLengthPrefix = elementCount > 0 ? elementCount.ToString() : "";
+        }
+        if (type.IsValueType)
+        {
+            if (type == typeof(bool))
+                return isArray ? $"[{arrayLengthPrefix}B]" : "B";
+            if (type == typeof(byte))
+                return isArray ? $"[{arrayLengthPrefix}C]" : "C";
+            if (type == typeof(sbyte))
+                return isArray ? $"[{arrayLengthPrefix}c]" : "c";
+            if (type == typeof(short))
+                return isArray ? $"[{arrayLengthPrefix}s]" : "s";
+            if (type == typeof(ushort))
+                return isArray ? $"[{arrayLengthPrefix}S]" : "S";
+            if (type == typeof(int))
+                return isArray ? $"[{arrayLengthPrefix}i]" : "i";
+            if (type == typeof(uint))
+                return isArray ? $"[{arrayLengthPrefix}I]" : "I";
+            if (type == typeof(long))
+                return isArray ? $"[{arrayLengthPrefix}q]" : "q";
+            if (type == typeof(ulong))
+                return isArray ? $"[{arrayLengthPrefix}Q]" : "Q";
+            if (type == typeof(IntPtr) || type == typeof(UIntPtr) || type == typeof(GCHandle))
+                return isArray ? $"[{arrayLengthPrefix}^v]" : "^v";
+            if (type == typeof(float))
+                return isArray ? $"[{arrayLengthPrefix}f]" : "f";
+            if (type == typeof(double))
+                return isArray ? $"[{arrayLengthPrefix}d]" : "d";
+        }
+        else if (type == typeof(Class))
+            return isArray ? $"[{arrayLengthPrefix}#]" : "#";
+        else if (type == typeof(Selector))
+            return isArray ? $"[{arrayLengthPrefix}:]" : ":";
+        else if (typeof(NSObject).IsAssignableFrom(type))
+            return isArray ? $"[{arrayLengthPrefix}@]" : "@";
+        else if (type == typeof(string))
+            return isArray ? $"[{arrayLengthPrefix}*]" : "*";
+        throw new NotSupportedException($"Unsupported type for Objective-C: {type.Name}.");
     }
 }

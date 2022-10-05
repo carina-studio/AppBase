@@ -6,7 +6,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
     /// <summary>
     /// Represent member of class.
     /// </summary>
-    public class Member
+    public abstract class Member
     {
         // Constructor.
         internal Member(Class cls, IntPtr handle, string name)
@@ -121,5 +121,97 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// Get setter of property.
         /// </summary>
         public Selector? Setter { get; }
+    }
+
+
+    /// <summary>
+    /// Descriptor of variable of class.
+    /// </summary>
+    public unsafe class Variable : Member
+    {
+        // Native symbols.
+        [DllImport(NativeLibraryNames.ObjectiveC)]
+        static extern sbyte* ivar_getTypeEncoding(IntPtr v);
+
+
+        // Fields.
+        int elementCount;
+        int size;
+        volatile Type? type;
+
+
+        // Constructor.
+        internal Variable(Class cls, IntPtr handle, string name) : base(cls, handle, name)
+        { 
+            var typeEncoding = ivar_getTypeEncoding(handle);
+            this.TypeEncoding = typeEncoding != null ? new string(typeEncoding) : "";
+        }
+
+
+        /// <summary>
+        /// Get number of element if value is an array.
+        /// </summary>
+        public int ElementCount
+        {
+            get
+            {
+                if (this.type == null)
+                    _ = this.Type;
+                return this.elementCount;
+            }
+        }
+
+
+        /// <summary>
+        /// Get size of value of variable in bytes.
+        /// </summary>
+        public int Size
+        {
+            get
+            {
+                if (this.size == 0)
+                {
+                    var type = this.Type;
+                    int SizeOf(Type type)
+                    {
+                        if (type.IsValueType)
+                            return Marshal.SizeOf(type);
+                        if (typeof(NSObject).IsAssignableFrom(type)
+                            || type == typeof(Class)
+                            || type == typeof(Selector))
+                        {
+                            return IntPtr.Size;
+                        }
+                        return Marshal.SizeOf(type);
+                    }
+                    if (type.IsArray)
+                        this.size = this.ElementCount * SizeOf(type.GetElementType()!);
+                    else
+                        this.size = SizeOf(type);
+                }
+                return size;
+            }
+        }
+
+
+        /// <summary>
+        /// Get type of value of variable.
+        /// </summary>
+        public Type Type
+        {
+            get
+            {
+                return this.type ?? NativeTypeConversion.FromTypeEncoding(this.TypeEncoding, out this.elementCount).Also(it =>
+                {
+                    this.type = it;
+                });
+            }
+        }
+
+
+        /// <summary>
+        /// Get type encoding of variable.
+        /// </summary>
+        public string TypeEncoding { get; }
     }
 }
