@@ -97,11 +97,11 @@ namespace CarinaStudio.MacOS.ObjectiveC
         volatile bool areAllIVarsCached;
         volatile bool areAllMethodsCached;
         volatile bool areAllPropertiesCached;
-        readonly IDictionary<string, Member> cachedCVars = new ConcurrentDictionary<string, Member>();
-        readonly IDictionary<string, Member> cachedIVars = new ConcurrentDictionary<string, Member>();
+        readonly IDictionary<string, Variable> cachedCVars = new ConcurrentDictionary<string, Variable>();
+        readonly IDictionary<string, Variable> cachedIVars = new ConcurrentDictionary<string, Variable>();
         readonly IDictionary<Selector, Method> cachedMethods = new ConcurrentDictionary<Selector, Method>();
         readonly IDictionary<string, Property> cachedProperties = new ConcurrentDictionary<string, Property>();
-        internal Member? clrObjectHandleVar;
+        internal Variable? clrObjectHandleVar;
         bool isRegistered;
         volatile bool isRootClass;
         readonly IList<Delegate> methodImplementations;
@@ -197,7 +197,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
             // define variable to link to CLR instance
             var clrObjHandleVarName = "_clrObjectHandle";
             if (!cls.cachedIVars.ContainsKey(clrObjHandleVarName))
-                cls.clrObjectHandleVar = cls.DefineInstanceVariable(clrObjHandleVarName, IntPtr.Size);
+                cls.clrObjectHandleVar = cls.DefineInstanceVariable<IntPtr>(clrObjHandleVarName);
             else
             {
                 for (var i = 1; i <= 10; ++i)
@@ -205,7 +205,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
                     var candName = $"{clrObjHandleVarName}_{i}";
                     if (!cls.cachedIVars.ContainsKey(candName))
                     {
-                        cls.clrObjectHandleVar = cls.DefineInstanceVariable(candName, IntPtr.Size);
+                        cls.clrObjectHandleVar = cls.DefineInstanceVariable<IntPtr>(candName);
                         break;
                     }
                 }
@@ -231,26 +231,62 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// Define instance variable.
         /// </summary>
         /// <param name="name">Name of variable.</param>
-        /// <param name="size">Size of value in bytes.</param>
+        /// <param name="elementCount">Number of element is value is an array.</param>
         /// <returns>Descriptor of instance variable.</returns>
-        public Member DefineInstanceVariable(string name, int size)
+        public Variable DefineInstanceVariable<T>(string name, int elementCount = 1) =>
+            this.DefineInstanceVariable(name, typeof(T), elementCount);
+
+
+        /// <summary>
+        /// Define instance variable.
+        /// </summary>
+        /// <param name="name">Name of variable.</param>
+        /// <param name="type">Type of variable.</param>
+        /// <param name="elementCount">Number of element is value is an array.</param>
+        /// <returns>Descriptor of instance variable.</returns>
+        public Variable DefineInstanceVariable(string name, Type type, int elementCount = 1)
         {
             this.VerifyRegistered();
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentException($"Invalid name: {name}.");
-            if (size <= 0)
-                throw new ArgumentOutOfRangeException(nameof(size));
-            byte alignment = size switch
+            if (elementCount <= 0)
+                throw new ArgumentOutOfRangeException(nameof(elementCount));
+            var typeEncoding = NativeTypeConversion.ToTypeEncoding(type, elementCount);
+            var dataSize = Global.Run(() =>
             {
-                <= 32 => 32,
-                _ => (byte)IntPtr.Size,
+                int SizeOf(Type type)
+                {
+                    if (type.IsValueType)
+                        return Marshal.SizeOf(type);
+                    if (typeof(NSObject).IsAssignableFrom(type)
+                        || type == typeof(Class)
+                        || type == typeof(Selector))
+                    {
+                        return IntPtr.Size;
+                    }
+                    return Marshal.SizeOf(type);
+                }
+                if (type.IsArray)
+                {
+                    if (type.GetArrayRank() > 1)
+                        throw new ArgumentException("Only 1-dimensional array is supported.");
+                    return elementCount * SizeOf(type.GetElementType()!);
+                }
+                return SizeOf(type);
+            });
+            byte alignment = IntPtr.Size switch
+            {
+                4 => 2,
+                8 => 3,
+                16 => 4,
+                _ => throw new NotSupportedException($"Unsupported size of poiter: {IntPtr.Size}."),
             };
-            if (!class_addIvar(this.Handle, name, (nuint)size, alignment, ""))
+            if (!class_addIvar(this.Handle, name, (nuint)dataSize, alignment, typeEncoding))
                 throw new Exception($"Failed to add instance variable '{name}' to '{this.Name}'.");
             var handle = class_getInstanceVariable(this.Handle, name);
             if (handle == IntPtr.Zero)
                 throw new Exception($"Failed to add instance variable '{name}' to '{this.Name}'.");
-            return new Member(this, handle, name).Also(it =>
+            return new Variable(this, handle, name).Also(it =>
             {
                 cachedIVars.TryAdd(name, it);
             });
@@ -463,26 +499,26 @@ namespace CarinaStudio.MacOS.ObjectiveC
                     ? (Delegate)new MethodImplFpRet1((self, cmd) => 
                     {
                         var nr = (nint)0;
-                        NativeTypeConversion.ToNativeValue(implementation.DynamicInvoke(self, cmd), &nr);
+                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, EmptyNativeValues), &nr);
                         return *(double*)&nr;
                     }) 
                     : new MethodImplRet1((self, cmd) => 
                     {
                         var nr = (nint)0;
-                        NativeTypeConversion.ToNativeValue(implementation.DynamicInvoke(self, cmd), &nr);
+                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, EmptyNativeValues), &nr);
                         return nr;
                     }),
                 2 => isFpResult
                     ? (Delegate)new MethodImplFpRet2((self, cmd) => 
                     {
                         var nr = stackalloc nint[2];
-                        NativeTypeConversion.ToNativeValue(implementation.DynamicInvoke(self, cmd), nr);
+                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, EmptyNativeValues), nr);
                         return new NativeFpResult2((double*)nr);
                     }) 
                     : new MethodImplRet2((self, cmd) => 
                     {
                         var nr = stackalloc nint[2];
-                        NativeTypeConversion.ToNativeValue(implementation.DynamicInvoke(self, cmd), nr);
+                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, EmptyNativeValues), nr);
                         return new NativeResult2(nr);
                     }),
                 _ => throw new NotSupportedException($"Unsupported return type '{returnType?.Name}'."),
@@ -1123,7 +1159,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name.</param>
         /// <returns>Descriptor of class variable.</returns>
-        public unsafe Member? GetClassVriable(string name)
+        public unsafe Variable? GetClassVriable(string name)
         {
             if (this.IsProtocol)
                 return null;
@@ -1134,7 +1170,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
             var handle = class_getClassVariable(this.Handle, name);
             if (handle == IntPtr.Zero)
                 return null;
-            return new Member(this, handle, name).Also(it => this.cachedCVars.TryAdd(name, it));
+            return new Variable(this, handle, name).Also(it => this.cachedCVars.TryAdd(name, it));
         }
 
 
@@ -1148,7 +1184,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name.</param>
         /// <returns>Descriptor of instance variable.</returns>
-        public unsafe Member? GetInstanceVriable(string name)
+        public unsafe Variable? GetInstanceVriable(string name)
         {
             if (this.IsProtocol)
                 return null;
@@ -1161,7 +1197,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
             var handle = class_getInstanceVariable(this.Handle, name);
             if (handle == IntPtr.Zero)
                 return null;
-            return new Member(this, handle, name).Also(it => this.cachedIVars.TryAdd(name, it));
+            return new Variable(this, handle, name).Also(it => this.cachedIVars.TryAdd(name, it));
         }
 
 
@@ -1169,17 +1205,17 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// Get all instance variables of the class. Instance variables defined by super classes are excluded.
         /// </summary>
         /// <returns>Descriptors of instance variables.</returns>
-        public Member[] GetInstanceVariables()
+        public Variable[] GetInstanceVariables()
         {
             if (this.areAllIVarsCached || this.IsProtocol)
                 return this.cachedIVars.Values.ToArray();
             var varsPtr = class_copyIvarList(this.Handle, out var count);
             try
             {
-                for (var i = count - 1; i >= 0; --i)
+                for (var i = 0; i < count; ++i)
                 {
                     var name = new string(ivar_getName(varsPtr[i]));
-                    this.cachedIVars.TryAdd(name, new Member(this, varsPtr[i], name));
+                    this.cachedIVars.TryAdd(name, new Variable(this, varsPtr[i], name));
                 }
             }
             finally

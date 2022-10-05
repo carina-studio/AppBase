@@ -83,8 +83,12 @@ namespace CarinaStudio.MacOS.ObjectiveC
         // Native symbols.
         static readonly void* objc_msgSend;
         static readonly void* objc_msgSendSuper;
-        static readonly void* object_getIvar;
-        static readonly void* object_setIvar;
+        [DllImport(NativeLibraryNames.ObjectiveC)]
+        static extern IntPtr object_getInstanceVariable(IntPtr obj, string name, out void* outValue);
+        //static readonly void* object_getIvar;
+        [DllImport(NativeLibraryNames.ObjectiveC)]
+        static extern void object_setInstanceVariable(IntPtr obj, string name, void* value);
+        //static readonly void* object_setIvar;
 
 
         // Static fields.
@@ -112,8 +116,8 @@ namespace CarinaStudio.MacOS.ObjectiveC
             {
                 objc_msgSend = (void*)NativeLibrary.GetExport(libHandle, nameof(objc_msgSend));
                 objc_msgSendSuper = (void*)NativeLibrary.GetExport(libHandle, nameof(objc_msgSendSuper));
-                object_getIvar = (void*)NativeLibrary.GetExport(libHandle, nameof(object_getIvar));
-                object_setIvar = (void*)NativeLibrary.GetExport(libHandle, nameof(object_setIvar));
+                //object_getIvar = (void*)NativeLibrary.GetExport(libHandle, nameof(object_getIvar));
+                //object_setIvar = (void*)NativeLibrary.GetExport(libHandle, nameof(object_setIvar));
             }
             DeallocSelector = Selector.FromName("dealloc");
             InitSelector = Selector.FromName("init");
@@ -270,7 +274,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="ivar">Descriptor of instance variable.</param>
         /// <typeparam name="T">Type of variable.</typeparam>
         /// <returns>Value of variable.</returns>
-        public T GetVariable<T>(Member ivar)
+        public T GetVariable<T>(Variable ivar)
         {
             this.VerifyDisposed();
             return GetVariable<T>(this.Handle, ivar);
@@ -286,66 +290,31 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="ivar">Descriptor of instance variable.</param>
         /// <typeparam name="T">Type of variable.</typeparam>
         /// <returns>Value of variable.</returns>
-        public static T GetVariable<T>(IntPtr obj, Member ivar)
+        public static T GetVariable<T>(IntPtr obj, Variable ivar)
         {
             VerifyHandle(obj);
-            var isFpStructure = NativeTypeConversion.IsFloatingPointStructure(typeof(T));
-            return (T)(NativeTypeConversion.GetNativeValueCount<T>() switch
+            var type = ivar.Type;
+            var size = ivar.Size;
+            var ivarHandle = object_getInstanceVariable(obj, ivar.Name, out var outValue);
+            if (outValue == null)
+                return default;
+            if (type.IsArray)
             {
-                1 => Global.Run(() =>
+                if (type.GetArrayRank() > 1)
+                    throw new NotSupportedException($"Only 1-dimensional array is supported.");
+                var count = ivar.ElementCount;
+                var elementType = type.GetElementType()!;
+                var array = Array.CreateInstance(elementType, count);
+                var elementPtr = (byte*)outValue;
+                for (var i = 0; i < count; ++i)
                 {
-                    if (isFpStructure)
-                    {
-                        var nr = ((delegate*unmanaged<IntPtr, IntPtr, NativeFpResult1>)object_getIvar)(obj, ivar.Handle);
-                        return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 1);
-                    }
-                    else
-                    {
-                        var nr = ((delegate*unmanaged<IntPtr, IntPtr, NativeResult1>)object_getIvar)(obj, ivar.Handle);
-                        return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 1);
-                    }
-                }),
-                2 => Global.Run(() =>
-                {
-                    if (isFpStructure)
-                    {
-                        var nr = ((delegate*unmanaged<IntPtr, IntPtr, NativeFpResult2>)object_getIvar)(obj, ivar.Handle);
-                        return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 2);
-                    }
-                    else
-                    {
-                        var nr = ((delegate*unmanaged<IntPtr, IntPtr, NativeResult2>)object_getIvar)(obj, ivar.Handle);
-                        return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 2);
-                    }
-                }),
-                3 => Global.Run(() =>
-                {
-                    if (isFpStructure)
-                    {
-                        var nr = ((delegate*unmanaged<IntPtr, IntPtr, NativeFpResult3>)object_getIvar)(obj, ivar.Handle);
-                        return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 3);
-                    }
-                    else
-                    {
-                        var nr = ((delegate*unmanaged<IntPtr, IntPtr, NativeResult3>)object_getIvar)(obj, ivar.Handle);
-                        return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 3);
-                    }
-                }),
-                4 => Global.Run(() =>
-                {
-                    if (isFpStructure)
-                    {
-                        var nr = ((delegate*unmanaged<IntPtr, IntPtr, NativeFpResult4>)object_getIvar)(obj, ivar.Handle);
-                        return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 4);
-                    }
-                    else
-                    {
-                        var nr = ((delegate*unmanaged<IntPtr, IntPtr, NativeResult4>)object_getIvar)(obj, ivar.Handle);
-                        return NativeTypeConversion.FromNativeValue<T>((nint*)&nr, 4);
-                    }
-                }),
-                _ => throw new NotSupportedException($"Unsupported variable type '{typeof(T).Name}'."),
-            });
+                    array.SetValue(NativeTypeConversion.FromNativeValue(elementPtr, size, elementType, out var elementSize), i);
+                    elementPtr += elementSize;
+                    size -= elementSize;
+                }
+                return (T)(object)array;
+            }
+            return (T)NativeTypeConversion.FromNativeValue((byte*)outValue, size, typeof(T), out var _);
         }
 #pragma warning restore CS8600
 #pragma warning restore CS8603
@@ -825,7 +794,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="ivar">Instance variable.</param>
         /// <param name="value">Value.</param>
         /// <typeparam name="T">Type of variable.</typeparam>
-        public void SetVariable<T>(Member ivar, T? value)
+        public void SetVariable<T>(Variable ivar, T? value)
         {
             this.VerifyDisposed();
             SetVariable<T>(this.Handle, ivar, value);
@@ -839,26 +808,43 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="ivar">Instance variable.</param>
         /// <param name="value">Value.</param>
         /// <typeparam name="T">Type of variable.</typeparam>
-        public static void SetVariable<T>(IntPtr obj, Member ivar, T? value)
+        public static void SetVariable<T>(IntPtr obj, Variable ivar, T? value)
         {
             VerifyHandle(obj);
-            var nValues = NativeTypeConversion.ToNativeValues(new object?[] { value });
-            switch (nValues.Length)
+            var type = ivar.Type;
+            var size = ivar.Size;
+            fixed (byte* valuePtr = new byte[size])
             {
-                case 1:
-                    ((delegate*unmanaged<IntPtr, IntPtr, nint, void>)object_setIvar)(obj, ivar.Handle, nValues[0]);
-                    break;
-                case 2:
-                    ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, void>)object_setIvar)(obj, ivar.Handle, nValues[0], nValues[1]);
-                    break;
-                case 3:
-                    ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, void>)object_setIvar)(obj, ivar.Handle, nValues[0], nValues[1], nValues[2]);
-                    break;
-                case 4:
-                    ((delegate*unmanaged<IntPtr, IntPtr, nint, nint, nint, nint, void>)object_setIvar)(obj, ivar.Handle, nValues[0], nValues[1], nValues[2], nValues[3]);
-                    break;
-                default:
-                    throw new NotSupportedException($"Unsupported variable type '{typeof(T).Name}'.");
+                if (type.IsArray)
+                {
+                    var maxLength = ivar.ElementCount;
+                    var elementType = type.GetElementType()!;
+                    if (type.GetArrayRank() > 1)
+                        throw new NotSupportedException("Only 1-dimensional array is supported.");
+                    if (value is not Array array)
+                        throw new ArgumentException("Value is not an array.");
+                    if (array.GetType().GetArrayRank() > 1)
+                        throw new NotSupportedException("Only 1-dimensional array is supported.");
+                    if (!elementType.IsAssignableFrom(array.GetType().GetElementType()))
+                        throw new ArgumentException($"Invalid type of array element: {array.GetType().GetElementType()?.Name}, {elementType.Name} expected.");
+                    var arrayLength = array.GetLength(0);
+                    if (arrayLength > maxLength)
+                        throw new ArgumentException($"Size of array is too large: {arrayLength}, maximum size is {maxLength}.");
+                    var count = Math.Min(arrayLength, maxLength);
+                    if (count <= 0)
+                        return;
+                    var elementPtr = valuePtr;
+                    for (var i = 0; i < count; ++i)
+                    {
+                        var elementSize = NativeTypeConversion.ToNativeValue(array.GetValue(i), elementPtr);
+                        elementPtr += elementSize;
+                    }
+                }
+                else if (value == null && type.IsValueType)
+                    throw new ArgumentException($"Cannot set null value to variable {ivar.Name}.");
+                else
+                    NativeTypeConversion.ToNativeValue(value, valuePtr);
+                object_setInstanceVariable(obj, ivar.Name, valuePtr);
             }
         }
 
