@@ -179,5 +179,11 @@ namespace CarinaStudio.MacOS.AppKit
                 return this.mainWindow;
             }
         }
+
+
+        /// <summary>
+        /// Get array of windows.
+        /// </summary>
+        public NSArray<NSWindow> Windows { get => this.GetProperty<NSArray<NSWindow>>(WindowsProperty!); }
     }
 }

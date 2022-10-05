@@ -196,7 +196,19 @@ namespace CarinaStudio
 
         public async void Test()
         {
-            var r = await new TestDialog().ShowDialog<int>();
+            if (Platform.IsMacOS)
+            {
+                var app = NSApplication.Current.AsNonNull();
+                var windows = app.Windows;
+
+                var methods = windows.Class.SuperClass!.SuperClass!.GetMethods();
+                Array.Sort(methods, (l, r) => l.Name.CompareTo(r.Name));
+
+                var array2 = new NSArray<NSResponder>(windows[0], windows[0], windows[0]);
+
+                foreach (var window in array2)
+                    ;
+            }
             /*
             if (this.testDialog == null)
             {
