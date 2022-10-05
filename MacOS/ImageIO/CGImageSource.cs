@@ -92,7 +92,7 @@ public class CGImageSource : CFObject
     public static CGImageSource FromFile(string fileName)
     {
         using var stream = new FileStream(fileName, FileMode.Open);
-        using var data = new CFData(stream);
+        using var data = CFData.FromStream(stream);
         var handle = CGImageSourceCreateWithData(data.Handle, IntPtr.Zero);
         try
         {
@@ -114,7 +114,7 @@ public class CGImageSource : CFObject
     /// <returns><see cref="CGImageSource"/>.</returns>
     public static CGImageSource FromStream(Stream stream)
     {
-        using var data = new CFData(stream);
+        using var data = CFData.FromStream(stream);
         var handle = CGImageSourceCreateWithData(data.Handle, IntPtr.Zero);
         try
         {
