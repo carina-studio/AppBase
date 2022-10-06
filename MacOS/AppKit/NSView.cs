@@ -11,12 +11,17 @@ public class NSView : NSResponder
     // Static fields.
     static readonly Selector? AddSubViewPositionedSelector;
     static readonly Selector? AddSubViewSelector;
+    static readonly Property? BoundsProperty;
+    static readonly Property? BoundsRotationProperty;
+    static readonly Property? FrameProperty;
+    static readonly Property? FrameRotationProperty;
     static readonly Selector? InitWithFrameSelector;
     static readonly Property? IsHiddenOrHasHiddenAncestorProperty;
     static readonly Property? IsHiddenProperty;
     static readonly Selector? LayoutSelector;
     static readonly Class? NSViewClass;
     static readonly Selector? RemoveFromSuperViewSelector;
+    static readonly Property? SafeAreaInsetsProperty;
     static readonly Property? SafeAreaRectProperty;
     static readonly Property? SubViewsProperty;
     static readonly Property? SuperViewProperty;
@@ -32,11 +37,16 @@ public class NSView : NSResponder
         NSViewClass = Class.GetClass("NSView").AsNonNull();
         AddSubViewPositionedSelector = Selector.FromName("addSubview:positioned:relativeTo:");
         AddSubViewSelector = Selector.FromName("addSubview:");
+        BoundsProperty = NSViewClass.GetProperty("bounds");
+        BoundsRotationProperty = NSViewClass.GetProperty("boundsRotation");
+        FrameProperty = NSViewClass.GetProperty("frame");
+        FrameRotationProperty = NSViewClass.GetProperty("frameRotation");
         InitWithFrameSelector = Selector.FromName("initWithFrame:");
         IsHiddenOrHasHiddenAncestorProperty = NSViewClass.GetProperty("hiddenOrHasHiddenAncestor");
         IsHiddenProperty = NSViewClass.GetProperty("hidden");
         LayoutSelector = Selector.FromName("layout");
         RemoveFromSuperViewSelector = Selector.FromName("removeFromSuperview:");
+        SafeAreaInsetsProperty = NSViewClass.GetProperty("safeAreaInsets");
         SafeAreaRectProperty = NSViewClass.GetProperty("safeAreaRect");
         SubViewsProperty = NSViewClass.GetProperty("subviews");
         SuperViewProperty = NSViewClass.GetProperty("superview");
@@ -79,6 +89,46 @@ public class NSView : NSResponder
     /// <param name="otherView">Other view which the sub-view relative to.</param>
     public void AddSubView(NSView view, NSWindow.OrderingMode place, NSView? otherView) =>
         this.SendMessage(AddSubViewSelector!, view, place, otherView);
+    
+
+    /// <summary>
+    /// Get or set bounds rectangle of view.
+    /// </summary>
+    public NSRect Bounds
+    {
+        get => this.GetProperty<NSRect>(BoundsProperty!);
+        set => this.SetProperty(BoundsProperty!, value);
+    }
+
+
+    /// <summary>
+    /// Get or set rotation of bounds in degrees.
+    /// </summary>
+    public float BoundsRotation
+    {
+        get => this.GetProperty<float>(BoundsRotationProperty!);
+        set => this.SetProperty(BoundsRotationProperty!, value);
+    }
+    
+
+    /// <summary>
+    /// Get or set frame of view in its superview’s coordinate system.
+    /// </summary>
+    public NSRect Frame
+    {
+        get => this.GetProperty<NSRect>(FrameProperty!);
+        set => this.SetProperty(FrameProperty!, value);
+    }
+
+
+    /// <summary>
+    /// Get or set rotation of frame in degrees.
+    /// </summary>
+    public float FrameRotation
+    {
+        get => this.GetProperty<float>(FrameRotationProperty!);
+        set => this.SetProperty(FrameRotationProperty!, value);
+    }
 
 
     /// <summary>
@@ -119,6 +169,12 @@ public class NSView : NSResponder
     /// </summary>
     public void RemoveFromSuperView() =>
         this.SendMessage(RemoveFromSuperViewSelector!);
+    
+
+    /// <summary>
+    /// Get distances from the edges of your view that define the safe area.
+    /// </summary>
+    public NSEdgeInsets SafeAreaInsets { get => this.GetProperty<NSEdgeInsets>(SafeAreaInsetsProperty!); }
     
 
     /// <summary>
