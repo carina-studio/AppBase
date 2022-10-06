@@ -157,14 +157,27 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// <param name="ownsInstance">True to owns the native object.</param>
         /// <typeparam name="T">Target type.</typeparam>
         /// <returns>Wrapped object.</returns>
-        public static T FromHandle<T>(IntPtr cf, bool ownsInstance = false) where T : CFObject
+        public static T FromHandle<T>(IntPtr cf, bool ownsInstance = false) where T : CFObject =>
+            (T)FromHandle(typeof(T), cf, ownsInstance);
+
+
+        /// <summary>
+        /// Wrap a native object.
+        /// </summary>
+        /// <param name="type">Target type.</param>
+        /// <param name="cf">Handle of instance.</param>
+        /// <param name="ownsInstance">True to owns the native object.</param>
+        /// <returns>Wrapped object.</returns>
+        public static CFObject FromHandle(Type type, IntPtr cf, bool ownsInstance = false)
         {
-            if (typeof(T) == typeof(CFObject))
-                return (T)new CFObject(cf, ownsInstance);
-            var ctor = GetWrappingConstructor<T>();
+            if (type == typeof(CFObject))
+                return new CFObject(cf, ownsInstance);
+            if (!typeof(CFObject).IsAssignableFrom(type))
+                throw new ArgumentException($"Invalid type: {type.Name}.");
+            var ctor = GetWrappingConstructor(type);
             if (ctor.GetParameters().Length == 2)
-                return (T)Activator.CreateInstance(typeof(T), BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ cf, ownsInstance }, null).AsNonNull();
-            return (T)Activator.CreateInstance(typeof(T), BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ cf }, null).AsNonNull();
+                return (CFObject)Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ cf, ownsInstance }, null).AsNonNull();
+            return (CFObject)Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ cf }, null).AsNonNull();
         }
 
 

@@ -69,8 +69,6 @@ namespace CarinaStudio.MacOS.ObjectiveC
         static extern IntPtr* protocol_copyPropertyList(IntPtr proto, out uint outCount);
         [DllImport(NativeLibraryNames.ObjectiveC)]
         static extern bool protocol_isEqual(IntPtr proto, IntPtr other);
-        [DllImport(NativeLibraryNames.ObjectiveC, EntryPoint = NSObject.SendMessageEntryPointName)]
-        static extern IntPtr SendMessageIntPtr(IntPtr target, IntPtr selector);
 
 
         // Attribute of property.
@@ -154,7 +152,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <returns>Handle of allocated instance.</returns>
         public IntPtr Allocate() =>
-            SendMessageIntPtr(this.Handle, AllocSelector!.Handle);
+            NSObject.SendMessage<IntPtr>(this.Handle, AllocSelector!);
         
 
         /// <summary>
