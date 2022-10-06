@@ -1002,57 +1002,6 @@ namespace CarinaStudio.MacOS.ObjectiveC
             class_respondsToSelector(this.Handle, name.Handle);
 
 
-        // Invoke actual method implementation.
-        unsafe object? InvokeMethodImplementation(Delegate implementation, IntPtr self, IntPtr cmd, params double[] nativeArgs)
-        {
-            var invokeMethod = implementation.GetType().GetMethod("Invoke").AsNonNull();
-            var parameters = invokeMethod.GetParameters();
-            var argCount = parameters.Length;
-            var args = new object?[argCount];
-            args[0] = self;
-            args[1] = Selector.FromHandle(cmd);
-            if (argCount >= 3)
-            {
-                fixed (double* p = nativeArgs)
-                {
-                    var remainingNArgs = nativeArgs.Length;
-                    var nArgsPtr = p;
-                    for (var i = 2; i < argCount; ++i)
-                    {
-                        args[i] = NativeTypeConversion.FromNativeFpValue(nArgsPtr, remainingNArgs, parameters[i].ParameterType, out var consumedNArgs);
-                        nArgsPtr += consumedNArgs;
-                        remainingNArgs -= consumedNArgs;
-                    }
-                }
-            }
-            return implementation.DynamicInvoke(args);
-        }
-        unsafe object? InvokeMethodImplementation(Delegate implementation, IntPtr self, IntPtr cmd, params nint[] nativeArgs)
-        {
-            var invokeMethod = implementation.GetType().GetMethod("Invoke").AsNonNull();
-            var parameters = invokeMethod.GetParameters();
-            var argCount = parameters.Length;
-            var args = new object?[argCount];
-            args[0] = self;
-            args[1] = Selector.FromHandle(cmd);
-            if (argCount >= 3)
-            {
-                fixed (nint* p = nativeArgs)
-                {
-                    var remainingNArgs = nativeArgs.Length;
-                    var nArgsPtr = p;
-                    for (var i = 2; i < argCount; ++i)
-                    {
-                        args[i] = NativeTypeConversion.FromNativeValue(nArgsPtr, remainingNArgs, parameters[i].ParameterType, out var consumedNArgs);
-                        nArgsPtr += consumedNArgs;
-                        remainingNArgs -= consumedNArgs;
-                    }
-                }
-            }
-            return implementation.DynamicInvoke(args);
-        }
-
-
         /// <summary>
         /// Check whether instances of given class can be casted to this class or not.
         /// </summary>
