@@ -3,6 +3,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
 using System.Runtime.InteropServices;
 
 namespace CarinaStudio.MacOS.ObjectiveC
@@ -89,6 +91,8 @@ namespace CarinaStudio.MacOS.ObjectiveC
         static readonly IDictionary<IntPtr, Class> CachedProtocolsByHandle = new ConcurrentDictionary<IntPtr, Class>();
         static readonly IDictionary<string, Class> CachedProtocolsByName = new ConcurrentDictionary<string, Class>();
         static readonly nint[] EmptyNativeValues = new nint[0];
+        static volatile AssemblyBuilder? NativeBridgeAssembly;
+        static volatile ModuleBuilder? NativeBridgeModule;
 
 
         // Fields.
@@ -102,7 +106,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         internal Variable? clrObjectHandleVar;
         bool isRegistered;
         volatile bool isRootClass;
-        readonly IList<Delegate> methodImplementations;
+        readonly IList<Delegate> nativeBridgeMethods;
         volatile Class? superClass;
 
 
@@ -120,8 +124,8 @@ namespace CarinaStudio.MacOS.ObjectiveC
         {
             this.Handle = handle;
             this.IsProtocol = isProtocol;
-            this.methodImplementations = isCustomDefined ? new List<Delegate>() : new Delegate[0];
             this.Name = name;
+            this.nativeBridgeMethods = isCustomDefined ? new List<Delegate>() : new Delegate[0];
         }
 
 
@@ -297,7 +301,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
         public void DefineMethod(string name, Action<IntPtr, Selector> implementation) =>
-            this.DefineMethod(Selector.FromName(name), implementation, null);
+            this.DefineMethodCore(Selector.FromName(name), implementation, false);
 
 
         /// <summary>
@@ -306,7 +310,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
         public void DefineMethod(Selector name, Action<IntPtr, Selector> implementation) =>
-            this.DefineMethod(name, implementation, null);
+            this.DefineMethodCore(name, implementation, false);
         
 
         /// <summary>
@@ -315,7 +319,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
         public void DefineMethod<R>(string name, Func<IntPtr, Selector, R> implementation) =>
-            this.DefineMethod(Selector.FromName(name), implementation, typeof(R));
+            this.DefineMethodCore(Selector.FromName(name), implementation, false);
 
 
         /// <summary>
@@ -324,7 +328,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
         public void DefineMethod<R>(Selector name, Func<IntPtr, Selector, R> implementation) =>
-            this.DefineMethod(name, implementation, typeof(R));
+            this.DefineMethodCore(name, implementation, false);
 
 
         /// <summary>
@@ -333,7 +337,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
         public void DefineMethod<TArg1>(string name, Action<IntPtr, Selector, TArg1> implementation) =>
-            this.DefineMethod<TArg1>(Selector.FromName(name), implementation);
+            this.DefineMethodCore(Selector.FromName(name), implementation, false);
 
 
         /// <summary>
@@ -341,13 +345,8 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
-        public void DefineMethod<TArg1>(Selector name, Action<IntPtr, Selector, TArg1> implementation)
-        {
-            if (NativeTypeConversion.IsFloatingPointStructure(typeof(TArg1)))
-                this.DefineMethodWithNFpArgs(name, NativeTypeConversion.GetNativeFpValueCount<TArg1>(), implementation, null);
-            else
-                this.DefineMethodWithNArgs(name, NativeTypeConversion.GetNativeValueCount<TArg1>(), implementation, null);
-        }
+        public void DefineMethod<TArg1>(Selector name, Action<IntPtr, Selector, TArg1> implementation) =>
+            this.DefineMethodCore(name, implementation, false);
 
 
         /// <summary>
@@ -356,7 +355,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
         public void DefineMethod<TArg1, R>(string name, Func<IntPtr, Selector, TArg1, R> implementation) =>
-            this.DefineMethod<TArg1, R>(Selector.FromName(name), implementation);
+            this.DefineMethodCore(Selector.FromName(name), implementation, false);
 
 
         /// <summary>
@@ -364,13 +363,8 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
-        public void DefineMethod<TArg1, R>(Selector name, Func<IntPtr, Selector, TArg1, R> implementation)
-        {
-            if (NativeTypeConversion.IsFloatingPointStructure(typeof(TArg1)))
-                this.DefineMethodWithNFpArgs(name, NativeTypeConversion.GetNativeFpValueCount<TArg1>(), implementation, typeof(R));
-            else
-                this.DefineMethodWithNArgs(name, NativeTypeConversion.GetNativeValueCount<TArg1>(), implementation, typeof(R));
-        }
+        public void DefineMethod<TArg1, R>(Selector name, Func<IntPtr, Selector, TArg1, R> implementation) =>
+            this.DefineMethodCore(name, implementation, false);
 
 
         /// <summary>
@@ -379,7 +373,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
         public void DefineMethod<TArg1, TArg2>(string name, Action<IntPtr, Selector, TArg1, TArg2> implementation) =>
-            this.DefineMethod<TArg1, TArg2>(Selector.FromName(name), implementation);
+            this.DefineMethodCore(Selector.FromName(name), implementation, false);
 
 
         /// <summary>
@@ -387,17 +381,8 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
-        public void DefineMethod<TArg1, TArg2>(Selector name, Action<IntPtr, Selector, TArg1, TArg2> implementation)
-        {
-            var allFpArgs = NativeTypeConversion.AreAllFloatingPointStructures(typeof(TArg1), typeof(TArg2));
-            var nArgCount = allFpArgs
-                ? NativeTypeConversion.GetNativeFpValueCount(typeof(TArg1), typeof(TArg2))
-                : NativeTypeConversion.GetNativeValueCount(typeof(TArg1), typeof(TArg2));
-            if (allFpArgs)
-                this.DefineMethodWithNFpArgs(name, nArgCount, implementation, null);
-            else
-                this.DefineMethodWithNArgs(name, nArgCount, implementation, null);
-        }
+        public void DefineMethod<TArg1, TArg2>(Selector name, Action<IntPtr, Selector, TArg1, TArg2> implementation) =>
+            this.DefineMethodCore(name, implementation, false);
 
 
         /// <summary>
@@ -406,7 +391,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
         public void DefineMethod<TArg1, TArg2, R>(string name, Func<IntPtr, Selector, TArg1, TArg2, R> implementation) =>
-            this.DefineMethod<TArg1, TArg2, R>(Selector.FromName(name), implementation);
+            this.DefineMethodCore(Selector.FromName(name), implementation, false);
 
 
         /// <summary>
@@ -414,17 +399,8 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
-        public void DefineMethod<TArg1, TArg2, R>(Selector name, Func<IntPtr, Selector, TArg1, TArg2, R> implementation)
-        {
-            var allFpArgs = NativeTypeConversion.AreAllFloatingPointStructures(typeof(TArg1), typeof(TArg2));
-            var nArgCount = allFpArgs
-                ? NativeTypeConversion.GetNativeFpValueCount(typeof(TArg1), typeof(TArg2))
-                : NativeTypeConversion.GetNativeValueCount(typeof(TArg1), typeof(TArg2));
-            if (allFpArgs)
-                this.DefineMethodWithNFpArgs(name, nArgCount, implementation, typeof(R));
-            else
-                this.DefineMethodWithNArgs(name, nArgCount, implementation, typeof(R));
-        }
+        public void DefineMethod<TArg1, TArg2, R>(Selector name, Func<IntPtr, Selector, TArg1, TArg2, R> implementation) =>
+            this.DefineMethodCore(name, implementation, false);
 
 
         /// <summary>
@@ -433,7 +409,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
         public void DefineMethod<TArg1, TArg2, TArg3>(string name, Action<IntPtr, Selector, TArg1, TArg2, TArg3> implementation) =>
-            this.DefineMethod<TArg1, TArg2, TArg3>(Selector.FromName(name), implementation);
+            this.DefineMethodCore(Selector.FromName(name), implementation, false);
 
 
         /// <summary>
@@ -441,17 +417,8 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
-        public void DefineMethod<TArg1, TArg2, TArg3>(Selector name, Action<IntPtr, Selector, TArg1, TArg2, TArg3> implementation)
-        {
-            var allFpArgs = NativeTypeConversion.AreAllFloatingPointStructures(typeof(TArg1), typeof(TArg2), typeof(TArg3));
-            var nArgCount = allFpArgs
-                ? NativeTypeConversion.GetNativeFpValueCount(typeof(TArg1), typeof(TArg2), typeof(TArg3))
-                : NativeTypeConversion.GetNativeValueCount(typeof(TArg1), typeof(TArg2), typeof(TArg3));
-            if (allFpArgs)
-                this.DefineMethodWithNFpArgs(name, nArgCount, implementation, null);
-            else
-                this.DefineMethodWithNArgs(name, nArgCount, implementation, null);
-        }
+        public void DefineMethod<TArg1, TArg2, TArg3>(Selector name, Action<IntPtr, Selector, TArg1, TArg2, TArg3> implementation) =>
+            this.DefineMethodCore(name, implementation, false);
 
 
         /// <summary>
@@ -460,7 +427,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
         public void DefineMethod<TArg1, TArg2, TArg3, R>(string name, Func<IntPtr, Selector, TArg1, TArg2, TArg3, R> implementation) =>
-            this.DefineMethod<TArg1, TArg2, TArg3, R>(Selector.FromName(name), implementation);
+            this.DefineMethodCore(Selector.FromName(name), implementation, false);
 
 
         /// <summary>
@@ -468,17 +435,8 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
-        public void DefineMethod<TArg1, TArg2, TArg3, R>(Selector name, Func<IntPtr, Selector, TArg1, TArg2, TArg3, R> implementation)
-        {
-            var allFpArgs = NativeTypeConversion.AreAllFloatingPointStructures(typeof(TArg1), typeof(TArg2), typeof(TArg3));
-            var nArgCount = allFpArgs
-                ? NativeTypeConversion.GetNativeFpValueCount(typeof(TArg1), typeof(TArg2), typeof(TArg3))
-                : NativeTypeConversion.GetNativeValueCount(typeof(TArg1), typeof(TArg2), typeof(TArg3));
-            if (allFpArgs)
-                this.DefineMethodWithNFpArgs(name, nArgCount, implementation, typeof(R));
-            else
-                this.DefineMethodWithNArgs(name, nArgCount, implementation, typeof(R));
-        }
+        public void DefineMethod<TArg1, TArg2, TArg3, R>(Selector name, Func<IntPtr, Selector, TArg1, TArg2, TArg3, R> implementation) =>
+            this.DefineMethodCore(name, implementation, false);
 
 
         /// <summary>
@@ -487,7 +445,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
         public void DefineMethod<TArg1, TArg2, TArg3, TArg4>(string name, Action<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4> implementation) =>
-            this.DefineMethod<TArg1, TArg2, TArg3, TArg4>(Selector.FromName(name), implementation);
+            this.DefineMethodCore(Selector.FromName(name), implementation, false);
 
 
         /// <summary>
@@ -495,17 +453,8 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
-        public void DefineMethod<TArg1, TArg2, TArg3, TArg4>(Selector name, Action<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4> implementation)
-        {
-            var allFpArgs = NativeTypeConversion.AreAllFloatingPointStructures(typeof(TArg1), typeof(TArg2), typeof(TArg3), typeof(TArg4));
-            var nArgCount = allFpArgs
-                ? NativeTypeConversion.GetNativeFpValueCount(typeof(TArg1), typeof(TArg2), typeof(TArg3), typeof(TArg4))
-                : NativeTypeConversion.GetNativeValueCount(typeof(TArg1), typeof(TArg2), typeof(TArg3), typeof(TArg4));
-            if (allFpArgs)
-                this.DefineMethodWithNFpArgs(name, nArgCount, implementation, null);
-            else
-                this.DefineMethodWithNArgs(name, nArgCount, implementation, null);
-        }
+        public void DefineMethod<TArg1, TArg2, TArg3, TArg4>(Selector name, Action<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4> implementation) =>
+            this.DefineMethodCore(name, implementation, false);
 
 
         /// <summary>
@@ -514,7 +463,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
         public void DefineMethod<TArg1, TArg2, TArg3, TArg4, R>(string name, Func<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4, R> implementation) =>
-            this.DefineMethod<TArg1, TArg2, TArg3, TArg4, R>(Selector.FromName(name), implementation);
+            this.DefineMethodCore(Selector.FromName(name), implementation, false);
 
 
         /// <summary>
@@ -522,17 +471,8 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
-        public void DefineMethod<TArg1, TArg2, TArg3, TArg4, R>(Selector name, Func<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4, R> implementation)
-        {
-            var allFpArgs = NativeTypeConversion.AreAllFloatingPointStructures(typeof(TArg1), typeof(TArg2), typeof(TArg3), typeof(TArg4));
-            var nArgCount = allFpArgs
-                ? NativeTypeConversion.GetNativeFpValueCount(typeof(TArg1), typeof(TArg2), typeof(TArg3), typeof(TArg4))
-                : NativeTypeConversion.GetNativeValueCount(typeof(TArg1), typeof(TArg2), typeof(TArg3), typeof(TArg4));
-            if (allFpArgs)
-                this.DefineMethodWithNFpArgs(name, nArgCount, implementation, typeof(R));
-            else
-                this.DefineMethodWithNArgs(name, nArgCount, implementation, typeof(R));
-        }
+        public void DefineMethod<TArg1, TArg2, TArg3, TArg4, R>(Selector name, Func<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4, R> implementation) =>
+            this.DefineMethodCore(name, implementation, false);
 
 
         /// <summary>
@@ -541,7 +481,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
         public void DefineMethod<TArg1, TArg2, TArg3, TArg4, TArg5>(string name, Action<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4, TArg5> implementation) =>
-            this.DefineMethod<TArg1, TArg2, TArg3, TArg4, TArg5>(Selector.FromName(name), implementation);
+            this.DefineMethodCore(Selector.FromName(name), implementation, false);
 
 
         /// <summary>
@@ -549,17 +489,8 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
-        public void DefineMethod<TArg1, TArg2, TArg3, TArg4, TArg5>(Selector name, Action<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4, TArg5> implementation)
-        {
-            var allFpArgs = NativeTypeConversion.AreAllFloatingPointStructures(typeof(TArg1), typeof(TArg2), typeof(TArg3), typeof(TArg4), typeof(TArg5));
-            var nArgCount = allFpArgs
-                ? NativeTypeConversion.GetNativeFpValueCount(typeof(TArg1), typeof(TArg2), typeof(TArg3), typeof(TArg4), typeof(TArg5))
-                : NativeTypeConversion.GetNativeValueCount(typeof(TArg1), typeof(TArg2), typeof(TArg3), typeof(TArg4), typeof(TArg5));
-            if (allFpArgs)
-                this.DefineMethodWithNFpArgs(name, nArgCount, implementation, null);
-            else
-                this.DefineMethodWithNArgs(name, nArgCount, implementation, null);
-        }
+        public void DefineMethod<TArg1, TArg2, TArg3, TArg4, TArg5>(Selector name, Action<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4, TArg5> implementation) =>
+            this.DefineMethodCore(name, implementation, false);
 
 
         /// <summary>
@@ -568,7 +499,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
         public void DefineMethod<TArg1, TArg2, TArg3, TArg4, TArg5, R>(string name, Func<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4, TArg5, R> implementation) =>
-            this.DefineMethod<TArg1, TArg2, TArg3, TArg4, TArg5, R>(Selector.FromName(name), implementation);
+            this.DefineMethodCore(Selector.FromName(name), implementation, false);
 
 
         /// <summary>
@@ -576,556 +507,149 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
-        public void DefineMethod<TArg1, TArg2, TArg3, TArg4, TArg5, R>(Selector name, Func<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4, TArg5, R> implementation)
-        {
-            var allFpArgs = NativeTypeConversion.AreAllFloatingPointStructures(typeof(TArg1), typeof(TArg2), typeof(TArg3), typeof(TArg4), typeof(TArg5));
-            var nArgCount = allFpArgs
-                ? NativeTypeConversion.GetNativeFpValueCount(typeof(TArg1), typeof(TArg2), typeof(TArg3), typeof(TArg4), typeof(TArg5))
-                : NativeTypeConversion.GetNativeValueCount(typeof(TArg1), typeof(TArg2), typeof(TArg3), typeof(TArg4), typeof(TArg5));
-            if (allFpArgs)
-                this.DefineMethodWithNFpArgs(name, nArgCount, implementation, typeof(R));
-            else
-                this.DefineMethodWithNArgs(name, nArgCount, implementation, typeof(R));
-        }
+        public void DefineMethod<TArg1, TArg2, TArg3, TArg4, TArg5, R>(Selector name, Func<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4, TArg5, R> implementation) =>
+            this.DefineMethodCore(name, implementation, false);
+        
+
+        /// <summary>
+        /// Define method.
+        /// </summary>
+        /// <param name="name">Name of method.</param>
+        /// <param name="implementation">Implementation.</param>
+        public void DefineMethod(Selector name, Delegate implementation) =>
+            this.DefineMethodCore(name, implementation, true);
 
 
-        // Define method without native argument.
-        void DefineMethod(Selector name, Delegate implementation, Type? returnType)
+        // Define method.
+        void DefineMethodCore(Selector name, Delegate impl, bool verifyImpl)
         {
-            var isFpResult = returnType != null && NativeTypeConversion.IsFloatingPointStructure(returnType);
-            var nrSize = returnType != null ? NativeTypeConversion.GetNativeValueCount(returnType) : 0;
-            var wrapper = nrSize switch
+            // verify implementation
+            if (verifyImpl)
+                this.VerifyMethodImplementation(impl);
+            
+            // convert to native types
+            var invokeMethod = impl.GetType().GetMethod("Invoke").AsNonNull();
+            var parameters = invokeMethod.GetParameters();
+            var paramCount = parameters.Length;
+            var paramTypes = new Type[paramCount].Also(it =>
             {
-                0 => isFpResult
-                    ? (Delegate)new MethodImpl((self, cmd) =>
-                        this.InvokeMethodImplementation(implementation, self, cmd, EmptyNativeValues))
-                    : new MethodImpl((self, cmd) =>
-                        this.InvokeMethodImplementation(implementation, self, cmd, EmptyNativeValues)),
-                1 => isFpResult
-                    ? (Delegate)new MethodImplFpRet1((self, cmd) => 
-                    {
-                        var nr = (nint)0;
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, EmptyNativeValues), &nr);
-                        return *(double*)&nr;
-                    }) 
-                    : new MethodImplRet1((self, cmd) => 
-                    {
-                        var nr = (nint)0;
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, EmptyNativeValues), &nr);
-                        return nr;
-                    }),
-                2 => isFpResult
-                    ? (Delegate)new MethodImplFpRet2((self, cmd) => 
-                    {
-                        var nr = stackalloc nint[2];
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, EmptyNativeValues), nr);
-                        return new NativeFpResult2((double*)nr);
-                    }) 
-                    : new MethodImplRet2((self, cmd) => 
-                    {
-                        var nr = stackalloc nint[2];
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, EmptyNativeValues), nr);
-                        return new NativeResult2(nr);
-                    }),
-                _ => throw new NotSupportedException($"Unsupported return type '{returnType?.Name}'."),
-            };
-            if (!class_addMethod(this.Handle, name.Handle, wrapper, ""))
-                throw new Exception($"Failed to add method '{name}' to '{this.Name}'.");
-            this.methodImplementations.Add(wrapper); // hold reference to prevent destroying delegate by GC
-        }
-
-
-        // Define method with 1 native argument1.
-        void DefineMethodWith1NArg(Selector name, Delegate implementation, Type? returnType)
-        {
-            var isFpResult = returnType != null && NativeTypeConversion.IsFloatingPointStructure(returnType);
-            var nrSize = returnType != null ? NativeTypeConversion.GetNativeValueCount(returnType) : 0;
-            var wrapper = nrSize switch
+                for (var i = paramCount - 1; i >= 0; --i)
+                    it[i] = parameters[i].ParameterType;
+            });
+            var nativeParamTypes = new Type[paramCount].Also(it =>
             {
-                0 => isFpResult
-                    ? (Delegate)new MethodImplArg1((self, cmd, arg1) => 
-                        this.InvokeMethodImplementation(implementation, self, cmd, arg1))
-                    : new MethodImplArg1((self, cmd, arg1) =>
-                        this.InvokeMethodImplementation(implementation, self, cmd, arg1)),
-                1 => isFpResult
-                    ? (Delegate)new MethodImplFpRet1Arg1((self, cmd, arg1) => 
-                    {
-                        var nr = (nint)0;
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1), &nr);
-                        return *(double*)&nr;
-                    }) 
-                    : new MethodImplRet1Arg1((self, cmd, arg1) => 
-                    {
-                        var nr = (nint)0;
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1), &nr);
-                        return nr;
-                    }),
-                2 => isFpResult
-                    ? (Delegate)new MethodImplFpRet2Arg1((self, cmd, arg1) => 
-                    {
-                        var nr = stackalloc nint[2];
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1), nr);
-                        return new NativeFpResult2((double*)nr);
-                    }) 
-                    : new MethodImplRet2Arg1((self, cmd, arg1) => 
-                    {
-                        var nr = stackalloc nint[2];
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1), nr);
-                        return new NativeResult2(nr);
-                    }),
-                _ => throw new NotSupportedException($"Unsupported return type '{returnType?.Name}'."),
-            };
-            if (!class_addMethod(this.Handle, name.Handle, wrapper, ""))
-                throw new Exception($"Failed to add method '{name}' to '{this.Name}'.");
-            this.methodImplementations.Add(wrapper); // hold reference to prevent destroying delegate by GC
-        }
-        void DefineMethodWith1NFpArg(Selector name, Delegate implementation, Type? returnType)
-        {
-            var isFpResult = returnType != null && NativeTypeConversion.IsFloatingPointStructure(returnType);
-            var nrSize = returnType != null ? NativeTypeConversion.GetNativeValueCount(returnType) : 0;
-            var wrapper = nrSize switch
+                for (var i = paramCount - 1; i >= 0; --i)
+                    it[i] = NativeTypeConversion.ToNativeType(paramTypes[i]);
+            });
+            var returnType = invokeMethod.ReturnType.Let(it =>
             {
-                0 => isFpResult
-                    ? (Delegate)new MethodImplFpArg1((self, cmd, arg1) => 
-                        this.InvokeMethodImplementation(implementation, self, cmd, arg1))
-                    : new MethodImplFpArg1((self, cmd, arg1) =>
-                        this.InvokeMethodImplementation(implementation, self, cmd, arg1)),
-                1 => isFpResult
-                    ? (Delegate)new MethodImplFpRet1FpArg1((self, cmd, arg1) => 
-                    {
-                        var nr = (nint)0;
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1), &nr);
-                        return *(double*)&nr;
-                    }) 
-                    : new MethodImplRet1FpArg1((self, cmd, arg1) => 
-                    {
-                        var nr = (nint)0;
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1), &nr);
-                        return nr;
-                    }),
-                2 => isFpResult
-                    ? (Delegate)new MethodImplFpRet2FpArg1((self, cmd, arg1) => 
-                    {
-                        var nr = stackalloc nint[2];
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1), nr);
-                        return new NativeFpResult2((double*)nr);
-                    }) 
-                    : new MethodImplRet2FpArg1((self, cmd, arg1) => 
-                    {
-                        var nr = stackalloc nint[2];
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1), nr);
-                        return new NativeResult2(nr);
-                    }),
-                _ => throw new NotSupportedException($"Unsupported return type '{returnType?.Name}'."),
-            };
-            if (!class_addMethod(this.Handle, name.Handle, wrapper, ""))
-                throw new Exception($"Failed to add method '{name}' to '{this.Name}'.");
-            this.methodImplementations.Add(wrapper); // hold reference to prevent destroying delegate by GC
-        }
+                if (it == typeof(void))
+                    return null;
+                return it;
+            });
+            var nativeReturnType = returnType != null ? NativeTypeConversion.ToNativeType(returnType) : null;
 
-
-        // Define method with 2 native arguments.
-        void DefineMethodWith2NArgs(Selector name, Delegate implementation, Type? returnType)
-        {
-            var isFpResult = returnType != null && NativeTypeConversion.IsFloatingPointStructure(returnType);
-            var nrSize = returnType != null ? NativeTypeConversion.GetNativeValueCount(returnType) : 0;
-            var wrapper = nrSize switch
+            // create bridge assembly
+            if (NativeBridgeModule == null)
             {
-                0 => isFpResult
-                    ? (Delegate)new MethodImplArg2((self, cmd, arg1, arg2) => 
-                        this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2))
-                    : new MethodImplArg2((self, cmd, arg1, arg2) => 
-                        this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2)),
-                1 => isFpResult
-                    ? (Delegate)new MethodImplFpRet1Arg2((self, cmd, arg1, arg2) => 
+                NativeBridgeModule = typeof(Class).Lock(() =>
+                {
+                    return NativeBridgeModule ?? AssemblyBuilder.DefineDynamicAssembly(new AssemblyName("CarinaStudio.AppBase.MacOS.NativeBridge"), AssemblyBuilderAccess.RunAndCollect).Let(it =>
                     {
-                        var nr = (nint)0;
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2), &nr);
-                        return *(double*)&nr;
-                    }) 
-                    : new MethodImplRet1Arg2((self, cmd, arg1, arg2) => 
-                    {
-                        var nr = (nint)0;
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2), &nr);
-                        return nr;
-                    }),
-                2 => isFpResult
-                    ? (Delegate)new MethodImplFpRet2Arg2((self, cmd, arg1, arg2) => 
-                    {
-                        var nr = stackalloc nint[2];
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2), nr);
-                        return new NativeFpResult2((double*)nr);
-                    }) 
-                    : new MethodImplRet2Arg2((self, cmd, arg1, arg2) => 
-                    {
-                        var nr = stackalloc nint[2];
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2), nr);
-                        return new NativeResult2(nr);
-                    }),
-                _ => throw new NotSupportedException($"Unsupported return type '{returnType?.Name}'."),
-            };
-            if (!class_addMethod(this.Handle, name.Handle, wrapper, ""))
-                throw new Exception($"Failed to add method '{name}' to '{this.Name}'.");
-            this.methodImplementations.Add(wrapper); // hold reference to prevent destroying delegate by GC
-        }
-        void DefineMethodWith2NFpArgs(Selector name, Delegate implementation, Type? returnType)
-        {
-            var isFpResult = returnType != null && NativeTypeConversion.IsFloatingPointStructure(returnType);
-            var nrSize = returnType != null ? NativeTypeConversion.GetNativeValueCount(returnType) : 0;
-            var wrapper = nrSize switch
-            {
-                0 => isFpResult
-                    ? (Delegate)new MethodImplFpArg2((self, cmd, arg1, arg2) => 
-                        this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2))
-                    : new MethodImplFpArg2((self, cmd, arg1, arg2) => 
-                        this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2)),
-                1 => isFpResult
-                    ? (Delegate)new MethodImplFpRet1FpArg2((self, cmd, arg1, arg2) => 
-                    {
-                        var nr = (nint)0;
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2), &nr);
-                        return *(double*)&nr;
-                    }) 
-                    : new MethodImplRet1FpArg2((self, cmd, arg1, arg2) => 
-                    {
-                        var nr = (nint)0;
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2), &nr);
-                        return nr;
-                    }),
-                2 => isFpResult
-                    ? (Delegate)new MethodImplFpRet2FpArg2((self, cmd, arg1, arg2) => 
-                    {
-                        var nr = stackalloc nint[2];
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2), nr);
-                        return new NativeFpResult2((double*)nr);
-                    }) 
-                    : new MethodImplRet2FpArg2((self, cmd, arg1, arg2) => 
-                    {
-                        var nr = stackalloc nint[2];
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2), nr);
-                        return new NativeResult2(nr);
-                    }),
-                _ => throw new NotSupportedException($"Unsupported return type '{returnType?.Name}'."),
-            };
-            if (!class_addMethod(this.Handle, name.Handle, wrapper, ""))
-                throw new Exception($"Failed to add method '{name}' to '{this.Name}'.");
-            this.methodImplementations.Add(wrapper); // hold reference to prevent destroying delegate by GC
-        }
-
-
-        // Define method with 3 native arguments.
-        void DefineMethodWith3NArgs(Selector name, Delegate implementation, Type? returnType)
-        {
-            var isFpResult = returnType != null && NativeTypeConversion.IsFloatingPointStructure(returnType);
-            var nrSize = returnType != null ? NativeTypeConversion.GetNativeValueCount(returnType) : 0;
-            var wrapper = nrSize switch
-            {
-                0 => isFpResult
-                    ? (Delegate)new MethodImplArg3((self, cmd, arg1, arg2, arg3) => 
-                        this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2, arg3))
-                    : new MethodImplArg3((self, cmd, arg1, arg2, arg3) => 
-                        this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2, arg3)),
-                1 => isFpResult
-                    ? (Delegate)new MethodImplFpRet1Arg3((self, cmd, arg1, arg2, arg3) => 
-                    {
-                        var nr = (nint)0;
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2, arg3), &nr);
-                        return *(double*)&nr;
-                    }) 
-                    : new MethodImplRet1Arg3((self, cmd, arg1, arg2, arg3) => 
-                    {
-                        var nr = (nint)0;
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2, arg3), &nr);
-                        return nr;
-                    }),
-                2 => isFpResult
-                    ? (Delegate)new MethodImplFpRet2Arg3((self, cmd, arg1, arg2, arg3) => 
-                    {
-                        var nr = stackalloc nint[2];
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2, arg3), nr);
-                        return new NativeFpResult2((double*)nr);
-                    }) 
-                    : new MethodImplRet2Arg3((self, cmd, arg1, arg2, arg3) => 
-                    {
-                        var nr = stackalloc nint[2];
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2, arg3), nr);
-                        return new NativeResult2(nr);
-                    }),
-                _ => throw new NotSupportedException($"Unsupported return type '{returnType?.Name}'."),
-            };
-            if (!class_addMethod(this.Handle, name.Handle, wrapper, ""))
-                throw new Exception($"Failed to add method '{name}' to '{this.Name}'.");
-            this.methodImplementations.Add(wrapper); // hold reference to prevent destroying delegate by GC
-        }
-        void DefineMethodWith3NFpArgs(Selector name, Delegate implementation, Type? returnType)
-        {
-            var isFpResult = returnType != null && NativeTypeConversion.IsFloatingPointStructure(returnType);
-            var nrSize = returnType != null ? NativeTypeConversion.GetNativeValueCount(returnType) : 0;
-            var wrapper = nrSize switch
-            {
-                0 => isFpResult
-                    ? (Delegate)new MethodImplArg3((self, cmd, arg1, arg2, arg3) => 
-                        this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2, arg3))
-                    : new MethodImplArg3((self, cmd, arg1, arg2, arg3) => 
-                        this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2, arg3)),
-                1 => isFpResult
-                    ? (Delegate)new MethodImplFpRet1Arg3((self, cmd, arg1, arg2, arg3) => 
-                    {
-                        var nr = (nint)0;
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2, arg3), &nr);
-                        return *(double*)&nr;
-                    }) 
-                    : new MethodImplRet1Arg3((self, cmd, arg1, arg2, arg3) => 
-                    {
-                        var nr = (nint)0;
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2, arg3), &nr);
-                        return nr;
-                    }),
-                2 => isFpResult
-                    ? (Delegate)new MethodImplFpRet2Arg3((self, cmd, arg1, arg2, arg3) => 
-                    {
-                        var nr = stackalloc nint[2];
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2, arg3), nr);
-                        return new NativeFpResult2((double*)nr);
-                    }) 
-                    : new MethodImplRet2Arg3((self, cmd, arg1, arg2, arg3) => 
-                    {
-                        var nr = stackalloc nint[2];
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2, arg3), nr);
-                        return new NativeResult2(nr);
-                    }),
-                _ => throw new NotSupportedException($"Unsupported return type '{returnType?.Name}'."),
-            };
-            if (!class_addMethod(this.Handle, name.Handle, wrapper, ""))
-                throw new Exception($"Failed to add method '{name}' to '{this.Name}'.");
-            this.methodImplementations.Add(wrapper); // hold reference to prevent destroying delegate by GC
-        }
-
-
-        // Define method with 4 native arguments.
-        void DefineMethodWith4NArgs(Selector name, Delegate implementation, Type? returnType)
-        {
-            var isFpResult = returnType != null && NativeTypeConversion.IsFloatingPointStructure(returnType);
-            var nrSize = returnType != null ? NativeTypeConversion.GetNativeValueCount(returnType) : 0;
-            var wrapper = nrSize switch
-            {
-                0 => isFpResult
-                    ? (Delegate)new MethodImplArg4((self, cmd, arg1, arg2, arg3, arg4) => 
-                        this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2, arg3, arg4))
-                    : new MethodImplArg4((self, cmd, arg1, arg2, arg3, arg4) => 
-                        this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2, arg3, arg4)),
-                1 => isFpResult
-                    ? (Delegate)new MethodImplFpRet1Arg4((self, cmd, arg1, arg2, arg3, arg4) => 
-                    {
-                        var nr = (nint)0;
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2, arg3, arg4), &nr);
-                        return *(double*)&nr;
-                    }) 
-                    : new MethodImplRet1Arg4((self, cmd, arg1, arg2, arg3, arg4) => 
-                    {
-                        var nr = (nint)0;
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2, arg3, arg4), &nr);
-                        return nr;
-                    }),
-                2 => isFpResult
-                    ? (Delegate)new MethodImplFpRet2Arg4((self, cmd, arg1, arg2, arg3, arg4) => 
-                    {
-                        var nr = stackalloc nint[2];
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2, arg3, arg4), nr);
-                        return new NativeFpResult2((double*)nr);
-                    }) 
-                    : new MethodImplRet2Arg4((self, cmd, arg1, arg2, arg3, arg4) => 
-                    {
-                        var nr = stackalloc nint[2];
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2, arg3, arg4), nr);
-                        return new NativeResult2(nr);
-                    }),
-                _ => throw new NotSupportedException($"Unsupported return type '{returnType?.Name}'."),
-            };
-            if (!class_addMethod(this.Handle, name.Handle, wrapper, ""))
-                throw new Exception($"Failed to add method '{name}' to '{this.Name}'.");
-            this.methodImplementations.Add(wrapper); // hold reference to prevent destroying delegate by GC
-        }
-        void DefineMethodWith4NFpArgs(Selector name, Delegate implementation, Type? returnType)
-        {
-            var isFpResult = returnType != null && NativeTypeConversion.IsFloatingPointStructure(returnType);
-            var nrSize = returnType != null ? NativeTypeConversion.GetNativeValueCount(returnType) : 0;
-            var wrapper = nrSize switch
-            {
-                0 => isFpResult
-                    ? (Delegate)new MethodImplFpArg4((self, cmd, arg1, arg2, arg3, arg4) => 
-                        this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2, arg3, arg4))
-                    : new MethodImplFpArg4((self, cmd, arg1, arg2, arg3, arg4) => 
-                        this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2, arg3, arg4)),
-                1 => isFpResult
-                    ? (Delegate)new MethodImplFpRet1FpArg4((self, cmd, arg1, arg2, arg3, arg4) => 
-                    {
-                        var nr = (nint)0;
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2, arg3, arg4), &nr);
-                        return *(double*)&nr;
-                    }) 
-                    : new MethodImplRet1FpArg4((self, cmd, arg1, arg2, arg3, arg4) => 
-                    {
-                        var nr = (nint)0;
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2, arg3, arg4), &nr);
-                        return nr;
-                    }),
-                2 => isFpResult
-                    ? (Delegate)new MethodImplFpRet2FpArg4((self, cmd, arg1, arg2, arg3, arg4) => 
-                    {
-                        var nr = stackalloc nint[2];
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2, arg3, arg4), nr);
-                        return new NativeFpResult2((double*)nr);
-                    }) 
-                    : new MethodImplRet2FpArg4((self, cmd, arg1, arg2, arg3, arg4) => 
-                    {
-                        var nr = stackalloc nint[2];
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2, arg3, arg4), nr);
-                        return new NativeResult2(nr);
-                    }),
-                _ => throw new NotSupportedException($"Unsupported return type '{returnType?.Name}'."),
-            };
-            if (!class_addMethod(this.Handle, name.Handle, wrapper, ""))
-                throw new Exception($"Failed to add method '{name}' to '{this.Name}'.");
-            this.methodImplementations.Add(wrapper); // hold reference to prevent destroying delegate by GC
-        }
-
-
-        // Define method with 5 native arguments.
-        void DefineMethodWith5NArgs(Selector name, Delegate implementation, Type? returnType)
-        {
-            var isFpResult = returnType != null && NativeTypeConversion.IsFloatingPointStructure(returnType);
-            var nrSize = returnType != null ? NativeTypeConversion.GetNativeValueCount(returnType) : 0;
-            var wrapper = nrSize switch
-            {
-                0 => isFpResult
-                    ? (Delegate)new MethodImplArg5((self, cmd, arg1, arg2, arg3, arg4, arg5) => 
-                        this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2, arg3, arg4, arg5))
-                    : new MethodImplArg5((self, cmd, arg1, arg2, arg3, arg4, arg5) => 
-                        this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2, arg3, arg4, arg5)),
-                1 => isFpResult
-                    ? (Delegate)new MethodImplFpRet1Arg5((self, cmd, arg1, arg2, arg3, arg4, arg5) => 
-                    {
-                        var nr = (nint)0;
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2, arg3, arg4, arg5), &nr);
-                        return *(double*)&nr;
-                    }) 
-                    : new MethodImplRet1Arg5((self, cmd, arg1, arg2, arg3, arg4, arg5) => 
-                    {
-                        var nr = (nint)0;
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2, arg3, arg4, arg5), &nr);
-                        return nr;
-                    }),
-                2 => isFpResult
-                    ? (Delegate)new MethodImplFpRet2Arg5((self, cmd, arg1, arg2, arg3, arg4, arg5) => 
-                    {
-                        var nr = stackalloc nint[2];
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2, arg3, arg4, arg5), nr);
-                        return new NativeFpResult2((double*)nr);
-                    }) 
-                    : new MethodImplRet2Arg5((self, cmd, arg1, arg2, arg3, arg4, arg5) => 
-                    {
-                        var nr = stackalloc nint[2];
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2, arg3, arg4, arg5), nr);
-                        return new NativeResult2(nr);
-                    }),
-                _ => throw new NotSupportedException($"Unsupported return type '{returnType?.Name}'."),
-            };
-            if (!class_addMethod(this.Handle, name.Handle, wrapper, ""))
-                throw new Exception($"Failed to add method '{name}' to '{this.Name}'.");
-            this.methodImplementations.Add(wrapper); // hold reference to prevent destroying delegate by GC
-        }
-        void DefineMethodWith5NFpArgs(Selector name, Delegate implementation, Type? returnType)
-        {
-            var isFpResult = returnType != null && NativeTypeConversion.IsFloatingPointStructure(returnType);
-            var nrSize = returnType != null ? NativeTypeConversion.GetNativeValueCount(returnType) : 0;
-            var wrapper = nrSize switch
-            {
-                0 => isFpResult
-                    ? (Delegate)new MethodImplFpArg5((self, cmd, arg1, arg2, arg3, arg4, arg5) => 
-                        this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2, arg3, arg4, arg5))
-                    : new MethodImplFpArg5((self, cmd, arg1, arg2, arg3, arg4, arg5) => 
-                        this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2, arg3, arg4, arg5)),
-                1 => isFpResult
-                    ? (Delegate)new MethodImplFpRet1FpArg5((self, cmd, arg1, arg2, arg3, arg4, arg5) => 
-                    {
-                        var nr = (nint)0;
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2, arg3, arg4, arg5), &nr);
-                        return *(double*)&nr;
-                    }) 
-                    : new MethodImplRet1FpArg5((self, cmd, arg1, arg2, arg3, arg4, arg5) => 
-                    {
-                        var nr = (nint)0;
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2, arg3, arg4, arg5), &nr);
-                        return nr;
-                    }),
-                2 => isFpResult
-                    ? (Delegate)new MethodImplFpRet2FpArg5((self, cmd, arg1, arg2, arg3, arg4, arg5) => 
-                    {
-                        var nr = stackalloc nint[2];
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2, arg3, arg4, arg5), nr);
-                        return new NativeFpResult2((double*)nr);
-                    }) 
-                    : new MethodImplRet2FpArg5((self, cmd, arg1, arg2, arg3, arg4, arg5) => 
-                    {
-                        var nr = stackalloc nint[2];
-                        NativeTypeConversion.ToNativeValue(this.InvokeMethodImplementation(implementation, self, cmd, arg1, arg2, arg3, arg4, arg5), nr);
-                        return new NativeResult2(nr);
-                    }),
-                _ => throw new NotSupportedException($"Unsupported return type '{returnType?.Name}'."),
-            };
-            if (!class_addMethod(this.Handle, name.Handle, wrapper, ""))
-                throw new Exception($"Failed to add method '{name}' to '{this.Name}'.");
-            this.methodImplementations.Add(wrapper); // hold reference to prevent destroying delegate by GC
-        }
-
-
-        // Define method with native arguments.
-        void DefineMethodWithNArgs(Selector name, int nativeArgCount, Delegate implementation, Type? returnType)
-        {
-            switch (nativeArgCount)
-            {
-                case 1:
-                    this.DefineMethodWith1NArg(name, implementation, null);
-                    break;
-                case 2:
-                    this.DefineMethodWith2NArgs(name, implementation, null);
-                    break;
-                case 3:
-                    this.DefineMethodWith3NArgs(name, implementation, null);
-                    break;
-                case 4:
-                    this.DefineMethodWith4NArgs(name, implementation, null);
-                    break;
-                case 5:
-                    this.DefineMethodWith5NArgs(name, implementation, null);
-                    break;
-                default:
-                    throw new NotSupportedException("Too many native arguments.");
+                        NativeBridgeAssembly = it;
+                        NativeBridgeModule = it.DefineDynamicModule("Class");
+                        return NativeBridgeModule;
+                    });
+                });
             }
-        }
-        void DefineMethodWithNFpArgs(Selector name, int nativeArgCount, Delegate implementation, Type? returnType)
-        {
-            switch (nativeArgCount)
+
+            // create bridge type
+            var bridgeTypeBuilder = NativeBridgeModule.DefineType($"CarinaStudio.MacOS.NativeBridge.{this.Name}-{name.Name}");
+            var implField = bridgeTypeBuilder.DefineField("impl", typeof(Delegate), FieldAttributes.Private);
+            bridgeTypeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, new Type[]{ typeof(Delegate) }).Let(ctor =>
             {
-                case 1:
-                    this.DefineMethodWith1NFpArg(name, implementation, null);
-                    break;
-                case 2:
-                    this.DefineMethodWith2NFpArgs(name, implementation, null);
-                    break;
-                case 3:
-                    this.DefineMethodWith3NFpArgs(name, implementation, null);
-                    break;
-                case 4:
-                    this.DefineMethodWith4NFpArgs(name, implementation, null);
-                    break;
-                case 5:
-                    this.DefineMethodWith5NFpArgs(name, implementation, null);
-                    break;
-                default:
-                    throw new NotSupportedException("Too many native arguments.");
-            }
+                ctor.GetILGenerator().Let(ilGen =>
+                {
+                    ilGen.Emit(OpCodes.Ldarg_0);
+                    ilGen.Emit(OpCodes.Ldarg_1);
+                    ilGen.Emit(OpCodes.Stfld, implField);
+                    ilGen.Emit(OpCodes.Ret);
+                });
+            });
+
+            // create bridge method
+            var getTypeFromHandleMethod = typeof(Type).GetMethod(nameof(Type.GetTypeFromHandle), BindingFlags.Public | BindingFlags.Static).AsNonNull();
+            var fromNativeValueMethod = typeof(NativeTypeConversion).GetMethod(nameof(NativeTypeConversion.FromNativeValue), BindingFlags.Public | BindingFlags.Static, new Type[]{ typeof(object), typeof(Type) }).AsNonNull();
+            var toNativeValueMethod = typeof(NativeTypeConversion).GetMethod(nameof(NativeTypeConversion.ToNativeValue), BindingFlags.Public | BindingFlags.Static, new Type[]{ typeof(object) }).AsNonNull();
+            bridgeTypeBuilder.DefineMethod("Invoke", MethodAttributes.Public, nativeReturnType, nativeParamTypes).Also(it =>
+            {
+                it.GetILGenerator().Let(ilGen => // (object this, IntPtr self, IntPtr cmd, parameters...)
+                {
+                    // load this.impl for calling later
+                    ilGen.Emit(OpCodes.Ldarg_0);
+                    ilGen.Emit(OpCodes.Ldfld, implField);
+
+                    // load self
+                    ilGen.Emit(OpCodes.Ldarg_1);
+
+                    // load Selector.FromHandle(cmd);
+                    ilGen.Emit(OpCodes.Ldarg_2);
+                    ilGen.EmitCall(OpCodes.Call, typeof(Selector).GetMethod(nameof(Selector.FromHandle), BindingFlags.Public | BindingFlags.Static).AsNonNull(), null);
+
+                    // foreach (var arg in parameters)
+                    //     load NativeTypeConversion.FromNativeValue(arg);
+                    for (var i = 2; i < paramCount; ++i)
+                    {
+                        // load argument
+                        ilGen.Emit(OpCodes.Ldarg, (short)(i + 1));
+
+                        // convert to CLR type
+                        if (typeof(ValueType).IsAssignableFrom(nativeParamTypes[i]))
+                            ilGen.Emit(OpCodes.Box, nativeParamTypes[i]);
+                        ilGen.Emit(OpCodes.Ldtoken, paramTypes[i]);
+                        ilGen.EmitCall(OpCodes.Call, getTypeFromHandleMethod, null);
+                        ilGen.EmitCall(OpCodes.Call, fromNativeValueMethod, null);
+                        if (typeof(ValueType).IsAssignableFrom(paramTypes[i]))
+                            ilGen.Emit(OpCodes.Unbox_Any, paramTypes[i]);
+                    }
+
+                    // this.impl.Invoke(...);
+                    ilGen.EmitCall(OpCodes.Call, invokeMethod, null);
+                    
+                    // convert return value to native type
+                    if (nativeReturnType != null)
+                    {
+                        if (typeof(ValueType).IsAssignableFrom(returnType))
+                            ilGen.Emit(OpCodes.Box, returnType);
+                        ilGen.EmitCall(OpCodes.Call, toNativeValueMethod, null);
+                        if (typeof(ValueType).IsAssignableFrom(nativeReturnType))
+                            ilGen.Emit(OpCodes.Unbox_Any, nativeReturnType);
+                    }
+                    //else
+                        //ilGen.Emit(OpCodes.Pop); // remove null returned by this.impl.Invoke(...)
+
+                    // complete
+                    ilGen.Emit(OpCodes.Ret);
+                });
+            });
+            var bridgeType = bridgeTypeBuilder.CreateType().AsNonNull();
+
+            // create delegate type for bridge
+            var bridgeDelegateType = NativeBridgeModule.DefineType($"{bridgeTypeBuilder.Name}-Delegate", TypeAttributes.AnsiClass | TypeAttributes.AutoClass | TypeAttributes.Class | TypeAttributes.Public | TypeAttributes.Sealed, typeof(MulticastDelegate)).Also(delegateClass =>
+            {
+                delegateClass.DefineConstructor(MethodAttributes.HideBySig | MethodAttributes.Public | MethodAttributes.RTSpecialName, CallingConventions.Standard, new Type[]{ typeof(object), typeof(IntPtr) }).SetImplementationFlags(MethodImplAttributes.Runtime | MethodImplAttributes.Managed);
+                delegateClass.DefineMethod("Invoke", MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Public | MethodAttributes.Virtual, CallingConventions.Standard, nativeReturnType, nativeParamTypes).SetImplementationFlags(MethodImplAttributes.Runtime | MethodImplAttributes.Managed);
+            }).CreateTypeInfo().AsNonNull();
+
+            // create bridge object
+            var bridgeObject = Activator.CreateInstance(bridgeType, new object?[] { impl }).AsNonNull();
+
+            // create delegate to bridge method
+            var bridgeMethod = bridgeType.GetMethod("Invoke", BindingFlags.Instance | BindingFlags.Public).AsNonNull();
+            var bridgeMethodDelegate = bridgeMethod.CreateDelegate(bridgeDelegateType, bridgeObject);
+            if (!class_addMethod(this.Handle, name.Handle, bridgeMethodDelegate, ""))
+                throw new Exception($"Failed to add method '{name}' to '{this.Name}'.");
+            this.nativeBridgeMethods.Add(bridgeMethodDelegate); // keep delegate to prevent brige object collecting by GC
         }
 
 
@@ -1653,21 +1177,19 @@ namespace CarinaStudio.MacOS.ObjectiveC
 
 
         // Throw exception if implementation is invalid.
-        /*
         void VerifyMethodImplementation(Delegate implementation)
         {
             var invokeMethod = implementation.GetType().GetMethod("Invoke");
             if (invokeMethod == null)
                 throw new ArgumentException("Invalid implementation.");
             var parameters = invokeMethod.GetParameters();
-            if (parameters.Length < 2
-                || parameters[0].ParameterType != typeof(IntPtr)
-                || parameters[1].ParameterType != typeof(IntPtr))
-            {
-                throw new ArgumentException("The first 2 parameters must be System.IntPtr.");
-            }
+            if (parameters.Length < 2)
+                throw new ArgumentException("At least 2 parameters are needed.");
+            if (parameters[0].ParameterType != typeof(IntPtr))
+                throw new ArgumentException("The first parameter must be IntPtr.");
+            if (parameters[1].ParameterType != typeof(Selector))
+                throw new ArgumentException("The second parameter must be Selector.");
         }
-        */
 
 
         // Throw exception if class has been regisgered.
@@ -1677,63 +1199,4 @@ namespace CarinaStudio.MacOS.ObjectiveC
                 throw new InvalidOperationException($"Cannot define member of class '{this.Name}' after registering to Objective-C runtime.");
         }
     }
-    
-
-    delegate void MethodImpl(IntPtr self, IntPtr cmd);
-    delegate void MethodImplArg1(IntPtr self, IntPtr cmd, nint arg1);
-    delegate void MethodImplArg2(IntPtr self, IntPtr cmd, nint arg1, nint arg2);
-    delegate void MethodImplArg3(IntPtr self, IntPtr cmd, nint arg1, nint arg2, nint arg3);
-    delegate void MethodImplArg4(IntPtr self, IntPtr cmd, nint arg1, nint arg2, nint arg3, nint arg4);
-    delegate void MethodImplArg5(IntPtr self, IntPtr cmd, nint arg1, nint arg2, nint arg3, nint arg4, nint arg5);
-    delegate nint MethodImplRet1(IntPtr self, IntPtr cmd);
-    delegate nint MethodImplRet1Arg1(IntPtr self, IntPtr cmd, nint arg1);
-    delegate nint MethodImplRet1Arg2(IntPtr self, IntPtr cmd, nint arg1, nint arg2);
-    delegate nint MethodImplRet1Arg3(IntPtr self, IntPtr cmd, nint arg1, nint arg2, nint arg3);
-    delegate nint MethodImplRet1Arg4(IntPtr self, IntPtr cmd, nint arg1, nint arg2, nint arg3, nint arg4);
-    delegate nint MethodImplRet1Arg5(IntPtr self, IntPtr cmd, nint arg1, nint arg2, nint arg3, nint arg4, nint arg5);
-    delegate double MethodImplFpRet1(IntPtr self, IntPtr cmd);
-    delegate double MethodImplFpRet1Arg1(IntPtr self, IntPtr cmd, nint arg1);
-    delegate double MethodImplFpRet1Arg2(IntPtr self, IntPtr cmd, nint arg1, nint arg2);
-    delegate double MethodImplFpRet1Arg3(IntPtr self, IntPtr cmd, nint arg1, nint arg2, nint arg3);
-    delegate double MethodImplFpRet1Arg4(IntPtr self, IntPtr cmd, nint arg1, nint arg2, nint arg3, nint arg4);
-    delegate double MethodImplFpRet1Arg5(IntPtr self, IntPtr cmd, nint arg1, nint arg2, nint arg3, nint arg4, nint arg5);
-    delegate NativeResult2 MethodImplRet2(IntPtr self, IntPtr cmd);
-    delegate NativeResult2 MethodImplRet2Arg1(IntPtr self, IntPtr cmd, nint arg1);
-    delegate NativeResult2 MethodImplRet2Arg2(IntPtr self, IntPtr cmd, nint arg1, nint arg2);
-    delegate NativeResult2 MethodImplRet2Arg3(IntPtr self, IntPtr cmd, nint arg1, nint arg2, nint arg3);
-    delegate NativeResult2 MethodImplRet2Arg4(IntPtr self, IntPtr cmd, nint arg1, nint arg2, nint arg3, nint arg4);
-    delegate NativeResult2 MethodImplRet2Arg5(IntPtr self, IntPtr cmd, nint arg1, nint arg2, nint arg3, nint arg4, nint arg5);
-    delegate NativeFpResult2 MethodImplFpRet2(IntPtr self, IntPtr cmd);
-    delegate NativeFpResult2 MethodImplFpRet2Arg1(IntPtr self, IntPtr cmd, nint arg1);
-    delegate NativeFpResult2 MethodImplFpRet2Arg2(IntPtr self, IntPtr cmd, nint arg1, nint arg2);
-    delegate NativeFpResult2 MethodImplFpRet2Arg3(IntPtr self, IntPtr cmd, nint arg1, nint arg2, nint arg3);
-    delegate NativeFpResult2 MethodImplFpRet2Arg4(IntPtr self, IntPtr cmd, nint arg1, nint arg2, nint arg3, nint arg4);
-    delegate NativeFpResult2 MethodImplFpRet2Arg5(IntPtr self, IntPtr cmd, nint arg1, nint arg2, nint arg3, nint arg4, nint arg5);
-
-
-    delegate void MethodImplFpArg1(IntPtr self, IntPtr cmd, double arg1);
-    delegate void MethodImplFpArg2(IntPtr self, IntPtr cmd, double arg1, double arg2);
-    delegate void MethodImplFpArg3(IntPtr self, IntPtr cmd, double arg1, double arg2, double arg3);
-    delegate void MethodImplFpArg4(IntPtr self, IntPtr cmd, double arg1, double arg2, double arg3, double arg4);
-    delegate void MethodImplFpArg5(IntPtr self, IntPtr cmd, double arg1, double arg2, double arg3, double arg4, double arg5);
-    delegate nint MethodImplRet1FpArg1(IntPtr self, IntPtr cmd, double arg1);
-    delegate nint MethodImplRet1FpArg2(IntPtr self, IntPtr cmd, double arg1, double arg2);
-    delegate nint MethodImplRet1FpArg3(IntPtr self, IntPtr cmd, double arg1, double arg2, double arg3);
-    delegate nint MethodImplRet1FpArg4(IntPtr self, IntPtr cmd, double arg1, double arg2, double arg3, double arg4);
-    delegate nint MethodImplRet1FpArg5(IntPtr self, IntPtr cmd, double arg1, double arg2, double arg3, double arg4, double arg5);
-    delegate double MethodImplFpRet1FpArg1(IntPtr self, IntPtr cmd, double arg1);
-    delegate double MethodImplFpRet1FpArg2(IntPtr self, IntPtr cmd, double arg1, double arg2);
-    delegate double MethodImplFpRet1FpArg3(IntPtr self, IntPtr cmd, double arg1, double arg2, double arg3);
-    delegate double MethodImplFpRet1FpArg4(IntPtr self, IntPtr cmd, double arg1, double arg2, double arg3, double arg4);
-    delegate double MethodImplFpRet1FpArg5(IntPtr self, IntPtr cmd, double arg1, double arg2, double arg3, double arg4, double arg5);
-    delegate NativeResult2 MethodImplRet2FpArg1(IntPtr self, IntPtr cmd, double arg1);
-    delegate NativeResult2 MethodImplRet2FpArg2(IntPtr self, IntPtr cmd, double arg1, double arg2);
-    delegate NativeResult2 MethodImplRet2FpArg3(IntPtr self, IntPtr cmd, double arg1, double arg2, double arg3);
-    delegate NativeResult2 MethodImplRet2FpArg4(IntPtr self, IntPtr cmd, double arg1, double arg2, double arg3, double arg4);
-    delegate NativeResult2 MethodImplRet2FpArg5(IntPtr self, IntPtr cmd, double arg1, double arg2, double arg3, double arg4, double arg5);
-    delegate NativeFpResult2 MethodImplFpRet2FpArg1(IntPtr self, IntPtr cmd, double arg1);
-    delegate NativeFpResult2 MethodImplFpRet2FpArg2(IntPtr self, IntPtr cmd, double arg1, double arg2);
-    delegate NativeFpResult2 MethodImplFpRet2FpArg3(IntPtr self, IntPtr cmd, double arg1, double arg2, double arg3);
-    delegate NativeFpResult2 MethodImplFpRet2FpArg4(IntPtr self, IntPtr cmd, double arg1, double arg2, double arg3, double arg4);
-    delegate NativeFpResult2 MethodImplFpRet2FpArg5(IntPtr self, IntPtr cmd, double arg1, double arg2, double arg3, double arg4, double arg5);
 }
