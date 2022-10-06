@@ -18,80 +18,6 @@ static class NativeTypeConversion
     static readonly IDictionary<Type, bool> CachedFloatingPointStructures = new ConcurrentDictionary<Type, bool>();
 
 
-    // Check whether all types are floating-point structures or not.
-    public static bool AreAllFloatingPointStructures(params Type[] types)
-    {
-        if (types.IsEmpty())
-            return false;
-        var isFpStructure = IsFloatingPointStructure(types[0]);
-        for (var i = types.Length - 1; i > 0; --i)
-        {
-            if (isFpStructure != IsFloatingPointStructure(types[i]))
-                throw new NotSupportedException("Not all types are consist of integer type or floating-point type.");
-        }
-        return isFpStructure;
-    }
-
-
-    // Check whether all values are floating-point values or not.
-    public static bool AreAllFloatingPointValues(object?[] values)
-    {
-        if (values.IsEmpty())
-            return false;
-        var isFpValue = (bool?)null;
-        for (var i = values.Length - 1; i >= 0; --i)
-        {
-            var type = values[i]?.GetType();
-            if (type == null)
-                continue;
-            if (!isFpValue.HasValue)
-                isFpValue = IsFloatingPointStructure(type);
-            else if (isFpValue != IsFloatingPointStructure(type))
-                throw new NotSupportedException("Not all values are consist of integer type or floating-point type.");
-        }
-        return isFpValue.GetValueOrDefault();
-    }
-
-
-    // Convert from native value to CLR value.
-#pragma warning disable CS8600
-#pragma warning disable CS8603
-    public static unsafe T FromNativeFpValue<T>(double* valuePtr, int valueCount) =>
-        (T)FromNativeFpValue(valuePtr, valueCount, typeof(T), out var _);
-    public static unsafe T FromNativeFpValue<T>(double* valuePtr, int valueCount, out int consumedValues) =>
-        (T)FromNativeFpValue(valuePtr, valueCount, typeof(T), out consumedValues);
-#pragma warning restore CS8600
-#pragma warning restore CS8603
-    public static unsafe object? FromNativeFpValue(double* valuePtr, int valueCount, Type targetType, out int consumedValues)
-    {
-        if (valueCount < 1)
-            throw new ArgumentException("Insufficient native floating-point values for conversion.");
-        consumedValues = 1;
-        if (targetType.IsValueType)
-        {
-            if (targetType == typeof(float))
-                return *(float*)valuePtr;
-            if (targetType == typeof(double))
-                return *(double*)valuePtr;
-            try
-            {
-                var size = Marshal.SizeOf(targetType);
-                consumedValues = (size >> 3);
-                if ((size & 0x3) != 0)
-                    ++consumedValues;
-                if (valueCount < consumedValues)
-                    throw new ArgumentException("Insufficient native floating-point values for conversion.");
-                return Marshal.PtrToStructure((IntPtr)valuePtr, targetType);
-            }
-            catch (Exception ex)
-            {
-                throw new NotSupportedException($"Cannot convert native floating-point value to {targetType.Name}.", ex);
-            }
-        }
-        throw new NotSupportedException($"Cannot convert native floating-point value to {targetType.Name}.");
-    }
-
-
     // Convert from native value to CLR value.
     public static object? FromNativeValue(object nativeValue, Type targetType)
     {
@@ -150,22 +76,6 @@ static class NativeTypeConversion
         else if (targetType.IsAssignableFrom(nativeValue.GetType()))
             return nativeValue;
         throw new NotSupportedException($"Cannot convert native value to {targetType.Name}.");
-    }
-#pragma warning disable CS8600
-#pragma warning disable CS8603
-    public static unsafe T FromNativeValue<T>(nint* valuePtr, int valueCount) =>
-        (T)FromNativeValue(valuePtr, valueCount, typeof(T), out var _);
-    public static unsafe T FromNativeValue<T>(nint* valuePtr, int valueCount, out int consumedValues) =>
-        (T)FromNativeValue(valuePtr, valueCount, typeof(T), out consumedValues);
-#pragma warning restore CS8600
-#pragma warning restore CS8603
-    public static unsafe object? FromNativeValue(nint* valuePtr, int valueCount, Type targetType, out int consumedValues)
-    {
-        var obj = FromNativeValue((byte*)valuePtr, valueCount * sizeof(nint), targetType, out var consumedBytes);
-        consumedValues = (consumedBytes / sizeof(nint));
-        if ((consumedBytes % sizeof(nint)) != 0)
-            ++consumedValues;
-        return obj;
     }
     public static unsafe object? FromNativeValue(byte* valuePtr, int valueCount, Type targetType, out int consumedBytes)
     {
@@ -476,132 +386,6 @@ static class NativeTypeConversion
     }
 
 
-    // Calculate number of native values needed for CLR object.
-    public static int GetNativeValueCount(object? obj) =>
-        obj != null ? GetNativeValueCount(obj.GetType()) : 1;
-    public static int GetNativeValueCount<T>() =>
-        GetNativeValueCount(typeof(T));
-    public static int GetNativeValueCount(Type type)
-    {
-        if (type.IsEnum)
-            type = type.GetEnumUnderlyingType();
-        if (type == typeof(bool)
-            || type == typeof(IntPtr)
-            || type == typeof(UIntPtr)
-            || type == typeof(int)
-            || type == typeof(uint)
-            || type == typeof(long)
-            || type == typeof(ulong)
-            || type == typeof(float)
-            || type == typeof(double)
-            || type == typeof(GCHandle))
-        {
-            return 1;
-        }
-        else if (type.IsValueType)
-        {
-            try
-            {
-                var size = Marshal.SizeOf(type);
-                if ((size % IntPtr.Size) == 0)
-                    return size / IntPtr.Size;
-                return size / IntPtr.Size + 1;
-            }
-            catch (Exception ex)
-            {
-                throw new NotSupportedException($"Cannot convert {type.Name} to native type.", ex);
-            }
-        }
-        else if (typeof(NSObject).IsAssignableFrom(type)
-            || type == typeof(Class)
-            || type == typeof(Selector))
-        {
-            return 1;
-        }
-        throw new NotSupportedException($"Cannot convert {type.Name} to native type.");
-    }
-    public static int GetNativeValueCount(params Type[] types)
-    {
-        var count = 0;
-        for (var i = types.Length - 1; i >= 0; --i)
-            count += GetNativeValueCount(types[i]);
-        return count;
-    }
-
-
-    // Check whether given field is a float-point value or not.
-    static bool IsFloatingPointField(FieldInfo fieldInfo) => fieldInfo.FieldType.Let(it =>
-        it == typeof(float) || it == typeof(double) || IsFloatingPointStructure(it));
-
-
-    // Check whether given type is structure contains float-point fields only or not.
-    public static bool IsFloatingPointStructure(Type type)
-    {
-        if (!type.IsValueType || type.IsEnum)
-            return false;
-        if (CachedFloatingPointStructures.TryGetValue(type, out var isFpStructure))
-            return isFpStructure;
-        if (type == typeof(float) || type == typeof(double))
-            return true;
-        if (type == typeof(bool)
-            || type == typeof(byte)
-            || type == typeof(sbyte)
-            || type == typeof(char)
-            || type == typeof(short)
-            || type == typeof(ushort)
-            || type == typeof(int)
-            || type == typeof(uint)
-            || type == typeof(long)
-            || type == typeof(ulong)
-            || type == typeof(nint)
-            || type == typeof(nuint))
-        {
-            return false;
-        }
-        var fields = type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-        if (fields.IsEmpty())
-            return false;
-        isFpStructure = IsFloatingPointField(fields[0]);
-        for (var i = fields.Length - 1; i > 1; --i)
-        {
-            if (isFpStructure != IsFloatingPointField(fields[i]))
-                throw new NotSupportedException($"Structure '{type.Name}' can only be consist of floating-point fields nor integer fields.");
-        }
-        CachedFloatingPointStructures.TryAdd(type, isFpStructure);
-        return isFpStructure;
-    }
-
-
-    // Convert from CLR object to native value.
-    public static unsafe int ToNativeFpValue(object? obj, double* valuePtr)
-    {
-        if (obj == null)
-            throw new ArgumentNullException();
-        if (obj is float floatValue)
-            *valuePtr = floatValue;
-        else if (obj is double doubleValue)
-            *valuePtr = doubleValue;
-        else if (obj is ValueType)
-        {
-            try
-            {
-                var size = Marshal.SizeOf(obj);
-                Marshal.StructureToPtr(obj, (IntPtr)valuePtr, false);
-                if ((size & 0x3) == 0)
-                    return size >> 3;
-                return (size >> 3) + 1;
-            }
-            catch (Exception ex)
-            {
-                throw new NotSupportedException($"Cannot convert {obj.GetType().Name} to native floating-point type.", ex);
-            }
-        }
-        else
-            throw new NotSupportedException($"Cannot convert {obj.GetType().Name} to native floating-point type.");
-        return 1;
-    }
-
-
     // Convert from CLR object to native value.
     public static object ToNativeValue(object? value)
     {
@@ -650,13 +434,6 @@ static class NativeTypeConversion
         else
             return GCHandle.ToIntPtr(GCHandle.Alloc(value));
         throw new NotSupportedException($"Cannot convert {value.GetType().Name} to native value.");
-    }
-    public static unsafe int ToNativeValue(object? obj, nint* valuePtr)
-    {
-        var byteCount = ToNativeValue(obj, (byte*)valuePtr);
-        if ((byteCount % sizeof(nint)) != 0)
-            return (byteCount / sizeof(nint)) + 1;
-        return (byteCount / sizeof(nint));
     }
     public static unsafe int ToNativeValue(object? obj, byte* valuePtr)
     {
@@ -765,47 +542,6 @@ static class NativeTypeConversion
     }
 
 
-    // Convert CLR objects to native values.
-    public static unsafe nint[] ToNativeValues(object?[] objs)
-    {
-        // calculate number of native values needed
-        if (objs.Length == 0)
-            return new nint[0];
-        var nvCount = 0;
-        for (var i = objs.Length - 1; i >= 0; --i)
-            nvCount += GetNativeValueCount(objs[i]);
-        
-        // convert to native values
-        var nvs = new nint[nvCount];
-        fixed (nint* p = nvs)
-        {
-            var nvp = p;
-            for (var i = 0; i< objs.Length; ++i)
-                nvp += ToNativeValue(objs[i], nvp);
-        }
-        return nvs;
-    }
-    public static unsafe double[] ToNativeFpValues(object?[] objs)
-    {
-        // calculate number of native values needed
-        if (objs.Length == 0)
-            return new double[0];
-        var nvCount = 0;
-        for (var i = objs.Length - 1; i >= 0; --i)
-            nvCount += GetNativeFpValueCount(objs[i]);
-        
-        // convert to native values
-        var nvs = new double[nvCount];
-        fixed (double* p = nvs)
-        {
-            var nvp = p;
-            for (var i = 0; i< objs.Length; ++i)
-                nvp += ToNativeFpValue(objs[i], nvp);
-        }
-        return nvs;
-    }
-
-
     // Convert to corresponding native type.
     public static Type ToNativeType(Type? type)
     {
@@ -833,7 +569,7 @@ static class NativeTypeConversion
         else if (type.IsValueType)
             return type;
         else
-            return typeof(nint);
+            return typeof(nint); // CLR object through GCHandle
     }
 
 
