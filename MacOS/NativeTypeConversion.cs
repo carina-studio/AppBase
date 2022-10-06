@@ -1,4 +1,5 @@
 using CarinaStudio.Collections;
+using CarinaStudio.MacOS.CoreFoundation;
 using CarinaStudio.MacOS.ObjectiveC;
 using System;
 using System.Collections.Concurrent;
@@ -92,6 +93,64 @@ static class NativeTypeConversion
 
 
     // Convert from native value to CLR value.
+    public static object? FromNativeValue(object nativeValue, Type targetType)
+    {
+        if (nativeValue is nint nintValue)
+        {
+            if (targetType == typeof(bool))
+                return nintValue != 0;
+            if (targetType == typeof(byte))
+                return (byte)nintValue;
+            if (targetType == typeof(sbyte))
+                return (sbyte)nintValue;
+            if (targetType == typeof(short))
+                return (short)nintValue;
+            if (targetType == typeof(ushort))
+                return (ushort)nintValue;
+            if (targetType == typeof(int))
+                return (int)nintValue;
+            if (targetType == typeof(uint))
+                return (uint)nintValue;
+            if (targetType == typeof(long))
+                return (long)nintValue;
+            if (targetType == typeof(ulong))
+                return (ulong)nintValue;
+            if (targetType == typeof(nint))
+                return nintValue;
+            if (targetType == typeof(nuint))
+                return (nuint)nintValue;
+            if (targetType == typeof(GCHandle))
+                return nintValue == default ? new GCHandle() : GCHandle.FromIntPtr(nintValue);
+            if (targetType.IsClass)
+            {
+                if (nintValue == default)
+                    return null;
+                if (typeof(CFObject).IsAssignableFrom(targetType))
+                    return CFObject.FromHandle(targetType, nintValue);
+                if (typeof(NSObject).IsAssignableFrom(targetType))
+                    return NSObject.FromHandle(targetType, nintValue);
+                if (targetType == typeof(Class))
+                    return Class.FromHandle(nintValue);
+                if (targetType == typeof(Selector))
+                    return Selector.FromHandle(nintValue);
+                var gcHandle = GCHandle.FromIntPtr(nintValue);
+                var clrObj = gcHandle.Target;
+                gcHandle.Free();
+                if (clrObj == null || targetType.IsAssignableFrom(clrObj.GetType()))
+                    return clrObj;
+            }
+        }
+        else if (nativeValue is double doubleValue)
+        {
+            if (targetType == typeof(float))
+                return (float)doubleValue;
+            if (targetType == typeof(double))
+                return doubleValue;
+        }
+        else if (targetType.IsAssignableFrom(nativeValue.GetType()))
+            return nativeValue;
+        throw new NotSupportedException($"Cannot convert native value to {targetType.Name}.");
+    }
 #pragma warning disable CS8600
 #pragma warning disable CS8603
     public static unsafe T FromNativeValue<T>(nint* valuePtr, int valueCount) =>
@@ -544,6 +603,54 @@ static class NativeTypeConversion
 
 
     // Convert from CLR object to native value.
+    public static object ToNativeValue(object? value)
+    {
+        if (value == null)
+            return default(nint);
+        if (value is ValueType)
+        {
+            if (value is bool boolValue)
+                return boolValue ? (nint)1 : 0;
+            if (value is byte byteValue)
+                return (nint)byteValue;
+            if (value is sbyte sbyteValue)
+                return (nint)sbyteValue;
+            if (value is short shortValue)
+                return (nint)shortValue;
+            if (value is ushort ushortValue)
+                return (nint)ushortValue;
+            if (value is int intValue)
+                return (nint)intValue;
+            if (value is uint uintValue)
+                return (nint)uintValue;
+            if (value is long longValue)
+                return (nint)longValue;
+            if (value is ulong ulongValue)
+                return (nint)ulongValue;
+            if (value is nint nintValue)
+                return nintValue;
+            if (value is nuint nuintValue)
+                return (nint)nuintValue;
+            if (value is GCHandle gcHandle)
+                return GCHandle.ToIntPtr(gcHandle);
+            if (value is float floatValue)
+                return (double)floatValue;
+            if (value is double doubleValue)
+                return doubleValue;
+            return value;
+        }
+        else if (value is CFObject cfObject)
+            return cfObject.Handle;
+        else if (value is NSObject nsObject)
+            return nsObject.Handle;
+        else if (value is Class cls)
+            return cls.Handle;
+        else if (value is Selector sel)
+            return sel.Handle;
+        else
+            return GCHandle.ToIntPtr(GCHandle.Alloc(value));
+        throw new NotSupportedException($"Cannot convert {value.GetType().Name} to native value.");
+    }
     public static unsafe int ToNativeValue(object? obj, nint* valuePtr)
     {
         var byteCount = ToNativeValue(obj, (byte*)valuePtr);
@@ -696,6 +803,37 @@ static class NativeTypeConversion
                 nvp += ToNativeFpValue(objs[i], nvp);
         }
         return nvs;
+    }
+
+
+    // Convert to corresponding native type.
+    public static Type ToNativeType(Type? type)
+    {
+        if (type == null
+            || type == typeof(bool)
+            || type == typeof(byte)
+            || type == typeof(sbyte)
+            || type == typeof(short)
+            || type == typeof(ushort)
+            || type == typeof(int)
+            || type == typeof(uint)
+            || type == typeof(long)
+            || type == typeof(ulong)
+            || type == typeof(nint)
+            || type == typeof(nuint)
+            || type == typeof(GCHandle))
+        {
+            return typeof(nint);
+        }
+        else if (type == typeof(float)
+            || type == typeof(double))
+        {
+            return typeof(double);
+        }
+        else if (type.IsValueType)
+            return type;
+        else
+            return typeof(nint);
     }
 
 
