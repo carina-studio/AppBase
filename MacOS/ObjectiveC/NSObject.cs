@@ -111,7 +111,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         volatile Property? hashProperty;
         readonly InstanceHolder instance;
         volatile int isDisposed;
-        volatile bool ownsInstance;
+        readonly bool ownsInstance;
 
 
         // Static initializer.
@@ -141,6 +141,8 @@ namespace CarinaStudio.MacOS.ObjectiveC
         {
             this.instance = instance;
             this.ownsInstance = ownsInstance;
+            if (!ownsInstance)
+                GC.SuppressFinalize(this);
         }
 
 
@@ -153,6 +155,8 @@ namespace CarinaStudio.MacOS.ObjectiveC
         {
             this.instance = new(handle);
             this.ownsInstance = ownsInstance;
+            if (!ownsInstance)
+                GC.SuppressFinalize(this);
         }
 
 

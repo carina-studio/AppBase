@@ -25,7 +25,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
 
         // Fields.
         volatile IntPtr handle;
-        bool ownsInstance;
+        readonly bool ownsInstance;
 
 
         /// <summary>
@@ -53,6 +53,8 @@ namespace CarinaStudio.MacOS.CoreFoundation
             this.handle = handle;
             this.TypeId = typeId;
             this.ownsInstance = ownsInstance;
+            if (!ownsInstance)
+                GC.SuppressFinalize(this);
         }
 
 
@@ -60,27 +62,6 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// Finalizer.
         /// </summary>
         ~CFObject() => this.Release();
-
-
-        /// <summary>
-        /// Cast to object with specific type and release this instance if needed.
-        /// </summary>
-        /// <typeparam name="T">Specific type.</typeparam>
-        /// <returns>Object with specific type</returns>
-        public T Cast<T>() where T : CFObject
-        {
-            if (this is T target)
-                return target;
-            this.VerifyReleased();
-            var ctor = GetWrappingConstructor<T>();
-            var handle = this.handle;
-            var ownsInstance = this.ownsInstance;
-            this.handle = IntPtr.Zero;
-            this.ownsInstance = false;
-            if (ctor.GetParameters().Length == 2)
-                return (T)Activator.CreateInstance(typeof(T), BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ handle, ownsInstance }, null).AsNonNull();
-            return (T)Activator.CreateInstance(typeof(T), BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ handle }, null).AsNonNull();
-        }
 
 
         /// <inheritdoc/>
