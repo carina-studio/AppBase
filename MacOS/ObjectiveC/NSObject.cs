@@ -99,10 +99,11 @@ namespace CarinaStudio.MacOS.ObjectiveC
 
 
         // Static fields.
-        static readonly Selector? DeallocSelector;
         static readonly nint[] EmptyNativeArgs = new nint[0];
         static readonly double[] EmptyNativeFpArgs = new double[0];
         static readonly Selector? InitSelector;
+        static readonly Selector? ReleaseSelector;
+        static readonly Selector? RetainSelector;
         static readonly IDictionary<int, List<SendMessageStubInfo>> SendMessageStubs = new Dictionary<int, List<SendMessageStubInfo>>();
         static readonly IDictionary<Type, ConstructorInfo> WrappingConstructors = new ConcurrentDictionary<Type, ConstructorInfo>();
         
@@ -127,8 +128,9 @@ namespace CarinaStudio.MacOS.ObjectiveC
                 //object_getIvar = (void*)NativeLibrary.GetExport(libHandle, nameof(object_getIvar));
                 //object_setIvar = (void*)NativeLibrary.GetExport(libHandle, nameof(object_setIvar));
             }
-            DeallocSelector = Selector.FromName("dealloc");
             InitSelector = Selector.FromName("init");
+            ReleaseSelector = Selector.FromName("release");
+            RetainSelector = Selector.FromName("retain");
         }
 
 
@@ -207,7 +209,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
             if (this.IsDefaultInstance && disposing)
                 throw new InvalidOperationException("Cannot dispose default instance.");
             if (this.instance.Handle != IntPtr.Zero && this.ownsInstance)
-                ((delegate*<IntPtr, IntPtr, void>)objc_msgSend)(this.instance.Handle, DeallocSelector!.Handle);
+                ((delegate*<IntPtr, IntPtr, void>)objc_msgSend)(this.instance.Handle, ReleaseSelector!.Handle);
             this.instance.Handle = IntPtr.Zero;
         }
 
@@ -424,6 +426,36 @@ namespace CarinaStudio.MacOS.ObjectiveC
             var lHandle = l?.instance?.Handle ?? IntPtr.Zero;
             var rHandle = r?.instance?.Handle ?? IntPtr.Zero;
             return lHandle != rHandle;
+        }
+
+
+        /// <summary>
+        /// Retain the instance.
+        /// </summary>
+        /// <typeparam name="T">Type of instance.</typeparam>
+        /// <returns>Retained instance.</returns>
+        public T Retain<T>() where T : NSObject
+        {
+            this.VerifyDisposed();
+            if (typeof(T) == typeof(NSObject))
+                return (T)new NSObject(new InstanceHolder(Retain(this.instance.Handle), this.Class), true);
+            var ctor = GetWrappingConstructor(typeof(T));
+            var instance = new InstanceHolder(Retain(this.instance.Handle), this.Class);
+            if (ctor.GetParameters().Length == 2)
+                return (T)Activator.CreateInstance(typeof(T), BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ instance, true }, null).AsNonNull();
+            return (T)Activator.CreateInstance(typeof(T), BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ instance }, null).AsNonNull();
+        }
+
+
+        /// <summary>
+        /// Retain an instance.
+        /// </summary>
+        /// <param name="obj">Handle of instance.</param>
+        /// <returns>Handle of retained instance.</returns>
+        public static IntPtr Retain(IntPtr obj)
+        {
+            VerifyHandle(obj);
+            return ((delegate*unmanaged<IntPtr, IntPtr, IntPtr>)objc_msgSend)(obj, RetainSelector!.Handle);
         }
 
 

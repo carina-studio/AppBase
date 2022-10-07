@@ -11,12 +11,14 @@ public class NSProgressIndicator : NSView
     static readonly Property? ControlTintProperty;
     static readonly Property? DoubleValueProperty;
     static readonly Selector? IncrementBySelector;
+    static readonly Property? IsBezeledProperty;
     static readonly Property? IsIndeterminateProperty;
     static readonly Property? MaxValueProperty;
     static readonly Property? MinValueProperty;
     static readonly Class? NSProgressIndicatorClass;
     static readonly Selector? StartAnimationSelector;
     static readonly Selector? StopAnimationSelector;
+    static readonly Property? StyleProperty;
 
 
     // Static initializer.
@@ -28,11 +30,13 @@ public class NSProgressIndicator : NSView
         ControlTintProperty = NSProgressIndicatorClass.GetProperty("controlTint");
         DoubleValueProperty = NSProgressIndicatorClass.GetProperty("doubleValue");
         IncrementBySelector = Selector.FromName("incrementBy:");
+        IsBezeledProperty = NSProgressIndicatorClass.GetProperty("bezeled");
         IsIndeterminateProperty = NSProgressIndicatorClass.GetProperty("indeterminate");
         MaxValueProperty = NSProgressIndicatorClass.GetProperty("maxValue");
         MinValueProperty = NSProgressIndicatorClass.GetProperty("minValue");
         StartAnimationSelector = Selector.FromName("startAnimation:");
         StopAnimationSelector = Selector.FromName("stopAnimation:");
+        StyleProperty = NSProgressIndicatorClass.GetProperty("style");
     }
 
 
@@ -75,6 +79,16 @@ public class NSProgressIndicator : NSView
     /// <param name="delta">Value to incremenet.</param>
     public void Increment(double delta) =>
         this.SendMessage(IncrementBySelector!, delta);
+    
+
+    /// <summary>
+    /// Get or set whether the progress indicator’s frame has a three-dimensional bezel.
+    /// </summary>
+    public bool IsBezeled
+    {
+        get => this.GetProperty<bool>(IsBezeledProperty!);
+        set => this.SetProperty(IsBezeledProperty!, value);
+    }
     
 
     /// <summary>
@@ -121,4 +135,14 @@ public class NSProgressIndicator : NSView
     /// <param name="sender">Sender.</param>
     public void StopAnimation(NSObject? sender = null) =>
         this.SendMessage(StopAnimationSelector!, sender);
+    
+
+    /// <summary>
+    /// Get or set style of progress indicator.
+    /// </summary>
+    public NSProgressIndicatorStyle Style
+    {
+        get => this.GetProperty<NSProgressIndicatorStyle>(StyleProperty!);
+        set => this.SetProperty(StyleProperty!, value);
+    }
 }

@@ -19,7 +19,7 @@ static class NativeTypeConversion
 
 
     // Convert from native value to CLR value.
-    public static object? FromNativeValue(object nativeValue, Type targetType)
+    public static object? FromNativeValue(object nativeValue, Type targetType, bool ownsInstance = false)
     {
         if (IsNativeType(targetType))
             return nativeValue;
@@ -34,9 +34,9 @@ static class NativeTypeConversion
             if (nintValue == default)
                 return null;
             if (typeof(CFObject).IsAssignableFrom(targetType))
-                return CFObject.FromHandle(targetType, nintValue);
+                return CFObject.FromHandle(targetType, nintValue, ownsInstance);
             if (typeof(NSObject).IsAssignableFrom(targetType))
-                return NSObject.FromHandle(targetType, nintValue);
+                return NSObject.FromHandle(targetType, nintValue, ownsInstance);
             if (targetType == typeof(Class))
                 return Class.FromHandle(nintValue);
             if (targetType == typeof(Selector))

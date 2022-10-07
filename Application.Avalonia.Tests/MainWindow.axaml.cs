@@ -14,7 +14,9 @@ using CarinaStudio.MacOS.CoreFoundation;
 using CarinaStudio.MacOS.CoreGraphics;
 using CarinaStudio.MacOS.ImageIO;
 using CarinaStudio.MacOS.ObjectiveC;
+using CarinaStudio.Threading;
 using System.ComponentModel;
+using System.Linq;
 using System.IO;
 
 namespace CarinaStudio
@@ -64,7 +66,7 @@ namespace CarinaStudio
                             return clrObj.BarImpl(value);
                         return 0;
                     });
-                    cls.DefineMethod<int, double, NSSize, double>(FooSelector, (self, cmd, arg1, arg2, arg3) =>
+                    cls.DefineMethod<int, double, NSSize, string, DateTime, double>(FooSelector, (self, cmd, arg1, arg2, arg3, arg4, arg5) =>
                     {
                         return 3.14159;
                     });
@@ -114,8 +116,8 @@ namespace CarinaStudio
             }
 
             // Foo
-            public double Foo(int arg1, double arg2, NSSize arg3) =>
-                SendMessage<double>(FooSelector!, arg1, arg2, arg3);
+            public double Foo(int arg1, double arg2, NSSize arg3, string arg4, DateTime arg5) =>
+                SendMessage<double>(FooSelector!, arg1, arg2, arg3, arg4, arg5);
             
             // Test
             public int Test
@@ -192,6 +194,8 @@ namespace CarinaStudio
 
         MyAppDelegate? myAppDelegate;
         MyClass? myClass;
+        NSProgressIndicator? progressIndicator;
+        ScheduledAction? animateDockTileProgressAction;
 
 
         public async void Test()
@@ -199,15 +203,57 @@ namespace CarinaStudio
             if (Platform.IsMacOS)
             {
                 var app = NSApplication.Current.AsNonNull();
-                var windows = app.Windows;
+                
+                if (this.progressIndicator == null)
+                {
+                    using var dockTileView = new NSView(new(default, app.DockTile.Size));
 
-                var methods = windows.Class.SuperClass!.SuperClass!.GetMethods();
-                Array.Sort(methods, (l, r) => l.Name.CompareTo(r.Name));
+                    using var dockTileViewImageView = new NSImageView(new(default, app.DockTile.Size))
+                    {
+                        Image = app.ApplicationIconImage,
+                        ImageAlignment = NSImageAlignment.Center,
+                        ImageScaling = NSImageScaling.ProportionallyUpOrDown,
+                    };
+                    dockTileView.AddSubView(dockTileViewImageView);
 
-                var array2 = new NSArray<NSResponder>(windows[0], windows[0], windows[0]);
+                    this.progressIndicator = new NSProgressIndicator(new(16, 0, 100, 20))
+                    {
+                        IsBezeled = true,
+                        IsIndeterminate = false,
+                        Style = NSProgressIndicatorStyle.Bar,
+                    };
+                    dockTileView.AddSubView(this.progressIndicator);
 
-                foreach (var window in array2)
-                    ;
+                    app.DockTile.ContentView = dockTileView;
+                    app.DockTile.Display();
+
+                    this.animateDockTileProgressAction ??= new(() =>
+                    {
+                        if (this.progressIndicator == null)
+                            return;
+                        this.progressIndicator.Increment(5);
+                        if (Math.Abs(this.progressIndicator.MaxValue - this.progressIndicator.DoubleValue) < 1)
+                        {
+                            app.DockTile.ContentView = null;
+                            this.progressIndicator = this.progressIndicator.Let(it =>
+                            {
+                                it.RemoveFromSuperView();
+                                it.Dispose();
+                                return (NSProgressIndicator?)null;
+                            });
+                        }
+                        else
+                            this.animateDockTileProgressAction!.Schedule(100);
+                        app.DockTile.Display();
+                    });
+
+                    this.animateDockTileProgressAction!.Schedule(100);
+                }
+                else
+                {
+                    this.progressIndicator.DoubleValue = this.progressIndicator.MaxValue;
+                    this.animateDockTileProgressAction?.Execute();
+                }
             }
             /*
             if (this.testDialog == null)

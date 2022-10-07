@@ -89,7 +89,7 @@ public class NSView : NSResponder
         NeedsLayoutProperty = NSViewClass.GetProperty("needsLayout");
         RemoveConstraintSelector = Selector.FromName("removeConstraint:");
         RemoveConstraintsSelector = Selector.FromName("removeConstraints:");
-        RemoveFromSuperViewSelector = Selector.FromName("removeFromSuperview:");
+        RemoveFromSuperViewSelector = Selector.FromName("removeFromSuperview");
         RightAnchorSelector = Selector.FromName("rightAnchor");
         SafeAreaInsetsSelector = Selector.FromName("safeAreaInsets");
         SafeAreaRectSelector = Selector.FromName("safeAreaRect");
