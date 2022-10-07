@@ -603,14 +603,17 @@ namespace CarinaStudio.MacOS.ObjectiveC
                         // load argument
                         ilGen.Emit(OpCodes.Ldarg, (short)(i + 1));
 
-                        // convert to CLR type
-                        if (typeof(ValueType).IsAssignableFrom(nativeParamTypes[i]))
-                            ilGen.Emit(OpCodes.Box, nativeParamTypes[i]);
-                        ilGen.Emit(OpCodes.Ldtoken, paramTypes[i]);
-                        ilGen.EmitCall(OpCodes.Call, getTypeFromHandleMethod, null);
-                        ilGen.EmitCall(OpCodes.Call, fromNativeValueMethod, null);
-                        if (typeof(ValueType).IsAssignableFrom(paramTypes[i]))
-                            ilGen.Emit(OpCodes.Unbox_Any, paramTypes[i]);
+                        // convert to CLR type if needed
+                        if (!NativeTypeConversion.IsNativeType(paramTypes[i]))
+                        {
+                            if (typeof(ValueType).IsAssignableFrom(nativeParamTypes[i]))
+                                ilGen.Emit(OpCodes.Box, nativeParamTypes[i]);
+                            ilGen.Emit(OpCodes.Ldtoken, paramTypes[i]);
+                            ilGen.EmitCall(OpCodes.Call, getTypeFromHandleMethod, null);
+                            ilGen.EmitCall(OpCodes.Call, fromNativeValueMethod, null);
+                            if (typeof(ValueType).IsAssignableFrom(paramTypes[i]))
+                                ilGen.Emit(OpCodes.Unbox_Any, paramTypes[i]);
+                        }
                     }
 
                     // this.impl.Invoke(...);
