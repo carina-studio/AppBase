@@ -45,7 +45,7 @@ public class NSArray<T> : NSObject, IList<T> where T : NSObject
 
     // Static fields.
     static readonly Selector? ContainsSelector;
-    static readonly Property? CountProperty;
+    static readonly Selector? CountSelector;
     static readonly Selector? IndexOfSelector;
     static readonly Selector? InitWithArraySelector;
     static readonly Selector? InitWithObjectsSelector;
@@ -61,7 +61,7 @@ public class NSArray<T> : NSObject, IList<T> where T : NSObject
             return;
         NSArrayClass = Class.GetClass("NSArray").AsNonNull();
         ContainsSelector = Selector.FromName("contains:");
-        CountProperty = NSArrayClass.GetProperty("count");
+        CountSelector = Selector.FromName("count");
         IndexOfSelector = Selector.FromName("indexOf:");
         InitWithArraySelector = Selector.FromName("initWithArray:");
         InitWithObjectsSelector = Selector.FromName("initWithObjects:count:");
@@ -143,7 +143,7 @@ public class NSArray<T> : NSObject, IList<T> where T : NSObject
     /// <summary>
     /// Get number of element in array.
     /// </summary>
-    public int Count { get => this.GetProperty<int>(CountProperty!); }
+    public int Count { get => this.SendMessage<int>(CountSelector!); }
 
 
     /// <summary>
@@ -236,4 +236,9 @@ public class NSArray<T> : NSObject, IList<T> where T : NSObject
         get => this[index];
         set => throw new InvalidOperationException();
     }
+
+
+    /// <inheritdoc/>
+    public override string ToString() =>
+        $"{typeof(T).Name}[{this.Count}]";
 }
