@@ -1,9 +1,10 @@
+using System;
 namespace CarinaStudio.MacOS.ObjectiveC;
 
 /// <summary>
 /// NSEnumerator.
 /// </summary>
-public class NSEnumerator : NSObject
+public class NSEnumerator: NSObject
 {
     // Static fields.
     static readonly Property? AllObjsProperty;
@@ -23,10 +24,10 @@ public class NSEnumerator : NSObject
 
 
     // Constructor.
-    NSEnumerator(InstanceHolder instance, bool ownsInstance) : this(instance, true, ownsInstance)
-    { }
-    internal NSEnumerator(InstanceHolder instance, bool checkType, bool ownsInstance) : base(instance, ownsInstance) =>
+    NSEnumerator(IntPtr handle, bool ownsInstance) : base(handle, ownsInstance) =>
         this.VerifyClass(NSEnumeratorClass!);
+    NSEnumerator(Class cls, IntPtr handle, bool ownsInstance) : base(cls, handle, ownsInstance)
+    { }
     
 
     /// <summary>

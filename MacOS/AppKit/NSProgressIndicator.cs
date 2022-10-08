@@ -1,4 +1,5 @@
 using CarinaStudio.MacOS.ObjectiveC;
+using System;
 
 namespace CarinaStudio.MacOS.AppKit;
 
@@ -49,8 +50,10 @@ public class NSProgressIndicator : NSView
 
 
     // Constructor.
-    NSProgressIndicator(InstanceHolder instance, bool ownsInstance) : base(instance, ownsInstance) =>
+    NSProgressIndicator(IntPtr handle, bool ownsInstance) : base(handle, false, ownsInstance) =>
         this.VerifyClass(NSProgressIndicatorClass!);
+    NSProgressIndicator(Class cls, IntPtr handle, bool ownsInstance) : base(cls, handle, ownsInstance)
+    { }
     
 
     /// <summary>

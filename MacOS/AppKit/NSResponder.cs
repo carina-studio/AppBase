@@ -1,3 +1,4 @@
+using System;
 using CarinaStudio.MacOS.ObjectiveC;
 
 namespace CarinaStudio.MacOS.AppKit
@@ -23,9 +24,28 @@ namespace CarinaStudio.MacOS.AppKit
         /// <summary>
         /// Initialize new <see cref="NSResponder"/> instance.
         /// </summary>
-        /// <param name="instance">Instance.</param>
+        /// <param name="handle">Handle of instance.</param>
+        /// <param name="verifyClass">True to verify whether instance is NSResponder or not.</param>
         /// <param name="ownsInstance">True to own the instance.</param>
-        protected NSResponder(InstanceHolder instance, bool ownsInstance) : base(instance, ownsInstance) =>
-            this.VerifyClass(NSResponderClass!);
+        protected NSResponder(IntPtr handle, bool verifyClass, bool ownsInstance) : base(handle, ownsInstance)
+        {
+            if (verifyClass)
+                this.VerifyClass(NSResponderClass!);
+        }
+        
+
+        /// <summary>
+        /// Initialize new <see cref="NSResponder"/> instance.
+        /// </summary>
+        /// <param name="cls">Class of instance.</param>
+        /// <param name="handle">Handle of instance.</param>
+        /// <param name="ownsInstance">True to own the instance.</param>
+        protected NSResponder(Class cls, IntPtr handle, bool ownsInstance) : base(cls, handle, ownsInstance)
+        { }
+
+
+        // Constructor.
+        NSResponder(IntPtr handle, bool ownsInstance) : this(handle, true, ownsInstance)
+        { }
     }
 }

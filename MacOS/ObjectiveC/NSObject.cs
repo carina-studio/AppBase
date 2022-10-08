@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.InteropServices;
@@ -13,60 +14,6 @@ namespace CarinaStudio.MacOS.ObjectiveC
     /// </summary>
     public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     {
-        /// <summary>
-        /// Holder of native instance.
-        /// </summary>
-        public class InstanceHolder : IEquatable<InstanceHolder>
-        {
-            // Constructor.
-            internal InstanceHolder(IntPtr handle)
-            { 
-                this.Class = Class.GetClass(handle);
-                this.Handle = handle;
-            }
-            internal InstanceHolder(IntPtr handle, Class cls)
-            {
-                NSObject.VerifyHandle(handle);
-                this.Class = cls;
-                this.Handle = handle;
-            }
-
-            /// <summary>
-            /// Get class of instance.
-            /// </summary>
-            public Class Class { get; }
-
-            /// <inheritdoc/>
-            public bool Equals(InstanceHolder? holder) =>
-                holder is not null && this.Handle == holder.Handle;
-
-            /// <inheritdoc/>
-            public override bool Equals(object? obj) =>
-                obj is InstanceHolder holder && this.Equals(holder);
-
-            /// <inheritdoc/>
-            public override int GetHashCode() =>
-                (int)(this.Handle.ToInt64() & 0x7fffffff);
-
-            /// <summary>
-            /// Get handle of instance.
-            /// </summary>
-            public IntPtr Handle { get; internal set; }
-
-            /// <summary>
-            /// Equality operator.
-            /// </summary>
-            public static bool operator ==(InstanceHolder l, InstanceHolder r) =>
-                l.Handle == r.Handle;
-            
-            /// <summary>
-            /// Inequality operator.
-            /// </summary>
-            public static bool operator !=(InstanceHolder l, InstanceHolder r) =>
-                l.Handle != r.Handle;
-        }
-
-
         [StructLayout(LayoutKind.Sequential)]
         ref struct objc_super
         {
@@ -109,9 +56,10 @@ namespace CarinaStudio.MacOS.ObjectiveC
         
 
         // Fields.
+        readonly Class @class;
+        volatile IntPtr handle;
         volatile Property? hashProperty;
-        readonly InstanceHolder instance;
-        volatile int isDisposed;
+        volatile int isReleased;
         readonly bool ownsInstance;
 
 
@@ -137,11 +85,12 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <summary>
         /// Initialize new <see cref="NSObject"/> instance.
         /// </summary>
-        /// <param name="instance">Native instance.</param>
+        /// <param name="handle">Handle of instance.</param>
         /// <param name="ownsInstance">True to own the instance.</param>
-        internal protected NSObject(InstanceHolder instance, bool ownsInstance)
+        internal protected NSObject(IntPtr handle, bool ownsInstance)
         {
-            this.instance = instance;
+            this.@class = Class.GetClass(handle);
+            this.handle = handle;
             this.ownsInstance = ownsInstance;
             if (!ownsInstance)
                 GC.SuppressFinalize(this);
@@ -151,11 +100,14 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <summary>
         /// Initialize new <see cref="NSObject"/> instance.
         /// </summary>
+        /// <param name="cls">Class of instance.</param>
         /// <param name="handle">Handle of instance.</param>
         /// <param name="ownsInstance">True to own the instance.</param>
-        internal protected NSObject(IntPtr handle, bool ownsInstance)
+        internal protected NSObject(Class cls, IntPtr handle, bool ownsInstance)
         {
-            this.instance = new(handle);
+            VerifyHandle(handle);
+            this.@class = cls;
+            this.handle = handle;
             this.ownsInstance = ownsInstance;
             if (!ownsInstance)
                 GC.SuppressFinalize(this);
@@ -165,58 +117,18 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <summary>
         /// Finalizer.
         /// </summary>
-        ~NSObject() =>
-            this.Dispose(false);
-
-
-        /// <summary>
-        /// Cast instance as given type.
-        /// </summary>
-        /// <typeparam name="T">Type.</typeparam>
-        /// <returns>Casted instance.</returns>
-        public T Cast<T>() where T : NSObject
-        {
-            if (this is T target)
-                return target;
-            var ctor = GetWrappingConstructor<T>();
-            if (ctor.GetParameters().Length == 2)
-                return (T)Activator.CreateInstance(typeof(T), BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ this.instance, this.ownsInstance }, null).AsNonNull();
-            return (T)Activator.CreateInstance(typeof(T), BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ this.instance }, null).AsNonNull();
-        }
+        ~NSObject() => this.OnRelease();
 
 
         /// <summary>
         /// Get class of instance.
         /// </summary>
-        public Class Class { get => this.instance.Class; }
-
-
-        /// <inheritdoc/>
-        public void Dispose()
-        {
-            if (Interlocked.Exchange(ref this.isDisposed, 1) != 0)
-                return;
-            this.Dispose(true);
-        }
-
-
-        /// <summary>
-        /// Dispose the instance.
-        /// </summary>
-        /// <param name="disposing">True to dispose managed resources.</param>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (this.IsDefaultInstance && disposing)
-                throw new InvalidOperationException("Cannot dispose default instance.");
-            if (this.instance.Handle != IntPtr.Zero && this.ownsInstance)
-                ((delegate*<IntPtr, IntPtr, void>)objc_msgSend)(this.instance.Handle, ReleaseSelector!.Handle);
-            this.instance.Handle = IntPtr.Zero;
-        }
+        public Class Class { get => this.@class; }
 
 
         /// <inheritdoc/>
         public bool Equals(NSObject? obj) =>
-            obj != null && obj.instance == this.instance;
+            obj != null && obj.handle == this.handle;
 
 
         /// <inheritdoc/>
@@ -229,9 +141,14 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="handle">Handle of instance.</param>
         /// <param name="ownsInstance">True to owns instance.</param>
-        /// <returns>Wrapped instance.</returns>
-        public static NSObject FromHandle(IntPtr handle, bool ownsInstance = false) =>
-            new NSObject(handle, ownsInstance);
+        /// <returns>Wrapped instance, or Null if <paramref name="handle"/> is <see cref="IntPtr.Zero"/>.</returns>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
+        public static NSObject? FromHandle(IntPtr handle, bool ownsInstance = false)
+        {
+            if (handle == default)
+                return null;
+            return new NSObject(handle, ownsInstance);
+        }
         
 
         /// <summary>
@@ -240,21 +157,30 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="handle">Handle of instance.</param>
         /// <param name="ownsInstance">True to owns instance.</param>
         /// <typeparam name="T">Type to wrap the instance.</typeparam>
-        /// <returns>Wrapped instance.</returns>
-        public static T FromHandle<T>(IntPtr handle, bool ownsInstance = false) where T : NSObject =>
-            (T)FromHandle(typeof(T), handle, ownsInstance);
+        /// <returns>Wrapped instance, or Null if <paramref name="handle"/> is <see cref="IntPtr.Zero"/>.</returns>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
+        public static T? FromHandle<T>(IntPtr handle, bool ownsInstance = false) where T : NSObject =>
+            (T?)FromHandle(typeof(T), handle, ownsInstance);
 
 
-        // Wrap given handle as given type.
-        internal static NSObject FromHandle(Type type, IntPtr handle, bool ownsInstance = false)
+        /// <summary>
+        /// Wrap given handle as given type.
+        /// </summary>
+        /// <param name="type">Type to wrap the instance.</param>
+        /// <param name="handle">Handle of instance.</param>
+        /// <param name="ownsInstance">True to owns instance.</param>
+        /// <returns>Wrapped instance, or Null if <paramref name="handle"/> is <see cref="IntPtr.Zero"/>.</returns>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
+        public static NSObject? FromHandle(Type type, IntPtr handle, bool ownsInstance = false)
         {
+            if (handle == default)
+                return null;
             if (type == typeof(NSObject))
-                return FromHandle(handle, ownsInstance);
+                return new NSObject(handle, ownsInstance);
             var ctor = GetWrappingConstructor(type);
-            var instance = new InstanceHolder(handle);
             if (ctor.GetParameters().Length == 2)
-                return (NSObject)Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ instance, ownsInstance }, null).AsNonNull();
-            return (NSObject)Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ instance }, null).AsNonNull();
+                return (NSObject)Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ handle, ownsInstance }, null).AsNonNull();
+            return (NSObject)Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ Class.GetClass(handle), handle, ownsInstance }, null).AsNonNull();
         }
         
 
@@ -278,7 +204,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
                 ?? this.Class.GetProperty("hash").Also(it => this.hashProperty = it);
             return property != null
                 ? this.GetProperty<int>(property)
-                : this.instance.GetHashCode();
+                : this.handle.GetHashCode();
         }
 
 
@@ -290,7 +216,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <returns>Value of variable.</returns>
         public T GetVariable<T>(Variable ivar)
         {
-            this.VerifyDisposed();
+            this.VerifyReleased();
             return GetVariable<T>(this.Handle, ivar);
         }
 
@@ -342,19 +268,23 @@ namespace CarinaStudio.MacOS.ObjectiveC
                 ? method
                 : type.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).Let(it =>
                 {
-                    var CtorWith1Arg = (ConstructorInfo?)null;
+                    var CtorWith2Args = (ConstructorInfo?)null;
                     foreach (var ctor in it)
                     {
                         var parameters = ctor.GetParameters();
                         switch (parameters.Length)
                         {
-                            case 1:
-                                if (parameters[0].ParameterType == typeof(InstanceHolder))
-                                    CtorWith1Arg = ctor;
-                                break;
                             case 2:
-                                if (parameters[0].ParameterType == typeof(InstanceHolder)
+                                if (parameters[0].ParameterType == typeof(IntPtr)
                                     && parameters[1].ParameterType == typeof(bool))
+                                {
+                                    CtorWith2Args = ctor;
+                                }
+                                break;
+                            case 3:
+                                if (parameters[0].ParameterType == typeof(Class)
+                                    && parameters[1].ParameterType == typeof(IntPtr)
+                                    && parameters[2].ParameterType == typeof(bool))
                                 {
                                     WrappingConstructors.TryAdd(type, ctor);
                                     return ctor;
@@ -362,10 +292,10 @@ namespace CarinaStudio.MacOS.ObjectiveC
                                 break;
                         }
                     }
-                    if (CtorWith1Arg != null)
+                    if (CtorWith2Args != null)
                     {
-                        WrappingConstructors.TryAdd(type, CtorWith1Arg);
-                        return CtorWith1Arg;
+                        WrappingConstructors.TryAdd(type, CtorWith2Args);
+                        return CtorWith2Args;
                     }
                     throw new InvalidCastException($"Cannot find way to construct {type.Name}.");
                 });
@@ -374,7 +304,11 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <summary>
         /// Get handle of instance.
         /// </summary>
-        public IntPtr Handle { get => this.isDisposed == 0 ? this.instance.Handle : IntPtr.Zero; }
+        public IntPtr Handle { get => this.handle; }
+
+
+        /// <inheritdoc/>
+        void IDisposable.Dispose() => this.Release();
 
 
         /// <summary>
@@ -390,21 +324,28 @@ namespace CarinaStudio.MacOS.ObjectiveC
 
 
         /// <summary>
-        /// Get native instance held by this <see cref="NSObject"/>.
-        /// </summary>
-        protected InstanceHolder Instance { get => this.instance; }
-
-
-        /// <summary>
         /// Check whether the instance is default instance which cannot be disposed.
         /// </summary>
         public bool IsDefaultInstance { get; protected set; }
 
 
         /// <summary>
-        /// Check whether instance has been disposed or not.
+        /// Check whether instance has been released or not.
         /// </summary>
-        public bool IsDisposed { get => this.isDisposed != 0; }
+        public bool IsReleased { get => this.isReleased != 0; }
+
+
+        /// <summary>
+        /// Called to release instance.
+        /// </summary>
+        protected virtual void OnRelease()
+        {
+            if (this.IsDefaultInstance)
+                throw new InvalidOperationException("Cannot release default instance.");
+            if (this.handle != IntPtr.Zero && this.ownsInstance)
+                ((delegate*<IntPtr, IntPtr, void>)objc_msgSend)(this.handle, ReleaseSelector!.Handle);
+            this.handle = default;
+        }
 
 
         /// <summary>
@@ -412,8 +353,8 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         public static bool operator ==(NSObject? l, NSObject? r)
         {
-            var lHandle = l?.instance?.Handle ?? IntPtr.Zero;
-            var rHandle = r?.instance?.Handle ?? IntPtr.Zero;
+            var lHandle = l?.Handle ?? default;
+            var rHandle = r?.Handle ?? default;
             return lHandle == rHandle;
         }
 
@@ -423,9 +364,21 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         public static bool operator !=(NSObject? l, NSObject? r)
         {
-            var lHandle = l?.instance?.Handle ?? IntPtr.Zero;
-            var rHandle = r?.instance?.Handle ?? IntPtr.Zero;
+            var lHandle = l?.Handle ?? default;
+            var rHandle = r?.Handle ?? default;
             return lHandle != rHandle;
+        }
+
+
+        /// <summary>
+        /// Release the instance.
+        /// </summary>
+        public void Release()
+        {
+            if (Interlocked.Exchange(ref this.isReleased, 1) != 0)
+                return;
+            GC.SuppressFinalize(this);
+            this.OnRelease();
         }
 
 
@@ -436,26 +389,62 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <returns>Retained instance.</returns>
         public T Retain<T>() where T : NSObject
         {
-            this.VerifyDisposed();
-            if (typeof(T) == typeof(NSObject))
-                return (T)new NSObject(new InstanceHolder(Retain(this.instance.Handle), this.Class), true);
-            var ctor = GetWrappingConstructor(typeof(T));
-            var instance = new InstanceHolder(Retain(this.instance.Handle), this.Class);
-            if (ctor.GetParameters().Length == 2)
-                return (T)Activator.CreateInstance(typeof(T), BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ instance, true }, null).AsNonNull();
-            return (T)Activator.CreateInstance(typeof(T), BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ instance }, null).AsNonNull();
+            this.VerifyReleased();
+            var newHandle = ((delegate*unmanaged<IntPtr, IntPtr, IntPtr>)objc_msgSend)(this.handle, RetainSelector!.Handle);
+            try
+            {
+                if (typeof(T) == typeof(NSObject))
+                    return (T)new NSObject(this.@class, newHandle, true);
+                var ctor = GetWrappingConstructor(typeof(T));
+                if (ctor.GetParameters().Length == 2)
+                    return (T)Activator.CreateInstance(typeof(T), BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ newHandle, true }, null).AsNonNull();
+                return (T)Activator.CreateInstance(typeof(T), BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ this.@class, newHandle, true }, null).AsNonNull();
+            }
+            catch
+            {
+                ((delegate*unmanaged<IntPtr, IntPtr, void>)objc_msgSend)(newHandle, ReleaseSelector!.Handle);
+                throw;
+            }
         }
 
 
         /// <summary>
-        /// Retain an instance.
+        /// Retain the instance.
         /// </summary>
-        /// <param name="obj">Handle of instance.</param>
-        /// <returns>Handle of retained instance.</returns>
-        public static IntPtr Retain(IntPtr obj)
+        /// <param name="handle">Handle of instance to retain.</param>
+        /// <typeparam name="T">Type of instance.</typeparam>
+        /// <returns>Retained instance, or Null if <paramref name="handle"/> is <see cref="IntPtr.Zero"/>.</returns>
+        public static T? Retain<T>(IntPtr handle) where T : NSObject =>
+            (T?)Retain(typeof(T), handle);
+
+
+        /// <summary>
+        /// Retain the instance.
+        /// </summary>
+        /// <param name="type">Type of instance.</param>
+        /// <param name="handle">Handle of instance to retain.</param>
+        /// <returns>Retained instance, or Null if <paramref name="handle"/> is <see cref="IntPtr.Zero"/>.</returns>
+        public static NSObject? Retain(Type type, IntPtr handle)
         {
-            VerifyHandle(obj);
-            return ((delegate*unmanaged<IntPtr, IntPtr, IntPtr>)objc_msgSend)(obj, RetainSelector!.Handle);
+            if (handle == default)
+                return null;
+            if (!typeof(NSObject).IsAssignableFrom(type))
+                throw new ArgumentException("The type must be NSObject or extend from NSObject.");
+            var newHandle = ((delegate*unmanaged<IntPtr, IntPtr, IntPtr>)objc_msgSend)(handle, RetainSelector!.Handle);
+            try
+            {
+                if (type == typeof(NSObject))
+                    return new NSObject(newHandle, true);
+                var ctor = GetWrappingConstructor(type);
+                if (ctor.GetParameters().Length == 2)
+                    return (NSObject)Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ newHandle, true }, null).AsNonNull();
+                return (NSObject)Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ Class.GetClass(newHandle), newHandle, true }, null).AsNonNull();
+            }
+            catch
+            {
+                ((delegate*unmanaged<IntPtr, IntPtr, void>)objc_msgSend)(newHandle, ReleaseSelector!.Handle);
+                throw;
+            }
         }
 
 
@@ -633,7 +622,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="args">Arguments</param>
         public void SendMessageToSuper(Selector selector, params object?[] args)
         {
-            this.VerifyDisposed();
+            this.VerifyReleased();
             var superClass = this.Class.SuperClass;
             if (superClass == null)
                 return;
@@ -653,7 +642,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <returns>Result.</returns>
         public T SendMessageToSuper<T>(Selector selector, params object?[] args)
         {
-            this.VerifyDisposed();
+            this.VerifyReleased();
             var superClass = this.Class.SuperClass;
             if (superClass == null)
                 throw new InvalidOperationException("No super class found.");
@@ -726,7 +715,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <typeparam name="T">Type of variable.</typeparam>
         public void SetVariable<T>(Variable ivar, T? value)
         {
-            this.VerifyDisposed();
+            this.VerifyReleased();
             SetVariable<T>(this.Handle, ivar, value);
         }
 
@@ -790,18 +779,8 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="cls">Given class.</param>
         protected void VerifyClass(Class cls)
         {
-            if (!cls.IsAssignableFrom(this.instance.Class))
+            if (!cls.IsAssignableFrom(this.@class))
                 throw new ArgumentException($"Instance is not {cls}.");
-        }
-        
-
-        /// <summary>
-        /// Throw <see cref="ObjectDisposedException"/> if instance has been disposed.
-        /// </summary>
-        protected void VerifyDisposed()
-        {
-            if (this.IsDisposed)
-                throw new ObjectDisposedException(this.GetType().Name);
         }
 
 
@@ -810,6 +789,16 @@ namespace CarinaStudio.MacOS.ObjectiveC
         {
             if (handle == IntPtr.Zero)
                 throw new ArgumentException("Handle of instance cannot be null.");
+        }
+
+
+        /// <summary>
+        /// Throw <see cref="ObjectDisposedException"/> if instance has been released.
+        /// </summary>
+        protected void VerifyReleased()
+        {
+            if (this.IsReleased)
+                throw new ObjectDisposedException(this.GetType().Name);
         }
     }
 }

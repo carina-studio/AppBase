@@ -57,8 +57,10 @@ namespace CarinaStudio.MacOS.ObjectiveC
 
 
         // Constructor.
-        NSString(InstanceHolder instance, bool ownsInstance) : base(instance, ownsInstance) =>
+        NSString(IntPtr handle, bool ownsInstance) : base(handle, ownsInstance) =>
             this.VerifyClass(NSStringClass!);
+        NSString(Class cls, IntPtr handle, bool ownsInstance) : base(cls, handle, ownsInstance)
+        { }
 
 
         /// <inheritdoc/>
@@ -66,8 +68,8 @@ namespace CarinaStudio.MacOS.ObjectiveC
         {
             if (s == null)
                 return 1;
-            this.VerifyDisposed();
-            s.VerifyDisposed();
+            this.VerifyReleased();
+            s.VerifyReleased();
             return this.SendMessage<int>(CompareSelector!, s);
         }
 
@@ -75,7 +77,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <inheritdoc/>
         public bool Equals(NSString? s)
         {
-            if (s == null || s.IsDisposed || this.IsDisposed)
+            if (s == null || s.IsReleased || this.IsReleased)
                 return false;
             return this.SendMessage<bool>(IsEqualToSelector!, s);
         }
@@ -119,7 +121,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <inheritdoc/>
         public override unsafe string ToString()
         {
-            if (this.IsDisposed)
+            if (this.IsReleased)
                 return "";
             if (this.stringRef?.TryGetTarget(out var s) == true)
                 return s;

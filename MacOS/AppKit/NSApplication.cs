@@ -66,8 +66,10 @@ namespace CarinaStudio.MacOS.AppKit
 
 
         // Constructor.
-        NSApplication(InstanceHolder instance) : base(instance, false) =>
+        NSApplication(IntPtr handle, bool ownsInstance) : base(handle, false, ownsInstance) =>
             this.VerifyClass(NSApplicationClass!);
+        NSApplication(Class cls, IntPtr handle, bool ownsInstance) : base(cls, handle, ownsInstance)
+        { }
         
 
         /// <summary>
@@ -78,21 +80,21 @@ namespace CarinaStudio.MacOS.AppKit
         {
             get
             {
-                this.VerifyDisposed();
+                this.VerifyReleased();
                 var handle = this.GetProperty<IntPtr>(IconImageProperty!);
                 if (this.appIconImage is null)
                 {
                     if (handle == IntPtr.Zero)
                         return null;
-                    this.appIconImage = NSObject.FromHandle<NSImage>(handle, false);
+                    this.appIconImage = NSObject.Retain<NSImage>(handle);
                 }
                 else if (handle != this.appIconImage.Handle)
-                    this.appIconImage = handle != IntPtr.Zero ? NSObject.FromHandle<NSImage>(handle, false) : null;
+                    this.appIconImage = handle != IntPtr.Zero ? NSObject.Retain<NSImage>(handle) : null;
                 return this.appIconImage;
             }
             set
             {
-                this.VerifyDisposed();
+                this.VerifyReleased();
                 if (this.appIconImage == value)
                     return;
                 this.appIconImage = value;
@@ -115,7 +117,8 @@ namespace CarinaStudio.MacOS.AppKit
                     var app = NSAppPtr != null ? *NSAppPtr : IntPtr.Zero;
                     if (app == IntPtr.Zero)
                         return null;
-                    _Current = new NSApplication(new(app));
+                    _Current = new NSApplication(app, true);
+                    _Current.IsDefaultInstance = true;
                     return _Current;
                 });
             }
@@ -144,10 +147,10 @@ namespace CarinaStudio.MacOS.AppKit
         {
             get
             {
-                this.VerifyDisposed();
-                return this.dockTile ?? this.GetProperty<NSDockTile>(DockTileProperty!).Let(it =>
+                this.VerifyReleased();
+                return this.dockTile ?? this.GetProperty<IntPtr>(DockTileProperty!).Let(it =>
                 {
-                    this.dockTile = it.AsNonNull();
+                    this.dockTile = new(it);
                     return this.dockTile;
                 });
             }
@@ -167,12 +170,12 @@ namespace CarinaStudio.MacOS.AppKit
         {
             get
             {
-                this.VerifyDisposed();
+                this.VerifyReleased();
                 var handle = this.GetProperty<IntPtr>(MainWindowProperty!);
                 if (handle != IntPtr.Zero)
                 {
                     if (this.mainWindow == null || this.mainWindow.Handle != handle)
-                        this.mainWindow = NSObject.FromHandle(handle, false);
+                        this.mainWindow = NSObject.Retain<NSWindow>(handle);
                 }
                 else if (this.mainWindow != null)
                     this.mainWindow = null;

@@ -33,7 +33,14 @@ public class NSArray<T> : NSObject, IList<T> where T : NSObject
         // Move to next element.
         public bool MoveNext()
         {
-            this.current = this.baseEnumerator.NextObject()?.Cast<T>();
+            this.current = this.baseEnumerator.NextObject().Exchange(it => 
+            {
+                if (it == null)
+                    return null;
+                if (typeof(T) == typeof(NSObject))
+                    return (T)it;
+                return it?.Retain<T>();
+            });
             return this.current != null;
         }
 
@@ -92,12 +99,10 @@ public class NSArray<T> : NSObject, IList<T> where T : NSObject
 
 
     // Constructor.
-    NSArray(InstanceHolder instance, bool ownsInstance) : this(instance, true, ownsInstance)
-    { }
-    internal NSArray(InstanceHolder instance, bool checkType, bool ownsInstance) : base(instance, ownsInstance)
-    {
+    NSArray(IntPtr handle, bool ownsInstance) : base(handle, ownsInstance) =>
         this.VerifyClass(NSArrayClass!);
-    }
+    NSArray(Class cls, IntPtr handle, bool ownsInstance) : base(cls, handle, ownsInstance)
+    { }
 
 
     /// <inheritdoc/>

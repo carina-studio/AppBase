@@ -1,4 +1,5 @@
 using CarinaStudio.MacOS.ObjectiveC;
+using System;
 
 namespace CarinaStudio.MacOS.AppKit;
 
@@ -39,9 +40,23 @@ public class NSLayoutAnchor<TAnchor> : NSObject where TAnchor : NSLayoutAnchor<T
     /// <summary>
     /// Initialize new <see cref="NSLayoutAnchor{T}"/> instance.
     /// </summary>
-    /// <param name="instance">Native instance.</param>
+    /// <param name="handle">Handle of instance.</param>
+    /// <param name="verifyClass">True to verify whether instance is NSLayoutAnchor or not.</param>
     /// <param name="ownsInstance">True to own the instance.</param>
-    protected NSLayoutAnchor(InstanceHolder instance, bool ownsInstance) : base(instance, ownsInstance)
+    protected NSLayoutAnchor(IntPtr handle, bool verifyClass, bool ownsInstance) : base(handle, ownsInstance)
+    { 
+        if (verifyClass)
+            this.VerifyClass(NSLayoutAnchorClass!);
+    }
+
+
+    /// <summary>
+    /// Initialize new <see cref="NSLayoutAnchor{T}"/> instance.
+    /// </summary>
+    /// <param name="cls">Class of instance.</param>
+    /// <param name="handle">Handle of instance.</param>
+    /// <param name="ownsInstance">True to own the instance.</param>
+    protected NSLayoutAnchor(Class cls, IntPtr handle, bool ownsInstance) : base(cls, handle, ownsInstance)
     { }
 
 

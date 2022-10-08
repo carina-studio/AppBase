@@ -34,7 +34,9 @@ public class NSImage : NSObject
 
 
     // Constructor.
-    NSImage(InstanceHolder instance, bool ownsInstance) : base(instance, ownsInstance)
+    NSImage(IntPtr handle, bool ownsInstance) : base(handle, ownsInstance) =>
+        this.VerifyClass(NSImageClass!);
+    NSImage(Class cls, IntPtr handle, bool ownsInstance) : base(cls, handle, ownsInstance)
     { }
 
 
@@ -49,7 +51,7 @@ public class NSImage : NSObject
             throw new ArgumentException($"Invalid file name: {fileName}.");
         using var nsFileName = new NSString(fileName);
         var handle = NSObject.SendMessage<IntPtr>(NSImageClass!.Allocate(), InitByRefFileSelector!, nsFileName);
-        return new(new InstanceHolder(handle), true);
+        return new(handle, true);
     }
 
 
@@ -63,7 +65,7 @@ public class NSImage : NSObject
         if (image.IsReleased)
             throw new ObjectDisposedException(nameof(CGImage));
         var handle = NSObject.SendMessage<IntPtr>(NSImageClass!.Allocate(), InitWithCGImageSelector!, image, new NSSize());
-        return new(new InstanceHolder(handle), true);
+        return new(handle, true);
     }
 
 
@@ -80,7 +82,7 @@ public class NSImage : NSObject
         if (size.Width <= 0 || size.Height <= 0 || !double.IsFinite(size.Width) || !double.IsFinite(size.Height))
             throw new ArgumentException($"Invalid size: {size}.");
         var handle = NSObject.SendMessage<IntPtr>(NSImageClass!.Allocate(), InitWithCGImageSelector!, image, size);
-        return new(new InstanceHolder(handle), true);
+        return new(handle, true);
     }
 
 
@@ -95,7 +97,7 @@ public class NSImage : NSObject
             throw new ObjectDisposedException(nameof(CoreFoundation.CFData));
         var handle = NSObject.SendMessage<IntPtr>(NSImageClass!.Allocate(), InitWithDataSelector!, data);
         if (handle != default)
-            return new(new InstanceHolder(handle), true);
+            return new(handle, true);
         throw new ArgumentException($"Cannot create image from data.");
     }
 
@@ -110,7 +112,7 @@ public class NSImage : NSObject
         using var data = CoreFoundation.CFData.FromStream(stream);
         var handle = NSObject.SendMessage<IntPtr>(NSImageClass!.Allocate(), InitWithDataSelector!, data);
         if (handle != default)
-            return new(new InstanceHolder(handle), true);
+            return new(handle, true);
         throw new ArgumentException($"Cannot create image from data of stream.");
     }
 
@@ -118,7 +120,7 @@ public class NSImage : NSObject
     /// <summary>
     /// Check whether it is possible to draw an image representation or not.
     /// </summary>
-    public bool IsValid { get => !this.IsDisposed && this.GetProperty<bool>(IsValidProperty!); }
+    public bool IsValid { get => !this.IsReleased && this.GetProperty<bool>(IsValidProperty!); }
 
 
     /// <summary>

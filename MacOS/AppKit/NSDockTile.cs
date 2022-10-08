@@ -1,4 +1,5 @@
 using CarinaStudio.MacOS.ObjectiveC;
+using System;
 
 namespace CarinaStudio.MacOS.AppKit
 {
@@ -32,8 +33,12 @@ namespace CarinaStudio.MacOS.AppKit
 
 
         // Constructor.
-        internal NSDockTile(InstanceHolder instance) : base(instance, false) =>
+        internal NSDockTile(IntPtr handle) : base(handle, true) =>
+            this.IsDefaultInstance = true;
+        NSDockTile(IntPtr handle, bool ownsInstance) : base(handle, ownsInstance) =>
             this.VerifyClass(NSDockTileClass!);
+        NSDockTile(Class cls, IntPtr handle, bool ownsInstance) : base(cls, handle, ownsInstance)
+        { }
         
 
         /// <summary>

@@ -1,4 +1,5 @@
 using CarinaStudio.MacOS.ObjectiveC;
+using System;
 
 namespace CarinaStudio.MacOS.AppKit;
 
@@ -39,7 +40,9 @@ public class NSLayoutDimension : NSLayoutAnchor<NSLayoutDimension>
 
 
     // Constructor.
-    NSLayoutDimension(InstanceHolder instance, bool ownsInstance) : base(instance, ownsInstance)
+    NSLayoutDimension(IntPtr handle, bool ownsInstance) : base(handle, false, ownsInstance) =>
+        this.VerifyClass(NSLayoutDimensionClass!);
+    NSLayoutDimension(Class cls, IntPtr handle, bool ownsInstance) : base(cls, handle, ownsInstance)
     { }
 
 

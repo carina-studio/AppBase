@@ -1,4 +1,5 @@
 using CarinaStudio.MacOS.ObjectiveC;
+using System;
 
 namespace CarinaStudio.MacOS.AppKit;
 
@@ -29,7 +30,9 @@ public class NSLayoutYAxisAnchor : NSLayoutAnchor<NSLayoutYAxisAnchor>
 
 
     // Constructor.
-    NSLayoutYAxisAnchor(InstanceHolder instance, bool ownsInstance) : base(instance, ownsInstance)
+    NSLayoutYAxisAnchor(IntPtr handle, bool ownsInstance) : base(handle, false, ownsInstance) =>
+        this.VerifyClass(NSLayoutYAxisAnchorClass!);
+    NSLayoutYAxisAnchor(Class cls, IntPtr handle, bool ownsInstance) : base(cls, handle, ownsInstance)
     { }
 
 

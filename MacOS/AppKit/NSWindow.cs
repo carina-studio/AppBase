@@ -1,4 +1,5 @@
 using CarinaStudio.MacOS.ObjectiveC;
+using System;
 
 namespace CarinaStudio.MacOS.AppKit;
 
@@ -38,10 +39,29 @@ public class NSWindow : NSResponder
     /// <summary>
     /// Initialize new <see cref="NSWindow"/> instance.
     /// </summary>
-    /// <param name="instance">Handle of instance.</param>
+    /// <param name="handle">Handle of instance.</param>
+    /// <param name="verifyClass">True to verify whether instance is NSWindow or not.</param>
     /// <param name="ownsInstance">True to owns the instance.</param>
-    protected NSWindow(InstanceHolder instance, bool ownsInstance) : base(instance, ownsInstance) =>
-        this.VerifyClass(NSWindowClass!);
+    protected NSWindow(IntPtr handle, bool verifyClass, bool ownsInstance) : base(handle, false, ownsInstance)
+    {
+        if (verifyClass)
+            this.VerifyClass(NSWindowClass!);
+    }
+    
+
+    /// <summary>
+    /// Initialize new <see cref="NSWindow"/> instance.
+    /// </summary>
+    /// <param name="cls">Class of instance.</param>
+    /// <param name="handle">Handle of instance.</param>
+    /// <param name="ownsInstance">True to owns the instance.</param>
+    protected NSWindow(Class cls, IntPtr handle, bool ownsInstance) : base(cls, handle, ownsInstance)
+    { }
+    
+
+    // Constructor.
+    NSWindow(IntPtr handle, bool ownsInstance) : this(handle, true, ownsInstance)
+    { }
 
 
     /// <summary>
