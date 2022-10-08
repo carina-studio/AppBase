@@ -109,12 +109,6 @@ namespace CarinaStudio
                 return 54321;
             }
 
-            // Dispose.
-            protected override void Dispose(bool disposing)
-            {
-                base.Dispose(disposing);
-            }
-
             // Foo
             public double Foo(int arg1, double arg2, NSSize arg3, string arg4, DateTime arg5) =>
                 SendMessage<double>(FooSelector!, arg1, arg2, arg3, arg4, arg5);
@@ -184,10 +178,10 @@ namespace CarinaStudio
             }
 
             // Dispose.
-            protected override void Dispose(bool disposing)
+            protected override void OnRelease()
             {
-                MyAppDelegateClass?.TrySetClrObject(this.Instance.Handle, null);
-                base.Dispose(disposing);
+                MyAppDelegateClass?.TrySetClrObject(this.Handle, null);
+                base.OnRelease();
             }
         }
 
@@ -206,9 +200,9 @@ namespace CarinaStudio
                 
                 if (this.progressIndicator == null)
                 {
-                    using var dockTileView = new NSView(new(default, app.DockTile.Size));
+                    var dockTileView = new NSView(new(default, app.DockTile.Size));
 
-                    using var dockTileViewImageView = new NSImageView(new(default, app.DockTile.Size))
+                    var dockTileViewImageView = new NSImageView(new(default, app.DockTile.Size))
                     {
                         Image = app.ApplicationIconImage,
                         ImageAlignment = NSImageAlignment.Center,
@@ -238,9 +232,11 @@ namespace CarinaStudio
                             this.progressIndicator = this.progressIndicator.Let(it =>
                             {
                                 it.RemoveFromSuperView();
-                                it.Dispose();
+                                it.Release();
                                 return (NSProgressIndicator?)null;
                             });
+
+                            GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced);
                         }
                         else
                             this.animateDockTileProgressAction!.Schedule(100);

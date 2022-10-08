@@ -1,4 +1,5 @@
 using CarinaStudio.MacOS.ObjectiveC;
+using System;
 
 namespace CarinaStudio.MacOS.AppKit;
 
@@ -37,10 +38,29 @@ public class NSImageView : NSControl
     /// <summary>
     /// Initialize new <see cref="NSImageView"/> instance.
     /// </summary>
-    /// <param name="instance">Instance.</param>
+    /// <param name="handle">Handle of instance.</param>
+    /// <param name="verifyClass">True to verify whether instance is NSImageView or not.</param>
     /// <param name="ownsInstance">True to owns the instance.</param>
-    protected NSImageView(InstanceHolder instance, bool ownsInstance) : base(instance, ownsInstance) =>
-        this.VerifyClass(NSImageViewClass!);
+    protected NSImageView(IntPtr handle, bool verifyClass, bool ownsInstance) : base(handle, false, ownsInstance)
+    {
+        if (verifyClass)
+            this.VerifyClass(NSImageViewClass!);
+    }
+    
+
+    /// <summary>
+    /// Initialize new <see cref="NSImageView"/> instance.
+    /// </summary>
+    /// <param name="cls">Class of instance.</param>
+    /// <param name="handle">Handle of instance.</param>
+    /// <param name="ownsInstance">True to owns the instance.</param>
+    protected NSImageView(Class cls, IntPtr handle, bool ownsInstance) : base(cls, handle, ownsInstance)
+    { }
+
+
+    // Constructor.
+    NSImageView(IntPtr handle, bool ownsInstance) : this(handle, true, ownsInstance)
+    { }
     
 
     /// <summary>

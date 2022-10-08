@@ -1,10 +1,8 @@
-using CarinaStudio.Collections;
 using CarinaStudio.MacOS.CoreFoundation;
 using CarinaStudio.MacOS.ObjectiveC;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Runtime.InteropServices;
 
 namespace CarinaStudio.MacOS;
@@ -19,7 +17,7 @@ static class NativeTypeConversion
 
 
     // Convert from native value to CLR value.
-    public static object? FromNativeValue(object nativeValue, Type targetType, bool ownsInstance = false)
+    public static object? FromNativeValue(object nativeValue, Type targetType)
     {
         if (IsNativeType(targetType))
             return nativeValue;
@@ -34,9 +32,9 @@ static class NativeTypeConversion
             if (nintValue == default)
                 return null;
             if (typeof(CFObject).IsAssignableFrom(targetType))
-                return CFObject.FromHandle(targetType, nintValue, ownsInstance);
+                return CFObject.FromHandle(targetType, nintValue, false);
             if (typeof(NSObject).IsAssignableFrom(targetType))
-                return NSObject.FromHandle(targetType, nintValue, ownsInstance);
+                return NSObject.Retain(targetType, nintValue);
             if (targetType == typeof(Class))
                 return Class.FromHandle(nintValue);
             if (targetType == typeof(Selector))
@@ -127,7 +125,7 @@ static class NativeTypeConversion
             if (handle == default)
                 return null;
             if (typeof(NSObject).IsAssignableFrom(targetType))
-                return NSObject.FromHandle(targetType,handle, false);
+                return NSObject.Retain(targetType, handle);
             if (targetType == typeof(Class))
                 return Class.FromHandle(handle);
             if (targetType == typeof(Selector))

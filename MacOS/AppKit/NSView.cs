@@ -130,7 +130,7 @@ public class NSView : NSResponder
     /// Initialize new <see cref="NSView"/> instance.
     /// </summary>
     /// <param name="frame">Frame.</param>
-    public NSView(NSRect frame) : this(new InstanceHolder(Initialize(Initialize(NSViewClass!.Allocate(), frame), frame)), true)
+    public NSView(NSRect frame) : this(Initialize(Initialize(NSViewClass!.Allocate(), frame), frame), false, true)
     { }
 
 
@@ -139,16 +139,35 @@ public class NSView : NSResponder
     /// </summary>
     /// <param name="handle">Handle of allocated instance.</param>
     /// <param name="frame">Frame.</param>
-    protected NSView(IntPtr handle, NSRect frame) : this(new InstanceHolder(Initialize(handle, frame)), true)
+    protected NSView(IntPtr handle, NSRect frame) : this(Initialize(handle, frame), false, true)
     { }
 
 
     /// <summary>
     /// Initialize new <see cref="NSView"/> instance.
     /// </summary>
-    /// <param name="instance">Instance.</param>
+    /// <param name="handle">Handle of instance.</param>
+    /// <param name="verifyClass">True to verify whether instance is NSView or not.</param>
     /// <param name="ownsInstance">True to own the instance.</param>
-    protected NSView(InstanceHolder instance, bool ownsInstance) : base(instance, ownsInstance)
+    protected NSView(IntPtr handle, bool verifyClass, bool ownsInstance) : base(handle, false, ownsInstance)
+    { 
+        if (verifyClass)
+            this.VerifyClass(NSViewClass!);
+    }
+
+
+    /// <summary>
+    /// Initialize new <see cref="NSView"/> instance.
+    /// </summary>
+    /// <param name="cls">Class of instance.</param>
+    /// <param name="handle">Handle of instance.</param>
+    /// <param name="ownsInstance">True to own the instance.</param>
+    protected NSView(Class cls, IntPtr handle, bool ownsInstance) : base(cls, handle, ownsInstance)
+    { }
+
+
+    // Constructor.
+    NSView(IntPtr handle, bool ownsInstance) : this(handle, true, ownsInstance)
     { }
 
 

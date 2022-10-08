@@ -1,4 +1,5 @@
 using CarinaStudio.MacOS.ObjectiveC;
+using System;
 
 namespace CarinaStudio.MacOS.AppKit;
 
@@ -29,7 +30,9 @@ public class NSLayoutXAxisAnchor : NSLayoutAnchor<NSLayoutXAxisAnchor>
 
 
     // Constructor.
-    NSLayoutXAxisAnchor(InstanceHolder instance, bool ownsInstance) : base(instance, ownsInstance)
+    NSLayoutXAxisAnchor(IntPtr handle, bool ownsInstance) : base(handle, false, ownsInstance) =>
+        this.VerifyClass(NSLayoutXAxisAnchorClass!);
+    NSLayoutXAxisAnchor(Class cls, IntPtr handle, bool ownsInstance) : base(cls, handle, ownsInstance)
     { }
 
 

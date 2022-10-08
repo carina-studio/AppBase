@@ -1,4 +1,5 @@
 using CarinaStudio.MacOS.ObjectiveC;
+using System;
 
 namespace CarinaStudio.MacOS.AppKit;
 
@@ -65,7 +66,9 @@ public class NSLayoutConstraint : NSObject
 
 
     // Constructor.
-    NSLayoutConstraint(InstanceHolder instance, bool ownsInstance) : base(instance, ownsInstance)
+    NSLayoutConstraint(IntPtr handle, bool ownsInstance) : base(handle, ownsInstance) =>
+        this.VerifyClass(NSLayoutConstraintClass!);
+    NSLayoutConstraint(Class cls, IntPtr handle, bool ownsInstance) : base(cls, handle, ownsInstance)
     { }
 
 

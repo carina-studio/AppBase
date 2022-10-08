@@ -35,10 +35,24 @@ public class NSControl : NSView
     /// <summary>
     /// Initialize new <see cref="NSControl"/> instance.
     /// </summary>
-    /// <param name="instance">Instance.</param>
+    /// <param name="handle">Handle of instance.</param>
+    /// <param name="verifyClass">True to verify whether instance is NSControl or not.</param>
     /// <param name="ownsInstance">True to owns the instance.</param>
-    protected NSControl(InstanceHolder instance, bool ownsInstance) : base(instance, ownsInstance) =>
-        this.VerifyClass(NSControlClass!);
+    protected NSControl(IntPtr handle, bool verifyClass, bool ownsInstance) : base(handle, false, ownsInstance)
+    {
+        if (verifyClass)
+            this.VerifyClass(NSControlClass!);
+    }
+
+
+    /// <summary>
+    /// Initialize new <see cref="NSControl"/> instance.
+    /// </summary>
+    /// <param name="cls">Class of instance.</param>
+    /// <param name="handle">Handle of instance.</param>
+    /// <param name="ownsInstance">True to owns the instance.</param>
+    protected NSControl(Class cls, IntPtr handle, bool ownsInstance) : base(cls, handle, ownsInstance)
+    { }
     
 
     /// <summary>
