@@ -75,7 +75,13 @@ namespace CarinaStudio.MacOS.ObjectiveC
                 objc_msgSendSuper = (void*)NativeLibrary.GetExport(libHandle, nameof(objc_msgSendSuper));
                 //object_getIvar = (void*)NativeLibrary.GetExport(libHandle, nameof(object_getIvar));
                 //object_setIvar = (void*)NativeLibrary.GetExport(libHandle, nameof(object_setIvar));
+                if (objc_msgSend == null)
+                    throw new NotSupportedException("Cannot find 'objc_msgSend' in Objective-C runtime.");
+                if (objc_msgSendSuper == null)
+                    throw new NotSupportedException("Cannot find 'objc_msgSendSuper' in Objective-C runtime.");
             }
+            else
+                throw new NotSupportedException("Cannot load Objective-C runtime.");
             InitSelector = Selector.FromName("init");
             ReleaseSelector = Selector.FromName("release");
             RetainSelector = Selector.FromName("retain");
@@ -452,9 +458,39 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// Send message to instance.
         /// </summary>
         /// <param name="selector">Selector.</param>
-        /// <param name="args">Arguments</param>
-        public void SendMessage(Selector selector, params object?[] args) =>
-            SendMessage(this.Handle, selector, args);
+        public void SendMessage(Selector selector) =>
+            SendMessageCore(objc_msgSend, this.Handle, selector);
+        
+
+        /// <summary>
+        /// Send message to instance.
+        /// </summary>
+        /// <param name="selector">Selector.</param>
+        /// <param name="arg">Argument.</param>
+        public void SendMessage(Selector selector, object? arg) =>
+            SendMessageCore(objc_msgSend, this.Handle, selector, arg);
+
+
+        /// <summary>
+        /// Send message to instance.
+        /// </summary>
+        /// <param name="selector">Selector.</param>
+        /// <param name="args">Arguments.</param>
+        public void SendMessage(Selector selector, params object?[] args)
+        {
+            switch (args.Length)
+            {
+                case 0:
+                    SendMessageCore(objc_msgSend, this.Handle, selector);
+                    break;
+                case 1:
+                    SendMessageCore(objc_msgSend, this.Handle, selector, args[0]);
+                    break;
+                default:
+                    SendMessageCore(objc_msgSend, this.Handle, selector, null, args);
+                    break;
+            }
+        }
 
 
         /// <summary>
@@ -462,20 +498,89 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="obj">Handle of instance.</param>
         /// <param name="selector">Selector.</param>
-        /// <param name="args">Arguments</param>
-        public static void SendMessage(IntPtr obj, Selector selector, params object?[] args) =>
-            SendMessageCore(objc_msgSend, obj, selector, null, args);
+        public static void SendMessage(IntPtr obj, Selector selector) =>
+            SendMessageCore(objc_msgSend, obj, selector);
+        
+
+        /// <summary>
+        /// Send message to instance.
+        /// </summary>
+        /// <param name="obj">Handle of instance.</param>
+        /// <param name="selector">Selector.</param>
+        /// <param name="arg">Argument.</param>
+        public static void SendMessage(IntPtr obj, Selector selector, object? arg) =>
+            SendMessageCore(objc_msgSend, obj, selector, arg);
 
 
         /// <summary>
         /// Send message to instance.
         /// </summary>
+        /// <param name="obj">Handle of instance.</param>
         /// <param name="selector">Selector.</param>
-        /// <param name="args">Arguments</param>
+        /// <param name="args">Arguments.</param>
+        public static void SendMessage(IntPtr obj, Selector selector, params object?[] args)
+        {
+            switch (args.Length)
+            {
+                case 0:
+                    SendMessageCore(objc_msgSend, obj, selector);
+                    break;
+                case 1:
+                    SendMessageCore(objc_msgSend, obj, selector, args[0]);
+                    break;
+                default:
+                    SendMessageCore(objc_msgSend, obj, selector, null, args);
+                    break;
+            }
+        }
+
+
+#pragma warning disable CS8600
+#pragma warning disable CS8603
+        /// <summary>
+        /// Send message to instance.
+        /// </summary>
+        /// <param name="selector">Selector.</param>
         /// <typeparam name="T">Type of returned value.</typeparam>
         /// <returns>Result.</returns>
-        public T SendMessage<T>(Selector selector, params object?[] args) =>
-            SendMessage<T>(this.Handle, selector, args);
+        public T SendMessage<T>(Selector selector) =>
+            (T)SendMessageCore(objc_msgSend, this.Handle, selector, typeof(T));
+#pragma warning restore CS8600
+#pragma warning restore CS8603
+
+
+#pragma warning disable CS8600
+#pragma warning disable CS8603
+        /// <summary>
+        /// Send message to instance.
+        /// </summary>
+        /// <param name="selector">Selector.</param>
+        /// <param name="args">Arguments.</param>
+        /// <typeparam name="T">Type of returned value.</typeparam>
+        /// <returns>Result.</returns>
+        public T SendMessage<T>(Selector selector, params object?[] args)
+        {
+            if (args.Length == 0)
+                return (T)SendMessageCore(objc_msgSend, this.Handle, selector, typeof(T));
+            return (T)SendMessageCore(objc_msgSend, this.Handle, selector, null, args);
+        }
+#pragma warning restore CS8600
+#pragma warning restore CS8603
+
+
+#pragma warning disable CS8600
+#pragma warning disable CS8603
+        /// <summary>
+        /// Send message to instance.
+        /// </summary>
+        /// <param name="obj">Handle of instance.</param>
+        /// <param name="selector">Selector.</param>
+        /// <typeparam name="T">Type of returned value.</typeparam>
+        /// <returns>Result.</returns>
+        public static T SendMessage<T>(IntPtr obj, Selector selector) =>
+            (T)SendMessageCore(objc_msgSend, obj, selector, typeof(T));
+#pragma warning restore CS8600
+#pragma warning restore CS8603
         
 
 #pragma warning disable CS8600
@@ -485,11 +590,15 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="obj">Handle of instance.</param>
         /// <param name="selector">Selector.</param>
-        /// <param name="args">Arguments</param>
+        /// <param name="args">Arguments.</param>
         /// <typeparam name="T">Type of returned value.</typeparam>
         /// <returns>Result.</returns>
-        public static T SendMessage<T>(IntPtr obj, Selector selector, params object?[] args) =>
-            (T)SendMessageCore(objc_msgSend, obj, selector, typeof(T), args);
+        public static T SendMessage<T>(IntPtr obj, Selector selector, params object?[] args)
+        {
+            if (args.Length == 0)
+                return (T)SendMessageCore(objc_msgSend, obj, selector, typeof(T));
+            return (T)SendMessageCore(objc_msgSend, obj, selector, typeof(T), args);
+        }
 #pragma warning restore CS8600
 #pragma warning restore CS8603
 
@@ -497,8 +606,50 @@ namespace CarinaStudio.MacOS.ObjectiveC
 #pragma warning disable CS8600
 #pragma warning disable CS8603
         // Core implementation of send message to object.
+        static void SendMessageCore(void* msgSendFunc, IntPtr obj, Selector sel) // optimize for calling method without parameter and return value
+        {
+            VerifyHandle(obj);
+            ((delegate*unmanaged<IntPtr, IntPtr, void>)msgSendFunc)(obj, sel.Handle);
+        }
+        static void SendMessageCore(void* msgSendFunc, IntPtr obj, Selector sel, object? arg) // optimize for property setter
+        {
+            VerifyHandle(obj);
+            var nativeArg = NativeTypeConversion.ToNativeValue(arg);
+            if (nativeArg == null)
+                ((delegate*unmanaged<IntPtr, IntPtr, IntPtr, void>)msgSendFunc)(obj, sel.Handle, IntPtr.Zero);
+            else if (nativeArg is IntPtr intPtrValue)
+                ((delegate*unmanaged<IntPtr, IntPtr, IntPtr, void>)msgSendFunc)(obj, sel.Handle, intPtrValue);
+            else if (nativeArg is bool boolValue)
+                ((delegate*unmanaged<IntPtr, IntPtr, bool, void>)msgSendFunc)(obj, sel.Handle, boolValue);
+            else if (nativeArg is int intValue)
+                ((delegate*unmanaged<IntPtr, IntPtr, int, void>)msgSendFunc)(obj, sel.Handle, intValue);
+            else if (nativeArg is float floatValue)
+                ((delegate*unmanaged<IntPtr, IntPtr, float, void>)msgSendFunc)(obj, sel.Handle, floatValue);
+            else if (nativeArg is double doubleValue)
+                ((delegate*unmanaged<IntPtr, IntPtr, double, void>)msgSendFunc)(obj, sel.Handle, doubleValue);
+            else
+                SendMessageCore(msgSendFunc, obj, sel, null, new object?[] { arg });
+        }
+        static object? SendMessageCore(void* msgSendFunc, IntPtr obj, Selector sel, Type returnType) // optimize for property getter
+        {
+            var nativeReturnType = NativeTypeConversion.ToNativeType(returnType);
+            if (nativeReturnType == typeof(IntPtr))
+                return NativeTypeConversion.FromNativeValue(((delegate*unmanaged<IntPtr, IntPtr, IntPtr>)msgSendFunc)(obj, sel.Handle), returnType);
+            if (nativeReturnType == typeof(bool))
+                return NativeTypeConversion.FromNativeValue(((delegate*unmanaged<IntPtr, IntPtr, bool>)msgSendFunc)(obj, sel.Handle), returnType);
+            if (nativeReturnType == typeof(int))
+                return NativeTypeConversion.FromNativeValue(((delegate*unmanaged<IntPtr, IntPtr, int>)msgSendFunc)(obj, sel.Handle), returnType);
+            if (nativeReturnType == typeof(float))
+                return NativeTypeConversion.FromNativeValue(((delegate*unmanaged<IntPtr, IntPtr, float>)msgSendFunc)(obj, sel.Handle), returnType);
+            if (nativeReturnType == typeof(double))
+                return NativeTypeConversion.FromNativeValue(((delegate*unmanaged<IntPtr, IntPtr, double>)msgSendFunc)(obj, sel.Handle), returnType);
+            return SendMessageCore(msgSendFunc, obj, sel, returnType, new object?[0]);
+        }
         static object? SendMessageCore(void* msgSendFunc, IntPtr obj, Selector sel, Type? returnType, params object?[] args)
         {
+            // check parameter
+            VerifyHandle(obj);
+
             // convert to native types
             var nativeReturnType = returnType != null ? NativeTypeConversion.ToNativeType(returnType) : null;
             var argCount = args.Length;
@@ -619,7 +770,38 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// Send message to super class of instance.
         /// </summary>
         /// <param name="selector">Selector.</param>
-        /// <param name="args">Arguments</param>
+        public void SendMessageToSuper(Selector selector)
+        {
+            this.VerifyReleased();
+            var superClass = this.Class.SuperClass;
+            if (superClass == null)
+                return;
+            var superInfo = new objc_super() { receiver = this.Handle, super_class = superClass.Handle };
+            SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector);
+        }
+
+
+        /// <summary>
+        /// Send message to super class of instance.
+        /// </summary>
+        /// <param name="selector">Selector.</param>
+        /// <param name="arg">Argument.</param>
+        public void SendMessageToSuper(Selector selector, object? arg)
+        {
+            this.VerifyReleased();
+            var superClass = this.Class.SuperClass;
+            if (superClass == null)
+                return;
+            var superInfo = new objc_super() { receiver = this.Handle, super_class = superClass.Handle };
+            SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector, arg);
+        }
+
+
+        /// <summary>
+        /// Send message to super class of instance.
+        /// </summary>
+        /// <param name="selector">Selector.</param>
+        /// <param name="args">Arguments.</param>
         public void SendMessageToSuper(Selector selector, params object?[] args)
         {
             this.VerifyReleased();
@@ -627,8 +809,40 @@ namespace CarinaStudio.MacOS.ObjectiveC
             if (superClass == null)
                 return;
             var superInfo = new objc_super() { receiver = this.Handle, super_class = superClass.Handle };
-            SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector, null, args);
+            switch (args.Length)
+            {
+                case 0:
+                    SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector);
+                    break;
+                case 1:
+                    SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector, args[0]);
+                    break;
+                default:
+                    SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector, null, args);
+                    break;
+            }
         }
+    
+
+#pragma warning disable CS8600
+#pragma warning disable CS8603
+        /// <summary>
+        /// Send message to super class of instance.
+        /// </summary>
+        /// <param name="selector">Selector.</param>
+        /// <typeparam name="T">Type of returned value.</typeparam>
+        /// <returns>Result.</returns>
+        public T SendMessageToSuper<T>(Selector selector)
+        {
+            this.VerifyReleased();
+            var superClass = this.Class.SuperClass;
+            if (superClass == null)
+                throw new InvalidOperationException("No super class found.");
+            var superInfo = new objc_super() { receiver = this.Handle, super_class = superClass.Handle };
+            return (T)SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector, typeof(T));
+        }
+#pragma warning restore CS8600
+#pragma warning restore CS8603
 
 
 #pragma warning disable CS8600
@@ -637,7 +851,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// Send message to super class of instance.
         /// </summary>
         /// <param name="selector">Selector.</param>
-        /// <param name="args">Arguments</param>
+        /// <param name="args">Arguments.</param>
         /// <typeparam name="T">Type of returned value.</typeparam>
         /// <returns>Result.</returns>
         public T SendMessageToSuper<T>(Selector selector, params object?[] args)
@@ -647,6 +861,8 @@ namespace CarinaStudio.MacOS.ObjectiveC
             if (superClass == null)
                 throw new InvalidOperationException("No super class found.");
             var superInfo = new objc_super() { receiver = this.Handle, super_class = superClass.Handle };
+            if (args.Length == 0)
+                return (T)SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector, typeof(T));
             return (T)SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector, typeof(T), args);
         }
 #pragma warning restore CS8600
@@ -658,7 +874,38 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="obj">Handle of instance.</param>
         /// <param name="selector">Selector.</param>
-        /// <param name="args">Arguments</param>
+        public static void SendMessageToSuper(IntPtr obj, Selector selector)
+        {
+            var superClass = Class.GetClass(obj).SuperClass;
+            if (superClass == null)
+                return;
+            var superInfo = new objc_super() { receiver = obj, super_class = superClass.Handle };
+            SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector);
+        }
+
+
+        /// <summary>
+        /// Send message to super class of instance.
+        /// </summary>
+        /// <param name="obj">Handle of instance.</param>
+        /// <param name="selector">Selector.</param>
+        /// <param name="arg">Argument.</param>
+        public static void SendMessageToSuper(IntPtr obj, Selector selector, object? arg)
+        {
+            var superClass = Class.GetClass(obj).SuperClass;
+            if (superClass == null)
+                return;
+            var superInfo = new objc_super() { receiver = obj, super_class = superClass.Handle };
+            SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector, arg);
+        }
+
+
+        /// <summary>
+        /// Send message to super class of instance.
+        /// </summary>
+        /// <param name="obj">Handle of instance.</param>
+        /// <param name="selector">Selector.</param>
+        /// <param name="args">Arguments.</param>
         public static void SendMessageToSuper(IntPtr obj, Selector selector, params object?[] args)
         {
             var superClass = Class.GetClass(obj).SuperClass;
@@ -676,7 +923,28 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="obj">Handle of instance.</param>
         /// <param name="selector">Selector.</param>
-        /// <param name="args">Arguments</param>
+        /// <typeparam name="T">Type of returned value.</typeparam>
+        /// <returns>Result.</returns>
+        public static T SendMessageToSuper<T>(IntPtr obj, Selector selector)
+        {
+            var superClass = Class.GetClass(obj).SuperClass;
+            if (superClass == null)
+                throw new InvalidOperationException("No super class found.");
+            var superInfo = new objc_super() { receiver = obj, super_class = superClass.Handle };
+            return (T)SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector, typeof(T));
+        }
+#pragma warning restore CS8600
+#pragma warning restore CS8603
+
+
+#pragma warning disable CS8600
+#pragma warning disable CS8603
+        /// <summary>
+        /// Send message to super class of instance.
+        /// </summary>
+        /// <param name="obj">Handle of instance.</param>
+        /// <param name="selector">Selector.</param>
+        /// <param name="args">Arguments.</param>
         /// <typeparam name="T">Type of returned value.</typeparam>
         /// <returns>Result.</returns>
         public static T SendMessageToSuper<T>(IntPtr obj, Selector selector, params object?[] args)
