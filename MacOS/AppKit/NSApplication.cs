@@ -27,15 +27,17 @@ namespace CarinaStudio.MacOS.AppKit
 
 
         // Static fields.
-        static readonly Class? NSApplicationClass;
-        static readonly Class? NSApplicationDelegateClass;
+        static readonly Selector? ActivateSelector;
         static volatile NSApplication? _Current;
+        static readonly Selector? DeactivateSelector;
         static readonly Property? DelegateProperty;
-        static readonly Property? DockTileProperty;
+        static readonly Selector? DockTileSelector;
         static readonly Property? IconImageProperty;
-        static readonly Property? IsRunningProperty;
-        static readonly Property? MainWindowProperty;
-        static readonly Property? WindowsProperty;
+        static readonly Selector? IsRunningSelector;
+        static readonly Selector? MainWindowSelector;
+        static readonly Class? NSApplicationClass;
+        static readonly Selector? RunSelector;
+        static readonly Selector? WindowsSelector;
 
 
         // Fields.
@@ -55,13 +57,15 @@ namespace CarinaStudio.MacOS.AppKit
                 NSAppPtr = (IntPtr*)NativeLibrary.GetExport(libHandle, "NSApp");
             }
             NSApplicationClass = Class.GetClass("NSApplication").AsNonNull();
-            NSApplicationDelegateClass = Class.GetProtocol("NSApplicationDelegate").AsNonNull();
+            ActivateSelector = Selector.FromName("activateIgnoringOtherApps:");
+            DeactivateSelector = Selector.FromName("deactivate");
             DelegateProperty = NSApplicationClass.GetProperty("delegate");
-            DockTileProperty = NSApplicationClass.GetProperty("dockTile");
-            MainWindowProperty = NSApplicationClass.GetProperty("mainWindow");
+            DockTileSelector = Selector.FromName("dockTile");
             IconImageProperty = NSApplicationClass.GetProperty("applicationIconImage");
-            IsRunningProperty = NSApplicationClass.GetProperty("running");
-            WindowsProperty = NSApplicationClass.GetProperty("windows");
+            IsRunningSelector = Selector.FromName("isRunning");
+            MainWindowSelector = Selector.FromName("mainWindow");
+            RunSelector = Selector.FromName("run");
+            WindowsSelector = Selector.FromName("windows");
         }
 
 
@@ -70,6 +74,14 @@ namespace CarinaStudio.MacOS.AppKit
             this.VerifyClass(NSApplicationClass!);
         NSApplication(Class cls, IntPtr handle, bool ownsInstance) : base(cls, handle, ownsInstance)
         { }
+
+
+        /// <summary>
+        /// Activate the application.
+        /// </summary>
+        /// <param name="ignoreOtherApps">True to active application regardless.</param>
+        public void Activate(bool ignoreOtherApps) =>
+            this.SendMessage(ActivateSelector!, ignoreOtherApps);
         
 
         /// <summary>
@@ -104,7 +116,7 @@ namespace CarinaStudio.MacOS.AppKit
 
 
         /// <summary>
-        /// Get shared <see cref="NSApplication"/> instance of current application.
+        /// Get existing <see cref="NSApplication"/> instance.
         /// </summary>
         public static NSApplication? Current
         {
@@ -126,17 +138,19 @@ namespace CarinaStudio.MacOS.AppKit
 
 
         /// <summary>
+        /// Deactivate the application.
+        /// </summary>
+        public void Deactivate() =>
+            this.SendMessage(DeactivateSelector!);
+
+
+        /// <summary>
         /// Get or set object which conforms to NSApplicationDelegate protocol to receive call-back from application.
         /// </summary>
         public NSObject? Delegate
         {
             get => this.GetProperty<NSObject>(DelegateProperty!);
-            set
-            {
-                if (value != null && NSApplicationDelegateClass?.IsAssignableFrom(value.Class) != true)
-                    throw new ArgumentException($"The value must conforms to protocol '{NSApplicationDelegateClass?.Name}'.");
-                this.SetProperty(DelegateProperty!, value);
-            }
+            set => this.SetProperty(DelegateProperty!, value);
         }
 
 
@@ -148,7 +162,7 @@ namespace CarinaStudio.MacOS.AppKit
             get
             {
                 this.VerifyReleased();
-                return this.dockTile ?? this.GetProperty<IntPtr>(DockTileProperty!).Let(it =>
+                return this.dockTile ?? this.SendMessage<IntPtr>(DockTileSelector!).Let(it =>
                 {
                     this.dockTile = new(it);
                     return this.dockTile;
@@ -160,7 +174,7 @@ namespace CarinaStudio.MacOS.AppKit
         /// <summary>
         /// Check whether the main event loop is runnig or not.
         /// </summary>
-        public bool IsRunning { get => this.GetProperty<bool>(IsRunningProperty!); }
+        public bool IsRunning { get => this.SendMessage<bool>(IsRunningSelector!); }
 
 
         /// <summary>
@@ -171,7 +185,7 @@ namespace CarinaStudio.MacOS.AppKit
             get
             {
                 this.VerifyReleased();
-                var handle = this.GetProperty<IntPtr>(MainWindowProperty!);
+                var handle = this.SendMessage<IntPtr>(MainWindowSelector!);
                 if (handle != IntPtr.Zero)
                 {
                     if (this.mainWindow == null || this.mainWindow.Handle != handle)
@@ -185,8 +199,38 @@ namespace CarinaStudio.MacOS.AppKit
 
 
         /// <summary>
+        /// Start the main event loop.
+        /// </summary>
+        public void Run() =>
+            this.SendMessage(RunSelector!);
+
+
+        /// <summary>
+        /// Get the <see cref="NSApplication"/> instance or create one if it doesn’t exist yet.
+        /// </summary>
+        public static NSApplication Shared
+        {
+            get
+            {
+                return _Current ?? typeof(NSApplication).Lock(() =>
+                {
+                    if (_Current != null)
+                        return _Current;
+                    var selector = Selector.FromName("sharedApplication");
+                    var handle = NSObject.SendMessage<IntPtr>(NSApplicationClass!.Handle, selector);
+                    if (handle == default)
+                        throw new Exception("Unable to create NSApplication instance.");
+                    _Current = new(handle, true);
+                    _Current.IsDefaultInstance = true;
+                    return _Current;
+                });
+            }
+        }
+
+
+        /// <summary>
         /// Get array of windows.
         /// </summary>
-        public NSArray<NSWindow> Windows { get => this.GetProperty<NSArray<NSWindow>>(WindowsProperty!); }
+        public NSArray<NSWindow> Windows { get => this.SendMessage<NSArray<NSWindow>>(WindowsSelector!); }
     }
 }
