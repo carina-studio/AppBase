@@ -256,7 +256,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
             var size = ivar.Size;
             var ivarHandle = object_getInstanceVariable(obj, ivar.Name, out var outValue);
             if (outValue == null)
-                return default;
+                return targetType.IsValueType ? Activator.CreateInstance(targetType) : default;
             if (targetType.IsArray)
             {
                 if (targetType.GetArrayRank() > 1)
