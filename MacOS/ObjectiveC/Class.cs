@@ -1091,7 +1091,8 @@ namespace CarinaStudio.MacOS.ObjectiveC
             {
                 return false;
             }
-            var gcHandle = NSObject.GetVariable<GCHandle>(obj, this.clrObjectHandleVar);
+            var handle = NSObject.GetVariable<IntPtr>(obj, this.clrObjectHandleVar);
+            var gcHandle = handle != default ? GCHandle.FromIntPtr(handle) : default;
             var rawClrObj = gcHandle.IsAllocated ? gcHandle.Target : null;
             if (rawClrObj is T targetObj)
             {
@@ -1115,12 +1116,13 @@ namespace CarinaStudio.MacOS.ObjectiveC
             {
                 return false;
             }
-            NSObject.GetVariable<GCHandle>(obj, this.clrObjectHandleVar).Let(it =>
+            NSObject.GetVariable<IntPtr>(obj, this.clrObjectHandleVar).Let(it =>
             {
-                if (it != default)
-                    it.Free();
+                var gcHandle = it != default ? GCHandle.FromIntPtr(it) : default;
+                if (gcHandle.IsAllocated)
+                    gcHandle.Free();
             });
-            NSObject.SetVariable(obj, this.clrObjectHandleVar, clrObj != null ? GCHandle.Alloc(clrObj) : default);
+            NSObject.SetVariable(obj, this.clrObjectHandleVar, clrObj != null ? GCHandle.ToIntPtr(GCHandle.Alloc(clrObj)) : default);
             return true;
         }
 

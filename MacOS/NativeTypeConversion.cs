@@ -140,12 +140,6 @@ static class NativeTypeConversion
                 consumedBytes = sizeof(double);
                 return *(double*)valuePtr;
             }
-            if (targetType == typeof(GCHandle))
-            {
-                var handle = *(IntPtr*)valuePtr;
-                consumedBytes = IntPtr.Size;
-                return handle == default ? new GCHandle() : GCHandle.FromIntPtr(handle);
-            }
             try
             {
                 consumedBytes = Marshal.SizeOf(targetType);
@@ -557,11 +551,6 @@ static class NativeTypeConversion
         {
             *(double*)valuePtr = doubleValue;
             return sizeof(double);
-        }
-        else if (obj is GCHandle gcHandle)
-        {
-            *(IntPtr*)valuePtr = gcHandle == default ? default : GCHandle.ToIntPtr(gcHandle);
-            return IntPtr.Size;
         }
         else if (obj is ValueType)
         {
