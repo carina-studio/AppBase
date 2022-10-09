@@ -236,7 +236,20 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="ivar">Descriptor of instance variable.</param>
         /// <typeparam name="T">Type of variable.</typeparam>
         /// <returns>Value of variable.</returns>
-        public static T GetVariable<T>(IntPtr obj, Variable ivar)
+        public static T GetVariable<T>(IntPtr obj, Variable ivar) =>
+            (T)GetVariable(obj, ivar, typeof(T));
+#pragma warning restore CS8600
+#pragma warning restore CS8603
+
+
+        /// <summary>
+        /// Get instance variable as given type.
+        /// </summary>
+        /// <param name="obj">Handle of instance.</param>
+        /// <param name="ivar">Descriptor of instance variable.</param>
+        /// <param name="targetType">Type of value of instance variable.</param>
+        /// <returns>Value of variable.</returns>
+        public static object? GetVariable(IntPtr obj, Variable ivar, Type targetType)
         {
             VerifyHandle(obj);
             var type = ivar.Type;
@@ -244,26 +257,25 @@ namespace CarinaStudio.MacOS.ObjectiveC
             var ivarHandle = object_getInstanceVariable(obj, ivar.Name, out var outValue);
             if (outValue == null)
                 return default;
-            if (type.IsArray)
+            if (targetType.IsArray)
             {
-                if (type.GetArrayRank() > 1)
+                if (targetType.GetArrayRank() > 1)
                     throw new NotSupportedException($"Only 1-dimensional array is supported.");
-                var count = ivar.ElementCount;
-                var elementType = type.GetElementType()!;
+                var elementType = targetType.GetElementType()!;
+                var elementSize = NativeTypeConversion.GetNativeValueSize(elementType);
+                var count = (ivar.Size / elementSize);
                 var array = Array.CreateInstance(elementType, count);
                 var elementPtr = (byte*)outValue;
                 for (var i = 0; i < count; ++i)
                 {
-                    array.SetValue(NativeTypeConversion.FromNativeValue(elementPtr, size, elementType, out var elementSize), i);
-                    elementPtr += elementSize;
-                    size -= elementSize;
+                    array.SetValue(NativeTypeConversion.FromNativeValue(elementPtr, size, elementType, out var consumedSize), i);
+                    elementPtr += consumedSize;
+                    size -= consumedSize;
                 }
-                return (T)(object)array;
+                return array;
             }
-            return (T)NativeTypeConversion.FromNativeValue((byte*)outValue, size, typeof(T), out var _);
+            return NativeTypeConversion.FromNativeValue((byte*)outValue, size, targetType, out var _);
         }
-#pragma warning restore CS8600
-#pragma warning restore CS8603
 
 
         // Get static method to wrap native instance.
@@ -322,7 +334,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="obj">Handle of uninitialized instance.</param>
         /// <returns>Handle of initialized instance.</returns>
-        protected static IntPtr Initialize(IntPtr obj)
+        public static IntPtr Initialize(IntPtr obj)
         {
             VerifyHandle(obj);
             return ((delegate*unmanaged<IntPtr, IntPtr, IntPtr>)objc_msgSend)(obj, InitSelector!.Handle);
@@ -348,8 +360,8 @@ namespace CarinaStudio.MacOS.ObjectiveC
         {
             if (this.IsDefaultInstance)
                 throw new InvalidOperationException("Cannot release default instance.");
-            if (this.handle != IntPtr.Zero && this.ownsInstance)
-                ((delegate*<IntPtr, IntPtr, void>)objc_msgSend)(this.handle, ReleaseSelector!.Handle);
+            if (this.ownsInstance)
+                Release(this.handle);
             this.handle = default;
         }
 
@@ -385,6 +397,18 @@ namespace CarinaStudio.MacOS.ObjectiveC
                 return;
             GC.SuppressFinalize(this);
             this.OnRelease();
+        }
+
+
+        /// <summary>
+        /// Release the instance.
+        /// </summary>
+        /// <param name="obj">Handle of instance.</param>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
+        public static void Release(IntPtr obj)
+        {
+            if (obj != default)
+                ((delegate*<IntPtr, IntPtr, void>)objc_msgSend)(obj, ReleaseSelector!.Handle);
         }
 
 
@@ -603,6 +627,11 @@ namespace CarinaStudio.MacOS.ObjectiveC
 #pragma warning restore CS8603
 
 
+        // Send message for testing purpose
+        internal static object? SendMessageCore(IntPtr obj, Selector sel, Type? returnType, params object?[] args) =>
+            SendMessageCore(objc_msgSend, obj, sel, returnType, args);
+
+
 #pragma warning disable CS8600
 #pragma warning disable CS8603
         // Core implementation of send message to object.
@@ -614,7 +643,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         static void SendMessageCore(void* msgSendFunc, IntPtr obj, Selector sel, object? arg) // optimize for property setter
         {
             VerifyHandle(obj);
-            var nativeArg = NativeTypeConversion.ToNativeValue(arg);
+            var nativeArg = NativeTypeConversion.ToNativeParameter(arg);
             if (nativeArg == null)
                 ((delegate*unmanaged<IntPtr, IntPtr, IntPtr, void>)msgSendFunc)(obj, sel.Handle, IntPtr.Zero);
             else if (nativeArg is IntPtr intPtrValue)
@@ -634,15 +663,15 @@ namespace CarinaStudio.MacOS.ObjectiveC
         {
             var nativeReturnType = NativeTypeConversion.ToNativeType(returnType);
             if (nativeReturnType == typeof(IntPtr))
-                return NativeTypeConversion.FromNativeValue(((delegate*unmanaged<IntPtr, IntPtr, IntPtr>)msgSendFunc)(obj, sel.Handle), returnType);
+                return NativeTypeConversion.FromNativeParameter(((delegate*unmanaged<IntPtr, IntPtr, IntPtr>)msgSendFunc)(obj, sel.Handle), returnType);
             if (nativeReturnType == typeof(bool))
-                return NativeTypeConversion.FromNativeValue(((delegate*unmanaged<IntPtr, IntPtr, bool>)msgSendFunc)(obj, sel.Handle), returnType);
+                return NativeTypeConversion.FromNativeParameter(((delegate*unmanaged<IntPtr, IntPtr, bool>)msgSendFunc)(obj, sel.Handle), returnType);
             if (nativeReturnType == typeof(int))
-                return NativeTypeConversion.FromNativeValue(((delegate*unmanaged<IntPtr, IntPtr, int>)msgSendFunc)(obj, sel.Handle), returnType);
+                return NativeTypeConversion.FromNativeParameter(((delegate*unmanaged<IntPtr, IntPtr, int>)msgSendFunc)(obj, sel.Handle), returnType);
             if (nativeReturnType == typeof(float))
-                return NativeTypeConversion.FromNativeValue(((delegate*unmanaged<IntPtr, IntPtr, float>)msgSendFunc)(obj, sel.Handle), returnType);
+                return NativeTypeConversion.FromNativeParameter(((delegate*unmanaged<IntPtr, IntPtr, float>)msgSendFunc)(obj, sel.Handle), returnType);
             if (nativeReturnType == typeof(double))
-                return NativeTypeConversion.FromNativeValue(((delegate*unmanaged<IntPtr, IntPtr, double>)msgSendFunc)(obj, sel.Handle), returnType);
+                return NativeTypeConversion.FromNativeParameter(((delegate*unmanaged<IntPtr, IntPtr, double>)msgSendFunc)(obj, sel.Handle), returnType);
             return SendMessageCore(msgSendFunc, obj, sel, returnType, new object?[0]);
         }
         static object? SendMessageCore(void* msgSendFunc, IntPtr obj, Selector sel, Type? returnType, params object?[] args)
@@ -658,7 +687,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
             {
                 for (var i = it.Length - 1; i >= 0; --i)
                 {
-                    nativeArgs[i] = NativeTypeConversion.ToNativeValue(args[i]);
+                    nativeArgs[i] = NativeTypeConversion.ToNativeParameter(args[i]);
                     it[i] = nativeArgs[i].GetType();
                 }
             });
@@ -746,7 +775,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
                         throw new InvalidOperationException("No value returned from sending message.");
                     return null;
                 }
-                return NativeTypeConversion.FromNativeValue(nativeReturnValue, returnType);
+                return NativeTypeConversion.FromNativeParameter(nativeReturnValue, returnType);
             }
             catch
             {
@@ -980,11 +1009,10 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="ivar">Instance variable.</param>
         /// <param name="value">Value.</param>
-        /// <typeparam name="T">Type of variable.</typeparam>
-        public void SetVariable<T>(Variable ivar, T? value)
+        public void SetVariable(Variable ivar, object? value)
         {
             this.VerifyReleased();
-            SetVariable<T>(this.Handle, ivar, value);
+            SetVariable(this.Handle, ivar, value);
         }
 
 
@@ -994,41 +1022,51 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="obj">Handle of instance.</param>
         /// <param name="ivar">Instance variable.</param>
         /// <param name="value">Value.</param>
-        /// <typeparam name="T">Type of variable.</typeparam>
-        public static void SetVariable<T>(IntPtr obj, Variable ivar, T? value)
+        public static void SetVariable(IntPtr obj, Variable ivar, object? value)
         {
             VerifyHandle(obj);
             var type = ivar.Type;
             var size = ivar.Size;
-            fixed (byte* valuePtr = new byte[size])
+            var valueType = value?.GetType();
+            if (valueType == null)
             {
                 if (type.IsArray)
+                    throw new ArgumentException("Cannot set Null to variable with array type.");
+                if (type != typeof(NSObject)
+                    && type != typeof(Class)
+                    && type != typeof(Selector))
                 {
-                    var maxLength = ivar.ElementCount;
-                    var elementType = type.GetElementType()!;
-                    if (type.GetArrayRank() > 1)
-                        throw new NotSupportedException("Only 1-dimensional array is supported.");
-                    if (value is not Array array)
-                        throw new ArgumentException("Value is not an array.");
-                    if (array.GetType().GetArrayRank() > 1)
-                        throw new NotSupportedException("Only 1-dimensional array is supported.");
-                    if (!elementType.IsAssignableFrom(array.GetType().GetElementType()))
-                        throw new ArgumentException($"Invalid type of array element: {array.GetType().GetElementType()?.Name}, {elementType.Name} expected.");
-                    var arrayLength = array.GetLength(0);
-                    if (arrayLength > maxLength)
-                        throw new ArgumentException($"Size of array is too large: {arrayLength}, maximum size is {maxLength}.");
-                    var count = Math.Min(arrayLength, maxLength);
-                    if (count <= 0)
-                        return;
-                    var elementPtr = valuePtr;
-                    for (var i = 0; i < count; ++i)
-                    {
-                        var elementSize = NativeTypeConversion.ToNativeValue(array.GetValue(i), elementPtr);
-                        elementPtr += elementSize;
-                    }
+                    throw new ArgumentException($"Incompatible type: Object, {type.Name} expected.");
                 }
-                else if (value == null && type.IsValueType)
-                    throw new ArgumentException($"Cannot set null value to variable {ivar.Name}.");
+            }
+            else
+            {
+                var typeToCheck = valueType.IsArray ? valueType.GetElementType()! : valueType;
+                if (typeToCheck.IsClass 
+                    && !typeof(NSObject).IsAssignableFrom(typeToCheck)
+                    && typeToCheck != typeof(Class)
+                    && typeToCheck != typeof(Selector))
+                {
+                    throw new NotSupportedException($"Setting variable with CLR object or CLR object array is unsupported. Only NSObject, Class and Selector are supported.");
+                }
+            }
+            fixed (byte* valuePtr = new byte[size])
+            {
+                if (value is Array array)
+                {
+                    if (valueType!.GetArrayRank() > 1)
+                        throw new NotSupportedException("Only 1-dimensional array is supported.");
+                    var arrayLength = array.GetLength(0);
+                    if (arrayLength <= 0)
+                        return;
+                    var elementType = valueType.GetElementType()!;
+                    var elementSize = NativeTypeConversion.GetNativeValueSize(elementType);
+                    if (arrayLength * elementSize > size)
+                        throw new ArgumentException($"Size of array is too large: {arrayLength * elementSize}, maximum size is {size}.");
+                    var elementPtr = valuePtr;
+                    for (var i = 0; i < arrayLength; ++i)
+                        elementPtr += NativeTypeConversion.ToNativeValue(array.GetValue(i), elementPtr);
+                }
                 else
                     NativeTypeConversion.ToNativeValue(value, valuePtr);
                 object_setInstanceVariable(obj, ivar.Name, valuePtr);
