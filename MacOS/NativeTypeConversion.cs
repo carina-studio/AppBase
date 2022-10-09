@@ -3,7 +3,9 @@ using CarinaStudio.MacOS.ObjectiveC;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace CarinaStudio.MacOS;
 
@@ -16,12 +18,22 @@ static class NativeTypeConversion
     static readonly IDictionary<Type, bool> CachedFloatingPointStructures = new ConcurrentDictionary<Type, bool>();
 
 
-    // Convert from native value to CLR value.
-    public static object? FromNativeValue(object nativeValue, Type targetType)
+    // Convert from native parameter to CLR parameter.
+    public static object? FromNativeParameter(object nativeValue, Type targetType)
     {
         if (IsNativeType(targetType))
             return nativeValue;
-        if (targetType == typeof(GCHandle))
+        if (targetType == typeof(char))
+        {
+            if (nativeValue is ushort ushortValue)
+                return (char)ushortValue;
+        }
+        else if (targetType == typeof(nuint))
+        {
+            if (nativeValue is nint nintValue)
+                return (nuint)nintValue;
+        }
+        else if (targetType == typeof(GCHandle))
         {
             var nintValue = (nint)nativeValue;
             return nintValue == default ? new GCHandle() : GCHandle.FromIntPtr(nintValue);
@@ -47,6 +59,9 @@ static class NativeTypeConversion
         }
         throw new NotSupportedException($"Cannot convert native value to {targetType.Name}.");
     }
+
+
+    // Convert from native value to CLR value.
     public static unsafe object? FromNativeValue(byte* valuePtr, int valueCount, Type targetType, out int consumedBytes)
     {
         if (valueCount < 1)
@@ -74,6 +89,31 @@ static class NativeTypeConversion
             {
                 consumedBytes = sizeof(int);
                 return *(int*)valuePtr;
+            }
+            if (targetType == typeof(byte))
+            {
+                consumedBytes = sizeof(byte);
+                return *(byte*)valuePtr;
+            }
+            if (targetType == typeof(sbyte))
+            {
+                consumedBytes = sizeof(sbyte);
+                return *(sbyte*)valuePtr;
+            }
+            if (targetType == typeof(short))
+            {
+                consumedBytes = sizeof(short);
+                return *(short*)valuePtr;
+            }
+            if (targetType == typeof(ushort))
+            {
+                consumedBytes = sizeof(ushort);
+                return *(ushort*)valuePtr;
+            }
+            if (targetType == typeof(char))
+            {
+                consumedBytes = sizeof(ushort);
+                return (char)*(ushort*)valuePtr;
             }
             if (targetType == typeof(uint))
             {
@@ -130,6 +170,8 @@ static class NativeTypeConversion
                 return Class.FromHandle(handle);
             if (targetType == typeof(Selector))
                 return Selector.FromHandle(handle);
+            GCHandle gcHandle = GCHandle.FromIntPtr(handle);
+            return gcHandle.IsAllocated ? gcHandle.Target : null;
         }
         else if (targetType == typeof(string))
         {
@@ -232,23 +274,41 @@ static class NativeTypeConversion
                     }
                     if (subIndex == typeEncodingLength || typeEncoding[subIndex] == '}')
                         goto default;
-                    var fieldSize = 0;
+                    var totalFieldSize = 0;
+                    var alignment = IntPtr.Size;
+                    var remainingInSlot = alignment;
                     while (typeEncoding[subIndex] != '}')
                     {
                         var fieldType = FromTypeEncoding(typeEncoding.Slice(subIndex), out elementCount, out consumedChars);
-                        if (fieldType.IsArray)
-                            fieldSize += elementCount > 0 ? (Marshal.SizeOf(fieldType.GetElementType()!)) : IntPtr.Size;
+                        var fieldSize = fieldType.IsArray
+                            ? elementCount > 0 ? (elementCount * Marshal.SizeOf(fieldType.GetElementType()!)) : IntPtr.Size
+                            : Marshal.SizeOf(fieldType);
+                        if (remainingInSlot >= fieldSize)
+                        {
+                            remainingInSlot -= fieldSize;
+                            if (remainingInSlot == 0)
+                            {
+                                totalFieldSize += alignment;
+                                remainingInSlot = alignment;
+                            }
+                        }
                         else
-                            fieldSize += Marshal.SizeOf(fieldType);
+                        {
+                            totalFieldSize += alignment;
+                            remainingInSlot = alignment;
+                            totalFieldSize += (fieldSize / alignment) * alignment;
+                            if ((fieldSize % alignment) != 0)
+                                totalFieldSize += alignment;
+                        }
                         subIndex += consumedChars;
                         if (subIndex >= typeEncodingLength)
                             goto default;
                         if (typeEncoding[subIndex] == '}')
                             break;
                     }
-                    if ((fieldSize % IntPtr.Size) > 0)
-                        fieldSize = (fieldSize / IntPtr.Size) + 1;
-                    elementCount = fieldSize;
+                    if (remainingInSlot < alignment)
+                        totalFieldSize += alignment;
+                    elementCount = totalFieldSize;
                     consumedChars = (subIndex + 1);
                     return typeof(byte[]);
                 }
@@ -317,42 +377,29 @@ static class NativeTypeConversion
     }
 
 
-    // Calculate number of native values needed for CLR object.
-    public static int GetNativeFpValueCount(object? obj) =>
-        obj != null ? GetNativeFpValueCount(obj.GetType()) : 1;
-    public static int GetNativeFpValueCount<T>() =>
-        GetNativeFpValueCount(typeof(T));
-    public static int GetNativeFpValueCount(Type type)
+    // Get size of native value in bytes.
+    public static int GetNativeValueSize(Type type)
     {
-        if (type.IsEnum)
-            type = type.GetEnumUnderlyingType();
-        else if (type == typeof(float)
-            || type == typeof(double))
-        {
-            return 1;
-        }
-        else if (type.IsValueType)
-        {
-            try
-            {
-                var size = Marshal.SizeOf(type);
-                if ((size & 0x3) == 0)
-                    return size >> 3;
-                return (size >> 3) + 1;
-            }
-            catch (Exception ex)
-            {
-                throw new NotSupportedException($"Cannot convert {type.Name} to native float-point type.", ex);
-            }
-        }
-        throw new NotSupportedException($"Cannot convert {type.Name} to native float-point type.");
-    }
-    public static int GetNativeFpValueCount(params Type[] types)
-    {
-        var count = 0;
-        for (var i = types.Length - 1; i >= 0; --i)
-            count += GetNativeFpValueCount(types[i]);
-        return count;
+        type = ToNativeType(type);
+        if (type == typeof(bool))
+            return sizeof(bool);
+        if (type == typeof(byte) || type == typeof(sbyte))
+            return sizeof(byte);
+        if (type == typeof(short) || type == typeof(ushort))
+            return sizeof(short);
+        if (type == typeof(int) || type == typeof(uint))
+            return sizeof(int);
+        if (type == typeof(long) || type == typeof(ulong))
+            return sizeof(long);
+        if (type == typeof(float))
+            return sizeof(float);
+        if (type == typeof(double))
+            return sizeof(double);
+        if (type == typeof(nint))
+            return IntPtr.Size;
+        if (type.IsValueType)
+            return Marshal.SizeOf(type);
+        throw new NotSupportedException($"Cannot get size of native type: {type.Name}.");
     }
 
 
@@ -363,6 +410,10 @@ static class NativeTypeConversion
             return false;
         if (type.IsEnum)
             type = type.GetEnumUnderlyingType();
+        if (type == typeof(char)) // To prevent marshalling as sbyte
+            return false;
+        if (type == typeof(nuint)) // No difference from nint in native layer
+            return false;
         return type == typeof(int)
             || type == typeof(uint)
             || type == typeof(float)
@@ -375,7 +426,6 @@ static class NativeTypeConversion
             || type == typeof(ushort)
             || type == typeof(long)
             || type == typeof(ulong)
-            || type == typeof(nuint)
             || Global.RunOrDefault(() =>
             {
                 Marshal.SizeOf(type);
@@ -384,13 +434,17 @@ static class NativeTypeConversion
     }
 
 
-    // Convert from CLR object to native value.
-    public static object ToNativeValue(object? value)
+    // Convert from CLR parameter to native parameter.
+    public static object ToNativeParameter(object? value)
     {
         if (value == null)
             return default(nint);
         if (IsNativeType(value.GetType()))
             return value;
+        if (value is char charValue)
+            return (ushort)charValue;
+        if (value is nuint nuintValue)
+            return (nint)nuintValue;
         if (value is GCHandle gcHandle)
             return GCHandle.ToIntPtr(gcHandle);
         else if (value.GetType().IsClass)
@@ -407,6 +461,9 @@ static class NativeTypeConversion
         }
         throw new NotSupportedException($"Cannot convert from {value.GetType().Name} to native value.");
     }
+
+
+    // Convert from CLR object to native value.
     public static unsafe int ToNativeValue(object? obj, byte* valuePtr)
     {
         obj?.GetType()?.Let(t =>
@@ -445,6 +502,31 @@ static class NativeTypeConversion
         {
             *(UIntPtr*)valuePtr = uintPtrValue;
             return UIntPtr.Size;
+        }
+        else if (obj is byte byteValue)
+        {
+            *(byte*)valuePtr = byteValue;
+            return sizeof(byte);
+        }
+        else if (obj is sbyte sbyteValue)
+        {
+            *(sbyte*)valuePtr = sbyteValue;
+            return sizeof(sbyte);
+        }
+        else if (obj is short shortValue)
+        {
+            *(short*)valuePtr = shortValue;
+            return sizeof(short);
+        }
+        else if (obj is ushort ushortValue)
+        {
+            *(ushort*)valuePtr = ushortValue;
+            return sizeof(ushort);
+        }
+        else if (obj is char charValue)
+        {
+            *(ushort*)valuePtr = (ushort)charValue;
+            return sizeof(ushort);
         }
         else if (obj is int intValue)
         {
@@ -519,6 +601,10 @@ static class NativeTypeConversion
     {
         if (IsNativeType(type))
             return type;
+        else if (type == typeof(char)) // To prevent marshalling as sbyte
+            return typeof(ushort);
+        else if (type == typeof(nuint)) // No difference in native layer
+            return typeof(nint);
         else if (type == typeof(GCHandle) || type.IsClass)
             return typeof(nint); // CLR object through GCHandle
         throw new NotSupportedException($"Cannot convert from {type.Name} to native type.");
@@ -559,7 +645,7 @@ static class NativeTypeConversion
                 return isArray ? $"[{arrayLengthPrefix}c]" : "c";
             if (type == typeof(short))
                 return isArray ? $"[{arrayLengthPrefix}s]" : "s";
-            if (type == typeof(ushort))
+            if (type == typeof(ushort) || type == typeof(char))
                 return isArray ? $"[{arrayLengthPrefix}S]" : "S";
             if (type == typeof(int))
                 return isArray ? $"[{arrayLengthPrefix}i]" : "i";
@@ -575,6 +661,32 @@ static class NativeTypeConversion
                 return isArray ? $"[{arrayLengthPrefix}f]" : "f";
             if (type == typeof(double))
                 return isArray ? $"[{arrayLengthPrefix}d]" : "d";
+            var teBuffer = new StringBuilder();
+            teBuffer.Append('{');
+            teBuffer.Append(type.Name);
+            teBuffer.Append('=');
+            foreach (var fieldInfo in type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public))
+            {
+                var fieldType = fieldInfo.FieldType;
+                var subElementCount = 1;
+                if (fieldType.IsArray)
+                {
+                    var marshalAsAttr = fieldInfo.GetCustomAttribute<MarshalAsAttribute>();
+                    if (marshalAsAttr == null)
+                        throw new ArgumentException($"Array field without MarshalAs attribute: {type.Name}.{fieldInfo.Name}.");
+                    if (marshalAsAttr.Value == UnmanagedType.ByValArray)
+                    {
+                        subElementCount = marshalAsAttr.SizeConst;
+                        if (subElementCount <= 0)
+                            throw new ArgumentException($"Array field without fixed size: {type.Name}.{fieldInfo.Name}.");
+                    }
+                    else
+                        throw new ArgumentException($"Array field with unsupported MarshalAs attribute: {type.Name}.{fieldInfo.Name}.");
+                }
+                teBuffer.Append(ToTypeEncoding(fieldType, subElementCount));
+            }
+            teBuffer.Append('}');
+            return isArray ? $"[{arrayLengthPrefix}{teBuffer}]" : teBuffer.ToString();
         }
         else if (type == typeof(Class))
             return isArray ? $"[{arrayLengthPrefix}#]" : "#";

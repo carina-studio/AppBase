@@ -6,11 +6,19 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<AssemblyName>CarinaStudio.AppBase.MacOS.Tests</AssemblyName>
 		<RootNamespace>CarinaStudio.MacOS</RootNamespace>
+		<StartupObject>CarinaStudio.MacOS.Program</StartupObject>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\MacOS\MacOS.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="NUnit" Version="3.13.2" />
+		<PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.4" />
 	</ItemGroup>
 
 </Project>

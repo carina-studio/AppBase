@@ -253,28 +253,27 @@ namespace CarinaStudio.MacOS.ObjectiveC
                 throw new ArgumentException($"Invalid name: {name}.");
             if (elementCount <= 0)
                 throw new ArgumentOutOfRangeException(nameof(elementCount));
+            if (type.IsClass)
+            {
+                var typeToCheck = type.IsArray ? type.GetElementType()! : type;
+                if (typeToCheck.IsClass
+                    && !typeof(NSObject).IsAssignableFrom(typeToCheck)
+                    && typeToCheck != typeof(Class)
+                    && typeToCheck != typeof(Selector))
+                {
+                    throw new NotSupportedException("Variable with CLR object or CLR object array is unsupported. Only NSObject, Class and Selector are supported.");
+                }
+            }
             var typeEncoding = NativeTypeConversion.ToTypeEncoding(type, elementCount);
             var dataSize = Global.Run(() =>
             {
-                int SizeOf(Type type)
-                {
-                    if (type.IsValueType)
-                        return Marshal.SizeOf(type);
-                    if (typeof(NSObject).IsAssignableFrom(type)
-                        || type == typeof(Class)
-                        || type == typeof(Selector))
-                    {
-                        return IntPtr.Size;
-                    }
-                    return Marshal.SizeOf(type);
-                }
                 if (type.IsArray)
                 {
                     if (type.GetArrayRank() > 1)
                         throw new ArgumentException("Only 1-dimensional array is supported.");
-                    return elementCount * SizeOf(type.GetElementType()!);
+                    return elementCount * NativeTypeConversion.GetNativeValueSize(type.GetElementType()!);
                 }
-                return SizeOf(type);
+                return NativeTypeConversion.GetNativeValueSize(type);
             });
             byte alignment = IntPtr.Size switch
             {
@@ -579,8 +578,8 @@ namespace CarinaStudio.MacOS.ObjectiveC
 
             // create bridge method
             var getTypeFromHandleMethod = typeof(Type).GetMethod(nameof(Type.GetTypeFromHandle), BindingFlags.Public | BindingFlags.Static).AsNonNull();
-            var fromNativeValueMethod = typeof(NativeTypeConversion).GetMethod(nameof(NativeTypeConversion.FromNativeValue), BindingFlags.Public | BindingFlags.Static, new Type[]{ typeof(object), typeof(Type) }).AsNonNull();
-            var toNativeValueMethod = typeof(NativeTypeConversion).GetMethod(nameof(NativeTypeConversion.ToNativeValue), BindingFlags.Public | BindingFlags.Static, new Type[]{ typeof(object) }).AsNonNull();
+            var fromNativeParamMethod = typeof(NativeTypeConversion).GetMethod(nameof(NativeTypeConversion.FromNativeParameter), BindingFlags.Public | BindingFlags.Static, new Type[]{ typeof(object), typeof(Type) }).AsNonNull();
+            var toNativeParamMethod = typeof(NativeTypeConversion).GetMethod(nameof(NativeTypeConversion.ToNativeParameter), BindingFlags.Public | BindingFlags.Static, new Type[]{ typeof(object) }).AsNonNull();
             bridgeTypeBuilder.DefineMethod("Invoke", MethodAttributes.Public, nativeReturnType, nativeParamTypes).Also(it =>
             {
                 it.GetILGenerator().Let(ilGen => // (object this, IntPtr self, IntPtr cmd, parameters...)
@@ -610,7 +609,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
                                 ilGen.Emit(OpCodes.Box, nativeParamTypes[i]);
                             ilGen.Emit(OpCodes.Ldtoken, paramTypes[i]);
                             ilGen.EmitCall(OpCodes.Call, getTypeFromHandleMethod, null);
-                            ilGen.EmitCall(OpCodes.Call, fromNativeValueMethod, null);
+                            ilGen.EmitCall(OpCodes.Call, fromNativeParamMethod, null);
                             if (typeof(ValueType).IsAssignableFrom(paramTypes[i]))
                                 ilGen.Emit(OpCodes.Unbox_Any, paramTypes[i]);
                         }
@@ -624,12 +623,10 @@ namespace CarinaStudio.MacOS.ObjectiveC
                     {
                         if (typeof(ValueType).IsAssignableFrom(returnType))
                             ilGen.Emit(OpCodes.Box, returnType);
-                        ilGen.EmitCall(OpCodes.Call, toNativeValueMethod, null);
+                        ilGen.EmitCall(OpCodes.Call, toNativeParamMethod, null);
                         if (typeof(ValueType).IsAssignableFrom(nativeReturnType))
                             ilGen.Emit(OpCodes.Unbox_Any, nativeReturnType);
                     }
-                    //else
-                        //ilGen.Emit(OpCodes.Pop); // remove null returned by this.impl.Invoke(...)
 
                     // complete
                     ilGen.Emit(OpCodes.Ret);
@@ -1094,8 +1091,8 @@ namespace CarinaStudio.MacOS.ObjectiveC
             {
                 return false;
             }
-            var handle = NSObject.GetVariable<IntPtr>(obj, this.clrObjectHandleVar);
-            var rawClrObj = handle != IntPtr.Zero ? GCHandle.FromIntPtr(handle).Target : null;
+            var gcHandle = NSObject.GetVariable<GCHandle>(obj, this.clrObjectHandleVar);
+            var rawClrObj = gcHandle.IsAllocated ? gcHandle.Target : null;
             if (rawClrObj is T targetObj)
             {
                 clrObj = targetObj;
@@ -1118,12 +1115,12 @@ namespace CarinaStudio.MacOS.ObjectiveC
             {
                 return false;
             }
-            NSObject.GetVariable<IntPtr>(obj, this.clrObjectHandleVar).Let(it =>
+            NSObject.GetVariable<GCHandle>(obj, this.clrObjectHandleVar).Let(it =>
             {
-                if (it != IntPtr.Zero)
-                    GCHandle.FromIntPtr(it).Free();
+                if (it != default)
+                    it.Free();
             });
-            NSObject.SetVariable(obj, this.clrObjectHandleVar, clrObj != null ? GCHandle.Alloc(clrObj, GCHandleType.Weak) : default);
+            NSObject.SetVariable(obj, this.clrObjectHandleVar, clrObj != null ? GCHandle.Alloc(clrObj) : default);
             return true;
         }
 

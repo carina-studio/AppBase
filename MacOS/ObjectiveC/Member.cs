@@ -172,22 +172,10 @@ namespace CarinaStudio.MacOS.ObjectiveC
                 if (this.size == 0)
                 {
                     var type = this.Type;
-                    int SizeOf(Type type)
-                    {
-                        if (type.IsValueType)
-                            return Marshal.SizeOf(type);
-                        if (typeof(NSObject).IsAssignableFrom(type)
-                            || type == typeof(Class)
-                            || type == typeof(Selector))
-                        {
-                            return IntPtr.Size;
-                        }
-                        return Marshal.SizeOf(type);
-                    }
                     if (type.IsArray)
-                        this.size = this.ElementCount * SizeOf(type.GetElementType()!);
+                        this.size = this.ElementCount * NativeTypeConversion.GetNativeValueSize(type.GetElementType()!);
                     else
-                        this.size = SizeOf(type);
+                        this.size = NativeTypeConversion.GetNativeValueSize(type);
                 }
                 return size;
             }
