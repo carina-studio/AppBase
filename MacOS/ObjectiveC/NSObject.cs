@@ -562,7 +562,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         {
             if (args.Length == 0)
                 return (T)SendMessageCore(objc_msgSend, this.Handle, selector, typeof(T));
-            return (T)SendMessageCore(objc_msgSend, this.Handle, selector, null, args);
+            return (T)SendMessageCore(objc_msgSend, this.Handle, selector, typeof(T), args);
         }
 #pragma warning restore CS8600
 #pragma warning restore CS8603
