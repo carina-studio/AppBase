@@ -9,6 +9,7 @@ namespace CarinaStudio.MacOS.AppKit;
 public class NSProgressIndicator : NSView
 {
     // Static fields.
+    static readonly Property? ControlSizeProperty;
     static readonly Property? ControlTintProperty;
     static readonly Property? DoubleValueProperty;
     static readonly Selector? IncrementBySelector;
@@ -28,6 +29,7 @@ public class NSProgressIndicator : NSView
         if (Platform.IsNotMacOS)
             return;
         NSProgressIndicatorClass = Class.GetClass("NSProgressIndicator").AsNonNull();
+        ControlSizeProperty = NSProgressIndicatorClass.GetProperty("controlSize");
         ControlTintProperty = NSProgressIndicatorClass.GetProperty("controlTint");
         DoubleValueProperty = NSProgressIndicatorClass.GetProperty("doubleValue");
         IncrementBySelector = Selector.FromName("incrementBy:");
@@ -54,6 +56,16 @@ public class NSProgressIndicator : NSView
         this.VerifyClass(NSProgressIndicatorClass!);
     NSProgressIndicator(Class cls, IntPtr handle, bool ownsInstance) : base(cls, handle, ownsInstance)
     { }
+
+
+    /// <summary>
+    /// Get or set size of progress indicator.
+    /// </summary>
+    public NSControlSize ControlSize
+    {
+        get => this.GetProperty<NSControlSize>(ControlSizeProperty!);
+        set => this.SetProperty(ControlSizeProperty!, value);
+    }
     
 
     /// <summary>
