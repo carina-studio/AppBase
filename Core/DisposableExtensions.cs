@@ -32,7 +32,7 @@ namespace CarinaStudio
 		/// <param name="func">Exchanging function.</param>
 		/// <returns>Exchanged <see cref="IDisposable"/>.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static R? Exchange<T, R>(this T? source, Func<R?> func) where T : class, IDisposable where R : class, IDisposable
+		public static R? Exchange<T, R>(this T source, Func<R?> func) where T : class, IDisposable where R : class, IDisposable
 		{
 			R? result = default;
 			try
@@ -57,7 +57,7 @@ namespace CarinaStudio
 		/// <param name="func">Exchanging function.</param>
 		/// <returns>Exchanged <see cref="IDisposable"/>.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static R? Exchange<T, R>(this T? source, Func<T?, R?> func) where T : class, IDisposable where R : class, IDisposable
+		public static R? Exchange<T, R>(this T source, Func<T, R?> func) where T : class, IDisposable where R : class, IDisposable
 		{
 			R? result = default;
 			try
@@ -83,7 +83,7 @@ namespace CarinaStudio
 		/// <param name="func">Exchanging function.</param>
 		/// <returns>Task of exchanging <see cref="IDisposable"/>.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static async Task<R?> ExchangeAsync<T, R>(this T? source, Func<Task<R?>> func) where T : class, IDisposable where R : class, IDisposable
+		public static async Task<R?> ExchangeAsync<T, R>(this T source, Func<Task<R?>> func) where T : class, IDisposable where R : class, IDisposable
 		{
 			R? result = default;
 			try
@@ -113,7 +113,7 @@ namespace CarinaStudio
 		/// <param name="func">Exchanging function.</param>
 		/// <returns>Task of exchanging <see cref="IDisposable"/>.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static async Task<R?> ExchangeAsync<T, R>(this T? source, Func<T?, Task<R?>> func) where T : class, IDisposable where R : class, IDisposable
+		public static async Task<R?> ExchangeAsync<T, R>(this T source, Func<T, Task<R?>> func) where T : class, IDisposable where R : class, IDisposable
 		{
 			R? result = default;
 			try
