@@ -8,6 +8,20 @@ namespace CarinaStudio.MacOS.AppKit;
 /// </summary>
 public class NSView : NSResponder
 {
+#pragma warning disable CS1591
+    /// <summary>
+    /// BackgroundStyle.
+    /// </summary>
+    public enum BackgroundStyle : int
+    {
+        Normal = 0,
+        Emphasized = 1,
+        Raised = 2,
+        Lowered = 3,
+    }
+#pragma warning restore CS1591
+
+
     // Static fields.
     static readonly Selector? AddConstraintSelector;
     static readonly Selector? AddConstraintsSelector;
