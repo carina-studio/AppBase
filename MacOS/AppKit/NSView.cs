@@ -239,9 +239,9 @@ public class NSView : NSResponder
     /// <summary>
     /// Get or set rotation of bounds in degrees.
     /// </summary>
-    public float BoundsRotation
+    public double BoundsRotation
     {
-        get => this.GetProperty<float>(BoundsRotationProperty!);
+        get => this.GetProperty<double>(BoundsRotationProperty!);
         set => this.SetProperty(BoundsRotationProperty!, value);
     }
 
@@ -301,9 +301,9 @@ public class NSView : NSResponder
     /// <summary>
     /// Get or set rotation of frame in degrees.
     /// </summary>
-    public float FrameRotation
+    public double FrameRotation
     {
-        get => this.GetProperty<float>(FrameRotationProperty!);
+        get => this.GetProperty<double>(FrameRotationProperty!);
         set => this.SetProperty(FrameRotationProperty!, value);
     }
 
