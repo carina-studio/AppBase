@@ -1,5 +1,6 @@
 ﻿using NUnit.Framework;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -120,6 +121,73 @@ namespace CarinaStudio.Collections
 					Assert.AreEqual(~index, testList.BinarySearch(testList[index] - 1, comparison));
 				}
 			}
+		}
+
+
+		/// <summary>
+		/// Test for <see cref="ListExtensions.Cast{TOut}(System.Collections.IList)"/>.
+		/// </summary>
+		[Test]
+		public void CastingTest()
+		{
+			// prepare
+			var sourceList = (IList)new int[1024].Also((it) =>
+			{
+				for (var i = it.Length - 1; i >= 0; --i)
+					it[i] = this.random.Next(int.MinValue, int.MaxValue);
+			});
+
+			// cast to IList<int>
+			var intList = sourceList.Cast<int>();
+			Assert.AreEqual(sourceList.Count, intList.Count);
+			for (var i = intList.Count - 1; i >= 0; --i)
+				Assert.AreEqual(sourceList[i], intList[i]);
+			
+			// copy from IList<int> to array
+			var intArray = new int[intList.Count];
+			intList.CopyTo(intArray, 0);
+			for (var i = intArray.Length - 1; i >= 0; --i)
+				Assert.AreEqual(sourceList[i], intArray[i]);
+			
+			// cast to IList<object>
+			var objList = sourceList.Cast<object>();
+			Assert.AreEqual(sourceList.Count, objList.Count);
+			for (var i = objList.Count - 1; i >= 0; --i)
+				Assert.AreEqual(sourceList[i], objList[i]);
+			
+			// copy from IList<object> to array
+			var objArray = new object[objList.Count];
+			objList.CopyTo(objArray, 0);
+			for (var i = objArray.Length - 1; i >= 0; --i)
+				Assert.AreEqual(sourceList[i], objArray[i]);
+			
+			// cast to IList<IConvertible>
+			var convertibleList = sourceList.Cast<IConvertible>();
+			Assert.AreEqual(sourceList.Count, convertibleList.Count);
+			for (var i = convertibleList.Count - 1; i >= 0; --i)
+				Assert.AreEqual(sourceList[i], convertibleList[i]);
+			
+			// copy from IList<IConvertible> to array
+			var convertibleArray = new IConvertible[convertibleList.Count];
+			convertibleList.CopyTo(convertibleArray, 0);
+			for (var i = convertibleArray.Length - 1; i >= 0; --i)
+				Assert.AreEqual(sourceList[i], convertibleArray[i]);
+			
+			// cast to IList<string>
+			try
+			{
+				sourceList.Cast<string>();
+				throw new AssertionException("Should not support type casting.");
+			}
+			catch (Exception ex)
+			{
+				if (ex is AssertionException)
+					throw;
+			}
+
+			// cast empty list.
+			var emptyList = ((IList)new int[0]).Cast<string>();
+			Assert.AreEqual(0, emptyList.Count);
 		}
 
 

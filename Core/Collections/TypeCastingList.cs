@@ -33,8 +33,28 @@ namespace CarinaStudio.Collections
         
 
         /// <inheritdoc/>
-        public void CopyTo(T[] array, int arrayIndex) =>
-            this.list.CopyTo(array, arrayIndex);
+        public void CopyTo(T[] array, int arrayIndex)
+        {
+            var list = this.list;
+            var count = list.Count;
+            if (count == 0)
+                return;
+            var elementType = (Type?)null;
+            for (var i = count - 1; i >= 0; --i)
+            {
+                elementType = list[i]?.GetType();
+                if (elementType != null)
+                    break;
+            }
+            if (elementType == typeof(T))
+                list.CopyTo(array, arrayIndex);
+            else if (elementType != null)
+            {
+                var tempArray = Array.CreateInstance(elementType, count);
+                list.CopyTo(tempArray, 0);
+                Array.Copy(tempArray, 0, array, arrayIndex, count);
+            }
+        }
         
 
         /// <inheritdoc/>
