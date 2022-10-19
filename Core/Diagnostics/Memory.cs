@@ -181,7 +181,8 @@ namespace CarinaStudio.Diagnostics
         static long EstimateObjectSizeInternal(Type type, long length = 0)
         {
             // use cached size
-            if (ObjectSizes.TryGetValue(type, out var size))
+            var size = 0L;
+            if (length == 0 && ObjectSizes.TryGetValue(type, out size))
                 return size;
             
             // calculate size
