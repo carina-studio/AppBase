@@ -218,7 +218,7 @@ namespace CarinaStudio.Diagnostics
                 size = sizeof(bool);
             else if (type == typeof(byte) || type == typeof(sbyte))
                 size = 1;
-            else if (type == typeof(short) || type == typeof(ushort))
+            else if (type == typeof(short) || type == typeof(ushort) || type == typeof(char))
                 size = 2;
             else if (type == typeof(int) || type == typeof(uint) || type == typeof(float))
                 size = 4;
