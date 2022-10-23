@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<AssemblyVersion>1.7.9.1019</AssemblyVersion>
-		<Version>1.7.9.1019</Version>
-		<PackageVersion>1.7.9.1019-preview</PackageVersion>
+		<AssemblyVersion>1.7.10.1023</AssemblyVersion>
+		<Version>1.7.10.1023</Version>
+		<PackageVersion>1.7.10.1023-preview</PackageVersion>
 		<TargetFrameworks>net6.0</TargetFrameworks>
 		<RootNamespace>CarinaStudio.MacOS</RootNamespace>
 		<AssemblyName>CarinaStudio.AppBase.MacOS</AssemblyName>
