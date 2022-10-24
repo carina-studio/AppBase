@@ -154,7 +154,7 @@ namespace CarinaStudio.Diagnostics
         /// <typeparam name="T">Type of instance.</typeparam>
         /// <returns>Size of instance.</returns>
         public static long EstimateInstanceSize<T>(long length = 0) =>
-            EstimateInstanceSize(typeof(T));
+            EstimateInstanceSize(typeof(T), length);
         
 
         /// <summary>
