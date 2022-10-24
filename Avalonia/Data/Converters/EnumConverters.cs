@@ -56,7 +56,7 @@ namespace CarinaStudio.Data.Converters
             /// <inheritdoc/>.
             public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
             {
-                if (targetType != typeof(object) && !targetType.IsArray && targetType != typeof(IList))
+                if (targetType != typeof(object) && !typeof(IEnumerable).IsAssignableFrom(targetType))
                     return null;
                 if (value is not Type type || !type.IsEnum)
                     return null;
