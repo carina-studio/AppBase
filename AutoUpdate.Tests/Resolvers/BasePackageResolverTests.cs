@@ -168,7 +168,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 				var appVersion = Assembly.GetExecutingAssembly()!.GetName()!.Version;
 				var version = new Version(1, 2, 3, 4);
 				var pageUri = new Uri("https://localhost/Package.htm");
-				var runtimeVersion = Environment.Version;
+				var runtimeVersion = Platform.GetInstalledRuntimeVersion();
 				var packageInfos = new List<PackageInfo>()
 				{
 					new PackageInfo()
