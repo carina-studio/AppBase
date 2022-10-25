@@ -4,7 +4,7 @@
 		<AssemblyVersion>1.7.11.1024</AssemblyVersion>
 		<Version>1.7.11.1024</Version>
 		<PackageVersion>1.7.11.1024-preview</PackageVersion>
-		<TargetFrameworks>net5.0;net6.0</TargetFrameworks>
+		<TargetFrameworks>net5.0;net6.0;net7.0</TargetFrameworks>
 		<RootNamespace>CarinaStudio.AutoUpdate</RootNamespace>
 		<AssemblyName>CarinaStudio.AppBase.AutoUpdate</AssemblyName>
 		<Authors>Carina Studio</Authors>

@@ -33,7 +33,7 @@ public class NSArray<T> : NSObject, IList<T> where T : NSObject
         // Move to next element.
         public bool MoveNext()
         {
-            this.current = this.baseEnumerator.NextObject().Exchange(it => 
+            this.current = this.baseEnumerator.NextObject()?.Exchange(it => 
             {
                 if (it == null)
                     return null;
