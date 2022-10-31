@@ -69,6 +69,12 @@ namespace CarinaStudio.Collections
 
 
 		/// <summary>
+		/// Get capacity of the list.
+		/// </summary>
+		public int Capacity { get => this.list.Capacity; }
+
+
+		/// <summary>
 		/// Clear all elements.
 		/// </summary>
 		public void Clear()
