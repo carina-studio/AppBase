@@ -10,10 +10,10 @@
     <AvaloniaResource Include="AppIcon.ico" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="11.0.0-preview1" />
-    <PackageReference Include="Avalonia.Desktop" Version="11.0.0-preview1" />
-    <PackageReference Include="Avalonia.Diagnostics" Version="11.0.0-preview1" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.0-preview1" />
+    <PackageReference Include="Avalonia" Version="11.0.0-preview3" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.0.0-preview3" />
+    <PackageReference Include="Avalonia.Diagnostics" Version="11.0.0-preview3" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.0-preview3" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0" />
    </ItemGroup>
   <ItemGroup>
