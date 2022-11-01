@@ -5,6 +5,7 @@ PublishProfiles
 /Core/CarinaStudio.AppBase.Core.xml
 /Configuration/CarinaStudio.AppBase.Configuration.xml
 /Application/CarinaStudio.AppBase.Application.xml
+/Application.Android/CarinaStudio.AppBase.Application.Android.xml
 /Application.Avalonia/CarinaStudio.AppBase.Application.Avalonia.xml
 /AutoUpdate/CarinaStudio.AppBase.AutoUpdate.xml
 /Avalonia/CarinaStudio.AppBase.Avalonia.xml

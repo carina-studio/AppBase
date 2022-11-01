@@ -4,6 +4,11 @@ IF not exist Packages (
 	mkdir Packages
 )
 
+dotnet build Application.Android -c Release
+IF %ERRORLEVEL% NEQ 0 ( 
+   exit
+)
+
 dotnet build Application.Avalonia -c Release
 IF %ERRORLEVEL% NEQ 0 ( 
    exit
@@ -23,6 +28,7 @@ dotnet pack Core -c Release -o Packages
 dotnet pack Configuration -c Release -o Packages
 dotnet pack Avalonia -c Release -o Packages
 dotnet pack Application -c Release -o Packages
+dotnet pack Application.Android -c Release -o Packages
 dotnet pack Application.Avalonia -c Release -o Packages
 dotnet pack AutoUpdate -c Release -o Packages
 dotnet pack MacOS -c Release -o Packages
