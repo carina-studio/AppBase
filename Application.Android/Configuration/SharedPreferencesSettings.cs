@@ -180,7 +180,13 @@ public class SharedPreferencesSettings : ISettings
             if (DefaultSettings != null)
                 return DefaultSettings;
             Log.Debug(TAG, "Create default settings");
-            DefaultSettings = new(PreferenceManager.GetDefaultSharedPreferences(context.ApplicationContext));
+#pragma warning disable CA1416
+#pragma warning disable CA1422
+#pragma warning disable CS0618
+            DefaultSettings = new(PreferenceManager.GetDefaultSharedPreferences(context.ApplicationContext).AsNonNull());
+#pragma warning restore CA1416
+#pragma warning restore CA1422
+#pragma warning restore CS0618
         }
         return DefaultSettings;
     }
@@ -208,7 +214,7 @@ public class SharedPreferencesSettings : ISettings
         var prevValue = (object?)null;
         var newValue = (object?)null;
         var needToResetValue = false;
-        this.sharedPrefsValues = this.sharedPrefs.All;
+        this.sharedPrefsValues = this.sharedPrefs.All.AsNonNull();
         this.sharedPrefsValues.TryGetValue(name, out var valueInSharedPrefs);
         lock (this.syncLock)
         {
