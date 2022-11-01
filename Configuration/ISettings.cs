@@ -74,8 +74,51 @@ namespace CarinaStudio.Configuration
 			if (settings == null)
 				return key.DefaultValue;
 			var rawValue = settings.GetRawValue(key);
-			if (rawValue != null && key.ValueType.IsAssignableFrom(rawValue.GetType()))
-				return rawValue;
+			if (rawValue != null)
+			{
+				var targetType = key.ValueType;
+				if (targetType.IsAssignableFrom(rawValue.GetType()))
+					return rawValue;
+				if (rawValue is IConvertible convertible)
+				{
+					try
+					{
+						if (targetType == typeof(bool))
+							return convertible.ToBoolean(null);
+						if (targetType == typeof(int))
+							return convertible.ToInt32(null);
+						if (targetType == typeof(long))
+							return convertible.ToInt64(null);
+						if (targetType == typeof(double))
+							return convertible.ToDouble(null);
+						if (targetType.IsEnum)
+						{
+							if (rawValue is string strValue)
+							{
+								Enum.TryParse(targetType, strValue, false, out var enumValue);
+								return enumValue ?? key.DefaultValue;
+							}
+							return key.DefaultValue;
+						}
+						if (targetType == typeof(string))
+							return convertible.ToString(null);
+						if (targetType == typeof(sbyte))
+							return convertible.ToSByte(null);
+						if (targetType == typeof(short))
+							return convertible.ToInt16(null);
+						if (targetType == typeof(ushort))
+							return convertible.ToUInt16(null);
+						if (targetType == typeof(uint))
+							return convertible.ToUInt16(null);
+						if (targetType == typeof(ulong))
+							return convertible.ToUInt64(null);
+						if (targetType == typeof(float))
+							return convertible.ToSingle(null);
+					}
+					catch
+					{ }
+				}
+			}
 			return key.DefaultValue;
 		}
 
