@@ -1,8 +1,12 @@
 using Android.Content;
+using Android.Content.PM;
 using Android.OS;
+using Android.Runtime;
 using CarinaStudio.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.Reflection;
@@ -15,21 +19,28 @@ namespace CarinaStudio.Android;
 /// </summary>
 public abstract class Application : global::Android.App.Application, IApplication
 {
+    // Static fields.
+    static volatile Application? CurrentApp;
+
+
     // Fields.
     CultureInfo? cultureInfo;
     Looper? looper;
     ISettings? persistentState;
     string? rootPrivateDirectoryPath;
     ISettings? settings;
+    readonly IDictionary<string, int> stringResIdMap = new ConcurrentDictionary<string, int>();
     SynchronizationContext? synchronizationContext;
 
 
     /// <summary>
     /// Initialize new <see cref="Application"/> instance.
     /// </summary>
-    protected Application()
+    protected Application(IntPtr javaReference, JniHandleOwnership transfer) : base(javaReference, transfer)
     { 
         this.Assembly = Assembly.GetExecutingAssembly();
+        this.Logger = new AndroidLogger(this.GetType().Name);
+        this.LoggerFactory = new LoggerFactory(new ILoggerProvider[]{ new AndroidLoggerProvider() });
     }
 
 
@@ -44,6 +55,18 @@ public abstract class Application : global::Android.App.Application, IApplicatio
 
     /// <inheritdoc/>
     public CultureInfo CultureInfo { get => this.cultureInfo ?? CultureInfo.InvariantCulture; }
+
+
+    /// <summary>
+    /// Get <see cref="Application"/> instance of current process.
+    /// </summary>
+    public static Application Current { get => CurrentApp ?? throw new InvalidOperationException("No application instance in current process."); }
+
+
+    /// <summary>
+    /// Get <see cref="Application"/> instance of current process. Return Null if there is no instance created in current process.
+    /// </summary>
+    public static Application? CurrentOrNull { get => CurrentApp; }
     
 
     /// <inheritdoc/>
@@ -52,20 +75,48 @@ public abstract class Application : global::Android.App.Application, IApplicatio
     
 
     /// <inheritdoc/>
-    public abstract string? GetString(string key, string? defaultValue = null);
+    public virtual string? GetString(string key, string? defaultValue = null)
+    {
+        var res = this.Resources.AsNonNull();
+        if (!this.stringResIdMap.TryGetValue(key, out var resId))
+        {
+            resId = res.GetIdentifier(key, "string", this.PackageName);
+            if (resId == 0)
+            {
+                this.Logger.LogWarning($"Cannot find string with key '{key}'");
+                return defaultValue;
+            }
+            this.stringResIdMap.TryAdd(key, resId);
+        }
+        return res.GetString(resId);
+    }
+
+
+    /// <summary>
+    /// Check whether the process is debuggable or not.
+    /// </summary>
+    public bool IsDebuggable { get; private set; }
     
 
     /// <inheritdoc/>
     bool IApplication.IsShutdownStarted => false;
 
 
+    /// <summary>
+    /// Get logger.
+    /// </summary>
+    protected ILogger Logger { get; }
+
+
     /// <inheritdoc/>
-    public virtual ILoggerFactory LoggerFactory { get => throw new NotImplementedException(); }
+    public virtual ILoggerFactory LoggerFactory { get; }
 
 
     /// <inheritdoc/>
     public override void OnConfigurationChanged(global::Android.Content.Res.Configuration newConfig)
     {
+        this.Logger.LogDebug("Configuration changed");
+
         // call base
         base.OnConfigurationChanged(newConfig);
 
@@ -76,6 +127,7 @@ public abstract class Application : global::Android.App.Application, IApplicatio
             var newCultureInfo = CultureInfo.GetCultureInfo(locales.Get(0)!.ToLanguageTag());
             if (this.cultureInfo == null || this.cultureInfo.ToString() != newCultureInfo.ToString())
             {
+                this.Logger.LogDebug($"Culture info changed: {this.cultureInfo} -> {newCultureInfo}");
                 this.cultureInfo = newCultureInfo;
                 this.OnPropertyChanged(nameof(CultureInfo));
             }
@@ -89,6 +141,16 @@ public abstract class Application : global::Android.App.Application, IApplicatio
     /// <inheritdoc/>
     public override void OnCreate()
     {
+        this.Logger.LogDebug("Creating");
+
+        // check debuggable
+#pragma warning disable CA1416
+#pragma warning disable CA1422
+        var appInfo = this.PackageManager!.GetApplicationInfo(this.PackageName!, PackageInfoFlags.MatchDefaultOnly).AsNonNull();
+        this.IsDebuggable = (appInfo.Flags & ApplicationInfoFlags.Debuggable) != 0;
+#pragma warning restore CA1416
+#pragma warning restore CA1422
+
         // setup synchronization context
         this.looper = Looper.MyLooper().AsNonNull();
         this.synchronizationContext = new Threading.LooperSynchronizationContext(this.looper);
@@ -97,7 +159,10 @@ public abstract class Application : global::Android.App.Application, IApplicatio
         // get current culture
         var locales = this.Resources?.Configuration?.Locales;
         if (locales != null && !locales.IsEmpty)
+        {
             this.cultureInfo = CultureInfo.GetCultureInfo(locales.Get(0)!.ToLanguageTag());
+            this.Logger.LogDebug($"Culture info: {this.cultureInfo}");
+        }
 
         // call base
         base.OnCreate();
@@ -107,6 +172,10 @@ public abstract class Application : global::Android.App.Application, IApplicatio
 
         // create settings
         this.settings = Configuration.SharedPreferencesSettings.GetDefault(this);
+
+        // complete
+        CurrentApp = this;
+        this.Logger.LogDebug("Created");
     }
 
 
