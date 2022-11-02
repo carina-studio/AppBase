@@ -93,7 +93,25 @@ namespace CarinaStudio.Collections
 		// Interface implementations.
 		void ICollection<T>.Add(T value) => throw new InvalidOperationException();
 		void ICollection<T>.Clear() => throw new InvalidOperationException();
-		void ICollection.CopyTo(Array array, int index) => this.CopyTo((T[])array, index);
+		void ICollection.CopyTo(Array array, int index)
+		{
+			if (array is T[] targetArray)
+				this.sourceList.CopyTo(targetArray, index);
+			else if (this.sourceList is ICollection collection)
+				collection.CopyTo(array, index);
+			else if (array.GetType().GetElementType()!.IsAssignableFrom(typeof(T)))
+			{
+				var count = this.sourceList.Count;
+				if (count == 0)
+					return;
+				if (index < 0 || (index + count) > array.Length)
+					throw new ArgumentOutOfRangeException(nameof(index));
+				for (var i = 0; i < count; ++i)
+					array.SetValue(this.sourceList[i], index++);
+			}
+			else
+				throw new ArgumentException($"Type of array element {array.GetType().GetElementType()!.Name} is not parent type of {typeof(T).Name}.");
+		}
 		bool ICollection<T>.IsReadOnly => true;
 		bool ICollection.IsSynchronized => (this.sourceList as ICollection)?.IsSynchronized ?? false;
 		bool ICollection<T>.Remove(T item) => throw new InvalidOperationException();
