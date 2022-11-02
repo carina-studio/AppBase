@@ -590,7 +590,13 @@ namespace CarinaStudio.Collections
 
 		// Interface implementations.
 		void ICollection<T>.Add(T value) => this.Add(value);
-		void ICollection.CopyTo(Array array, int index) => this.CopyTo((T[])array, index);
+		void ICollection.CopyTo(Array array, int index)
+		{
+			if (array is T[] targetArray)
+				this.list.CopyTo(targetArray, index);
+			else
+				((ICollection)this.list).CopyTo(array, index);
+		}
 		bool ICollection<T>.IsReadOnly => false;
 		bool ICollection.IsSynchronized => false;
 		object ICollection.SyncRoot => this;
