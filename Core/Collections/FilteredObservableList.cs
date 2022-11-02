@@ -339,7 +339,23 @@ namespace CarinaStudio.Collections
         void IList.Clear() => throw new InvalidOperationException();
         void ICollection<T>.Clear() => throw new InvalidOperationException();
         bool IList.Contains(object? value) => value is T item && this.Contains(item);
-        void ICollection.CopyTo(System.Array array, int index) => this.CopyTo((T[])array, index);
+        void ICollection.CopyTo(System.Array array, int index)
+        {
+            if (array is T[] targetArray)
+				this.CopyTo(targetArray, index);
+            else if (array.GetType().GetElementType()!.IsAssignableFrom(typeof(T)))
+			{
+				var count = this.items.Count;
+				if (count == 0)
+					return;
+				if (index < 0 || (index + count) > array.Length)
+					throw new ArgumentOutOfRangeException(nameof(index));
+				for (var i = 0; i < count; ++i)
+					array.SetValue(this.items[i].Item1, index++);
+			}
+			else
+				throw new ArgumentException($"Type of array element {array.GetType().GetElementType()!.Name} is not parent type of {typeof(T).Name}.");
+        }
         IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
         int IList.IndexOf(object? value) => value is T item ? this.IndexOf(item) : -1;
         void IList.Insert(int index, object? value) => throw new InvalidOperationException();

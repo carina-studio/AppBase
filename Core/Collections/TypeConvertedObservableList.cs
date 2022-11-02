@@ -243,7 +243,13 @@ namespace CarinaStudio.Collections
 		// Interface implementations.
 		void ICollection<TDest>.Add(TDest value) => throw new InvalidOperationException();
 		void ICollection<TDest>.Clear() => throw new InvalidOperationException();
-		void ICollection.CopyTo(Array array, int index) => this.CopyTo((TDest[])array, index);
+		void ICollection.CopyTo(Array array, int index)
+		{
+			if (array is TDest[] targetArray)
+				this.list.CopyTo(targetArray, index);
+			else
+				((ICollection)this.list).CopyTo(array, index);
+		}
 		bool ICollection<TDest>.IsReadOnly => true;
 		bool ICollection.IsSynchronized => (this.sourceList as ICollection)?.IsSynchronized ?? false;
 		bool ICollection<TDest>.Remove(TDest item) => throw new InvalidOperationException();
