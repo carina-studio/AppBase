@@ -1,15 +1,14 @@
 using Android.OS;
 using Microsoft.Extensions.Logging;
-using System;
 using System.ComponentModel;
 using System.Threading;
 
 namespace CarinaStudio.Android;
 
 /// <summary>
-/// Base class of Activity which implements <see cref="IApplicationObject"/>.
+/// <see cref="AndroidX.AppCompat.App.AppCompatActivity"/> which implements <see cref="IApplicationObject"/>.
 /// </summary>
-public abstract class Activity : global::Android.App.Activity, IApplicationObject, INotifyPropertyChanged
+public abstract class AppCompatActivity : AndroidX.AppCompat.App.AppCompatActivity, IApplicationObject
 {
     // Fields.
     volatile ILogger? logger;
@@ -17,9 +16,9 @@ public abstract class Activity : global::Android.App.Activity, IApplicationObjec
 
 
     /// <summary>
-    /// Initialize new <see cref="Activity"/> instance.
+    /// Initialize new <see cref="AppCompatActivity"/> instance.
     /// </summary>
-    protected Activity()
+    protected AppCompatActivity()
     {
         this.Application = Android.Application.Current;
     }
@@ -173,32 +172,4 @@ public abstract class Activity : global::Android.App.Activity, IApplicationObjec
 
     /// <inheritdoc/>
     public SynchronizationContext SynchronizationContext { get => this.Application.SynchronizationContext; }
-}
-
-
-/// <summary>
-/// State of activity.
-/// </summary>
-public enum ActivityState
-{
-    /// <summary>
-    /// The instance has just been created.
-    /// </summary>
-    New,
-    /// <summary>
-    /// After calling <see cref="global::Android.App.Activity.OnCreate(Bundle)"/> or <see cref="global::Android.App.Activity.OnStop"/>.
-    /// </summary>
-    Created,
-    /// <summary>
-    /// After calling <see cref="global::Android.App.Activity.OnStart"/> or <see cref="global::Android.App.Activity.OnPause"/>.
-    /// </summary>
-    Started,
-    /// <summary>
-    /// After calling <see cref="global::Android.App.Activity.OnResume"/>.
-    /// </summary>
-    Resumed,
-    /// <summary>
-    /// After calling <see cref="global::Android.App.Activity.OnDestroy"/>.
-    /// </summary>
-    Destroyed,
 }
