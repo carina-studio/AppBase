@@ -43,9 +43,9 @@ namespace CarinaStudio.ViewModels
 
 		// Fields.
 		readonly Thread dependencyThread;
-		readonly List<ViewModel> ownedViewModels = new List<ViewModel>();
-		readonly SortedList<ObservableProperty, object?> propertyValues = new SortedList<ObservableProperty, object?>(ObservableProperty.Comparer);
-		readonly List<Task> waitingNecessaryTasks = new List<Task>();
+		readonly List<ViewModel> ownedViewModels = new();
+		readonly SortedList<ObservableProperty, object?> propertyValues = new(ObservableProperty.Comparer);
+		readonly List<Task> waitingNecessaryTasks = new();
 
 
 		/// <summary>
@@ -91,7 +91,7 @@ namespace CarinaStudio.ViewModels
 
 
 		// Check equality of two values.
-		bool CheckValueEuqality(object? x, object? y)
+		static bool CheckValueEuqality(object? x, object? y)
 		{
 			if (x != null)
 				return x.Equals(y);
@@ -376,7 +376,7 @@ namespace CarinaStudio.ViewModels
 				oldValue = ((ObservablePropertyValue<T>)propertyValueObj).Value;
 
 			// check equality
-			if (this.CheckValueEuqality(oldValue, value))
+			if (CheckValueEuqality(oldValue, value))
 				return;
 
 			// update value

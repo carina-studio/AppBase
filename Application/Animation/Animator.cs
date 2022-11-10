@@ -25,7 +25,7 @@ namespace CarinaStudio.Animation
             int animatorCount;
             long scheduledAnimationTime;
             Animator? scheduledAnimators;
-            readonly Stopwatch stopwatch = new Stopwatch();
+            readonly Stopwatch stopwatch = new();
 
             // Constructor.
             public AnimationTimer()
@@ -81,7 +81,7 @@ namespace CarinaStudio.Animation
                 || animator.nextAnimator != null;
 
             // Register animator.
-            public void Register(Animator animator)
+            public void Register()
             {
                 ++this.animatorCount;
                 if (this.animatorCount == 1)
@@ -145,7 +145,7 @@ namespace CarinaStudio.Animation
             }
 
             // Unregister animator.
-            public void Unregister(Animator animator)
+            public void Unregister()
             {
                 --this.animatorCount;
                 if (this.animatorCount <= 0)
@@ -179,7 +179,7 @@ namespace CarinaStudio.Animation
         public Animator()
         {
             this.animationTimer = _CurrentAnimationTimer ?? new AnimationTimer().Also(it => _CurrentAnimationTimer = it);
-            this.animationTimer.Register(this);
+            this.animationTimer.Register();
             this.SynchronizationContext = SynchronizationContext.Current.AsNonNull();
             this.thread = Thread.CurrentThread;
         }
@@ -187,7 +187,7 @@ namespace CarinaStudio.Animation
 
         /// <inheritdoc/>
         ~Animator() =>
-            this.animationTimer.Unregister(this);
+            this.animationTimer.Unregister();
 
 
         // Perform a single step of animation.
@@ -280,11 +280,11 @@ namespace CarinaStudio.Animation
             {
                 this.VerifyAccess();
                 if (value.TotalMilliseconds < 0)
-                    throw new ArgumentOutOfRangeException("Negative delay is not supported.");
+                    throw new ArgumentOutOfRangeException(nameof(value), "Negative delay is not supported.");
                 if (value == this.delay)
                     return;
                 if (value.TotalMilliseconds > int.MaxValue)
-                    throw new ArgumentOutOfRangeException("Delay in milliseconds greater than Int32.MaxValue is not supported.");
+                    throw new ArgumentOutOfRangeException(nameof(value), "Delay in milliseconds greater than Int32.MaxValue is not supported.");
                 this.delay = value;
                 if (this.IsStarted)
                 {
@@ -314,11 +314,11 @@ namespace CarinaStudio.Animation
             {
                 this.VerifyAccess();
                 if (value.TotalMilliseconds < 0)
-                    throw new ArgumentOutOfRangeException("Negative duration is not supported.");
+                    throw new ArgumentOutOfRangeException(nameof(value), "Negative duration is not supported.");
                 if (value == this.duration)
                     return;
                 if (value.TotalMilliseconds > int.MaxValue)
-                    throw new ArgumentOutOfRangeException("Duration in milliseconds greater than Int32.MaxValue is not supported.");
+                    throw new ArgumentOutOfRangeException(nameof(value), "Duration in milliseconds greater than Int32.MaxValue is not supported.");
                 this.duration = value;
                 if (this.IsStarted)
                 {
@@ -354,11 +354,11 @@ namespace CarinaStudio.Animation
             {
                 this.VerifyAccess();
                 if (value.TotalMilliseconds <= 0)
-                    throw new ArgumentOutOfRangeException("Negative interval is not supported.");
+                    throw new ArgumentOutOfRangeException(nameof(value), "Negative interval is not supported.");
                 if (value == this.interval)
                     return;
                 if (value.TotalMilliseconds > int.MaxValue)
-                    throw new ArgumentOutOfRangeException("Interval in milliseconds greater than Int32.MaxValue is not supported.");
+                    throw new ArgumentOutOfRangeException(nameof(value), "Interval in milliseconds greater than Int32.MaxValue is not supported.");
                 this.interval = value;
                 if (this.IsStarted)
                 {

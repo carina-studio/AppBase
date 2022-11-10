@@ -108,11 +108,11 @@ namespace CarinaStudio.ViewModels
 		/// <summary>
 		/// Default coercion function.
 		/// </summary>
-		public static Func<object, T, T> DefaultCoercionFunction = (_, value) => value;
+		public static readonly Func<object, T, T> DefaultCoercionFunction = (_, value) => value;
 		/// <summary>
 		/// Default validation function.
 		/// </summary>
-		public static Predicate<T> DefaultValidationFunction = (value) => true;
+		public static readonly Predicate<T> DefaultValidationFunction = (value) => true;
 
 
 		// Constructor.
