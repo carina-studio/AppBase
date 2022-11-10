@@ -18,9 +18,9 @@ namespace CarinaStudio.Controls
 		/// <returns>True if resource got.</returns>
 		public static bool TryGetResource<T>(this IResourceNode node, object key, out T? res) where T : class
 		{
-			if (node.TryGetResource(key, out var rawRes) && rawRes is T)
+			if (node.TryGetResource(key, out var rawRes) && rawRes is T targetRes)
 			{
-				res = (T)rawRes;
+				res = targetRes;
 				return true;
 			}
 			res = default;
@@ -38,9 +38,9 @@ namespace CarinaStudio.Controls
 		/// <returns>True if resource got.</returns>
 		public static bool TryGetResource<T>(this IResourceNode node, object key, out T? res) where T : struct
 		{
-			if (node.TryGetResource(key, out var rawRes) && rawRes is T)
+			if (node.TryGetResource(key, out var rawRes) && rawRes is T targetRes)
 			{
-				res = (T)rawRes;
+				res = targetRes;
 				return true;
 			}
 			res = default;

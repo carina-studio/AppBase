@@ -32,7 +32,7 @@ namespace CarinaStudio.Data.Converters
 		{
 			if (!targetType.IsAssignableFrom(typeof(TValue)))
 				return null;
-			if (!(value is bool boolValue) || !boolValue)
+			if (value is not bool boolValue || !boolValue)
 				return this.FalseValue;
 			return this.TrueValue;
 		}
@@ -43,7 +43,7 @@ namespace CarinaStudio.Data.Converters
 		{
 			if (targetType != typeof(bool))
 				return null;
-			if (!(value is TValue targetValue))
+			if (value is not TValue targetValue)
 				return false;
 			if (this.equalityChecker != null)
 				return this.equalityChecker(targetValue, this.TrueValue);

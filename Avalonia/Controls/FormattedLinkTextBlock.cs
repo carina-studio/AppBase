@@ -52,7 +52,7 @@ namespace CarinaStudio.Controls
 
 
         // Fields.
-        readonly FormattedString formattedString = new FormattedString();
+        readonly FormattedString formattedString = new();
         bool isUpdatingText;
 
 

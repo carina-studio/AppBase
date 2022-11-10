@@ -47,9 +47,6 @@ namespace CarinaStudio.Data.Converters
                 }
                 return result;
             }
-
-            // Convert back.
-            public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => null;
         }
 
 
@@ -88,9 +85,6 @@ namespace CarinaStudio.Data.Converters
                 }
                 return result;
             }
-
-            // Convert back.
-            public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => null;
         }
 
 
@@ -129,9 +123,6 @@ namespace CarinaStudio.Data.Converters
                 }
                 return result;
             }
-
-            // Convert back.
-            public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => null;
         }
 
 
@@ -170,9 +161,6 @@ namespace CarinaStudio.Data.Converters
                 }
                 return result;
             }
-
-            // Convert back.
-            public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => null;
         }
     }
 }

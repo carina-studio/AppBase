@@ -28,7 +28,7 @@ namespace CarinaStudio.Data.Converters
         {
             if (targetType != typeof(object) && targetType != typeof(TOut))
                 return null;
-            if (!(value is TIn input))
+            if (value is not TIn input)
                 return null;
             return this.Convert(input, parameter, culture);
         }
@@ -42,7 +42,7 @@ namespace CarinaStudio.Data.Converters
         /// <param name="culture">Culture.</param>
         /// <returns>Converted value.</returns>
         [return: MaybeNull]
-        protected virtual TIn ConvertBack(TOut value, object? parameter, CultureInfo culture) => default(TIn);
+        protected virtual TIn ConvertBack(TOut value, object? parameter, CultureInfo culture) => default;
 
 
         /// <inheritdoc/>.
@@ -50,7 +50,7 @@ namespace CarinaStudio.Data.Converters
         {
             if (targetType != typeof(object) && targetType != typeof(TIn))
                 return null;
-            if (!(value is TOut input))
+            if (value is not TOut input)
                 return null;
             return this.ConvertBack(input, parameter, culture);
         }

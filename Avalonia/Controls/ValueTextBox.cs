@@ -16,7 +16,7 @@ namespace CarinaStudio.Controls
 		/// <summary>
 		/// Property of <see cref="DefaultValue"/>.
 		/// </summary>
-		public static readonly StyledProperty<T> DefaultValueProperty = AvaloniaProperty.Register<ValueTextBox<T>, T>(nameof(DefaultValue), default(T));
+		public static readonly StyledProperty<T> DefaultValueProperty = AvaloniaProperty.Register<ValueTextBox<T>, T>(nameof(DefaultValue));
 		/// <summary>
 		/// Property of <see cref="IsNullValueAllowed"/>.
 		/// </summary>
@@ -189,7 +189,7 @@ namespace CarinaStudio.Controls
 		/// </summary>
 		/// <returns>True if input <see cref="TextBox.Text"/> generates a valid value.</returns>
 		public bool Validate() =>
-			this.Validate(true, out var value);
+			this.Validate(true, out var _);
 
 
 		// Validate text.

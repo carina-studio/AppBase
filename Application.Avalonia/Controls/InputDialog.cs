@@ -22,7 +22,7 @@ namespace CarinaStudio.Controls
         // Fields.
         bool isGeneratingResult;
         bool isValidInput;
-        readonly CancellationTokenSource resultGeneratingCancellationTokenSource = new CancellationTokenSource();
+        readonly CancellationTokenSource resultGeneratingCancellationTokenSource = new();
         readonly ScheduledAction validateInputAction;
 
 

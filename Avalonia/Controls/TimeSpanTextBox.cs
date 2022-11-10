@@ -11,11 +11,11 @@ namespace CarinaStudio.Controls
     public class TimeSpanTextBox : ValueTextBox<TimeSpan>
     {
         // Static fields.
-        static readonly Regex CustomFormatRegex = new Regex("^[\\+\\-]?((?<Days>[\\d]+)(\\s+|\\.+|\\-+)(?<Hours>[\\d]{1,2})|(?<Hours>[\\d]+))(\\s+|\\:+|\\.+|\\-+)(?<Minutes>[\\d]{1,2})(\\s+|\\:+|\\.+|\\-+)(?<Seconds>[\\d]{1,2}(\\.[\\d]+)?)[\\s]*$");
+        static readonly Regex CustomFormatRegex = new("^[\\+\\-]?((?<Days>[\\d]+)(\\s+|\\.+|\\-+)(?<Hours>[\\d]{1,2})|(?<Hours>[\\d]+))(\\s+|\\:+|\\.+|\\-+)(?<Minutes>[\\d]{1,2})(\\s+|\\:+|\\.+|\\-+)(?<Seconds>[\\d]{1,2}(\\.[\\d]+)?)[\\s]*$");
         static readonly CultureInfo DefaultCultureInfo = CultureInfo.GetCultureInfo("en-US");
-        static readonly Regex MicrosecondsFormatRegex = new Regex("^(?<Number>[\\d]+)[\\s]*us[\\s]*$");
-        static readonly Regex MillisecondsFormatRegex = new Regex("^(?<Number>[\\d]+)[\\s]*ms[\\s]*$");
-        static readonly Regex NanosecondsFormatRegex = new Regex("^(?<Number>[\\d]+)[\\s]*ns[\\s]*$");
+        static readonly Regex MicrosecondsFormatRegex = new("^(?<Number>[\\d]+)[\\s]*us[\\s]*$");
+        static readonly Regex MillisecondsFormatRegex = new("^(?<Number>[\\d]+)[\\s]*ms[\\s]*$");
+        static readonly Regex NanosecondsFormatRegex = new("^(?<Number>[\\d]+)[\\s]*ns[\\s]*$");
 
 
         /// <summary>
@@ -32,9 +32,8 @@ namespace CarinaStudio.Controls
         protected override bool TryConvertToValue(string text, out TimeSpan? value)
         {
             // try parsing by default culture
-            var timeSpan = TimeSpan.Zero;
             value = null;
-            if (TimeSpan.TryParse(text, DefaultCultureInfo, out timeSpan))
+            if (TimeSpan.TryParse(text, DefaultCultureInfo, out var timeSpan))
             {
                 value = timeSpan;
                 return true;

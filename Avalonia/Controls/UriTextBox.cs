@@ -21,7 +21,7 @@ namespace CarinaStudio.Controls
 
 
 		// Static fields.
-		static readonly Regex UriSchemeRegex = new Regex("^[\\w]+\\://");
+		static readonly Regex UriSchemeRegex = new("^[\\w]+\\://");
 
 
 		/// <summary>

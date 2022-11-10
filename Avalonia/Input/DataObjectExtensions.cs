@@ -52,7 +52,7 @@ namespace CarinaStudio.Input
 				data = (T)rawData;
 				return true;
 			}
-			data = default(T);
+			data = default;
 			return false;
 		}
 
@@ -95,12 +95,12 @@ namespace CarinaStudio.Input
 		public static bool TryGetValue<T>(this IDataObject dataObject, string format, out T value) where T : struct
 		{
 			var rawData = dataObject.Get(format);
-			if (rawData != null && rawData is T)
+			if (rawData != null && rawData is T targetValue)
 			{
-				value = (T)rawData;
+				value = targetValue;
 				return true;
 			}
-			value = default(T);
+			value = default;
 			return false;
 		}
 	}

@@ -301,8 +301,10 @@ namespace CarinaStudio
             }
 
             // add observer to list
-            var subscribedObserver = new SubscribedObserver(this, observer);
-            subscribedObserver.Next = this.observerListHead;
+            var subscribedObserver = new SubscribedObserver(this, observer)
+            {
+                Next = this.observerListHead,
+            };
             if (this.observerListHead != null)
                 this.observerListHead.Previous = subscribedObserver;
             this.observerListHead = subscribedObserver;

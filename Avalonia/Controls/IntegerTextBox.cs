@@ -138,7 +138,7 @@ namespace CarinaStudio.Controls
                 {
                     var s = this.Text;
                     if (s != null && s.Length > 0 && s[0] == '+')
-                        this.Text = s.Substring(1);
+                        this.Text = s[1..^0];
                 }
             }
             else if (property == DefaultValueProperty)
@@ -164,7 +164,7 @@ namespace CarinaStudio.Controls
                 if (s != null)
                 {
                     if (s.Length > MaxTextLength)
-                        s = s.Substring(0, MaxTextLength);
+                        s = s[0..MaxTextLength];
                     for (var i = 0; i < s.Length; ++i)
                     {
                         var c = s[i];
@@ -180,7 +180,7 @@ namespace CarinaStudio.Controls
                             if (i == 0)
                                 continue;
                         }
-                        var newString = new StringBuilder(s.Substring(0, i));
+                        var newString = new StringBuilder(s[0..i]);
                         for (++i; i < s.Length; ++i)
                         {
                             c = s[i];

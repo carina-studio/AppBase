@@ -148,7 +148,7 @@ namespace CarinaStudio.Controls
 		/// </summary>
 		/// <returns>True if input <see cref="TextBox.Text"/> generates a valid object.</returns>
 		public bool Validate() =>
-			this.Validate(true, out var value);
+			this.Validate(true, out var _);
 
 
 		// Validate text.

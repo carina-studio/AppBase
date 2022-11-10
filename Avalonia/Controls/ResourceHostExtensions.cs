@@ -36,9 +36,9 @@ namespace CarinaStudio.Controls
 		/// <returns>True if resource found.</returns>
 		public static bool TryFindResource<T>(this IResourceHost resourceHost, object key, out T? res) where T : class
 		{
-			if (resourceHost.TryFindResource(key, out var rawRes) && rawRes is T)
+			if (resourceHost.TryFindResource(key, out var rawRes) && rawRes is T targetRes)
 			{
-				res = (T)rawRes;
+				res = targetRes;
 				return true;
 			}
 			res = default;
@@ -56,9 +56,9 @@ namespace CarinaStudio.Controls
 		/// <returns>True if resource found.</returns>
 		public static bool TryFindResource<T>(this IResourceHost resourceHost, object key, out T? res) where T : struct
 		{
-			if (resourceHost.TryFindResource(key, out var rawRes) && rawRes is T)
+			if (resourceHost.TryFindResource(key, out var rawRes) && rawRes is T targetRes)
 			{
-				res = (T)rawRes;
+				res = targetRes;
 				return true;
 			}
 			res = default;

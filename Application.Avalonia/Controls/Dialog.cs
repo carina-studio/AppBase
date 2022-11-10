@@ -81,8 +81,7 @@ namespace CarinaStudio.Controls
 
 			// use icon from owner window
 			var owner = this.Owner as Avalonia.Controls.Window;
-			if (this.Icon == null)
-				this.Icon = owner?.Icon;
+			this.Icon ??= owner?.Icon;
 
 			// [workaround] move to center of owner or screen
 			switch (this.WindowStartupLocation)
@@ -94,9 +93,9 @@ namespace CarinaStudio.Controls
 						this.Screens.ScreenFromVisual(this)?.Let(screen =>
 						{
 							var screenBounds = screen.WorkingArea;
-							var pixelDensity = screen.PixelDensity;
-							var width = this.Width * pixelDensity;
-							var height = this.Height * pixelDensity;
+							var scaling = screen.Scaling;
+							var width = this.Width * scaling;
+							var height = this.Height * scaling;
 							var position = new PixelPoint((int)(screenBounds.X + (screenBounds.Width - width) / 2), (int)(screenBounds.Y + (screenBounds.Height - height) / 2));
 							this.WindowStartupLocation = WindowStartupLocation.Manual;
 							this.SynchronizationContext.Post(() => this.Position = position);
@@ -111,7 +110,7 @@ namespace CarinaStudio.Controls
 						{
 							var position = owner.Position.Let((position) =>
 							{
-								var screenScale = owner.Screens.ScreenFromVisual(owner)?.PixelDensity ?? 1.0;
+								var screenScale = owner.Screens.ScreenFromVisual(owner)?.Scaling ?? 1.0;
 								var offsetX = (int)((owner.Width - this.Width) / 2 * screenScale);
 								var offsetY = (int)((owner.Height - this.Height) / 2 * screenScale);
 								return new PixelPoint(position.X + offsetX, position.Y + offsetY);

@@ -35,14 +35,14 @@ namespace CarinaStudio.Controls
 
 
         // Static fields.
-        static readonly Regex NewLineRegex = new Regex("\n");
+        static readonly Regex NewLineRegex = new("\n");
 
 
         // Fields.
         IDisposable? isWindowActiveObserverToken;
         bool isMultiLineText;
         bool isTextTrimmed;
-        readonly List<(int, int)> textLineRanges = new List<(int, int)>();
+        readonly List<(int, int)> textLineRanges = new();
         readonly ScheduledAction updateToolTipAction;
         Window? window;
 
@@ -95,7 +95,7 @@ namespace CarinaStudio.Controls
                     else if (text.Length <= MaxToolTipLength)
                         this.SetValue<object?>(ToolTip.TipProperty, text);
                     else
-                        this.SetValue<object?>(ToolTip.TipProperty, $"{text.Substring(0, MaxToolTipLength - 1)}…");
+                        this.SetValue<object?>(ToolTip.TipProperty, $"{text[0..MaxToolTipLength]}…");
                 }
             });
         }
@@ -121,7 +121,6 @@ namespace CarinaStudio.Controls
             if (double.IsFinite(availableSize.Width))
             {
                 // check multi line
-                var text = this.GetValue<string?>(TextProperty);
                 if (this.textLineRanges.IsEmpty())
                     this.SetAndRaise<bool>(IsMultiLineTextProperty, ref this.isMultiLineText, false);
                 else if (this.textLineRanges.Count > 1)

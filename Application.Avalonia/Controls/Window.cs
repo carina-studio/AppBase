@@ -54,7 +54,7 @@ namespace CarinaStudio.Controls
 				var hasDialogs = false;
 				var isAvalonia_0_10_15_OrAbove = AvaloniaVersion.Major == 0 
 					&& (AvaloniaVersion.Minor > 10 || AvaloniaVersion.Build >= 15);
-				void RefreshChildWindowPositions(Avalonia.Controls.Window parent)
+				static void RefreshChildWindowPositions(Avalonia.Controls.Window parent)
 				{
 					var childWindows = parent is Window window
 						? window.children
@@ -86,7 +86,7 @@ namespace CarinaStudio.Controls
 			this.children = GetInternalChildWindows(this) ?? Global.Run(() =>
 			{
 				this.Logger.LogError("Unable to get list of child window");
-				return new (Avalonia.Controls.Window, bool)[0];
+				return Array.Empty<(Avalonia.Controls.Window, bool)>();
 			});
 			this.GetObservable(IsActiveProperty).Subscribe(_ => this.checkDialogsAction.Schedule());
 			this.AddHandler(PointerWheelChangedEvent, (_, e) =>
