@@ -6,50 +6,50 @@ using Avalonia.Styling;
 namespace CarinaStudio.Controls
 {
     /// <summary>
-    /// <see cref="RichTextBlock"/> which shows formatted text on it.
+    /// <see cref="SelectableTextBlock"/> which shows formatted text on it.
     /// </summary>
-    public class FormattedRichTextBlock : RichTextBlock, IStyleable
+    public class FormattedSelectableTextBlock : SelectableTextBlock, IStyleable
     {
         /// <summary>
         /// Property of <see cref="Arg1"/>.
         /// </summary>
-        public static readonly StyledProperty<object?> Arg1Property = AvaloniaProperty.Register<FormattedRichTextBlock, object?>(nameof(Arg1));
+        public static readonly StyledProperty<object?> Arg1Property = AvaloniaProperty.Register<FormattedSelectableTextBlock, object?>(nameof(Arg1));
         /// <summary>
         /// Property of <see cref="Arg2"/>.
         /// </summary>
-        public static readonly StyledProperty<object?> Arg2Property = AvaloniaProperty.Register<FormattedRichTextBlock, object?>(nameof(Arg2));
+        public static readonly StyledProperty<object?> Arg2Property = AvaloniaProperty.Register<FormattedSelectableTextBlock, object?>(nameof(Arg2));
         /// <summary>
         /// Property of <see cref="Arg3"/>.
         /// </summary>
-        public static readonly StyledProperty<object?> Arg3Property = AvaloniaProperty.Register<FormattedRichTextBlock, object?>(nameof(Arg3));
+        public static readonly StyledProperty<object?> Arg3Property = AvaloniaProperty.Register<FormattedSelectableTextBlock, object?>(nameof(Arg3));
         /// <summary>
         /// Property of <see cref="Arg4"/>.
         /// </summary>
-        public static readonly StyledProperty<object?> Arg4Property = AvaloniaProperty.Register<FormattedRichTextBlock, object?>(nameof(Arg4));
+        public static readonly StyledProperty<object?> Arg4Property = AvaloniaProperty.Register<FormattedSelectableTextBlock, object?>(nameof(Arg4));
         /// <summary>
         /// Property of <see cref="Arg5"/>.
         /// </summary>
-        public static readonly StyledProperty<object?> Arg5Property = AvaloniaProperty.Register<FormattedRichTextBlock, object?>(nameof(Arg5));
+        public static readonly StyledProperty<object?> Arg5Property = AvaloniaProperty.Register<FormattedSelectableTextBlock, object?>(nameof(Arg5));
         /// <summary>
         /// Property of <see cref="Arg6"/>.
         /// </summary>
-        public static readonly StyledProperty<object?> Arg6Property = AvaloniaProperty.Register<FormattedRichTextBlock, object?>(nameof(Arg6));
+        public static readonly StyledProperty<object?> Arg6Property = AvaloniaProperty.Register<FormattedSelectableTextBlock, object?>(nameof(Arg6));
         /// <summary>
         /// Property of <see cref="Arg7"/>.
         /// </summary>
-        public static readonly StyledProperty<object?> Arg7Property = AvaloniaProperty.Register<FormattedRichTextBlock, object?>(nameof(Arg7));
+        public static readonly StyledProperty<object?> Arg7Property = AvaloniaProperty.Register<FormattedSelectableTextBlock, object?>(nameof(Arg7));
         /// <summary>
         /// Property of <see cref="Arg8"/>.
         /// </summary>
-        public static readonly StyledProperty<object?> Arg8Property = AvaloniaProperty.Register<FormattedRichTextBlock, object?>(nameof(Arg8));
+        public static readonly StyledProperty<object?> Arg8Property = AvaloniaProperty.Register<FormattedSelectableTextBlock, object?>(nameof(Arg8));
         /// <summary>
         /// Property of <see cref="Arg9"/>.
         /// </summary>
-        public static readonly StyledProperty<object?> Arg9Property = AvaloniaProperty.Register<FormattedRichTextBlock, object?>(nameof(Arg9));
+        public static readonly StyledProperty<object?> Arg9Property = AvaloniaProperty.Register<FormattedSelectableTextBlock, object?>(nameof(Arg9));
         /// <summary>
         /// Property of <see cref="Format"/>.
         /// </summary>
-        public static readonly StyledProperty<string?> FormatProperty = AvaloniaProperty.Register<FormattedRichTextBlock, string?>(nameof(Format));
+        public static readonly StyledProperty<string?> FormatProperty = AvaloniaProperty.Register<FormattedSelectableTextBlock, string?>(nameof(Format));
 
 
         // Fields.
@@ -58,9 +58,9 @@ namespace CarinaStudio.Controls
 
 
         /// <summary>
-        /// Initialize new <see cref="FormattedRichTextBlock"/> instance.
+        /// Initialize new <see cref="FormattedSelectableTextBlock"/> instance.
         /// </summary>
-        public FormattedRichTextBlock()
+        public FormattedSelectableTextBlock()
         {
             var isCtor = true;
             this.formattedString.Subscribe(text =>

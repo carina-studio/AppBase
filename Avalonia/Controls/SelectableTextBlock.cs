@@ -15,20 +15,20 @@ namespace CarinaStudio.Controls
     /// <summary>
     /// Extended <see cref="Avalonia.Controls.RichTextBlock"/>.
     /// </summary>
-    public class RichTextBlock : Avalonia.Controls.RichTextBlock, IStyleable
+    public class SelectableTextBlock : Avalonia.Controls.RichTextBlock, IStyleable
     {
         /// <summary>
         /// Property of <see cref="IsMultiLineText"/>.
         /// </summary>
-        public static readonly DirectProperty<RichTextBlock, bool> IsMultiLineTextProperty = AvaloniaProperty.RegisterDirect<RichTextBlock, bool>(nameof(IsMultiLineText), v => v.isMultiLineText);
+        public static readonly DirectProperty<SelectableTextBlock, bool> IsMultiLineTextProperty = AvaloniaProperty.RegisterDirect<SelectableTextBlock, bool>(nameof(IsMultiLineText), v => v.isMultiLineText);
         /// <summary>
         /// Property of <see cref="IsTextTrimmed"/>.
         /// </summary>
-        public static readonly DirectProperty<RichTextBlock, bool> IsTextTrimmedProperty = AvaloniaProperty.RegisterDirect<RichTextBlock, bool>(nameof(IsTextTrimmed), v => v.isTextTrimmed);
+        public static readonly DirectProperty<SelectableTextBlock, bool> IsTextTrimmedProperty = AvaloniaProperty.RegisterDirect<SelectableTextBlock, bool>(nameof(IsTextTrimmed), v => v.isTextTrimmed);
         /// <summary>
         /// Property of <see cref="ShowToolTipWhenTextTrimmed"/>.
         /// </summary>
-        public static readonly StyledProperty<bool> ShowToolTipWhenTextTrimmedProperty = AvaloniaProperty.Register<RichTextBlock, bool>(nameof(ShowToolTipWhenTextTrimmed), true);
+        public static readonly StyledProperty<bool> ShowToolTipWhenTextTrimmedProperty = AvaloniaProperty.Register<SelectableTextBlock, bool>(nameof(ShowToolTipWhenTextTrimmed), true);
 
 
         // Constants.
@@ -46,9 +46,9 @@ namespace CarinaStudio.Controls
 
 
         /// <summary>
-        /// Initialize new <see cref="RichTextBlock"/> instance.
+        /// Initialize new <see cref="SelectableTextBlock"/> instance.
         /// </summary>
-        public RichTextBlock()
+        public SelectableTextBlock()
         {
             var isCtor = true;
             this.GetObservable(InlinesProperty).Subscribe(inlines => 
@@ -258,6 +258,6 @@ namespace CarinaStudio.Controls
 
 
         // Interface implementation.
-        Type IStyleable.StyleKey { get; } = typeof(RichTextBlock);
+        Type IStyleable.StyleKey { get; } = typeof(SelectableTextBlock);
     }
 }
