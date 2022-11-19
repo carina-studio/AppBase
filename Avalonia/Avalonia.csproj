@@ -11,6 +11,7 @@
 		<Company>Carina Studio</Company>
 		<Copyright>©2021 Carina Studio</Copyright>
 		<Nullable>enable</Nullable>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<PackageId>CarinaStudio.AppBase.Avalonia</PackageId>
 		<Description>AppBase is a base library set for .NET application. CarinaStudio.AppBase.Avalonia provides controls and extensions for Avalonia.</Description>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>

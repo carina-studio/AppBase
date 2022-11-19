@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Documents;
 using Avalonia.LogicalTree;
 using Avalonia.Media;
 using Avalonia.Styling;
@@ -7,26 +8,27 @@ using CarinaStudio.Collections;
 using CarinaStudio.Threading;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 
 namespace CarinaStudio.Controls
 {
     /// <summary>
-    /// Extended <see cref="Avalonia.Controls.TextBlock"/>.
+    /// Extended <see cref="Avalonia.Controls.RichTextBlock"/>.
     /// </summary>
-    public class TextBlock : Avalonia.Controls.TextBlock, IStyleable
+    public class RichTextBlock : Avalonia.Controls.RichTextBlock, IStyleable
     {
         /// <summary>
         /// Property of <see cref="IsMultiLineText"/>.
         /// </summary>
-        public static readonly DirectProperty<TextBlock, bool> IsMultiLineTextProperty = AvaloniaProperty.RegisterDirect<TextBlock, bool>(nameof(IsMultiLineText), v => v.isMultiLineText);
+        public static readonly DirectProperty<RichTextBlock, bool> IsMultiLineTextProperty = AvaloniaProperty.RegisterDirect<RichTextBlock, bool>(nameof(IsMultiLineText), v => v.isMultiLineText);
         /// <summary>
         /// Property of <see cref="IsTextTrimmed"/>.
         /// </summary>
-        public static readonly DirectProperty<TextBlock, bool> IsTextTrimmedProperty = AvaloniaProperty.RegisterDirect<TextBlock, bool>(nameof(IsTextTrimmed), v => v.isTextTrimmed);
+        public static readonly DirectProperty<RichTextBlock, bool> IsTextTrimmedProperty = AvaloniaProperty.RegisterDirect<RichTextBlock, bool>(nameof(IsTextTrimmed), v => v.isTextTrimmed);
         /// <summary>
         /// Property of <see cref="ShowToolTipWhenTextTrimmed"/>.
         /// </summary>
-        public static readonly StyledProperty<bool> ShowToolTipWhenTextTrimmedProperty = AvaloniaProperty.Register<TextBlock, bool>(nameof(ShowToolTipWhenTextTrimmed), true);
+        public static readonly StyledProperty<bool> ShowToolTipWhenTextTrimmedProperty = AvaloniaProperty.Register<RichTextBlock, bool>(nameof(ShowToolTipWhenTextTrimmed), true);
 
 
         // Constants.
@@ -34,6 +36,7 @@ namespace CarinaStudio.Controls
 
 
         // Fields.
+        InlineCollection? attachedInlines;
         IDisposable? isWindowActiveObserverToken;
         bool isMultiLineText;
         bool isTextTrimmed;
@@ -43,40 +46,27 @@ namespace CarinaStudio.Controls
 
 
         /// <summary>
-        /// Initialize new <see cref="TextBlock"/> instance.
+        /// Initialize new <see cref="RichTextBlock"/> instance.
         /// </summary>
-        public TextBlock()
+        public RichTextBlock()
         {
+            var isCtor = true;
+            this.GetObservable(InlinesProperty).Subscribe(inlines => 
+            {
+                if (this.attachedInlines != null)
+                    this.attachedInlines.CollectionChanged -= this.OnInlinesChanged;
+                this.attachedInlines = inlines;
+                if (inlines != null)
+                    inlines.CollectionChanged += this.OnInlinesChanged;
+                if (!isCtor)
+                    this.CheckMultiLine();
+            });
             this.GetObservable(IsTextTrimmedProperty).Subscribe(_ => this.updateToolTipAction?.Schedule());
             this.GetObservable(ShowToolTipWhenTextTrimmedProperty).Subscribe(_ => this.updateToolTipAction?.Schedule());
             this.GetObservable(TextProperty).Subscribe(text => 
             {
-                this.textLineRanges.Clear();
-                if (!string.IsNullOrEmpty(text))
-                {
-                    unsafe
-                    {
-                        fixed (char* textPtr = text)
-                        {
-                            var start = 0;
-                            var end = 0;
-                            var textLength = text.Length;
-                            var cPtr = textPtr;
-                            while (end < textLength)
-                            {
-                                ++end;
-                                if (*(cPtr++) == '\n')
-                                {
-                                    this.textLineRanges.Add((start, end));
-                                    start = end;
-                                }
-                            }
-                            if (start < textLength)
-                                this.textLineRanges.Add((start, textLength));
-                        }
-                    }
-                }
-                this.updateToolTipAction?.Schedule();
+                if (!isCtor)
+                    this.CheckMultiLine();
             });
             this.GetObservable(TextTrimmingProperty).Subscribe(textTrimming =>
             {
@@ -94,7 +84,8 @@ namespace CarinaStudio.Controls
                 }
                 else
                 {
-                    var text = this.Text;
+                    var inlines = this.Inlines;
+                    var text = inlines.IsNotEmpty() ? inlines.Text : this.Text;
                     if (string.IsNullOrEmpty(text))
                         this.ClearValue(ToolTip.TipProperty);
                     else if (text.Length <= MaxToolTipLength)
@@ -103,6 +94,38 @@ namespace CarinaStudio.Controls
                         this.SetValue<object?>(ToolTip.TipProperty, $"{text[0..MaxToolTipLength]}…");
                 }
             });
+            isCtor = false;
+        }
+
+
+        // Check whether text inside text block has multiple lines or not.
+        unsafe void CheckMultiLine()
+        {
+            var inlines = this.Inlines;
+            var text = inlines.IsNotEmpty() ? inlines.Text : this.Text;
+            this.textLineRanges.Clear();
+            if (!string.IsNullOrEmpty(text))
+            {
+                fixed (char* textPtr = text)
+                {
+                    var start = 0;
+                    var end = 0;
+                    var textLength = text.Length;
+                    var cPtr = textPtr;
+                    while (end < textLength)
+                    {
+                        ++end;
+                        if (*(cPtr++) == '\n')
+                        {
+                            this.textLineRanges.Add((start, end));
+                            start = end;
+                        }
+                    }
+                    if (start < textLength)
+                        this.textLineRanges.Add((start, textLength));
+                }
+            }
+            this.updateToolTipAction?.Schedule();
         }
 
 
@@ -219,6 +242,11 @@ namespace CarinaStudio.Controls
         }
 
 
+        // Called when inlines changed.
+        void OnInlinesChanged(object? sender, NotifyCollectionChangedEventArgs e) =>
+            this.CheckMultiLine();
+
+
         /// <summary>
         /// Get or set whether tooltip is needed to be shown if text inside the control has been trimmed or not.
         /// </summary>
@@ -230,6 +258,6 @@ namespace CarinaStudio.Controls
 
 
         // Interface implementation.
-        Type IStyleable.StyleKey { get; } = typeof(Avalonia.Controls.TextBlock);
+        Type IStyleable.StyleKey { get; } = typeof(RichTextBlock);
     }
 }

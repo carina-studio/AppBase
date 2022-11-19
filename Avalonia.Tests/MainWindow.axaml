@@ -83,8 +83,9 @@
 			<Separator/>
 
 			<!-- FormattedTextBlock -->
-			<TextBlock Classes="Header1" Text="FormattedTextBlock"/>
+			<TextBlock Classes="Header1" Text="Formatted(Link/Rich)TextBlock"/>
 			<abControls:FormattedTextBlock Format="{DynamicResource String/StringFormat}" Arg1="{DynamicResource String/Hello}" Arg2="{DynamicResource String/World}" Arg9="Unused"/>
+			<abControls:FormattedRichTextBlock Format="{DynamicResource String/StringFormat}" Arg1="{DynamicResource String/Hello}" Arg2="{DynamicResource String/World}" Arg9="Unused" IsTextSelectionEnabled="True"/>
 			<abControls:FormattedLinkTextBlock Format="{DynamicResource String/StringFormat}" Arg1="{DynamicResource String/Hello}" Arg2="{DynamicResource String/World}" Arg9="Unused"/>
 			<Separator/>
 
@@ -143,9 +144,29 @@
 			<abControls:ProgressRing Background="Green" BorderBrush="DarkGreen" Foreground="Yellow" Height="50" HorizontalAlignment="Left" IsIndeterminate="True" RingBorderThickness="2" RingThickness="10" Value="66" Width="70"/>
 			<Separator/>
 
+			<!-- RichTextBlock -->
+			<TextBlock Classes="Header1" Text="RichTextBlock"/>
+			<abControls:RichTextBlock HorizontalAlignment="Left" Text="TextBlock with loooooooog text"/>
+			<abControls:RichTextBlock HorizontalAlignment="Left" Text="TextBlock with loooooooog text" Width="180"/>
+			<abControls:RichTextBlock HorizontalAlignment="Left" Text="{Binding $parent[Window].LongText}" Width="180"/>
+			<abControls:RichTextBlock HorizontalAlignment="Left" Width="200">
+				<Bold>RichTextBlock</Bold>
+				<Run>With</Run>
+				<Italic>loooooooog text</Italic>
+				<!--LineBreak/>
+				<Run>This is the second line</Run-->
+			</abControls:RichTextBlock>
+			<abControls:RichTextBlock HorizontalAlignment="Left" Text="(Without ToolTip) RichTextBlock with loooooooog text" ShowToolTipWhenTextTrimmed="False" Width="180"/>
+			<Panel HorizontalAlignment="Left">
+				<Border BorderBrush="Blue" BorderThickness="1" IsVisible="{Binding #multiLineRichTextBlock.IsMultiLineText}"/>
+				<abControls:RichTextBlock Name="multiLineRichTextBlock" Margin="1" Text="The border will be visible if text inside the RichTextBlock is multi-line" TextWrapping="Wrap" Width="100"/>
+			</Panel>
+			<Separator Classes="Small"/>
+
 			<!-- TextBlock -->
 			<TextBlock Classes="Header1" Text="TextBlock"/>
 			<abControls:TextBlock HorizontalAlignment="Left" Text="TextBlock with loooooooog text"/>
+			<abControls:TextBlock HorizontalAlignment="Left" Text="TextBlock with loooooooog text" Width="180"/>
 			<abControls:TextBlock HorizontalAlignment="Left" Text="{Binding $parent[Window].LongText}" Width="180"/>
 			<abControls:TextBlock HorizontalAlignment="Left" Text="(Without ToolTip) TextBlock with loooooooog text" ShowToolTipWhenTextTrimmed="False" Width="180"/>
 			<Panel HorizontalAlignment="Left">
