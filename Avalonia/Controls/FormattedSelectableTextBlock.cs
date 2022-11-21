@@ -195,6 +195,6 @@ namespace CarinaStudio.Controls
 
 
         // Interface implementation.
-        Type IStyleable.StyleKey { get; } = typeof(Avalonia.Controls.RichTextBlock);
+        Type IStyleable.StyleKey { get; } = typeof(Avalonia.Controls.SelectableTextBlock);
     }
 }

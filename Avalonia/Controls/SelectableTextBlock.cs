@@ -13,9 +13,9 @@ using System.Collections.Specialized;
 namespace CarinaStudio.Controls
 {
     /// <summary>
-    /// Extended <see cref="Avalonia.Controls.RichTextBlock"/>.
+    /// Extended <see cref="Avalonia.Controls.SelectableTextBlock"/>.
     /// </summary>
-    public class SelectableTextBlock : Avalonia.Controls.RichTextBlock, IStyleable
+    public class SelectableTextBlock : Avalonia.Controls.SelectableTextBlock, IStyleable
     {
         /// <summary>
         /// Property of <see cref="IsMultiLineText"/>.
@@ -258,6 +258,6 @@ namespace CarinaStudio.Controls
 
 
         // Interface implementation.
-        Type IStyleable.StyleKey { get; } = typeof(SelectableTextBlock);
+        Type IStyleable.StyleKey { get; } = typeof(Avalonia.Controls.SelectableTextBlock);
     }
 }

@@ -85,7 +85,7 @@
 			<!-- FormattedTextBlock -->
 			<TextBlock Classes="Header1" Text="Formatted(Link/Selectable)TextBlock"/>
 			<abControls:FormattedTextBlock Format="{DynamicResource String/StringFormat}" Arg1="{DynamicResource String/Hello}" Arg2="{DynamicResource String/World}" Arg9="Unused"/>
-			<abControls:FormattedSelectableTextBlock Format="{DynamicResource String/StringFormat}" Arg1="{DynamicResource String/Hello}" Arg2="{DynamicResource String/World}" Arg9="Unused" IsTextSelectionEnabled="True"/>
+			<abControls:FormattedSelectableTextBlock Format="{DynamicResource String/StringFormat}" Arg1="{DynamicResource String/Hello}" Arg2="{DynamicResource String/World}" Arg9="Unused"/>
 			<abControls:FormattedLinkTextBlock Format="{DynamicResource String/StringFormat}" Arg1="{DynamicResource String/Hello}" Arg2="{DynamicResource String/World}" Arg9="Unused"/>
 			<Separator/>
 
