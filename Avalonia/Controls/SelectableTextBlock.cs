@@ -208,7 +208,7 @@ namespace CarinaStudio.Controls
                             }
                             if (!isTextTrimmedChecked)
                             {
-                                var minSize = base.MeasureOverride(new Size(availableSize.Width + this.FontSize * 2, availableSize.Height));
+                                var minSize = base.MeasureOverride(new Size(double.PositiveInfinity, availableSize.Height));
                                 isRemeasureNeeded = true;
                                 this.SetAndRaise<bool>(IsTextTrimmedProperty, ref this.isTextTrimmed, minSize.Width > measuredSize.Width);
                             }
