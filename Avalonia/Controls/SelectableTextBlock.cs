@@ -71,7 +71,7 @@ namespace CarinaStudio.Controls
             this.GetObservable(TextTrimmingProperty).Subscribe(textTrimming =>
             {
                 if (textTrimming == TextTrimming.None)
-                    this.SetAndRaise<bool>(IsTextTrimmedProperty, ref this.isTextTrimmed, false);
+                    this.IsTextTrimmed = false;
             });
             this.TextTrimming = TextTrimming.CharacterEllipsis;
             this.updateToolTipAction = new ScheduledAction(() =>
@@ -138,7 +138,11 @@ namespace CarinaStudio.Controls
         /// <summary>
         /// Check whether text inside the <see cref="TextBlock"/> has been trimmed or not.
         /// </summary>
-        public bool IsTextTrimmed { get => this.isTextTrimmed; }
+        public bool IsTextTrimmed 
+        { 
+            get => this.isTextTrimmed; 
+            protected set => this.SetAndRaise(IsTextTrimmedProperty, ref this.isTextTrimmed, value); 
+        }
 
 
         /// <inheritdoc/>
@@ -168,31 +172,31 @@ namespace CarinaStudio.Controls
                     if (this.TextWrapping != TextWrapping.NoWrap)
                     {
                         if (double.IsFinite(availableSize.Height) && this.textLineRanges.Count > availableSize.Height)
-                            this.SetAndRaise<bool>(IsTextTrimmedProperty, ref this.isTextTrimmed, true);
+                            this.IsTextTrimmed = true;
                         else
                         {
                             var minSize = base.MeasureOverride(new Size(availableSize.Width, double.PositiveInfinity));
                             isRemeasureNeeded = true;
-                            this.SetAndRaise<bool>(IsTextTrimmedProperty, ref this.isTextTrimmed, minSize.Height > measuredSize.Height);
+                            this.IsTextTrimmed = minSize.Height > measuredSize.Height;
                         }
                     }
                     else if (this.textLineRanges.IsEmpty())
-                        this.SetAndRaise<bool>(IsTextTrimmedProperty, ref this.isTextTrimmed, false);
+                        this.IsTextTrimmed = false;
                     else if (this.textLineRanges.Count == 1)
                     {
                         if (this.textLineRanges[0].Item2 > availableSize.Width)
-                            this.SetAndRaise<bool>(IsTextTrimmedProperty, ref this.isTextTrimmed, true);
+                            this.IsTextTrimmed = true;
                         else
                         {
                             var minSize = base.MeasureOverride(new Size(availableSize.Width + this.FontSize * 2, this.FontSize));
                             isRemeasureNeeded = true;
-                            this.SetAndRaise<bool>(IsTextTrimmedProperty, ref this.isTextTrimmed, minSize.Width > measuredSize.Width);
+                            this.IsTextTrimmed = minSize.Width > measuredSize.Width;
                         }
                     }
                     else
                     {
                         if (double.IsFinite(availableSize.Height) && this.textLineRanges.Count > availableSize.Height)
-                            this.SetAndRaise<bool>(IsTextTrimmedProperty, ref this.isTextTrimmed, true);
+                            this.IsTextTrimmed = true;
                         else
                         {
                             var isTextTrimmedChecked = false;
@@ -201,7 +205,7 @@ namespace CarinaStudio.Controls
                                 var range = this.textLineRanges[i];
                                 if ((range.Item2 - range.Item1) > availableSize.Width)
                                 {
-                                    this.SetAndRaise<bool>(IsTextTrimmedProperty, ref this.isTextTrimmed, true);
+                                    this.IsTextTrimmed = true;
                                     isTextTrimmedChecked = true;
                                     break;
                                 }
@@ -210,7 +214,7 @@ namespace CarinaStudio.Controls
                             {
                                 var minSize = base.MeasureOverride(new Size(double.PositiveInfinity, availableSize.Height));
                                 isRemeasureNeeded = true;
-                                this.SetAndRaise<bool>(IsTextTrimmedProperty, ref this.isTextTrimmed, minSize.Width > measuredSize.Width);
+                                this.IsTextTrimmed = minSize.Width > measuredSize.Width;
                             }
                         }
                     }
