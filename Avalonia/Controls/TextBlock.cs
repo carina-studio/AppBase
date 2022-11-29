@@ -24,6 +24,10 @@ namespace CarinaStudio.Controls
         /// </summary>
         public static readonly DirectProperty<TextBlock, bool> IsTextTrimmedProperty = AvaloniaProperty.RegisterDirect<TextBlock, bool>(nameof(IsTextTrimmed), v => v.isTextTrimmed);
         /// <summary>
+        /// Property of <see cref="LineCount"/>.
+        /// </summary>
+        public static readonly DirectProperty<TextBlock, int> LineCountProperty = AvaloniaProperty.RegisterDirect<TextBlock, int>(nameof(LineCount), v => v.textLineRanges.Count);
+        /// <summary>
         /// Property of <see cref="ShowToolTipWhenTextTrimmed"/>.
         /// </summary>
         public static readonly StyledProperty<bool> ShowToolTipWhenTextTrimmedProperty = AvaloniaProperty.Register<TextBlock, bool>(nameof(ShowToolTipWhenTextTrimmed), true);
@@ -51,6 +55,7 @@ namespace CarinaStudio.Controls
             this.GetObservable(ShowToolTipWhenTextTrimmedProperty).Subscribe(_ => this.updateToolTipAction?.Schedule());
             this.GetObservable(TextProperty).Subscribe(text => 
             {
+                var prevLineCount = this.textLineRanges.Count;
                 this.textLineRanges.Clear();
                 if (!string.IsNullOrEmpty(text))
                 {
@@ -77,6 +82,9 @@ namespace CarinaStudio.Controls
                     }
                 }
                 this.updateToolTipAction?.Schedule();
+                var lineCount = this.textLineRanges.Count;
+                if (prevLineCount != lineCount)
+                    this.RaisePropertyChanged(LineCountProperty, new(prevLineCount), new(lineCount));
             });
             this.GetObservable(TextTrimmingProperty).Subscribe(textTrimming =>
             {
@@ -122,6 +130,12 @@ namespace CarinaStudio.Controls
         }
 
 
+        /// <summary>
+        /// Get number of lines of text.
+        /// </summary>
+        public int LineCount { get => this.textLineRanges.Count; }
+
+
         /// <inheritdoc/>
         protected override Size MeasureOverride(Size availableSize)
         {
@@ -149,31 +163,31 @@ namespace CarinaStudio.Controls
                     if (this.TextWrapping != TextWrapping.NoWrap)
                     {
                         if (double.IsFinite(availableSize.Height) && this.textLineRanges.Count > availableSize.Height)
-                            this.isTextTrimmed = true;
+                            this.IsTextTrimmed = true;
                         else
                         {
                             var minSize = base.MeasureOverride(new Size(availableSize.Width, double.PositiveInfinity));
                             isRemeasureNeeded = true;
-                            this.isTextTrimmed = minSize.Height > measuredSize.Height;
+                            this.IsTextTrimmed = minSize.Height > measuredSize.Height;
                         }
                     }
                     else if (this.textLineRanges.IsEmpty())
-                        this.isTextTrimmed = false;
+                        this.IsTextTrimmed = false;
                     else if (this.textLineRanges.Count == 1)
                     {
                         if (this.textLineRanges[0].Item2 > availableSize.Width)
-                            this.isTextTrimmed = true;
+                            this.IsTextTrimmed = true;
                         else
                         {
                             var minSize = base.MeasureOverride(new Size(availableSize.Width + this.FontSize * 2, this.FontSize));
                             isRemeasureNeeded = true;
-                            this.isTextTrimmed = minSize.Width > measuredSize.Width;
+                            this.IsTextTrimmed = minSize.Width > measuredSize.Width;
                         }
                     }
                     else
                     {
                         if (double.IsFinite(availableSize.Height) && this.textLineRanges.Count > availableSize.Height)
-                            this.isTextTrimmed = true;
+                            this.IsTextTrimmed = true;
                         else
                         {
                             var isTextTrimmedChecked = false;
@@ -182,7 +196,7 @@ namespace CarinaStudio.Controls
                                 var range = this.textLineRanges[i];
                                 if ((range.Item2 - range.Item1) > availableSize.Width)
                                 {
-                                    this.isTextTrimmed = true;
+                                    this.IsTextTrimmed = true;
                                     isTextTrimmedChecked = true;
                                     break;
                                 }
@@ -191,7 +205,7 @@ namespace CarinaStudio.Controls
                             {
                                 var minSize = base.MeasureOverride(new Size(double.PositiveInfinity, availableSize.Height));
                                 isRemeasureNeeded = true;
-                                this.isTextTrimmed = minSize.Width > measuredSize.Width;
+                                this.IsTextTrimmed = minSize.Width > measuredSize.Width;
                             }
                         }
                     }

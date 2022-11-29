@@ -26,6 +26,10 @@ namespace CarinaStudio.Controls
         /// </summary>
         public static readonly DirectProperty<SelectableTextBlock, bool> IsTextTrimmedProperty = AvaloniaProperty.RegisterDirect<SelectableTextBlock, bool>(nameof(IsTextTrimmed), v => v.isTextTrimmed);
         /// <summary>
+        /// Property of <see cref="LineCount"/>.
+        /// </summary>
+        public static readonly DirectProperty<SelectableTextBlock, int> LineCountProperty = AvaloniaProperty.RegisterDirect<SelectableTextBlock, int>(nameof(LineCount), v => v.textLineRanges.Count);
+        /// <summary>
         /// Property of <see cref="ShowToolTipWhenTextTrimmed"/>.
         /// </summary>
         public static readonly StyledProperty<bool> ShowToolTipWhenTextTrimmedProperty = AvaloniaProperty.Register<SelectableTextBlock, bool>(nameof(ShowToolTipWhenTextTrimmed), true);
@@ -101,6 +105,7 @@ namespace CarinaStudio.Controls
         // Check whether text inside text block has multiple lines or not.
         unsafe void CheckMultiLine()
         {
+            var prevLineCount = this.textLineRanges.Count;
             var inlines = this.Inlines;
             var text = inlines.IsNotEmpty() ? inlines.Text : this.Text;
             this.textLineRanges.Clear();
@@ -126,6 +131,9 @@ namespace CarinaStudio.Controls
                 }
             }
             this.updateToolTipAction?.Schedule();
+            var lineCount = this.textLineRanges.Count;
+            if (prevLineCount != lineCount)
+                this.RaisePropertyChanged(LineCountProperty, new(prevLineCount), new(lineCount));
         }
 
 
@@ -143,6 +151,12 @@ namespace CarinaStudio.Controls
             get => this.isTextTrimmed; 
             protected set => this.SetAndRaise(IsTextTrimmedProperty, ref this.isTextTrimmed, value); 
         }
+
+
+        /// <summary>
+        /// Get number of lines of text.
+        /// </summary>
+        public int LineCount { get => this.textLineRanges.Count; }
 
 
         /// <inheritdoc/>
