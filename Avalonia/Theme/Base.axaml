@@ -7,12 +7,16 @@
     <Styles.Resources>
         
         <!-- ObjectTextBox -->
-        <SolidColorBrush x:Key="ObjectTextBoxForegroundInvalid" Color="#ff0000"/>
-        <SolidColorBrush x:Key="ObjectTextBoxSelectionForegroundInvalid" Color="#ffbfbf"/>
+        <SolidColorBrush x:Key="ObjectTextBoxBackgroundInvalid" Color="#ff0000"/>
+        <SolidColorBrush x:Key="ObjectTextBoxBackgroundInvalidPointerOver" Color="#ff0000"/>
+        <SolidColorBrush x:Key="ObjectTextBoxBorderInvalid" Color="#ff0000"/>
+        <SolidColorBrush x:Key="ObjectTextBoxBorderInvalidPointerOver" Color="#ff0000"/>
 
         <!-- ValueTextBox -->
-        <SolidColorBrush x:Key="ValueTextBoxForegroundInvalid" Color="#ff0000"/>
-        <SolidColorBrush x:Key="ValueTextBoxSelectionForegroundInvalid" Color="#ffbfbf"/>
+        <SolidColorBrush x:Key="ValueTextBoxBackgroundInvalid" Color="#ff0000"/>
+        <SolidColorBrush x:Key="ValueTextBoxBackgroundInvalidPointerOver" Color="#ff0000"/>
+        <SolidColorBrush x:Key="ValueTextBoxBorderInvalid" Color="#ff0000"/>
+        <SolidColorBrush x:Key="ValueTextBoxBorderInvalidPointerOver" Color="#ff0000"/>
 
     </Styles.Resources>
 
@@ -37,8 +41,20 @@
 
     <!-- ObjectTextBox -->
     <Style Selector="TextBox:invalidObjectTextBoxText">
-        <Setter Property="Foreground" Value="{DynamicResource ObjectTextBoxForegroundInvalid}"/>
-        <Setter Property="SelectionForegroundBrush" Value="{DynamicResource ObjectTextBoxSelectionForegroundInvalid}"/>
+        <Setter Property="Background" Value="{DynamicResource ObjectTextBoxBackgroundInvalid}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ObjectTextBoxBorderInvalid}"/>
+    </Style>
+    <Style Selector="TextBox:invalidObjectTextBoxText:disabled /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="{DynamicResource ObjectTextBoxBackgroundInvalid}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ObjectTextBoxBorderInvalid}"/>
+    </Style>
+    <Style Selector="TextBox:invalidObjectTextBoxText:focus /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="{DynamicResource ObjectTextBoxBackgroundInvalid}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ObjectTextBoxBorderInvalid}"/>
+    </Style>
+    <Style Selector="TextBox:invalidObjectTextBoxText:pointerover /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="{DynamicResource ObjectTextBoxBackgroundInvalidPointerOver}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ObjectTextBoxBorderInvalidPointerOver}"/>
     </Style>
 
     <!-- ProgressRing -->
@@ -65,8 +81,20 @@
 
     <!-- ValueTextBox -->
     <Style Selector="TextBox:invalidValueTextBoxText">
-        <Setter Property="Foreground" Value="{DynamicResource ValueTextBoxForegroundInvalid}"/>
-        <Setter Property="SelectionForegroundBrush" Value="{DynamicResource ValueTextBoxSelectionForegroundInvalid}"/>
+        <Setter Property="Background" Value="{DynamicResource ValueTextBoxBackgroundInvalid}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ValueTextBoxBorderInvalid}"/>
+    </Style>
+    <Style Selector="TextBox:invalidValueTextBoxText:disabled /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="{DynamicResource ValueTextBoxBackgroundInvalid}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ValueTextBoxBorderInvalid}"/>
+    </Style>
+    <Style Selector="TextBox:invalidValueTextBoxText:focus /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="{DynamicResource ValueTextBoxBackgroundInvalid}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ValueTextBoxBorderInvalid}"/>
+    </Style>
+    <Style Selector="TextBox:invalidValueTextBoxText:pointerover /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="{DynamicResource ValueTextBoxBackgroundInvalidPointerOver}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ValueTextBoxBorderInvalidPointerOver}"/>
     </Style>
 
 </Styles>
