@@ -6,7 +6,6 @@ using Avalonia.Styling;
 using CarinaStudio.Collections;
 using CarinaStudio.Threading;
 using System;
-using System.Collections.Generic;
 
 namespace CarinaStudio.Controls
 {
@@ -24,10 +23,6 @@ namespace CarinaStudio.Controls
         /// </summary>
         public static readonly DirectProperty<TextBlock, bool> IsTextTrimmedProperty = AvaloniaProperty.RegisterDirect<TextBlock, bool>(nameof(IsTextTrimmed), v => v.isTextTrimmed);
         /// <summary>
-        /// Property of <see cref="LineCount"/>.
-        /// </summary>
-        public static readonly DirectProperty<TextBlock, int> LineCountProperty = AvaloniaProperty.RegisterDirect<TextBlock, int>(nameof(LineCount), v => v.textLineRanges.Count);
-        /// <summary>
         /// Property of <see cref="ShowToolTipWhenTextTrimmed"/>.
         /// </summary>
         public static readonly StyledProperty<bool> ShowToolTipWhenTextTrimmedProperty = AvaloniaProperty.Register<TextBlock, bool>(nameof(ShowToolTipWhenTextTrimmed), true);
@@ -41,7 +36,6 @@ namespace CarinaStudio.Controls
         IDisposable? isWindowActiveObserverToken;
         bool isMultiLineText;
         bool isTextTrimmed;
-        readonly List<(int, int)> textLineRanges = new();
         readonly ScheduledAction updateToolTipAction;
         Window? window;
 
@@ -53,44 +47,6 @@ namespace CarinaStudio.Controls
         {
             this.GetObservable(IsTextTrimmedProperty).Subscribe(_ => this.updateToolTipAction?.Schedule());
             this.GetObservable(ShowToolTipWhenTextTrimmedProperty).Subscribe(_ => this.updateToolTipAction?.Schedule());
-            this.GetObservable(TextProperty).Subscribe(text => 
-            {
-                var prevLineCount = this.textLineRanges.Count;
-                this.textLineRanges.Clear();
-                if (!string.IsNullOrEmpty(text))
-                {
-                    unsafe
-                    {
-                        fixed (char* textPtr = text)
-                        {
-                            var start = 0;
-                            var end = 0;
-                            var textLength = text.Length;
-                            var cPtr = textPtr;
-                            while (end < textLength)
-                            {
-                                ++end;
-                                if (*(cPtr++) == '\n')
-                                {
-                                    this.textLineRanges.Add((start, end));
-                                    start = end;
-                                }
-                            }
-                            if (start < textLength)
-                                this.textLineRanges.Add((start, textLength));
-                        }
-                    }
-                }
-                this.updateToolTipAction?.Schedule();
-                var lineCount = this.textLineRanges.Count;
-                if (prevLineCount != lineCount)
-                    this.RaisePropertyChanged(LineCountProperty, new(prevLineCount), new(lineCount));
-            });
-            this.GetObservable(TextTrimmingProperty).Subscribe(textTrimming =>
-            {
-                if (textTrimming == TextTrimming.None)
-                    this.isTextTrimmed = false;
-            });
             this.TextTrimming = TextTrimming.CharacterEllipsis;
             this.updateToolTipAction = new ScheduledAction(() =>
             {
@@ -102,7 +58,8 @@ namespace CarinaStudio.Controls
                 }
                 else
                 {
-                    var text = this.Text;
+                    var inlines = this.Inlines;
+                    var text = inlines.IsNotEmpty() ? inlines.Text : this.Text;
                     if (string.IsNullOrEmpty(text))
                         this.ClearValue(ToolTip.TipProperty);
                     else if (text.Length <= MaxToolTipLength)
@@ -130,88 +87,30 @@ namespace CarinaStudio.Controls
         }
 
 
-        /// <summary>
-        /// Get number of lines of text.
-        /// </summary>
-        public int LineCount { get => this.textLineRanges.Count; }
-
-
         /// <inheritdoc/>
         protected override Size MeasureOverride(Size availableSize)
         {
             var measuredSize = base.MeasureOverride(availableSize);
-            bool isRemeasureNeeded = false;
-            if (double.IsFinite(availableSize.Width))
+            if (double.IsFinite(availableSize.Width) || double.IsFinite(availableSize.Height))
             {
                 // check multi line
-                if (this.textLineRanges.IsEmpty())
-                    this.SetAndRaise<bool>(IsMultiLineTextProperty, ref this.isMultiLineText, false);
-                else if (this.textLineRanges.Count > 1)
-                    this.SetAndRaise<bool>(IsMultiLineTextProperty, ref this.isMultiLineText, true);
-                else if (this.TextWrapping == TextWrapping.NoWrap)
-                    this.SetAndRaise<bool>(IsMultiLineTextProperty, ref this.isMultiLineText, false);
-                else
-                {
-                    var minSize = base.MeasureOverride(new Size(double.PositiveInfinity, double.PositiveInfinity));
-                    isRemeasureNeeded = true;
-                    this.SetAndRaise<bool>(IsMultiLineTextProperty, ref this.isMultiLineText, measuredSize.Height > minSize.Height + 0.1);
-                }
+                var textLayout = this.TextLayout;
+                var lineCount = textLayout.TextLines.Count;
+                this.SetAndRaise<bool>(IsMultiLineTextProperty, ref this.isMultiLineText, lineCount > 1);
 
                 // check trimming
-                if (this.TextTrimming != TextTrimming.None)
+                var isTextTrimmed = false;
+                for (var i = lineCount - 1; i >= 0; --i)
                 {
-                    if (this.TextWrapping != TextWrapping.NoWrap)
+                    if (textLayout.TextLines[i].HasCollapsed)
                     {
-                        if (double.IsFinite(availableSize.Height) && this.textLineRanges.Count > availableSize.Height)
-                            this.IsTextTrimmed = true;
-                        else
-                        {
-                            var minSize = base.MeasureOverride(new Size(availableSize.Width, double.PositiveInfinity));
-                            isRemeasureNeeded = true;
-                            this.IsTextTrimmed = minSize.Height > measuredSize.Height;
-                        }
-                    }
-                    else if (this.textLineRanges.IsEmpty())
-                        this.IsTextTrimmed = false;
-                    else if (this.textLineRanges.Count == 1)
-                    {
-                        if (this.textLineRanges[0].Item2 > availableSize.Width)
-                            this.IsTextTrimmed = true;
-                        else
-                        {
-                            var minSize = base.MeasureOverride(new Size(availableSize.Width + this.FontSize * 2, this.FontSize));
-                            isRemeasureNeeded = true;
-                            this.IsTextTrimmed = minSize.Width > measuredSize.Width;
-                        }
-                    }
-                    else
-                    {
-                        if (double.IsFinite(availableSize.Height) && this.textLineRanges.Count > availableSize.Height)
-                            this.IsTextTrimmed = true;
-                        else
-                        {
-                            var isTextTrimmedChecked = false;
-                            for (int i = 0, count = this.textLineRanges.Count; i < count; ++i)
-                            {
-                                var range = this.textLineRanges[i];
-                                if ((range.Item2 - range.Item1) > availableSize.Width)
-                                {
-                                    this.IsTextTrimmed = true;
-                                    isTextTrimmedChecked = true;
-                                    break;
-                                }
-                            }
-                            if (!isTextTrimmedChecked)
-                            {
-                                var minSize = base.MeasureOverride(new Size(double.PositiveInfinity, availableSize.Height));
-                                isRemeasureNeeded = true;
-                                this.IsTextTrimmed = minSize.Width > measuredSize.Width;
-                            }
-                        }
+                        isTextTrimmed = true;
+                        break;
                     }
                 }
+                this.IsTextTrimmed = isTextTrimmed;
             }
-            return isRemeasureNeeded ? base.MeasureOverride(availableSize) : measuredSize;
+            return measuredSize;
         }
 
 
