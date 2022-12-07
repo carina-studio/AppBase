@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Templates;
 using Avalonia.LogicalTree;
 using Avalonia.Media;
 using Avalonia.Styling;
@@ -26,6 +27,10 @@ namespace CarinaStudio.Controls
         /// Property of <see cref="ShowToolTipWhenTextTrimmed"/>.
         /// </summary>
         public static readonly StyledProperty<bool> ShowToolTipWhenTextTrimmedProperty = AvaloniaProperty.Register<TextBlock, bool>(nameof(ShowToolTipWhenTextTrimmed), true);
+        /// <summary>
+        /// Property of <see cref="ToolTipTemplate"/>.
+        /// </summary>
+        public static readonly StyledProperty<IDataTemplate?> ToolTipTemplateProperty = AvaloniaProperty.Register<TextBlock, IDataTemplate?>(nameof(ToolTipTemplate));
 
 
         // Constants.
@@ -47,6 +52,7 @@ namespace CarinaStudio.Controls
         {
             this.GetObservable(IsTextTrimmedProperty).Subscribe(_ => this.updateToolTipAction?.Schedule());
             this.GetObservable(ShowToolTipWhenTextTrimmedProperty).Subscribe(_ => this.updateToolTipAction?.Schedule());
+            this.GetObservable(ToolTipTemplateProperty).Subscribe(_ => this.updateToolTipAction?.Schedule());
             this.TextTrimming = TextTrimming.CharacterEllipsis;
             this.updateToolTipAction = new ScheduledAction(() =>
             {
@@ -62,10 +68,17 @@ namespace CarinaStudio.Controls
                     var text = inlines.IsNotEmpty() ? inlines.Text : this.Text;
                     if (string.IsNullOrEmpty(text))
                         this.ClearValue(ToolTip.TipProperty);
-                    else if (text.Length <= MaxToolTipLength)
-                        this.SetValue<object?>(ToolTip.TipProperty, text);
                     else
-                        this.SetValue<object?>(ToolTip.TipProperty, $"{text[0..MaxToolTipLength]}…");
+                    {
+                        var toolTipText = text.Length <= MaxToolTipLength
+                            ? text
+                            : $"{text[0..MaxToolTipLength]}…";
+                        var toolTip = this.GetValue(ToolTipTemplateProperty)?.Build(toolTipText)?.Also(control =>
+                        {
+                            control.DataContext = toolTipText;
+                        }) ?? (object)toolTipText;
+                        this.SetValue(ToolTip.TipProperty, toolTip);
+                    }
                 }
             });
         }
@@ -148,5 +161,15 @@ namespace CarinaStudio.Controls
 
         // Interface implementation.
         Type IStyleable.StyleKey { get; } = typeof(Avalonia.Controls.TextBlock);
+
+
+        /// <summary>
+        /// Get or set template for building tooltip.
+        /// </summary>
+        public IDataTemplate? ToolTipTemplate
+        {
+            get => this.GetValue(ToolTipTemplateProperty);
+            set => this.SetValue(ToolTipTemplateProperty, value);
+        }
     }
 }
