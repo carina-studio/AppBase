@@ -1,9 +1,10 @@
 [![](https://img.shields.io/nuget/v/CarinaStudio.AppBase.Core.svg)](https://www.nuget.org/packages/CarinaStudio.AppBase.Core) 
+[![](https://img.shields.io/nuget/vpre/CarinaStudio.AppBase.Core?label=nuget%20%28Pre-Release%29)](https://www.nuget.org/packages/CarinaStudio.AppBase.Core) 
 [![](https://img.shields.io/github/license/carina-studio/AppBase)](https://github.com/carina-studio/AppBase/blob/master/LICENSE) 
 [![](https://img.shields.io/github/release-date-pre/carina-studio/AppBase)](https://github.com/carina-studio/AppBase/releases) 
 
 # 👋Introduction of AppBase 
-**AppBase** is a set of libraries designed for .NET based application. Currently there are 7 packages providing the following functions:
+**AppBase** is a set of libraries designed for .NET based application. Currently there are 9 packages providing the following functions:
 
 📦**CarinaStudio.AppBase.Core**
 - Extensions for ```System.Object``` to make your code more elegant and clear. ([Learn more](articles/object_extensions.md))
@@ -27,6 +28,10 @@
 - ```IApplication``` to provide abstract interface to application instance no matter what UI framework you use.
 - ```ViewModel``` to provide base implementation of view-model including observable properties, logger, etc.
 
+📦**CarinaStudio.AppBase.Android**
+- Implementation of ```IApplication``` based-on ```Android.App.Application```.
+- Implementation of ```ISettings``` based-on ```Android.Content.SharedPreferences```.
+
 📦**CarinaStudio.AppBase.Avalonia**
 - Extended controls such as ```LinkTextBlock```, ```DateTimeTextBox``` for Avalonia application.
 - ```ProgressRing``` to show operation progress.
@@ -39,6 +44,10 @@
 - ```Updater``` to perform resolving, downloading and installing flow of application.
 - Use ```UpdatingSession``` as view-model of ```Updater``` to build UI for auto-update quickly.
 
+📦**CarinaStudio.AppBase.MacOS**
+- .NET binding to macOS framework. For ex, ```CFObject```, ```CGImage```, ```NSObject```, ```NSView```, etc.
+- Allow defining and creating your own type which extends from ```NSObject```.
+
 📦**CarinaStudio.AppBase.Tests**
 - Provide random functions like generating random string or creating file with random name.
 - ```EventMonitor<T>``` to monitor and track event raising.
@@ -50,8 +59,10 @@ AppBase has been uploaded to **NuGet**, you can find it on:
 - [https://www.nuget.org/packages/CarinaStudio.AppBase.Configuration/](https://www.nuget.org/packages/CarinaStudio.AppBase.Configuration/)
 - [https://www.nuget.org/packages/CarinaStudio.AppBase.Application/](https://www.nuget.org/packages/CarinaStudio.AppBase.Application/)
 - [https://www.nuget.org/packages/CarinaStudio.AppBase.Avalonia/](https://www.nuget.org/packages/CarinaStudio.AppBase.Avalonia/)
+- [https://www.nuget.org/packages/CarinaStudio.AppBase.Application.Android/](https://www.nuget.org/packages/CarinaStudio.AppBase.Application.Android/)
 - [https://www.nuget.org/packages/CarinaStudio.AppBase.Application.Avalonia/](https://www.nuget.org/packages/CarinaStudio.AppBase.Application.Avalonia/)
 - [https://www.nuget.org/packages/CarinaStudio.AppBase.AutoUpdate/](https://www.nuget.org/packages/CarinaStudio.AppBase.AutoUpdate/)
+- [https://www.nuget.org/packages/CarinaStudio.AppBase.MacOS/](https://www.nuget.org/packages/CarinaStudio.AppBase.MacOS/)
 - [https://www.nuget.org/packages/CarinaStudio.AppBase.Tests/](https://www.nuget.org/packages/CarinaStudio.AppBase.Tests/)
 
 You can also install by Package Manager command:
@@ -60,8 +71,10 @@ Install-Package CarinaStudio.AppBase.Core
 Install-Package CarinaStudio.AppBase.Configuration
 Install-Package CarinaStudio.AppBase.Application
 Install-Package CarinaStudio.AppBase.Avalonia
+Install-Package CarinaStudio.AppBase.Application.Android
 Install-Package CarinaStudio.AppBase.Application.Avalonia
 Install-Package CarinaStudio.AppBase.AutoUpdate
+Install-Package CarinaStudio.AppBase.MacOS
 Install-Package CarinaStudio.AppBase.Tests
 ```
 

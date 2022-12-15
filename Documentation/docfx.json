@@ -50,6 +50,16 @@
             "**/bin/**",
             "**/obj/**"
           ],
+          "src": "../Application.Android"
+        },
+        {
+          "files": [
+            "**/*.csproj"
+          ],
+          "exclude": [
+            "**/bin/**",
+            "**/obj/**"
+          ],
           "src": "../Application.Avalonia"
         },
         {
@@ -61,6 +71,16 @@
             "**/obj/**"
           ],
           "src": "../AutoUpdate"
+        },
+        {
+          "files": [
+            "**/*.csproj"
+          ],
+          "exclude": [
+            "**/bin/**",
+            "**/obj/**"
+          ],
+          "src": "../MacOS"
         },
         {
           "files": [
