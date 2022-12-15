@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<AssemblyVersion>2.0.6.1207</AssemblyVersion>
-		<Version>2.0.6.1207</Version>
-		<PackageVersion>2.0.6.1207-preview</PackageVersion>
+		<AssemblyVersion>2.0.7.1215</AssemblyVersion>
+		<Version>2.0.7.1215</Version>
+		<PackageVersion>2.0.7.1215-preview</PackageVersion>
 		<TargetFrameworks>net6.0-android;net7.0-android</TargetFrameworks>
 		<SupportedOSPlatformVersion>29</SupportedOSPlatformVersion>
 		<RootNamespace>CarinaStudio.Android</RootNamespace>
