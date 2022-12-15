@@ -25,8 +25,11 @@ namespace CarinaStudio
 
 
         // Program entry.
-        public static void Main(string[] args) => BuildAvaloniaApp()
-            .StartWithClassicDesktopLifetime(args);
+        public static void Main(string[] args)
+        {
+            //Environment.SetEnvironmentVariable("AVALONIA_SCREEN_SCALE_FACTORS", "Virtual-1=2");
+            BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+        }
 
 
         // Called when Avalonia initialized.

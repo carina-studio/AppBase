@@ -251,7 +251,7 @@ namespace CarinaStudio
                     this.animateDockTileProgressAction?.Execute();
                 }
             }
-            /*
+            
             if (this.testDialog == null)
             {
                 this.testDialog = new TestDialog().Also(it =>
@@ -262,7 +262,7 @@ namespace CarinaStudio
             }
             else
                 new TestDialog().ShowDialog(this.testDialog);
-            */
+            
             
             /*
             var transform = this.Find<Rectangle>("rect")?.RenderTransform as TranslateTransform;
