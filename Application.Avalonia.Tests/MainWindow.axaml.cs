@@ -21,7 +21,7 @@ using System.IO;
 
 namespace CarinaStudio
 {
-    partial class MainWindow : Controls.Window<IApp>
+    partial class MainWindow : Controls.ApplicationWindow<IApp>
     {
         DoubleAnimator? animator;
         TestDialog? testDialog;

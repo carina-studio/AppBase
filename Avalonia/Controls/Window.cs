@@ -1,19 +1,16 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
-using CarinaStudio.Configuration;
 using CarinaStudio.Threading;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Threading;
 
 namespace CarinaStudio.Controls
 {
 	/// <summary>
-	/// <see cref="Avalonia.Controls.Window"/> which implements <see cref="IApplicationObject"/>.
+	/// Extended <see cref="Avalonia.Controls.Window"/>.
 	/// </summary>
-	public abstract class Window : Avalonia.Controls.Window, IApplicationObject
+	public abstract class Window : Avalonia.Controls.Window
 	{
 		/// <summary>
 		/// Property of <see cref="HasDialogs"/>.
@@ -56,12 +53,6 @@ namespace CarinaStudio.Controls
 		/// </summary>
 		protected Window()
 		{
-			// check state
-			this.Application.VerifyAccess();
-
-			// create logger
-			this.Logger = this.Application.LoggerFactory.CreateLogger(this.GetType().Name);
-
 			// setup actions
 			this.checkDialogsAction = new ScheduledAction(() =>
 			{
@@ -106,7 +97,7 @@ namespace CarinaStudio.Controls
 			// get internal list of child windows
 			this.children = GetInternalChildWindows(this) ?? Global.Run(() =>
 			{
-				this.Logger.LogError("Unable to get list of child window");
+				System.Diagnostics.Debug.WriteLine("Unable to get list of child window");
 				return Array.Empty<(Avalonia.Controls.Window, bool)>();
 			});
 			
@@ -123,19 +114,13 @@ namespace CarinaStudio.Controls
 		}
 
 
-		/// <summary>
-		/// Get application instance.
-		/// </summary>
-		public IApplication Application { get; } = CarinaStudio.Application.Current;
-
-
 		// Get internal list of child windows.
 		static IList<(Avalonia.Controls.Window, bool)>? GetInternalChildWindows(Avalonia.Controls.Window window) =>
 			typeof(Avalonia.Controls.Window).GetField("_children", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(window) as IList<ValueTuple<Avalonia.Controls.Window, bool>>;
 
 
 		/// <summary>
-		/// Get whether at least one <see cref="Dialog{TApp}"/> owned by this window is shown or not.
+		/// Get whether at least one dialog owned by this window is shown or not.
 		/// </summary>
 		public bool HasDialogs { get => this.hasDialogs; }
 
@@ -150,12 +135,6 @@ namespace CarinaStudio.Controls
 		/// Check whether window is opened or not.
 		/// </summary>
 		public bool IsOpened { get => this.isOpened; }
-
-
-		/// <summary>
-		/// Get logger.
-		/// </summary>
-		protected ILogger Logger { get; }
 
 
 		// Called when child window opened or closed.
@@ -280,40 +259,6 @@ namespace CarinaStudio.Controls
 			}
 			else
 				this.clearInitSizeObserversAction.Execute();
-		}
-
-
-		/// <summary>
-		/// Get persistent state.
-		/// </summary>
-		protected ISettings PersistentState { get => this.Application.PersistentState; }
-
-
-		/// <summary>
-		/// Get application settings.
-		/// </summary>
-		protected ISettings Settings { get => this.Application.Settings; }
-
-
-		/// <summary>
-		/// Get <see cref="SynchronizationContext"/>.
-		/// </summary>
-		public SynchronizationContext SynchronizationContext { get => this.Application.SynchronizationContext; }
-	}
-
-
-	/// <summary>
-	/// <see cref="Avalonia.Controls.Window"/> which implements <see cref="IApplicationObject{TApplication}"/>.
-	/// </summary>
-	/// <typeparam name="TApp">Type of application.</typeparam>
-	public abstract class Window<TApp> : Window, IApplicationObject<TApp> where TApp : class, IApplication
-    {
-		/// <summary>
-		/// Get application instance.
-		/// </summary>
-		public new TApp Application
-		{
-			get => (base.Application as TApp) ?? throw new ArgumentException($"Application doesn't implement {typeof(TApp)} interface.");
 		}
 	}
 }

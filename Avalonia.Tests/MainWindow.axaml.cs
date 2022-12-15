@@ -10,7 +10,7 @@ using System;
 
 namespace CarinaStudio
 {
-    partial class MainWindow : Window
+    partial class MainWindow : Avalonia.Controls.Window
     {
         public MainWindow()
         {

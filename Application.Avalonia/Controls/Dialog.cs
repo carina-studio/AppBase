@@ -5,7 +5,7 @@ namespace CarinaStudio.Controls
 	/// <summary>
 	/// Base class of window of dialog.
 	/// </summary>
-	public abstract class Dialog : Window
+	public abstract class Dialog : ApplicationWindow
 	{
 		/// <summary>
 		/// Initialize new <see cref="Dialog{TApp}"/> instance.
