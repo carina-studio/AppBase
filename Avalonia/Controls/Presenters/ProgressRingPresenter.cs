@@ -1,10 +1,8 @@
-using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
-using Avalonia.Platform;
 using Avalonia.Rendering;
-using CarinaStudio.Collections;
+using CarinaStudio.Threading;
 using System;
 using System.Diagnostics;
 
@@ -15,48 +13,6 @@ namespace CarinaStudio.Controls.Presenters
     /// </summary>
     public class ProgressRingPresenter : Control
     {
-        // Timer for indeterminate progress animation.
-        class IndeterminateProgressAnimationTimerImpl : UiThreadRenderTimer
-        {
-            // Fields.
-            readonly LinkedList<ProgressRingPresenter> presenters = new LinkedList<ProgressRingPresenter>();
-
-            // Constructor.
-            public IndeterminateProgressAnimationTimerImpl() : base(60)
-            { 
-                this.Tick += timeSpan =>
-                {
-                    var node = this.presenters.First;
-                    while (node != null)
-                    {
-                        node.Value.AnimateIntermediateProgress();
-                        node = node.Next;
-                    }
-                };
-            }
-
-            // Start animation
-            public void Start(LinkedListNode<ProgressRingPresenter> node)
-            {
-                if (node.List != null)
-                    return;
-                this.presenters.AddLast(node);
-                if (this.presenters.Count == 1)
-                    this.Start();
-            }
-
-            // Stop animation.
-            public void Stop(LinkedListNode<ProgressRingPresenter> node)
-            {
-                if (node.List == null)
-                    return;
-                this.presenters.Remove(node);
-                if (this.presenters.IsEmpty())
-                    this.Stop();
-            }
-        }
-
-
         /// <summary>
         /// Property of <see cref="BorderBrush"/>.
         /// </summary>
@@ -114,24 +70,25 @@ namespace CarinaStudio.Controls.Presenters
 
         // Constants.
         const int IntermediateProgressAnimationDuration = 1000;
+        const int IntermediateProgressAnimationUpdateInterval = 0;
         
 
         // Static fields.
-        static readonly IndeterminateProgressAnimationTimerImpl IndeterminateProgressAnimationTimer = new IndeterminateProgressAnimationTimerImpl();
         static readonly StyledProperty<double> IndeterminateProgressProperty = AvaloniaProperty.Register<ProgressRingPresenter, double>("IndeterminateProgress", 0);
         
 
         // Fields.
+        readonly ScheduledAction animateIntermediateProgressAction;
         Pen? borderPen;
-        readonly LinkedListNode<ProgressRingPresenter> indeterminateProgressAnimatingNode;
         long indeterminateProgressAnimationStartTime = -1;
         bool isAttachedToVisualTree;
         double progressEndAngle = double.NaN;
         StreamGeometry? progressGeometry;
         Pen? progressPen;
         double progressStartAngle = double.NaN;
+        IRenderTimer? renderTimer;
         Pen? ringPen;
-        readonly Stopwatch stopwatch = new Stopwatch();
+        readonly Stopwatch stopwatch = new();
         
 
         // Static initializer.
@@ -156,7 +113,7 @@ namespace CarinaStudio.Controls.Presenters
         /// </summary>
         public ProgressRingPresenter()
         { 
-            this.indeterminateProgressAnimatingNode = new LinkedListNode<ProgressRingPresenter>(this);
+            this.animateIntermediateProgressAction = new(this.AnimateIntermediateProgress);
         }
 
 
@@ -257,11 +214,12 @@ namespace CarinaStudio.Controls.Presenters
         {
             base.OnAttachedToVisualTree(e);
             this.stopwatch.Start();
+            this.renderTimer = AvaloniaLocator.Current.GetService<IRenderTimer>();
             if (this.GetValue<bool>(IsIndeterminateProperty))
             {
                 this.SetValue<double>(IndeterminateProgressProperty, 0);
                 this.indeterminateProgressAnimationStartTime = this.stopwatch.ElapsedMilliseconds;
-                IndeterminateProgressAnimationTimer.Start(this.indeterminateProgressAnimatingNode);
+                this.renderTimer?.Let(it => it.Tick += this.OnRenderTimerTick);
             }
             this.isAttachedToVisualTree = true;
         }
@@ -270,12 +228,18 @@ namespace CarinaStudio.Controls.Presenters
         /// <inheritdoc/>
         protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
         {
-            IndeterminateProgressAnimationTimer.Stop(this.indeterminateProgressAnimatingNode);
+            this.renderTimer?.Let(it => it.Tick -= this.OnRenderTimerTick);
             this.indeterminateProgressAnimationStartTime = -1;
             this.isAttachedToVisualTree = false;
             this.stopwatch.Stop();
+            this.renderTimer = null;
             base.OnDetachedFromVisualTree(e);
         }
+
+
+        // Called when receiving notification from render timer.
+        void OnRenderTimerTick(TimeSpan _) =>
+            this.animateIntermediateProgressAction.Schedule(IntermediateProgressAnimationUpdateInterval);
 
 
         /// <inheritdoc/>
@@ -295,14 +259,13 @@ namespace CarinaStudio.Controls.Presenters
                 if (!this.GetValue<bool>(IsIndeterminateProperty))
                 {
                     this.indeterminateProgressAnimationStartTime = -1;
-                    IndeterminateProgressAnimationTimer.Stop(this.indeterminateProgressAnimatingNode);
+                    this.renderTimer?.Let(it => it.Tick -= this.OnRenderTimerTick);
                     this.InvalidateProgressAngles();
                 }
                 else if (this.isAttachedToVisualTree)
                 {
                     this.SetValue<double>(IndeterminateProgressProperty, 0);
-                    this.indeterminateProgressAnimationStartTime = this.stopwatch.ElapsedMilliseconds;
-                    IndeterminateProgressAnimationTimer.Start(this.indeterminateProgressAnimatingNode);
+                    this.renderTimer?.Let(it => it.Tick += this.OnRenderTimerTick);
                 }
             }
             else if (property == ProgressProperty)
@@ -323,7 +286,7 @@ namespace CarinaStudio.Controls.Presenters
 
 
         // Calculate point on ring.
-        Point PointOnRing(double width, double height, double borderThickness, double ringThickness, double angle)
+        static Point PointOnRing(double width, double height, double borderThickness, double ringThickness, double angle)
         {
             var a = (width - borderThickness - ringThickness) / 2;
             var b = (height - borderThickness - ringThickness) / 2;
@@ -383,8 +346,8 @@ namespace CarinaStudio.Controls.Presenters
             {
                 this.progressGeometry = new StreamGeometry();
                 using var geometryContext = this.progressGeometry.Open();
-                var startPoint = this.PointOnRing(width, height, borderThickness, ringThickness, this.progressStartAngle);
-                var endPoint = this.PointOnRing(width, height, borderThickness, ringThickness, this.progressEndAngle);
+                var startPoint = PointOnRing(width, height, borderThickness, ringThickness, this.progressStartAngle);
+                var endPoint = PointOnRing(width, height, borderThickness, ringThickness, this.progressEndAngle);
                 geometryContext.BeginFigure(startPoint, false);
                 geometryContext.ArcTo(
                     endPoint,
