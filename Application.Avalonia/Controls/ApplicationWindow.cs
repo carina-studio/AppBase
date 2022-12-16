@@ -8,12 +8,12 @@ namespace CarinaStudio.Controls
 	/// <summary>
 	/// <see cref="CarinaStudio.Controls.Window"/> which implements <see cref="IApplicationObject"/>.
 	/// </summary>
-	public abstract class ApplicationWindow : CarinaStudio.Controls.Window, IApplicationObject
+	public class ApplicationWindow : CarinaStudio.Controls.Window, IApplicationObject
 	{
 		/// <summary>
 		/// Initialize new <see cref="ApplicationWindow"/> instance.
 		/// </summary>
-		protected ApplicationWindow()
+		public ApplicationWindow()
 		{
 			// create logger
 			this.Logger = this.Application.LoggerFactory.CreateLogger(this.GetType().Name);

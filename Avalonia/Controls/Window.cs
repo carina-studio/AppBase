@@ -10,7 +10,7 @@ namespace CarinaStudio.Controls
 	/// <summary>
 	/// Extended <see cref="Avalonia.Controls.Window"/>.
 	/// </summary>
-	public abstract class Window : Avalonia.Controls.Window
+	public class Window : Avalonia.Controls.Window
 	{
 		/// <summary>
 		/// Property of <see cref="HasDialogs"/>.
@@ -51,7 +51,7 @@ namespace CarinaStudio.Controls
 		/// <summary>
 		/// Initialize new <see cref="Window"/> instance.
 		/// </summary>
-		protected Window()
+		public Window()
 		{
 			// setup actions
 			this.checkDialogsAction = new ScheduledAction(() =>

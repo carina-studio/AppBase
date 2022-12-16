@@ -5,12 +5,12 @@ namespace CarinaStudio.Controls
 	/// <summary>
 	/// Base class of window of dialog.
 	/// </summary>
-	public abstract class Dialog : ApplicationWindow
+	public class Dialog : ApplicationWindow
 	{
 		/// <summary>
 		/// Initialize new <see cref="Dialog{TApp}"/> instance.
 		/// </summary>
-		protected Dialog()
+		public Dialog()
 		{ }
 
 
@@ -39,7 +39,7 @@ namespace CarinaStudio.Controls
 	/// Base class of window of dialog.
 	/// </summary>
 	/// <typeparam name="TApp">Type of application.</typeparam>
-	public abstract class Dialog<TApp> : Dialog where TApp : class, IApplication
+	public class Dialog<TApp> : Dialog where TApp : class, IApplication
 	{
 		/// <summary>
 		/// Get application instance.
