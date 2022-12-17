@@ -244,13 +244,25 @@ namespace CarinaStudio.Controls
 					var height = this.Height;
 					if (double.IsFinite(width) && double.IsFinite(height))
 					{
+						PixelPoint ownerPosition;
+						Size ownerSize;
 						var heightWithTitleBar = height + titleBarHeight;
-						var position = owner.Position.Let((position) =>
+						if (owner is CarinaStudio.Controls.Window csWindow)
 						{
-							var offsetX = (int)((owner.Width - width) / 2 * screenScale + 0.5);
-							var offsetY = (int)((owner.Height + titleBarHeight - heightWithTitleBar) / 2 * screenScale + 0.5);
-							return new PixelPoint(position.X + offsetX, position.Y + offsetY - (int)(titleBarHeight * screenScale + 0.5));
-						});
+							ownerPosition = csWindow.expectedInitPosition?.Let(it =>
+							{
+								return new PixelPoint(it.X, (int)(it.Y + titleBarHeight * screenScale + 0.5));
+							}) ?? csWindow.Position;
+							ownerSize = csWindow.expectedInitSize ?? new(csWindow.Width, csWindow.Height);
+						}
+						else
+						{
+							ownerPosition = owner.Position;
+							ownerSize = new(owner.Width, owner.Height);
+						}
+						var offsetX = (int)((ownerSize.Width - width) / 2 * screenScale + 0.5);
+						var offsetY = (int)((ownerSize.Height + titleBarHeight - heightWithTitleBar) / 2 * screenScale + 0.5);
+						var position = new PixelPoint(ownerPosition.X + offsetX, ownerPosition.Y + offsetY - (int)(titleBarHeight * screenScale + 0.5));
 						this.expectedInitPosition = position;
 						this.expectedInitSize = new(width, height);
 						this.WindowStartupLocation = WindowStartupLocation.Manual;
