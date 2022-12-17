@@ -41,8 +41,8 @@ namespace CarinaStudio.Controls
 		PixelPoint? expectedInitPosition;
 		Size? expectedInitSize;
 		bool hasDialogs;
-		IDisposable initHeightObserverToken = EmptyDisposable.Default;
-		IDisposable initWidthObserverToken = EmptyDisposable.Default;
+		readonly IDisposable initHeightObserverToken;
+		readonly IDisposable initWidthObserverToken;
 		bool isClosed;
 		bool isOpened;
 		Window? owner;
@@ -90,8 +90,8 @@ namespace CarinaStudio.Controls
 			});
 			this.clearInitSizeObserversAction = new(() =>
 			{
-				this.initHeightObserverToken.Dispose();
-				this.initWidthObserverToken.Dispose();
+				this.initHeightObserverToken!.Dispose();
+				this.initWidthObserverToken!.Dispose();
 			});
 
 			// get internal list of child windows
