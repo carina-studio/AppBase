@@ -194,13 +194,15 @@ namespace CarinaStudio
 						return linuxDesktop.Value;
 					if (IsLinux)
 					{
-						linuxDesktop = Environment.GetEnvironmentVariable("XDG_CURRENT_DESKTOP")?.ToLower() switch
-						{
-							"gnome" => LinuxDesktop.Gnome,
-							"kde" => LinuxDesktop.KDE,
-							"unity" => LinuxDesktop.Unity,
-							_ => LinuxDesktop.Unknown,
-						};
+						var env = Environment.GetEnvironmentVariable("XDG_CURRENT_DESKTOP")?.ToLower() ?? "";
+						if (env.Contains("gnome"))
+							linuxDesktop = LinuxDesktop.Gnome;
+						else if (env.Contains("kde"))
+							linuxDesktop = LinuxDesktop.KDE;
+						else if (env.Contains("unity"))
+							linuxDesktop = LinuxDesktop.Unity;
+						else
+							linuxDesktop = LinuxDesktop.Unknown;
 					}
 					else
 						linuxDesktop = LinuxDesktop.Unknown;
