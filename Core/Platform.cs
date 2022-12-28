@@ -15,8 +15,8 @@ namespace CarinaStudio
     public static class Platform
     {
 		// Fields.
-		static bool? isGnome;
 		static bool? isOpeningFileManagerSupported;
+		static LinuxDesktop? linuxDesktop;
 		static LinuxDistribution? linuxDistribution;
 		static readonly Regex runtimeVersionRegex = new Regex("^(?<Runtime>[^\\s]+)[\\s]+(?<Version>[\\d]+(\\.[\\d]+)*)(?<VersionPostfix>\\-.+)?");
 		static WindowsVersion? windowsVersion;
@@ -98,40 +98,8 @@ namespace CarinaStudio
 		/// <summary>
 		/// Check whether the desktop environment is GNOME or not if current operating system is Linux.
 		/// </summary>
-		public static bool IsGnome
-        {
-			get
-            {
-				if (isGnome.HasValue)
-					return isGnome.Value;
-				lock (typeof(Platform))
-				{
-					if (isGnome.HasValue)
-						return isGnome.Value;
-					if (IsLinux)
-					{
-						try
-						{
-							using var process = Process.Start(new ProcessStartInfo()
-							{
-								Arguments = "--version",
-								CreateNoWindow = true,
-								FileName = "gnome-shell",
-								UseShellExecute = false,
-							});
-							isGnome = process != null;
-						}
-						catch
-						{
-							isGnome = false;
-						}
-					}
-					else
-						isGnome = false;
-				}
-				return isGnome.Value;
-			}
-        }
+		[Obsolete("Use LinuxDesktop instead.")]
+		public static bool IsGnome { get => LinuxDesktop == LinuxDesktop.Gnome; }
 
 
 		/// <summary>
@@ -209,6 +177,37 @@ namespace CarinaStudio
 		/// Check whether the version of Windows is Windows 8+ or not.
 		/// </summary>
 		public static bool IsWindows8OrAbove { get => WindowsVersion >= WindowsVersion.Windows8; }
+
+
+		/// <summary>
+		/// Get current desktop environment running on Linux.
+		/// </summary>
+		public static LinuxDesktop LinuxDesktop
+		{
+			get
+			{
+				if (linuxDesktop.HasValue)
+					return linuxDesktop.Value;
+				lock (typeof(Platform))
+				{
+					if (linuxDesktop.HasValue)
+						return linuxDesktop.Value;
+					if (IsLinux)
+					{
+						linuxDesktop = Environment.GetEnvironmentVariable("XDG_CURRENT_DESKTOP")?.ToLower() switch
+						{
+							"gnome" => LinuxDesktop.Gnome,
+							"kde" => LinuxDesktop.KDE,
+							"unity" => LinuxDesktop.Unity,
+							_ => LinuxDesktop.Unknown,
+						};
+					}
+					else
+						linuxDesktop = LinuxDesktop.Unknown;
+				}
+				return linuxDesktop.Value;
+			}
+		}
 
 
 		/// <summary>
@@ -290,7 +289,7 @@ namespace CarinaStudio
 						: $"-a finder -R \"{path}\"";
 				});
 			}
-			else if (IsGnome)
+			else if (LinuxDesktop == LinuxDesktop.Gnome || LinuxDesktop == LinuxDesktop.Unity)
 			{
 				process.StartInfo.Let(it =>
 				{
@@ -315,7 +314,7 @@ namespace CarinaStudio
 			catch
 			{ 
 				// Fallback to xdg-open on Gnome
-				if (IsGnome)
+				if (LinuxDesktop == LinuxDesktop.Gnome || LinuxDesktop == LinuxDesktop.Unity)
 				{
 					try
 					{
