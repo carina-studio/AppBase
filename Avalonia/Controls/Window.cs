@@ -233,41 +233,72 @@ namespace CarinaStudio.Controls
 			// call base
 			base.OnOpened(e);
 
-			// [Workaround] move to actual center of owner on Linux.
-			if (this.WindowStartupLocation == WindowStartupLocation.CenterOwner && Platform.IsLinux)
+			// [Workaround] move to actual center of owner/screen on Linux.
+			if (Platform.IsLinux)
 			{
-				this.owner?.Let(owner =>
+				var titleBarHeightInPixels = 75; // Not an accurate value
+				switch (this.WindowStartupLocation)
 				{
-					var screenScale = owner.Screens.ScreenFromVisual(owner)?.Scaling ?? 1.0;
-					var titleBarHeight = (Platform.IsGnome ? 75 : 0) / screenScale;
-					var width = this.Width;
-					var height = this.Height;
-					if (double.IsFinite(width) && double.IsFinite(height))
+					case WindowStartupLocation.CenterOwner:
 					{
-						PixelPoint ownerPosition;
-						Size ownerSize;
-						var heightWithTitleBar = height + titleBarHeight;
-						if (owner is CarinaStudio.Controls.Window csWindow)
+						this.owner?.Let(owner =>
 						{
-							ownerPosition = csWindow.expectedInitPosition?.Let(it =>
+							var screenScale = owner.Screens.ScreenFromVisual(owner)?.Scaling ?? 1.0;
+							var titleBarHeight = titleBarHeightInPixels / screenScale;
+							var width = this.Width;
+							var height = this.Height;
+							if (double.IsFinite(width) && double.IsFinite(height))
 							{
-								return new PixelPoint(it.X, (int)(it.Y + titleBarHeight * screenScale + 0.5));
-							}) ?? csWindow.Position;
-							ownerSize = csWindow.expectedInitSize ?? new(csWindow.Width, csWindow.Height);
-						}
-						else
-						{
-							ownerPosition = owner.Position;
-							ownerSize = new(owner.Width, owner.Height);
-						}
-						var offsetX = (int)((ownerSize.Width - width) / 2 * screenScale + 0.5);
-						var offsetY = (int)((ownerSize.Height + titleBarHeight - heightWithTitleBar) / 2 * screenScale + 0.5);
-						var position = new PixelPoint(ownerPosition.X + offsetX, ownerPosition.Y + offsetY - (int)(titleBarHeight * screenScale + 0.5));
-						this.expectedInitPosition = position;
-						this.expectedInitSize = new(width, height);
-						this.WindowStartupLocation = WindowStartupLocation.Manual;
+								PixelPoint ownerPosition;
+								Size ownerSize;
+								var heightWithTitleBar = height + titleBarHeight;
+								if (owner is CarinaStudio.Controls.Window csWindow)
+								{
+									ownerPosition = csWindow.expectedInitPosition?.Let(it =>
+									{
+										return new PixelPoint(it.X, (int)(it.Y + titleBarHeight * screenScale + 0.5));
+									}) ?? csWindow.Position;
+									ownerSize = csWindow.expectedInitSize ?? new(csWindow.Width, csWindow.Height);
+								}
+								else
+								{
+									ownerPosition = owner.Position;
+									ownerSize = new(owner.Width, owner.Height);
+								}
+								var offsetX = (int)((ownerSize.Width - width) / 2 * screenScale + 0.5);
+								var offsetY = (int)((ownerSize.Height + titleBarHeight - heightWithTitleBar) / 2 * screenScale + 0.5);
+								var position = new PixelPoint(ownerPosition.X + offsetX, ownerPosition.Y + offsetY - (int)(titleBarHeight * screenScale + 0.5));
+								this.expectedInitPosition = position;
+								this.expectedInitSize = new(width, height);
+								this.WindowStartupLocation = WindowStartupLocation.Manual;
+							}
+						});
+						break;
 					}
-				});
+
+					case WindowStartupLocation.CenterScreen:
+					{
+						(this.Screens.ScreenFromWindow(this.PlatformImpl!) ?? this.Screens.Primary)?.Let(screen =>
+						{
+							var screenScale = screen.Scaling;
+							var workingArea = screen.WorkingArea;
+							var titleBarHeight = titleBarHeightInPixels / screenScale;
+							var width = this.Width;
+							var height = this.Height;
+							if (double.IsFinite(width) && double.IsFinite(height))
+							{
+								var heightWithTitleBar = height + titleBarHeight;
+								var offsetX = (int)((workingArea.Width - (width * screenScale)) / 2 + 0.5);
+								var offsetY = (int)((workingArea.Height - (heightWithTitleBar * screenScale)) / 2 + 0.5);
+								var position = new PixelPoint(workingArea.TopLeft.X + offsetX, workingArea.TopLeft.Y + offsetY);
+								this.expectedInitPosition = position;
+								this.expectedInitSize = new(width, height);
+								this.WindowStartupLocation = WindowStartupLocation.Manual;
+							}
+						});
+						break;
+					}
+				}
 			}
 			else
 				this.clearInitSizeObserversAction.Execute();
