@@ -52,6 +52,7 @@ namespace CarinaStudio.Controls
         {
             this.GetObservable(IsTextTrimmedProperty).Subscribe(_ => this.updateToolTipAction?.Schedule());
             this.GetObservable(ShowToolTipWhenTextTrimmedProperty).Subscribe(_ => this.updateToolTipAction?.Schedule());
+            this.GetObservable(TextProperty).Subscribe(_ => this.updateToolTipAction?.Schedule());
             this.GetObservable(ToolTipTemplateProperty).Subscribe(_ => this.updateToolTipAction?.Schedule());
             this.TextTrimming = TextTrimming.CharacterEllipsis;
             this.updateToolTipAction = new ScheduledAction(() =>
