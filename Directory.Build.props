@@ -1,0 +1,21 @@
+<Project>
+    <PropertyGroup>
+
+        <!-- Version -->
+        <AssemblyVersion>2.0.9.202</AssemblyVersion>
+        <PackageVersion>2.0.9.202-preview</PackageVersion>
+        <Version>2.0.9.202</Version>
+
+        <!-- Other information -->
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <Authors>Carina Studio</Authors>
+        <Company>Carina Studio</Company>
+        <Copyright>©2021 Carina Studio</Copyright>
+        <Nullable>enable</Nullable>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageProjectUrl>https://carina-studio.github.io/AppBase/</PackageProjectUrl>
+        <RootNamespace>CarinaStudio</RootNamespace>
+        <TargetFrameworks>net5.0;net6.0;net7.0</TargetFrameworks>
+
+    </PropertyGroup>
+</Project>

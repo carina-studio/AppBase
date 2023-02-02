@@ -1,21 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<AssemblyVersion>2.0.8.1228</AssemblyVersion>
-		<Version>2.0.8.1228</Version>
-		<PackageVersion>2.0.8.1228-preview</PackageVersion>
 		<TargetFrameworks>net6.0-android;net7.0-android</TargetFrameworks>
 		<SupportedOSPlatformVersion>29</SupportedOSPlatformVersion>
 		<RootNamespace>CarinaStudio.Android</RootNamespace>
 		<AssemblyName>CarinaStudio.AppBase.Application.Android</AssemblyName>
-		<Authors>Carina Studio</Authors>
-		<Company>Carina Studio</Company>
 		<Copyright>©2022 Carina Studio</Copyright>
-		<Nullable>enable</Nullable>
 		<PackageId>CarinaStudio.AppBase.Application.Android</PackageId>
 		<Description>AppBase is a base library set for .NET application. CarinaStudio.AppBase.Application.Android provides basic implementation for CarinaStudio.AppBase.Application for Android.</Description>
-		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<PackageProjectUrl>https://carina-studio.github.io/AppBase/</PackageProjectUrl>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

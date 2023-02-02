@@ -1,20 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<AssemblyVersion>2.0.8.1228</AssemblyVersion>
-		<Version>2.0.8.1228</Version>
-		<PackageVersion>2.0.8.1228-preview</PackageVersion>
-		<TargetFrameworks>net5.0;net6.0;net7.0</TargetFrameworks>
 		<RootNamespace>CarinaStudio.AutoUpdate</RootNamespace>
 		<AssemblyName>CarinaStudio.AppBase.AutoUpdate</AssemblyName>
-		<Authors>Carina Studio</Authors>
-		<Company>Carina Studio</Company>
-		<Copyright>©2021 Carina Studio</Copyright>
-		<Nullable>enable</Nullable>
 		<PackageId>CarinaStudio.AppBase.AutoUpdate</PackageId>
 		<Description>AppBase is a base library set for .NET application. CarinaStudio.AppBase.AutoUpdate provides auto/self update functions for portable application.</Description>
-		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<PackageProjectUrl>https://carina-studio.github.io/AppBase/</PackageProjectUrl>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
