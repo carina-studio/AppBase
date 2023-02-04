@@ -4,6 +4,7 @@
     <RootNamespace>CarinaStudio.Tests</RootNamespace>
     <AssemblyName>CarinaStudio.AppBase.Tests</AssemblyName>
     <PackageId>CarinaStudio.AppBase.Tests</PackageId>
+	<TargetFrameworks>net5.0;net6.0;net7.0</TargetFrameworks>
     <Description>AppBase is a base library set for .NET application. CarinaStudio.AppBase.Tests provides helper classes and methods for unit test.</Description>
   </PropertyGroup>
 

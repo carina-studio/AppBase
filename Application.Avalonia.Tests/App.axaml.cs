@@ -40,6 +40,7 @@ namespace CarinaStudio
             {
                 //if (Platform.IsMacOS)
                     //it.ShutdownMode = Avalonia.Controls.ShutdownMode.OnExplicitShutdown;
+                this.RequestedThemeVariant = Avalonia.Styling.ThemeVariant.Light;
                 it.MainWindow = new MainWindow();
             });
         }

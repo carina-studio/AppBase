@@ -1,3 +1,5 @@
+using System;
+using System.Net.Mime;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
@@ -29,6 +31,7 @@ namespace CarinaStudio
         public override void OnFrameworkInitializationCompleted()
         {
             base.OnFrameworkInitializationCompleted();
+            this.RequestedThemeVariant = Avalonia.Styling.ThemeVariant.Dark;
             (this.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.Let(it =>
             {
                 it.MainWindow = new MainWindow();

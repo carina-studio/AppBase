@@ -4,6 +4,7 @@
     <RootNamespace>CarinaStudio.Configuration</RootNamespace>
     <AssemblyName>CarinaStudio.AppBase.Configuration</AssemblyName>
     <PackageId>CarinaStudio.AppBase.Configuration</PackageId>
+    <TargetFrameworks>net5.0;net6.0;net7.0</TargetFrameworks>
     <Description>AppBase is a base library set for .NET application. CarinaStudio.AppBase.Configuration provides easy way to use and manage your application settings.</Description>
   </PropertyGroup>
 
