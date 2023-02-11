@@ -1,5 +1,4 @@
 ﻿using CarinaStudio.IO;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Runtime.InteropServices;
 #if !NETSTANDARD
@@ -84,7 +83,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 				if (rootObject.TryGetProperty("Version", out jsonValue)
 					&& jsonValue.ValueKind == JsonValueKind.String)
 				{
-					Version.TryParse(jsonValue.GetString().AsNonNull(), out packageVersion);
+					_ = Version.TryParse(jsonValue.GetString().AsNonNull(), out packageVersion);
 				}
 
 				// get page URI
@@ -201,7 +200,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 						}
 					}
 				}
-			});
+			}, cancellationToken);
 			if (cancellationToken.IsCancellationRequested)
 				throw new TaskCanceledException();
 

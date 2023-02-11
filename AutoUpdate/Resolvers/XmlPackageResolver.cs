@@ -201,7 +201,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 						packageNode = packageNode.NextSibling;
 					}
 				}
-			});
+			}, cancellationToken);
 			if (cancellationToken.IsCancellationRequested)
 				throw new TaskCanceledException();
 

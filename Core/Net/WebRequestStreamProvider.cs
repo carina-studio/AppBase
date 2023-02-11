@@ -2,6 +2,7 @@
 using CarinaStudio.IO;
 using System;
 using System.IO;
+using System.IO.Compression;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,11 +39,14 @@ namespace CarinaStudio.Net
 		class ResponseStream : StreamWrapper
 		{
 			// Fields.
+			readonly bool isContentCompressed;
 			readonly WebResponse response;
 
 			// Constructor.
-			public ResponseStream(WebResponse response) : base(response.GetResponseStream())
+			public ResponseStream(WebResponse response) : base(GetStream(response))
 			{
+				this.isContentCompressed = this.WrappedStream is DeflateStream
+					|| this.WrappedStream is GZipStream;
 				this.response = response;
 			}
 
@@ -53,8 +57,16 @@ namespace CarinaStudio.Net
 				this.response?.Dispose(); // In case of error occurred in constructor
 			}
 
+			// Get proper response stream.
+			static Stream GetStream(WebResponse response) => response.Headers["content-encoding"] switch
+			{
+				"deflate" => new DeflateStream(response.GetResponseStream(), CompressionMode.Decompress),
+				"gzip" => new GZipStream(response.GetResponseStream(), CompressionMode.Decompress),
+				_ => response.GetResponseStream(),
+			};
+
 			// Get length;
-			public override long Length => response.ContentLength;
+			public override long Length => this.isContentCompressed ? throw new NotSupportedException() : response.ContentLength;
 		}
 
 
@@ -75,6 +87,7 @@ namespace CarinaStudio.Net
 		/// <param name="cachePolicy">Cache policy.</param>
 		public WebRequestStreamProvider(Uri requestUri, string? method = null, ICredentials? credentials = null, RequestCachePolicy? cachePolicy = null)
 		{
+			this.cachePolicy = cachePolicy;
 			this.credentials = credentials;
 			this.method = method ?? requestUri.Scheme switch
 			{
@@ -173,6 +186,8 @@ namespace CarinaStudio.Net
 				if (this.method != null)
 					it.Method = this.method;
 			});
+			if (request is HttpWebRequest)
+				request.Headers.Add("accept-encoding", "deflate,gzip");
 			if (isWriteNeeded)
 				return (Stream)new RequestStream(request);
 #pragma warning restore SYSLIB0014
