@@ -1,5 +1,5 @@
 ﻿using Avalonia.Controls;
-using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CarinaStudio.Controls
 {
@@ -16,7 +16,7 @@ namespace CarinaStudio.Controls
 		/// <param name="key">Resource key.</param>
 		/// <param name="res">Found resource.</param>
 		/// <returns>True if resource got.</returns>
-		public static bool TryGetResource<T>(this IResourceNode node, object key, out T? res) where T : class
+		public static bool TryGetResource<T>(this IResourceNode node, object key, [NotNullWhen(true)] out T? res) where T : class
 		{
 			if (node.TryGetResource(key, out var rawRes) && rawRes is T targetRes)
 			{
@@ -36,7 +36,7 @@ namespace CarinaStudio.Controls
 		/// <param name="key">Resource key.</param>
 		/// <param name="res">Found resource.</param>
 		/// <returns>True if resource got.</returns>
-		public static bool TryGetResource<T>(this IResourceNode node, object key, out T? res) where T : struct
+		public static bool TryGetResource<T>(this IResourceNode node, object key, [NotNullWhen(true)] out T? res) where T : struct
 		{
 			if (node.TryGetResource(key, out var rawRes) && rawRes is T targetRes)
 			{
