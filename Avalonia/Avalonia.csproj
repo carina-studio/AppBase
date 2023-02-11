@@ -3,7 +3,6 @@
 	<PropertyGroup>
 		<AssemblyName>CarinaStudio.AppBase.Avalonia</AssemblyName>
 		<PackageId>CarinaStudio.AppBase.Avalonia</PackageId>
-		<TargetFrameworks>net5.0;net6.0;net7.0</TargetFrameworks>
 		<Description>AppBase is a base library set for .NET application. CarinaStudio.AppBase.Avalonia provides controls and extensions for Avalonia.</Description>
 	</PropertyGroup>
 
@@ -16,7 +15,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Avalonia" Version="11.0.0-preview5" />
+		<PackageReference Include="Avalonia" Version="11.0.0-preview4" />
 	</ItemGroup>
 
 	<ItemGroup>

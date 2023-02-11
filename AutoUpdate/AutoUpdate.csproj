@@ -4,7 +4,6 @@
 		<RootNamespace>CarinaStudio.AutoUpdate</RootNamespace>
 		<AssemblyName>CarinaStudio.AppBase.AutoUpdate</AssemblyName>
 		<PackageId>CarinaStudio.AppBase.AutoUpdate</PackageId>
-		<TargetFrameworks>net5.0;net6.0;net7.0</TargetFrameworks>
 		<Description>AppBase is a base library set for .NET application. CarinaStudio.AppBase.AutoUpdate provides auto/self update functions for portable application.</Description>
 	</PropertyGroup>
 

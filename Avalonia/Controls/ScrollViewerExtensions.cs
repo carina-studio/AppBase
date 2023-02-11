@@ -14,14 +14,14 @@ namespace CarinaStudio.Controls
 		/// <param name="scrollViewer"><see cref="ScrollViewer"/>.</param>
 		/// <param name="control">Control inside <see cref="ScrollViewer"/>.</param>
 		/// <returns>True if control has been scrolled into view.</returns>
-		public static bool ScrollIntoView(this ScrollViewer scrollViewer, Control control)
+		public static bool ScrollIntoView(this ScrollViewer scrollViewer, IControl control)
 		{
 			// check size
 			if (scrollViewer == control)
 				return false;
 			var scrollViewerBounds = scrollViewer.Bounds;
 			var controlBounds = control.Bounds;
-			if (scrollViewerBounds.IsDefault || controlBounds.IsDefault)
+			if (scrollViewerBounds.IsEmpty || controlBounds.IsEmpty)
 				return false;
 
 			// calculate offset in scroll viewer

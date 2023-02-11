@@ -1,0 +1,26 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Base -->
+    <StyleInclude Source="/Theme/Base.axaml"/>
+
+    <!-- Resources -->
+    <Styles.Resources>
+
+        <!-- ObjectTextBox -->
+        <SolidColorBrush x:Key="ObjectTextBoxBackgroundInvalid" Color="#663333"/>
+        <SolidColorBrush x:Key="ObjectTextBoxBackgroundInvalidPointerOver" Color="#733939"/>
+
+        <!-- ValueTextBox -->
+        <SolidColorBrush x:Key="ValueTextBoxBackgroundInvalid" Color="#663333"/>
+        <SolidColorBrush x:Key="ValueTextBoxBackgroundInvalidPointerOver" Color="#733939"/>
+
+        <!-- LinkTextBlock -->
+        <SolidColorBrush x:Key="LinkTextBlockForeground" Color="#0085e5"/>
+        <SolidColorBrush x:Key="LinkTextBlockForegroundDisabled" Color="#4d0085e5"/>
+        <SolidColorBrush x:Key="LinkTextBlockForegroundPointerOver" Color="#32aaff"/>
+        <SolidColorBrush x:Key="LinkTextBlockForegroundPressed" Color="#0077cc"/>
+
+    </Styles.Resources>
+
+</Styles>
