@@ -17,6 +17,20 @@ namespace CarinaStudio
 		/// <summary>
 		/// Initialize new <see cref="Observer{T}"/> instance.
 		/// </summary>
+		/// <param name="onNext">Action of perform when value changed.</param>
+		/// <param name="onCompleted">Action of receiving <see cref="IObserver{T}.OnCompleted"/>.</param>
+		/// <param name="onError">Action of receiving <see cref="IObserver{T}.OnError(Exception)"/>.</param>
+		public Observer(Action onNext, Action? onCompleted = null, Action<Exception>? onError = null)
+		{
+			this.onCompletedAction = onCompleted;
+			this.onErrorAction = onError;
+			this.onNextAction = _ => onNext();
+		}
+
+
+		/// <summary>
+		/// Initialize new <see cref="Observer{T}"/> instance.
+		/// </summary>
 		/// <param name="onNext">Action of receiving <see cref="IObserver{T}.OnNext(T)"/>.</param>
 		/// <param name="onCompleted">Action of receiving <see cref="IObserver{T}.OnCompleted"/>.</param>
 		/// <param name="onError">Action of receiving <see cref="IObserver{T}.OnError(Exception)"/>.</param>
