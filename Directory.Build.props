@@ -14,8 +14,6 @@
         <Nullable>enable</Nullable>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageProjectUrl>https://carina-studio.github.io/AppBase/</PackageProjectUrl>
-        <RootNamespace>CarinaStudio</RootNamespace>
-        <TargetFrameworks>net5.0;net6.0;net7.0</TargetFrameworks>
 
     </PropertyGroup>
 </Project>

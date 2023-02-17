@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
+		<TargetFrameworks>net5.0;net6.0;net7.0</TargetFrameworks>
 		<RootNamespace>CarinaStudio.AutoUpdate</RootNamespace>
 		<AssemblyName>CarinaStudio.AppBase.AutoUpdate</AssemblyName>
 		<PackageId>CarinaStudio.AppBase.AutoUpdate</PackageId>
