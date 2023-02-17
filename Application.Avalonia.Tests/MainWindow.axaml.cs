@@ -25,11 +25,16 @@ namespace CarinaStudio
     {
         DoubleAnimator? animator;
         TestDialog? testDialog;
+        Avalonia.Controls.TextBlock? textBlock;
 
 
         public MainWindow()
         {
             InitializeComponent();
+            this.textBlock = this.Get<Avalonia.Controls.TextBlock>("textBlock").Also(it =>
+            {
+                it.BindToResource(Avalonia.Controls.TextBlock.TextProperty, "Title");
+            });
 #if DEBUG
             this.AttachDevTools();
 #endif
@@ -194,6 +199,19 @@ namespace CarinaStudio
 
         public async void Test()
         {
+            /*
+            this.textBlock?.RemoveFromParent();
+            this.textBlock = null;
+
+            for (var i = 0; i < 10; ++i)
+            {
+                GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced);
+                GC.WaitForPendingFinalizers();
+                System.Threading.Thread.Sleep(500);
+            }
+
+            return;
+            */
             if (Platform.IsMacOS)
             {
                 var app = NSApplication.Current.AsNonNull();

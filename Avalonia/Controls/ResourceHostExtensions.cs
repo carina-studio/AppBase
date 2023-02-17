@@ -1,4 +1,6 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
+using System;
 using System.Diagnostics.CodeAnalysis;
 
 namespace CarinaStudio.Controls
@@ -8,6 +10,18 @@ namespace CarinaStudio.Controls
     /// </summary>
     public static class ResourceHostExtensions
     {
+		/// <summary>
+		/// Bind property to given resource.
+		/// </summary>
+		/// <param name="target">Target object.</param>
+		/// <param name="property">Property to bind.</param>
+		/// <param name="resourceKey">Resource key.</param>
+		/// <typeparam name="T">Type of target object.</typeparam>
+		/// <returns>Token of binding.</returns>
+		public static IDisposable BindToResource<T>(this T target, AvaloniaProperty property, object resourceKey) where T : AvaloniaObject, IResourceHost =>
+			target.Bind(property, new CachedResource<object?>(target, resourceKey));
+
+		
 #pragma warning disable CS8601
 		/// <summary>
 		/// Find resource with given type or use default value.
