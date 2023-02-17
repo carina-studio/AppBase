@@ -62,5 +62,21 @@ namespace CarinaStudio
         /// <returns>Token of subscribed observer.</returns>
         public static IDisposable Subscribe<T, R>(this IObservable<T> observable, Func<T, R> onNext) =>
             observable.Subscribe(new Observer<T>(value => onNext(value)));
+        
+
+        /// <summary>
+        /// Subscribe a weak reference to given observer to observe value change.
+        /// </summary>
+        /// <param name="observable"><see cref="IObservable{T}"/>.</param>
+        /// <param name="observer">Observer.</param>
+        /// <typeparam name="T">Type of value of <see cref="IObservable{T}"/>.</typeparam>
+        /// <returns>Token of subscribed observer.</returns>
+        public static IDisposable WeakSubscribe<T>(this IObservable<T> observable, IObserver<T> observer)
+        {
+            var weakObserver = new WeakObserver<T>(observer);
+            var token = observable.Subscribe(weakObserver);
+            weakObserver.SubscriptionToken = token;
+            return token;
+        }
     }
 }
