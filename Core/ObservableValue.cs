@@ -215,8 +215,7 @@ namespace CarinaStudio
 		public IDisposable Subscribe(IObserver<T> observer)
 		{
 			var observerHolder = new ObserverHolder(this, observer);
-			if (this.observerListHead == null)
-				this.observerListHead = observerHolder;
+			this.observerListHead ??= observerHolder;
 			if (this.observerListTail != null)
 				this.observerListTail.Next = observerHolder;
 			this.observerListTail = observerHolder;
