@@ -31,10 +31,12 @@ namespace CarinaStudio
         public MainWindow()
         {
             InitializeComponent();
-            this.textBlock = this.Get<Avalonia.Controls.TextBlock>("textBlock").Also(it =>
+            this.textBlock = new Avalonia.Controls.TextBlock().Also(it =>
             {
                 it.BindToResource(Avalonia.Controls.TextBlock.TextProperty, "Title");
+                it.Margin = new(5);
             });
+            this.Get<Panel>("stackPanel").Children.Add(this.textBlock);
 #if DEBUG
             this.AttachDevTools();
 #endif

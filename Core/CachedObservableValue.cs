@@ -49,7 +49,9 @@ namespace CarinaStudio
         public CachedObservableValue(Func<T> updateValueFunc) : base(updateValueFunc())
         {
             this.updateValueFunc = updateValueFunc;
+#pragma warning disable CA1816
             GC.SuppressFinalize(this);
+#pragma warning restore CA1816
         }
         
 

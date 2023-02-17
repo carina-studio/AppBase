@@ -12,7 +12,7 @@
 		<sys:String x:Key="Title">Title in resources</sys:String>
 	</Window.Resources>
 
-	<StackPanel Orientation="Vertical">
+	<StackPanel Name="stackPanel" Orientation="Vertical">
 		<Button Command="{Binding $parent[Window].Test}" Content="Test"/>
 		<StackPanel Orientation="Horizontal">
 			<TextBlock Text="HasDialogs: " VerticalAlignment="Center"/>
@@ -28,7 +28,7 @@
 		</Border>
 
 		<TextBox HorizontalAlignment="Left" Margin="5" Width="200"/>
-		<TextBlock Name="textBlock" Margin="5"/>
+		<TextBlock Margin="5"/>
 
 	</StackPanel>
 	
