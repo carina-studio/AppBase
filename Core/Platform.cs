@@ -351,15 +351,15 @@ namespace CarinaStudio
 			{
 				if (IsWindows)
 				{
-					Process.Start(new ProcessStartInfo("cmd", $"/c start {uri}")
+					Process.Start(new ProcessStartInfo("cmd", $"/c start {uri.AbsoluteUri}")
 					{
 						CreateNoWindow = true
 					});
 				}
 				else if (IsLinux)
-					Process.Start("xdg-open", uri.ToString());
+					Process.Start("xdg-open", uri.AbsoluteUri);
 				else if (IsMacOS)
-					Process.Start("open", uri.ToString());
+					Process.Start("open", uri.AbsoluteUri);
 				return true;
 			}
 			catch
