@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using CarinaStudio.Collections;
 using CarinaStudio.Threading;
 using System;
 using System.Collections.Generic;
@@ -24,14 +25,14 @@ namespace CarinaStudio.Controls
 		/// Property of <see cref="IsOpened"/>.
 		/// </summary>
 		public static readonly AvaloniaProperty<bool> IsOpenedProperty = AvaloniaProperty.RegisterDirect<Window, bool>(nameof(IsOpened), w => w.isOpened);
+		/// <summary>
+		/// Property of <see cref="IsShownAsDialog"/>.
+		/// </summary>
+		public static readonly AvaloniaProperty<bool> IsShownAsDialogProperty = AvaloniaProperty.RegisterDirect<Window, bool>(nameof(IsShownAsDialog), w => w.isShownAsDialog);
 
 
 		// Constants.
 		const int InitSizeCorrectionTimeout = 100;
-
-
-		// Static fields.
-		static readonly Version AvaloniaVersion = typeof(AvaloniaObject).Assembly.GetName()?.Version ?? new Version();
 
 
 		// Fields.
@@ -43,8 +44,10 @@ namespace CarinaStudio.Controls
 		bool hasDialogs;
 		readonly IDisposable initHeightObserverToken;
 		readonly IDisposable initWidthObserverToken;
+		bool isActiveBeforeClosing;
 		bool isClosed;
 		bool isOpened;
+		bool isShownAsDialog;
 		Window? owner;
 
 
@@ -57,8 +60,6 @@ namespace CarinaStudio.Controls
 			this.checkDialogsAction = new ScheduledAction(() =>
 			{
 				var hasDialogs = false;
-				var isAvalonia_0_10_15_OrAbove = AvaloniaVersion.Major == 0 
-					&& (AvaloniaVersion.Minor > 10 || AvaloniaVersion.Build >= 15);
 				static void RefreshChildWindowPositions(Avalonia.Controls.Window parent)
 				{
 					var childWindows = parent is Window window
@@ -68,11 +69,8 @@ namespace CarinaStudio.Controls
 						return;
 					foreach (var (childWindow, isDialog) in childWindows)
 					{
-						if (!childWindow.Topmost)
-						{
-							childWindow.Topmost = true;
-							childWindow.Topmost = false;
-						}
+						if (!isDialog)
+							childWindow.Activate();
 						RefreshChildWindowPositions(childWindow);
 					}
 				}
@@ -86,7 +84,7 @@ namespace CarinaStudio.Controls
 				}
 				RefreshChildWindowPositions(this);
 				if (this.hasDialogs != hasDialogs)
-					this.SetAndRaise<bool>(HasDialogsProperty, ref this.hasDialogs, hasDialogs);
+					this.SetAndRaise(HasDialogsProperty, ref this.hasDialogs, hasDialogs);
 			});
 			this.clearInitSizeObserversAction = new(() =>
 			{
@@ -104,7 +102,13 @@ namespace CarinaStudio.Controls
 			// attach to self
 			this.initHeightObserverToken = this.GetObservable(HeightProperty).Subscribe(this.OnInitialHeightChanged);
 			this.initWidthObserverToken = this.GetObservable(WidthProperty).Subscribe(this.OnInitialWidthChanged);
-			this.GetObservable(IsActiveProperty).Subscribe(_ => this.checkDialogsAction.Schedule());
+			this.GetObservable(IsActiveProperty).Subscribe(isActive => 
+			{
+				if (isActive)
+					this.checkDialogsAction.Schedule();
+				if (!this.isClosed)
+					this.isActiveBeforeClosing = isActive;
+			});
 			this.AddHandler(PointerWheelChangedEvent, (_, e) =>
 			{
 				if (this.HasDialogs)
@@ -117,6 +121,26 @@ namespace CarinaStudio.Controls
 		// Get internal list of child windows.
 		static IList<(Avalonia.Controls.Window, bool)>? GetInternalChildWindows(Avalonia.Controls.Window window) =>
 			typeof(Avalonia.Controls.Window).GetField("_children", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(window) as IList<ValueTuple<Avalonia.Controls.Window, bool>>;
+		
+
+		// Check whether the window or one of its child window is active or not.
+		static bool HasActiveWindow(Avalonia.Controls.Window window)
+		{
+			if (window.IsActive)
+				return true;
+			var childWindows = window is Window csWindow
+				? csWindow.children
+				: GetInternalChildWindows(window);
+			if (childWindows.IsNotEmpty())
+			{
+				foreach (var (childWindow, _) in childWindows)
+				{
+					if (HasActiveWindow(childWindow))
+						return true;
+				}
+			}
+			return false;
+		}
 
 
 		/// <summary>
@@ -131,15 +155,43 @@ namespace CarinaStudio.Controls
 		public bool IsClosed { get => this.isClosed; }
 
 
+		// Check whether given window is shown as dialog or not.
+		internal static bool IsDialogWindow(Avalonia.Controls.Window? parent, Avalonia.Controls.Window window)
+		{
+			if (parent == null)
+				return WindowExtensions.IsDialogWindow(window);
+			var childWindows = parent is Window csWindow
+				? csWindow.children
+				: GetInternalChildWindows(parent);
+			if (childWindows == null || childWindows.Count == 0)
+				return false;
+			foreach (var (candidateWindow, isDialog) in childWindows)
+			{
+				if (candidateWindow == window)
+					return isDialog;
+			}
+			return false;
+		}
+
+
 		/// <summary>
 		/// Check whether window is opened or not.
 		/// </summary>
 		public bool IsOpened { get => this.isOpened; }
 
 
+		/// <summary>
+		/// Check whether window is shown as dialog or not.
+		/// </summary>
+		public bool IsShownAsDialog { get => this.isShownAsDialog; }
+
+
 		// Called when child window opened or closed.
-		internal void OnChildWindowOpenedOrClosed() =>
-			this.checkDialogsAction.Schedule();
+		internal void OnChildWindowOpenedOrClosed(bool isActiveBefore)
+		{
+			if (isActiveBefore || HasActiveWindow(this))
+				this.checkDialogsAction.Schedule();
+		}
 
 
 		/// <summary>
@@ -148,9 +200,9 @@ namespace CarinaStudio.Controls
 		/// <param name="e">Event data.</param>
 		protected override void OnClosed(EventArgs e)
 		{
-			this.owner?.OnChildWindowOpenedOrClosed();
-			this.SetAndRaise<bool>(IsOpenedProperty, ref this.isOpened, false);
-			this.SetAndRaise<bool>(IsClosedProperty, ref this.isClosed, true);
+			this.owner?.OnChildWindowOpenedOrClosed(this.isActiveBeforeClosing);
+			this.SetAndRaise(IsOpenedProperty, ref this.isOpened, false);
+			this.SetAndRaise(IsClosedProperty, ref this.isClosed, true);
 			base.OnClosed(e);
 			this.owner = null;
 		}
@@ -225,10 +277,11 @@ namespace CarinaStudio.Controls
 		{
 			// notify owner
 			this.owner = this.Owner as Window;
-			this.owner?.OnChildWindowOpenedOrClosed();
+			this.owner?.OnChildWindowOpenedOrClosed(false);
 
 			// update state
-			this.SetAndRaise<bool>(IsOpenedProperty, ref this.isOpened, true);
+			this.SetAndRaise(IsShownAsDialogProperty, ref this.isShownAsDialog, IsDialogWindow(this.Owner as Avalonia.Controls.Window, this));
+			this.SetAndRaise(IsOpenedProperty, ref this.isOpened, true);
 
 			// call base
 			base.OnOpened(e);

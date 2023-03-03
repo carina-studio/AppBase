@@ -278,10 +278,10 @@ namespace CarinaStudio
                 {
                     it.Closed += (_, e) => this.testDialog = null;
                 });
-                this.testDialog.Show();
+                this.testDialog.Show(this);
             }
             else
-                new TestDialog().ShowDialog(this.testDialog);
+                _ = new TestDialog().ShowDialog(this);
             
             
             /*

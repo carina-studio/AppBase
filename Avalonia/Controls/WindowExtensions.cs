@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -11,6 +12,12 @@ namespace CarinaStudio.Controls
     {
         // Static fields.
         static volatile FieldInfo? dialogResultField;
+        static readonly HashSet<Avalonia.Controls.Window> dialogWindows = new();
+
+
+        // Check whether given window is shown as dialog or not.
+        internal static bool IsDialogWindow(Avalonia.Controls.Window window) =>
+            dialogWindows.Contains(window);
 
 
 #pragma warning disable CS8600
@@ -28,6 +35,7 @@ namespace CarinaStudio.Controls
             closedHandler = (_, e) =>
             {
                 window.Closed -= closedHandler;
+                dialogWindows.Remove(window);
                 try
                 {
                     dialogResultField ??= typeof(Avalonia.Controls.Window).GetField("_dialogResult", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -40,6 +48,7 @@ namespace CarinaStudio.Controls
             };
             window.Closed += closedHandler;
             window.Show();
+            dialogWindows.Add(window);
             return taskCompletionSource.Task;
         }
 #pragma warning restore CS8600

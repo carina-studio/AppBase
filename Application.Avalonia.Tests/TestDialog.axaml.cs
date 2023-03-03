@@ -29,6 +29,8 @@ namespace CarinaStudio
         {
             base.OnOpened(e);
             this.SynchronizationContext.Post(this.Get<Button>("generateResultButton").Focus);
+            //if (this.IsShownAsDialog)
+                //this.SynchronizationContext.PostDelayed(this.Close, 7000);
         }
     }
 }
