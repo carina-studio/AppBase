@@ -27,6 +27,10 @@ namespace CarinaStudio.Controls
         public static readonly StyledProperty<Uri?> UriProperty = AvaloniaProperty.Register<LinkTextBlock, Uri?>(nameof(Uri));
 
 
+        // Fields.
+        bool isEnterKeyDown;
+
+
         /// <summary>
         /// Initialize new <see cref="LinkTextBlock"/> instance.
         /// </summary>
@@ -91,13 +95,25 @@ namespace CarinaStudio.Controls
         // Called when CanExecute() of command changed.
         void OnCommandCanExecuteChanged(object? sender, EventArgs e) =>
             this.UpdateIsEffectivelyEnabled();
+        
+
+        /// <inheritdoc/>
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            base.OnKeyDown(e);
+            if (e.Key == Key.Enter)
+                this.isEnterKeyDown = true;
+        }
 
 
         /// <inheritdoc/>
         protected override void OnKeyUp(KeyEventArgs e)
         {
-            if (e.Key == Key.Enter)
+            if (e.Key == Key.Enter && this.isEnterKeyDown)
+            {
+                this.isEnterKeyDown = false;
                 this.Click();
+            }
             base.OnKeyUp(e);
         }
 

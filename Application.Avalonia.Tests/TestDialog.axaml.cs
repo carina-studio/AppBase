@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using CarinaStudio.Controls;
+using CarinaStudio.Threading;
 using System;
 
 namespace CarinaStudio
@@ -22,6 +23,12 @@ namespace CarinaStudio
         {
             var random = new Random();
             this.Close(random.Next(256));
+        }
+
+        protected override void OnOpened(EventArgs e)
+        {
+            base.OnOpened(e);
+            this.SynchronizationContext.Post(this.Get<Button>("generateResultButton").Focus);
         }
     }
 }

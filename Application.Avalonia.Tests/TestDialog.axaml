@@ -10,7 +10,7 @@
 		WindowStartupLocation="CenterScreen">
     
     <StackPanel>
-        <Button Command="{Binding $parent[Window].GenerateResult}" Content="Generate result" HorizontalAlignment="Left" Margin="5"/>
+        <Button Name="generateResultButton" Command="{Binding $parent[Window].GenerateResult}" Content="Generate result" HorizontalAlignment="Left" Margin="5"/>
         <Border Height="300" Width="400"/>
     </StackPanel>
 
