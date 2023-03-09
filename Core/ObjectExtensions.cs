@@ -19,7 +19,8 @@ namespace CarinaStudio
 			readonly EventInfo eventInfo;
 			readonly EventHandler handlerEntry;
 			readonly WeakReference<EventHandler> handlerRef;
-			volatile bool isDisposed;
+			int isDisposed;
+			readonly SynchronizationContext? syncContext;
 			readonly object target;
 
 			// Constructor.
@@ -28,6 +29,7 @@ namespace CarinaStudio
 				this.eventInfo = target.GetType().GetEvent(eventName) ?? throw new ArgumentException($"Cannot find event '{eventName}' in {target.GetType().Name}.");
 				this.handlerEntry = this.OnEventReceived;
 				this.handlerRef = new WeakReference<EventHandler>(handler);
+				this.syncContext = SynchronizationContext.Current;
 				this.target = target;
 				this.eventInfo.AddEventHandler(target, this.handlerEntry);
 			}
@@ -35,11 +37,17 @@ namespace CarinaStudio
 			// Dispose.
 			public void Dispose()
 			{
-				lock (this)
+				if (Interlocked.Exchange(ref this.isDisposed, 1) != 0)
+					return;
+				if (this.syncContext != null && this.syncContext != SynchronizationContext.Current)
 				{
-					if (this.isDisposed)
+					try
+					{
+						this.syncContext.Post(_ => this.eventInfo.RemoveEventHandler(target, this.handlerEntry), null);
 						return;
-					this.isDisposed = true;
+					}
+					catch
+					{ }
 				}
 				this.eventInfo.RemoveEventHandler(target, this.handlerEntry);
 			}
@@ -47,16 +55,10 @@ namespace CarinaStudio
 			// Entry of event handler.
 			void OnEventReceived(object? sender, EventArgs e)
 			{
-				if (this.handlerRef.TryGetTarget(out var handler) && handler != null)
+				if (this.handlerRef.TryGetTarget(out var handler))
 					handler(sender, e);
 				else
-				{
-					var syncContext = SynchronizationContext.Current;
-					if (syncContext != null)
-						syncContext.Post(_ => this.Dispose(), null);
-					else
-						this.Dispose();
-				}
+					this.Dispose();
 			}
 		}
 
@@ -68,7 +70,8 @@ namespace CarinaStudio
 			readonly EventInfo eventInfo;
 			readonly EventHandler<TArgs> handlerEntry;
 			readonly WeakReference<EventHandler<TArgs>> handlerRef;
-			volatile bool isDisposed;
+			int isDisposed;
+			readonly SynchronizationContext? syncContext;
 			readonly object target;
 
 			// Constructor.
@@ -77,6 +80,7 @@ namespace CarinaStudio
 				this.eventInfo = target.GetType().GetEvent(eventName) ?? throw new ArgumentException($"Cannot find event '{eventName}' in {target.GetType().Name}.");
 				this.handlerEntry = this.OnEventReceived;
 				this.handlerRef = new WeakReference<EventHandler<TArgs>>(handler);
+				this.syncContext = SynchronizationContext.Current;
 				this.target = target;
 				this.eventInfo.AddEventHandler(target, this.handlerEntry);
 			}
@@ -84,11 +88,17 @@ namespace CarinaStudio
 			// Dispose.
 			public void Dispose()
 			{
-				lock (this)
+				if (Interlocked.Exchange(ref this.isDisposed, 1) != 0)
+					return;
+				if (this.syncContext != null && this.syncContext != SynchronizationContext.Current)
 				{
-					if (this.isDisposed)
+					try
+					{
+						this.syncContext.Post(_ => this.eventInfo.RemoveEventHandler(target, this.handlerEntry), null);
 						return;
-					this.isDisposed = true;
+					}
+					catch
+					{ }
 				}
 				this.eventInfo.RemoveEventHandler(target, this.handlerEntry);
 			}
@@ -96,16 +106,10 @@ namespace CarinaStudio
 			// Entry of event handler.
 			void OnEventReceived(object? sender, TArgs e)
 			{
-				if (this.handlerRef.TryGetTarget(out var handler) && handler != null)
+				if (this.handlerRef.TryGetTarget(out var handler))
 					handler(sender, e);
 				else
-				{
-					var syncContext = SynchronizationContext.Current;
-					if (syncContext != null)
-						syncContext.Post(_ => this.Dispose(), null);
-					else
-						this.Dispose();
-				}
+					this.Dispose();
 			}
 		}
 
