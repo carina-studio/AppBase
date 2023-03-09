@@ -25,8 +25,8 @@ public class NSView : NSResponder
     // Static fields.
     static readonly Selector? AddConstraintSelector;
     static readonly Selector? AddConstraintsSelector;
-    static readonly Selector? AddSubViewPositionedSelector;
     static readonly Selector? AddSubViewSelector;
+    static readonly Property? AppearanceProperty;
     static readonly Selector? BottomAnchorSelector;
     static readonly Property? BoundsProperty;
     static readonly Property? BoundsRotationProperty;
@@ -76,8 +76,8 @@ public class NSView : NSResponder
         NSViewClass = Class.GetClass("NSView").AsNonNull();
         AddConstraintSelector = Selector.FromName("addConstraint:");
         AddConstraintsSelector = Selector.FromName("addConstraints:");
-        AddSubViewPositionedSelector = Selector.FromName("addSubview:positioned:relativeTo:");
         AddSubViewSelector = Selector.FromName("addSubview:");
+        AppearanceProperty = NSViewClass.GetProperty("appearance");
         BottomAnchorSelector = Selector.FromName("bottomAnchor");
         BoundsProperty = NSViewClass.GetProperty("bounds");
         BoundsRotationProperty = NSViewClass.GetProperty("boundsRotation");
@@ -181,8 +181,10 @@ public class NSView : NSResponder
 
 
     // Constructor.
+#pragma warning disable IDE0051
     NSView(IntPtr handle, bool ownsInstance) : this(handle, true, ownsInstance)
     { }
+#pragma warning restore IDE0051
 
 
     /// <summary>
@@ -228,6 +230,16 @@ public class NSView : NSResponder
     /// <param name="otherView">Other view which the sub-view relative to.</param>
     public void AddSubView(NSView view, NSWindow.OrderingMode place, NSView? otherView) =>
         this.SendMessage(AddSubViewSelector!, view, place, otherView);
+    
+
+    /// <summary>
+    /// Get or set appearance of view.
+    /// </summary>
+    public NSAppearance? Appearance
+    {
+        get => this.GetProperty<NSAppearance>(AppearanceProperty!);
+        set => this.SetProperty(AppearanceProperty!, value);
+    }
     
 
     /// <summary>

@@ -56,6 +56,7 @@ public class NSWindow : NSResponder
 
 
     // Static fields.
+    static readonly Property? AppearanceProperty;
     static readonly Selector? CloseSelector;
     static readonly Property? ContentViewProperty;
     static readonly Property? DelegateProperty;
@@ -73,6 +74,7 @@ public class NSWindow : NSResponder
         if (Platform.IsNotMacOS)
             return;
         NSWindowClass = Class.GetClass("NSWindow").AsNonNull();
+        AppearanceProperty = NSWindowClass.GetProperty("appearance");
         CloseSelector = Selector.FromName("close");
         ContentViewProperty = NSWindowClass.GetProperty("contentView");
         DelegateProperty = NSWindowClass.GetProperty("delegate");
@@ -133,6 +135,16 @@ public class NSWindow : NSResponder
     // Constructor.
     NSWindow(IntPtr handle, bool ownsInstance) : this(handle, true, ownsInstance)
     { }
+
+
+    /// <summary>
+    /// Get or set appearance of window.
+    /// </summary>
+    public NSAppearance? Appearance
+    {
+        get => this.GetProperty<NSAppearance>(AppearanceProperty!);
+        set => this.SetProperty(AppearanceProperty!, value);
+    }
 
 
     /// <summary>
