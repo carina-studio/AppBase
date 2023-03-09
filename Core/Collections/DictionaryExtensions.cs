@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 namespace CarinaStudio.Collections
 {
@@ -39,6 +40,44 @@ namespace CarinaStudio.Collections
 
 
 		/// <summary>
+		/// Get value with given key. The default value will be returned if value cannot be found.
+		/// </summary>
+		/// <param name="dictionary"><see cref="IDictionary{TKey, TValue}"/>.</param>
+		/// <param name="key">Key.</param>
+		/// <param name="defaultValue">Default value.</param>
+		/// <typeparam name="TKey">Type of key in dictionary.</typeparam>
+		/// <typeparam name="TValue">Type of value in dictionary.</typeparam>
+		/// <returns>Value of given default value.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		[return: NotNullIfNotNull(nameof(defaultValue))]
+		public static TValue? GetValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, TValue? defaultValue = default) where TKey : notnull where TValue : struct
+		{
+			if (dictionary.TryGetValue(key, out var value))
+				return value;
+			return defaultValue;
+		}
+
+
+		/// <summary>
+		/// Get value with given key. The default value will be returned if value cannot be found.
+		/// </summary>
+		/// <param name="dictionary"><see cref="IDictionary{TKey, TValue}"/>.</param>
+		/// <param name="key">Key.</param>
+		/// <param name="defaultValue">Default value.</param>
+		/// <typeparam name="TKey">Type of key in dictionary.</typeparam>
+		/// <typeparam name="TValue">Type of value in dictionary.</typeparam>
+		/// <returns>Value of given default value.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		[return: NotNullIfNotNull(nameof(defaultValue))]
+		public static TValue? GetValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, TValue? defaultValue = default) where TKey : notnull where TValue : class
+		{
+			if (dictionary.TryGetValue(key, out var value))
+				return value;
+			return defaultValue;
+		}
+
+
+		/// <summary>
 		/// Try getting value from dictionary as given type.
 		/// </summary>
 		/// <param name="dictionary"><see cref="IDictionary{TKey, TValue}"/>.</param>
@@ -48,6 +87,7 @@ namespace CarinaStudio.Collections
 		/// <typeparam name="TValue">Type of value in dictionary.</typeparam>
 		/// <typeparam name="TOut">Desired type of value.</typeparam>
 		/// <returns>True if value has been got as given type successfully.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static bool TryGetValue<TKey, TValue, TOut>(this IDictionary<TKey, TValue> dictionary, TKey key, [NotNullWhen(true)] out TOut value) where TKey : notnull where TOut : TValue
 		{
 			if (dictionary.TryGetValue(key, out var rawValue) && rawValue is TOut outValue)
