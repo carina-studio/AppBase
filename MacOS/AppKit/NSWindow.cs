@@ -64,6 +64,11 @@ public class NSWindow : NSResponder
     static Selector? InitWithRectSelector;
     static Selector? MakeKeyAndOrderFrontSelector;
     static readonly Class? NSWindowClass;
+    static Selector? OrderBackSelector;
+    static Selector? OrderFrontRegardlessSelector;
+    static Selector? OrderFrontSelector;
+    static Selector? OrderOutSelector;
+    static Selector? OrderRelativeToSelector;
     static Property? SubtitleProperty;
     static Property? TitleProperty;
 
@@ -221,6 +226,56 @@ public class NSWindow : NSResponder
     {
         MakeKeyAndOrderFrontSelector ??= Selector.FromName("makeKeyAndOrderFront:");
         this.SendMessage(MakeKeyAndOrderFrontSelector, this);
+    }
+
+
+    /// <summary>
+    /// Move the window to the back of its level in the screen list.
+    /// </summary>
+    public void Order(OrderingMode place, int otherWin)
+    {
+        OrderRelativeToSelector ??= Selector.FromName("order:relativeTo:");
+        this.SendMessage(OrderRelativeToSelector!, place, otherWin);
+    }
+
+
+    /// <summary>
+    /// Move the window to the back of its level in the screen list.
+    /// </summary>
+    public void OrderBack(NSObject? sender = null)
+    {
+        OrderBackSelector ??= Selector.FromName("orderBack:");
+        this.SendMessage(OrderBackSelector!, sender);
+    }
+
+
+    /// <summary>
+    /// Move the window to the front of its level in the screen list.
+    /// </summary>
+    public void OrderFront(NSObject? sender = null)
+    {
+        OrderFrontSelector ??= Selector.FromName("orderFront:");
+        this.SendMessage(OrderFrontSelector!, sender);
+    }
+
+
+    /// <summary>
+    /// Move the window to the front of its level, even if its application isn’t active, without changing either the key window or the main window.
+    /// </summary>
+    public void OrderFrontRegardless()
+    {
+        OrderFrontRegardlessSelector ??= Selector.FromName("orderFrontRegardless");
+        this.SendMessage(OrderFrontRegardlessSelector!);
+    }
+
+
+    /// <summary>
+    /// Remove the window from the screen list.
+    /// </summary>
+    public void OrderOut(NSObject? sender = null)
+    {
+        OrderOutSelector ??= Selector.FromName("orderOut:");
+        this.SendMessage(OrderOutSelector!, sender);
     }
     
 
