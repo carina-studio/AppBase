@@ -1,4 +1,3 @@
-using System.Reflection.Metadata;
 using CarinaStudio.MacOS.ObjectiveC;
 using System;
 using System.Collections.Concurrent;
@@ -25,28 +24,28 @@ public class NSColor : NSObject
 
 
     // Static fields.
-    static readonly Selector? AlphaComponentSelector;
-    static readonly Selector? BlendedSelector;
-    static readonly Selector? BlueComponentSelector;
-    static readonly Selector? ColorSpaceSelector;
-    static readonly Selector? ColorWithColorSpaceHsiSelector;
-    static readonly Selector? ColorWithColorSpaceSelector;
-    static readonly Selector? ColorWithDisplayP3Selector;
-    static readonly Selector? ColorWithSrgbSelector;
-    static readonly Selector? GetCmykaSelector;
-    static readonly Selector? GetHsiaSelector;
-    static readonly Selector? GetRgbaSelector;
-    static readonly Selector? GetWhiteSelector;
-    static readonly Selector? GreenComponentSelector;
-    static readonly Selector? HighlightSelector;
+    static Selector? AlphaComponentSelector;
+    static Selector? BlendedSelector;
+    static Selector? BlueComponentSelector;
+    static Selector? ColorSpaceSelector;
+    static Selector? ColorWithColorSpaceHsiSelector;
+    static Selector? ColorWithColorSpaceSelector;
+    static Selector? ColorWithDisplayP3Selector;
+    static Selector? ColorWithSrgbSelector;
+    static Selector? GetCmykaSelector;
+    static Selector? GetHsiaSelector;
+    static Selector? GetRgbaSelector;
+    static Selector? GetWhiteSelector;
+    static Selector? GreenComponentSelector;
+    static Selector? HighlightSelector;
     static readonly IDictionary<string, NSColor> NamedColors = new ConcurrentDictionary<string, NSColor>();
     static readonly Class? NSColorClass;
-    static readonly Selector? RedComponentSelector;
-    static readonly Selector? ShadowSelector;
-    static readonly Selector? TypeSelector;
-    static readonly Selector? UsingColorSpaceSelector;
-    static readonly Selector? UsingTypeSelector;
-    static readonly Selector? WithAlphaSelector;
+    static Selector? RedComponentSelector;
+    static Selector? ShadowSelector;
+    static Selector? TypeSelector;
+    static Selector? UsingColorSpaceSelector;
+    static Selector? UsingTypeSelector;
+    static Selector? WithAlphaSelector;
 
 
     // Static fields.
@@ -54,27 +53,7 @@ public class NSColor : NSObject
     {
         if (Platform.IsNotMacOS)
             return;
-        NSColorClass = Class.GetClass(nameof(NSColor)).AsNonNull();
-        AlphaComponentSelector = Selector.FromName("alphaComponent");
-        BlendedSelector = Selector.FromName("blendedColorWithFraction:ofColor:");
-        BlueComponentSelector = Selector.FromName("blueComponent");
-        ColorSpaceSelector = Selector.FromName("colorSpace");
-        ColorWithColorSpaceHsiSelector = Selector.FromName("colorWithColorSpace:hue:saturation:brightness:alpha:");
-        ColorWithColorSpaceSelector = Selector.FromName("colorWithColorSpace:components:count:");
-        ColorWithDisplayP3Selector = Selector.FromName("colorWithDisplayP3Red:green:blue:alpha:");
-        ColorWithSrgbSelector = Selector.FromName("colorWithSRGBRed:green:blue:alpha:");
-        GetCmykaSelector = Selector.FromName("getCyan:magenta:yellow:black:alpha:");
-        GetHsiaSelector = Selector.FromName("getHue:saturation:brightness:alpha:");
-        GetRgbaSelector = Selector.FromName("getRed:green:blue:alpha:");
-        GetWhiteSelector = Selector.FromName("getWhite:alpha:");
-        GreenComponentSelector = Selector.FromName("greenComponent");
-        HighlightSelector = Selector.FromName("highlightWithLevel:");
-        RedComponentSelector = Selector.FromName("redComponent");
-        ShadowSelector = Selector.FromName("shadowWithLevel:");
-        TypeSelector = Selector.FromName("type");
-        UsingColorSpaceSelector = Selector.FromName("colorUsingColorSpace:");
-        UsingTypeSelector = Selector.FromName("colorUsingType:");
-        WithAlphaSelector = Selector.FromName("colorWithAlphaComponent:");
+        NSColorClass = Class.GetClass(nameof(NSColor)).AsNonNull(); 
     }
 
 
@@ -106,7 +85,8 @@ public class NSColor : NSObject
         {
             if (this.isDynamic)
                 throw new InvalidOperationException("Cannot get RGBA from dynamic color before color space conversion.");
-            return this.SendMessage<double>(AlphaComponentSelector!);
+            AlphaComponentSelector ??= Selector.FromName("alphaComponent");
+            return this.SendMessage<double>(AlphaComponentSelector);
         }
     }
 
@@ -135,8 +115,11 @@ public class NSColor : NSObject
     /// <param name="fraction">The amount of the color to blend with this color.</param>
     /// <param name="color">The color to blend with this color.</param>
     /// <returns>Blended color, or Null if the colors can’t be converted.</returns>
-    public NSColor? BlendWith(double fraction, NSColor color) =>
-        this.SendMessage<NSColor>(BlendedSelector!, fraction, color);
+    public NSColor? BlendWith(double fraction, NSColor color)
+    {
+        BlendedSelector ??= Selector.FromName("blendedColorWithFraction:ofColor:");
+        return this.SendMessage<NSColor>(BlendedSelector, fraction, color);
+    }
 
 
     /// <summary>
@@ -156,7 +139,8 @@ public class NSColor : NSObject
                 throw new InvalidOperationException("Cannot get RGBA from dynamic color before color space conversion.");
             if (!this.IsRGB)
                 throw new InvalidOperationException("Cannot get RGBA from color with non-RGB model.");
-            return this.SendMessage<double>(BlueComponentSelector!);
+            BlueComponentSelector ??= Selector.FromName("blueComponent");
+            return this.SendMessage<double>(BlueComponentSelector);
         }
     }
 
@@ -185,7 +169,8 @@ public class NSColor : NSObject
             if (!this.IsCMYK)
                 throw new InvalidOperationException("Cannot get CMYK from color with non-CMYK model.");
             var cmyka = stackalloc double[5];
-            this.SendMessage(GetCmykaSelector!, (IntPtr)cmyka, (IntPtr)(cmyka + 1), (IntPtr)(cmyka + 2), (IntPtr)(cmyka + 3), (IntPtr)(cmyka + 4));
+            GetCmykaSelector ??= Selector.FromName("getCyan:magenta:yellow:black:alpha:");
+            this.SendMessage(GetCmykaSelector, (IntPtr)cmyka, (IntPtr)(cmyka + 1), (IntPtr)(cmyka + 2), (IntPtr)(cmyka + 3), (IntPtr)(cmyka + 4));
             return (cmyka[0], cmyka[1], cmyka[2], cmyka[3], cmyka[4]);
         }
     }
@@ -200,7 +185,8 @@ public class NSColor : NSObject
         {
             if (this.IsDynamic || this.isPatterned)
                 return null;
-            return this.SendMessage<NSColorSpace>(ColorSpaceSelector!);
+            ColorSpaceSelector ??= Selector.FromName("colorSpace");
+            return this.SendMessage<NSColorSpace>(ColorSpaceSelector);
         }
     }
 
@@ -273,9 +259,10 @@ public class NSColor : NSObject
                     throw new ArgumentException("Number of color components should be 4.");
                 break;
         }
+        ColorWithColorSpaceSelector ??= Selector.FromName("colorWithColorSpace:components:count:");
         fixed (double* p = components)
         {
-            var handle = NSObject.SendMessage<IntPtr>(NSColorClass!.Handle, ColorWithColorSpaceSelector!, colorSpace, (IntPtr)p, componentCount);
+            var handle = NSObject.SendMessage<IntPtr>(NSColorClass!.Handle, ColorWithColorSpaceSelector, colorSpace, (IntPtr)p, componentCount);
             return new NSColor(handle, true);
         }
     }
@@ -294,7 +281,8 @@ public class NSColor : NSObject
     {
         if (colorSpace.ColorSpaceModel != NSColorSpace.Model.RGB)
             throw new ArgumentException($"Color model of '{colorSpace.LocalizedName}' is not RGB.");
-        var handle = NSObject.SendMessage<IntPtr>(NSColorClass!.Handle, ColorWithColorSpaceHsiSelector!, colorSpace, h, s, i, a);
+        ColorWithColorSpaceHsiSelector ??= Selector.FromName("colorWithColorSpace:hue:saturation:brightness:alpha:");
+        var handle = NSObject.SendMessage<IntPtr>(NSColorClass!.Handle, ColorWithColorSpaceHsiSelector, colorSpace, h, s, i, a);
         return new NSColor(handle, true);
     }
 
@@ -312,8 +300,9 @@ public class NSColor : NSObject
     {
         if (colorSpace.ColorSpaceModel != NSColorSpace.Model.RGB)
             throw new ArgumentException($"Color model of '{colorSpace.LocalizedName}' is not RGB.");
+        ColorWithColorSpaceSelector ??= Selector.FromName("colorWithColorSpace:components:count:");
         var components = stackalloc double[] { r, g, b, a };
-        var handle = NSObject.SendMessage<IntPtr>(NSColorClass!.Handle, ColorWithColorSpaceSelector!, colorSpace, (IntPtr)components, 4);
+        var handle = NSObject.SendMessage<IntPtr>(NSColorClass!.Handle, ColorWithColorSpaceSelector, colorSpace, (IntPtr)components, 4);
         return new NSColor(handle, true);
     }
 
@@ -326,8 +315,11 @@ public class NSColor : NSObject
     /// <param name="b">Blue.</param>
     /// <param name="a">Alpha.</param>
     /// <returns>Color.</returns>
-    public static NSColor CreateWithSRGB(double r, double g, double b, double a = 1.0) =>
-        new NSColor(NSObject.SendMessage<IntPtr>(NSColorClass!.Handle, ColorWithSrgbSelector!, r, g, b, a), true);
+    public static NSColor CreateWithSRGB(double r, double g, double b, double a = 1.0)
+    {
+        ColorWithSrgbSelector ??= Selector.FromName("colorWithSRGBRed:green:blue:alpha:");
+        return new NSColor(NSObject.SendMessage<IntPtr>(NSColorClass!.Handle, ColorWithSrgbSelector, r, g, b, a), true);
+    }
     
 
     /// <summary>
@@ -338,8 +330,11 @@ public class NSColor : NSObject
     /// <param name="b">Blue.</param>
     /// <param name="a">Alpha.</param>
     /// <returns>Color.</returns>
-    public static NSColor CreateWithDisplayP3(double r, double g, double b, double a = 1.0) =>
-        new NSColor(NSObject.SendMessage<IntPtr>(NSColorClass!.Handle, ColorWithDisplayP3Selector!, r, g, b, a), true);
+    public static NSColor CreateWithDisplayP3(double r, double g, double b, double a = 1.0)
+    {
+        ColorWithDisplayP3Selector ??= Selector.FromName("colorWithDisplayP3Red:green:blue:alpha:");
+        return new NSColor(NSObject.SendMessage<IntPtr>(NSColorClass!.Handle, ColorWithDisplayP3Selector, r, g, b, a), true);
+    }
     
 
     /// <summary>
@@ -392,7 +387,8 @@ public class NSColor : NSObject
             if (!this.IsGrayscale)
                 throw new InvalidOperationException("Cannot get grayscale from color with non-Gray model.");
             var ga = stackalloc double[2];
-            this.SendMessage(GetWhiteSelector!, (IntPtr)ga, (IntPtr)(ga + 1));
+            GetWhiteSelector ??= Selector.FromName("getWhite:alpha:");
+            this.SendMessage(GetWhiteSelector, (IntPtr)ga, (IntPtr)(ga + 1));
             return (ga[0], ga[1]);
         }
     }
@@ -415,7 +411,8 @@ public class NSColor : NSObject
                 throw new InvalidOperationException("Cannot get RGBA from dynamic color before color space conversion.");
             if (!this.IsRGB)
                 throw new InvalidOperationException("Cannot get RGBA from color with non-RGB model.");
-            return this.SendMessage<double>(GreenComponentSelector!);
+            GreenComponentSelector ??= Selector.FromName("greenComponent");
+            return this.SendMessage<double>(GreenComponentSelector);
         }
     }
 
@@ -449,8 +446,11 @@ public class NSColor : NSObject
     /// </summary>
     /// <param name="level">The level, range is [0.0, 1.0].</param>
     /// <returns>Color object, or Null if the colors can’t be converted.</returns>
-    public NSColor? HighlightWith(double level) =>
-        this.SendMessage<NSColor>(HighlightSelector!, level);
+    public NSColor? HighlightWith(double level)
+    {
+        HighlightSelector ??= Selector.FromName("highlightWithLevel:");
+        return this.SendMessage<NSColor>(HighlightSelector, level);
+    }
 
 
     /// <summary>
@@ -465,7 +465,8 @@ public class NSColor : NSObject
             if (!this.IsRGB)
                 throw new InvalidOperationException("Cannot get HSI from color with non-RGB model.");
             var hsia = stackalloc double[4];
-            this.SendMessage(GetHsiaSelector!, (IntPtr)hsia, (IntPtr)(hsia + 1), (IntPtr)(hsia + 2), (IntPtr)(hsia + 3));
+            GetHsiaSelector ??= Selector.FromName("getHue:saturation:brightness:alpha:");
+            this.SendMessage(GetHsiaSelector, (IntPtr)hsia, (IntPtr)(hsia + 1), (IntPtr)(hsia + 2), (IntPtr)(hsia + 3));
             return (hsia[0], hsia[1], hsia[2], hsia[3]);
         }
     }
@@ -572,7 +573,8 @@ public class NSColor : NSObject
                 throw new InvalidOperationException("Cannot get RGBA from dynamic color before color space conversion.");
             if (!this.IsRGB)
                 throw new InvalidOperationException("Cannot get RGBA from color with non-RGB model.");
-            return this.SendMessage<double>(RedComponentSelector!);
+            RedComponentSelector ??= Selector.FromName("redComponent");
+            return this.SendMessage<double>(RedComponentSelector);
         }
     }
 
@@ -589,7 +591,8 @@ public class NSColor : NSObject
             if (!this.IsRGB)
                 throw new InvalidOperationException("Cannot get RGBA from color with non-RGB model.");
             var rgba = stackalloc double[4];
-            this.SendMessage(GetRgbaSelector!, (IntPtr)rgba, (IntPtr)(rgba + 1), (IntPtr)(rgba + 2), (IntPtr)(rgba + 3));
+            GetRgbaSelector ??= Selector.FromName("getRed:green:blue:alpha:");
+            this.SendMessage(GetRgbaSelector, (IntPtr)rgba, (IntPtr)(rgba + 1), (IntPtr)(rgba + 2), (IntPtr)(rgba + 3));
             return (rgba[0], rgba[1], rgba[2], rgba[3]);
         }
     }
@@ -672,8 +675,11 @@ public class NSColor : NSObject
     /// </summary>
     /// <param name="level">The level, range is [0.0, 1.0].</param>
     /// <returns>Color object, or Null if the colors can’t be converted.</returns>
-    public NSColor? ShadowWith(double level) =>
-        this.SendMessage<NSColor>(ShadowSelector!, level);
+    public NSColor? ShadowWith(double level)
+    {
+        ShadowSelector ??= Selector.FromName("shadowWithLevel:");
+        return this.SendMessage<NSColor>(ShadowSelector, level);
+    }
 
 
     /// <summary>
@@ -719,7 +725,14 @@ public class NSColor : NSObject
     /// <summary>
     /// Get type of color.
     /// </summary>
-    public ColorType Type { get => this.SendMessage<ColorType>(TypeSelector!); }
+    public ColorType Type 
+    { 
+        get 
+        {
+            TypeSelector ??= Selector.FromName("type");
+            return this.SendMessage<ColorType>(TypeSelector); 
+        }
+    }
 
 
     /// <summary>
@@ -733,8 +746,11 @@ public class NSColor : NSObject
     /// </summary>
     /// <param name="colorSpace">Color space.</param>
     /// <returns>Color object with color space, or Null if conversion is not possible.</returns>
-    public NSColor? UseColorSpace(NSColorSpace colorSpace) =>
-        this.SendMessage<NSColor>(UsingColorSpaceSelector!, colorSpace);
+    public NSColor? UseColorSpace(NSColorSpace colorSpace)
+    {
+        UsingColorSpaceSelector ??= Selector.FromName("colorUsingColorSpace:");
+        return this.SendMessage<NSColor>(UsingColorSpaceSelector, colorSpace);
+    }
 
 
     /// <summary>
@@ -742,8 +758,11 @@ public class NSColor : NSObject
     /// </summary>
     /// <param name="type">Color type.</param>
     /// <returns>A compatible color object, or Null if a compatible color object is not available.</returns>
-    public NSColor? UseType(ColorType type) =>
-        this.SendMessage<NSColor>(UsingTypeSelector!, type);
+    public NSColor? UseType(ColorType type)
+    {
+        UsingTypeSelector ??= Selector.FromName("colorUsingType:");
+        return this.SendMessage<NSColor>(UsingTypeSelector, type);
+    }
     
 
     /// <summary>
@@ -775,8 +794,11 @@ public class NSColor : NSObject
     /// </summary>
     /// <param name="alpha">Alpha component.</param>
     /// <returns>Color.</returns>
-    public NSColor WithAlphaComponent(double alpha) =>
-        this.SendMessage<NSColor>(WithAlphaSelector!, alpha);
+    public NSColor WithAlphaComponent(double alpha)
+    {
+        WithAlphaSelector ??= Selector.FromName("colorWithAlphaComponent:");
+        return this.SendMessage<NSColor>(WithAlphaSelector, alpha);
+    }
 
 
     /// <summary>

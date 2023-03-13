@@ -9,7 +9,7 @@ namespace CarinaStudio.MacOS.AppKit;
 public class NSControl : NSView
 {
     // Static fields.
-    static readonly Property? IsEnabledProperty;
+    static Property? IsEnabledProperty;
     static readonly Class? NSControlClass;
 
 
@@ -19,7 +19,6 @@ public class NSControl : NSView
         if (Platform.IsNotMacOS)
             return;
         NSControlClass = Class.GetClass(nameof(NSControl)).AsNonNull();
-        IsEnabledProperty = NSControlClass.GetProperty("enabled");
     }
 
 
@@ -60,7 +59,15 @@ public class NSControl : NSView
     /// </summary>
     public bool IsEnabled
     {
-        get => this.GetProperty<bool>(IsEnabledProperty!);
-        set => this.SetProperty(IsEnabledProperty!, value);
+        get 
+        {
+            IsEnabledProperty ??= NSControlClass!.GetProperty("enabled").AsNonNull();
+            return this.GetProperty<bool>(IsEnabledProperty);
+        }
+        set 
+        {
+            IsEnabledProperty ??= NSControlClass!.GetProperty("enabled").AsNonNull();
+            this.SetProperty(IsEnabledProperty, value);
+        }
     }
 }

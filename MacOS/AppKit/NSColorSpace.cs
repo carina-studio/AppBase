@@ -31,16 +31,16 @@ public class NSColorSpace : NSObject
 
 
     // Static fields.
-    static readonly Selector? AvailableColorSpacesSelector;
-    static readonly Selector? CGColorSpaceSelector;
-    static readonly Selector? ColorSpaceModelSelector;
-    static readonly Selector? IccProfileDataSelector;
-    static readonly Selector? InitWithCGColorSpaceSelector;
-    static readonly Selector? InitWithIccDataSelector;
-    static readonly Selector? LocalizedNameSelector;
+    static Selector? AvailableColorSpacesSelector;
+    static Selector? CGColorSpaceSelector;
+    static Selector? ColorSpaceModelSelector;
+    static Selector? IccProfileDataSelector;
+    static Selector? InitWithCGColorSpaceSelector;
+    static Selector? InitWithIccDataSelector;
+    static Selector? LocalizedNameSelector;
     static readonly IDictionary<string, NSColorSpace> NamedColorSpaces = new ConcurrentDictionary<string, NSColorSpace>();
     static readonly Class? NSColorSpaceClass;
-    static readonly Selector? NumOfColorComponentsSelector;
+    static Selector? NumOfColorComponentsSelector;
 
 
     // Static initializer.
@@ -49,14 +49,6 @@ public class NSColorSpace : NSObject
         if (Platform.IsNotMacOS)
             return;
         NSColorSpaceClass = Class.GetClass(nameof(NSColorSpace)).AsNonNull();
-        AvailableColorSpacesSelector = Selector.FromName("availableColorSpacesWithModel:");
-        CGColorSpaceSelector = Selector.FromName("CGColorSpace");
-        ColorSpaceModelSelector = Selector.FromName("colorSpaceModel");
-        IccProfileDataSelector = Selector.FromName("ICCProfileData");
-        InitWithCGColorSpaceSelector = Selector.FromName("initWithCGColorSpace:");
-        InitWithIccDataSelector = Selector.FromName("initWithIccProfileData:");
-        LocalizedNameSelector = Selector.FromName("localizedName");
-        NumOfColorComponentsSelector = Selector.FromName("numberOfColorComponents");
     }
 
 
@@ -76,13 +68,27 @@ public class NSColorSpace : NSObject
     /// <summary>
     /// Get <see cref="CGColorSpace"/> which is used for creating the instance.
     /// </summary>
-    public CGColorSpace? CGColorSpace { get => this.SendMessage<CGColorSpace>(CGColorSpaceSelector!); }
+    public CGColorSpace? CGColorSpace 
+    { 
+        get 
+        {
+            CGColorSpaceSelector ??= Selector.FromName("CGColorSpace");
+            return this.SendMessage<CGColorSpace>(CGColorSpaceSelector); 
+        }
+    }
 
 
     /// <summary>
     /// Get color model of color space.
     /// </summary>
-    public Model ColorSpaceModel { get => this.SendMessage<Model>(ColorSpaceModelSelector!); }
+    public Model ColorSpaceModel 
+    { 
+        get 
+        {
+            ColorSpaceModelSelector ??= Selector.FromName("colorSpaceModel");
+            return this.SendMessage<Model>(ColorSpaceModelSelector); 
+        }
+    }
 
 
     /// <summary>
@@ -130,7 +136,8 @@ public class NSColorSpace : NSObject
     {
         if (colorSpace.IsReleased)
             throw new ObjectDisposedException(nameof(CGColorSpace));
-        var handle = NSObject.SendMessage<IntPtr>(NSColorSpaceClass!.Allocate(), InitWithCGColorSpaceSelector!, colorSpace);
+        InitWithCGColorSpaceSelector ??= Selector.FromName("initWithCGColorSpace:");
+        var handle = NSObject.SendMessage<IntPtr>(NSColorSpaceClass!.Allocate(), InitWithCGColorSpaceSelector, colorSpace);
         return new(NSColorSpaceClass, handle, true);
     }
 
@@ -144,7 +151,8 @@ public class NSColorSpace : NSObject
     {
         if (iccProfile.IsReleased)
             throw new ObjectDisposedException(nameof(CFData));
-        var handle = NSObject.SendMessage<IntPtr>(NSColorSpaceClass!.Allocate(), InitWithIccDataSelector!, iccProfile);
+        InitWithIccDataSelector ??= Selector.FromName("initWithIccProfileData:");
+        var handle = NSObject.SendMessage<IntPtr>(NSColorSpaceClass!.Allocate(), InitWithIccDataSelector, iccProfile);
         return new(NSColorSpaceClass, handle, true);
     }
 
@@ -180,9 +188,10 @@ public class NSColorSpace : NSObject
     /// <returns>Available color spaces.</returns>
     public static NSColorSpace[] GetAvailableColorSpaces(Model model)
     {
-        using var array = NSObject.SendMessage<NSArray<NSColorSpace>>(NSColorSpaceClass!.Handle, AvailableColorSpacesSelector!, model);
+        AvailableColorSpacesSelector ??= Selector.FromName("availableColorSpacesWithModel:");
+        using var array = NSObject.SendMessage<NSArray<NSColorSpace>>(NSColorSpaceClass!.Handle, AvailableColorSpacesSelector, model);
         if (array == null)
-            return new NSColorSpace[0];
+            return Array.Empty<NSColorSpace>();
         return new NSColorSpace[array.Count].Also(it =>
         {
             for (var i = it.Length - 1; i >= 0; --i)
@@ -208,7 +217,14 @@ public class NSColorSpace : NSObject
     /// <summary>
     /// Get <see cref="CFData"/> which contains ICC profile for creating the instance.
     /// </summary>
-    public CFData? IccProfileData { get => this.SendMessage<CFData>(IccProfileDataSelector!); }
+    public CFData? IccProfileData 
+    { 
+        get 
+        {
+            IccProfileDataSelector ??= Selector.FromName("ICCProfileData");
+            return this.SendMessage<CFData>(IccProfileDataSelector); 
+        }
+    }
 
 
     /// <summary>
@@ -218,7 +234,8 @@ public class NSColorSpace : NSObject
     {
         get
         {
-            using var s = this.SendMessage<NSString>(LocalizedNameSelector!);
+            LocalizedNameSelector ??= Selector.FromName("localizedName");
+            using var s = this.SendMessage<NSString>(LocalizedNameSelector);
             return s?.ToString();
         }
     }
@@ -227,7 +244,14 @@ public class NSColorSpace : NSObject
     /// <summary>
     /// Get number of color components excluding alpha component.
     /// </summary>
-    public int NumberOfColorComponents { get => this.SendMessage<int>(NumOfColorComponentsSelector!); }
+    public int NumberOfColorComponents 
+    { 
+        get 
+        {
+            NumOfColorComponentsSelector ??= Selector.FromName("numberOfColorComponents");
+            return this.SendMessage<int>(NumOfColorComponentsSelector); 
+        }
+    }
 
 
     /// <summary>

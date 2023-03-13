@@ -20,7 +20,7 @@ public class NSAppearance : NSObject
 
 
     // Static fields.
-    static readonly Selector? AppearanceNamedSelector;
+    static Selector? AppearanceNamedSelector;
     static NSAppearance? NSAppearanceAqua;
     static readonly Class? NSAppearanceClass;
     static NSAppearance? NSAppearanceDarkAqua;
@@ -38,7 +38,6 @@ public class NSAppearance : NSObject
         if (Platform.IsNotMacOS)
             return;
         NSAppearanceClass = Class.GetClass("NSAppearance").AsNonNull();
-        AppearanceNamedSelector = Selector.FromName("appearanceNamed:");
     }
 
 
@@ -136,8 +135,9 @@ public class NSAppearance : NSObject
     /// <returns><see cref="NSAppearance"/> with specific name, or Null if appearance cannot be found.</returns>
     public static NSAppearance? GetNamed(string name)
     {
+        AppearanceNamedSelector ??= Selector.FromName("appearanceNamed:");
         using var nsName = new NSString(name);
-        var handle = NSObject.SendMessage<IntPtr>(NSAppearanceClass!.Handle, AppearanceNamedSelector!, nsName);
+        var handle = NSObject.SendMessage<IntPtr>(NSAppearanceClass!.Handle, AppearanceNamedSelector, nsName);
         return handle != default ? new(NSAppearanceClass!, handle, false) : null;
     }
 

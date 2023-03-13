@@ -9,14 +9,14 @@ namespace CarinaStudio.MacOS.AppKit;
 public class NSLayoutAnchor<TAnchor> : NSObject where TAnchor : NSLayoutAnchor<TAnchor>
 {
     // Static fields.
-    static readonly Selector? ConstEqToConstantSelector;
-    static readonly Selector? ConstEqToSelector;
-    static readonly Selector? ConstGtOrEqToConstantSelector;
-    static readonly Selector? ConstGtOrEqToSelector;
-    static readonly Selector? ConstLtOrEqToConstantSelector;
-    static readonly Selector? ConstLtOrEqToSelector;
-    static readonly Selector? ItemSelector;
-    static readonly Selector? NameSelector;
+    static Selector? ConstEqToConstantSelector;
+    static Selector? ConstEqToSelector;
+    static Selector? ConstGtOrEqToConstantSelector;
+    static Selector? ConstGtOrEqToSelector;
+    static Selector? ConstLtOrEqToConstantSelector;
+    static Selector? ConstLtOrEqToSelector;
+    static Selector? ItemSelector;
+    static Selector? NameSelector;
     static readonly Class? NSLayoutAnchorClass;
 
 
@@ -25,15 +25,7 @@ public class NSLayoutAnchor<TAnchor> : NSObject where TAnchor : NSLayoutAnchor<T
     {
         if (Platform.IsNotMacOS)
             return;
-        NSLayoutAnchorClass = Class.GetClass("NSLayoutAnchor").AsNonNull();
-        ConstEqToConstantSelector = Selector.FromName("constraintEqualToAnchor:constant:");
-        ConstEqToSelector = Selector.FromName("constraintEqualToAnchor:");
-        ConstGtOrEqToConstantSelector = Selector.FromName("constraintGreaterThanOrEqualToAnchor:constant:");
-        ConstGtOrEqToSelector = Selector.FromName("constraintGreaterThanOrEqualToAnchor:");
-        ConstLtOrEqToConstantSelector = Selector.FromName("constraintLessThanOrEqualToAnchor:constant:");
-        ConstLtOrEqToSelector = Selector.FromName("constraintLessThanOrEqualToAnchor:");
-        ItemSelector = Selector.FromName("item");
-        NameSelector = Selector.FromName("name");
+        NSLayoutAnchorClass = Class.GetClass("NSLayoutAnchor").AsNonNull(); 
     }
 
 
@@ -64,54 +56,79 @@ public class NSLayoutAnchor<TAnchor> : NSObject where TAnchor : NSLayoutAnchor<T
     /// Define constraint.
     /// </summary>
     /// <returns>Constraint.</returns>
-    public NSLayoutConstraint ConstraintEqualTo(NSLayoutAnchor<TAnchor> another) =>
-        this.SendMessage<NSLayoutConstraint>(ConstEqToSelector!, another);
+    public NSLayoutConstraint ConstraintEqualTo(NSLayoutAnchor<TAnchor> another)
+    {
+        ConstEqToSelector ??= Selector.FromName("constraintEqualToAnchor:");
+        return this.SendMessage<NSLayoutConstraint>(ConstEqToSelector, another);
+    }
     
 
     /// <summary>
     /// Define constraint.
     /// </summary>
     /// <returns>Constraint.</returns>
-    public NSLayoutConstraint ConstraintEqualToWithConstant(NSLayoutAnchor<TAnchor> another, float offset) =>
-        this.SendMessage<NSLayoutConstraint>(ConstEqToConstantSelector!, another, offset);
+    public NSLayoutConstraint ConstraintEqualToWithConstant(NSLayoutAnchor<TAnchor> another, float offset)
+    {
+        ConstEqToConstantSelector ??= Selector.FromName("constraintEqualToAnchor:constant:");
+        return this.SendMessage<NSLayoutConstraint>(ConstEqToConstantSelector, another, offset);
+    }
     
 
     /// <summary>
     /// Define constraint.
     /// </summary>
     /// <returns>Constraint.</returns>
-    public NSLayoutConstraint ConstraintGreaterThanOrEqualTo(NSLayoutAnchor<TAnchor> another) =>
-        this.SendMessage<NSLayoutConstraint>(ConstGtOrEqToSelector!, another);
+    public NSLayoutConstraint ConstraintGreaterThanOrEqualTo(NSLayoutAnchor<TAnchor> another)
+    {
+        ConstGtOrEqToSelector ??= Selector.FromName("constraintGreaterThanOrEqualToAnchor:");
+        return this.SendMessage<NSLayoutConstraint>(ConstGtOrEqToSelector, another);
+    }
     
 
     /// <summary>
     /// Define constraint.
     /// </summary>
     /// <returns>Constraint.</returns>
-    public NSLayoutConstraint ConstraintGreaterThanOrEqualToWithConstant(NSLayoutAnchor<TAnchor> another, float offset) =>
-        this.SendMessage<NSLayoutConstraint>(ConstGtOrEqToConstantSelector!, another, offset);
+    public NSLayoutConstraint ConstraintGreaterThanOrEqualToWithConstant(NSLayoutAnchor<TAnchor> another, float offset)
+    {
+        ConstGtOrEqToConstantSelector ??= Selector.FromName("constraintGreaterThanOrEqualToAnchor:constant:");
+        return this.SendMessage<NSLayoutConstraint>(ConstGtOrEqToConstantSelector, another, offset);
+    }
     
 
     /// <summary>
     /// Define constraint.
     /// </summary>
     /// <returns>Constraint.</returns>
-    public NSLayoutConstraint ConstraintLessThanOrEqualTo(NSLayoutAnchor<TAnchor> another) =>
-        this.SendMessage<NSLayoutConstraint>(ConstLtOrEqToSelector!, another);
+    public NSLayoutConstraint ConstraintLessThanOrEqualTo(NSLayoutAnchor<TAnchor> another)
+    {
+        ConstLtOrEqToSelector ??= Selector.FromName("constraintLessThanOrEqualToAnchor:");
+        return this.SendMessage<NSLayoutConstraint>(ConstLtOrEqToSelector, another);
+    }
     
 
     /// <summary>
     /// Define constraint.
     /// </summary>
     /// <returns>Constraint.</returns>
-    public NSLayoutConstraint ConstraintLessThanOrEqualToWithConstant(NSLayoutAnchor<TAnchor> another, float offset) =>
-        this.SendMessage<NSLayoutConstraint>(ConstLtOrEqToConstantSelector!, another, offset);
+    public NSLayoutConstraint ConstraintLessThanOrEqualToWithConstant(NSLayoutAnchor<TAnchor> another, float offset)
+    {
+        ConstLtOrEqToConstantSelector ??= Selector.FromName("constraintLessThanOrEqualToAnchor:constant:");
+        return this.SendMessage<NSLayoutConstraint>(ConstLtOrEqToConstantSelector, another, offset);
+    }
 
 
     /// <summary>
     /// Get object which is used to calculate the anchor’s position.
     /// </summary>
-    public NSObject? Item { get => this.SendMessage<NSObject>(ItemSelector!); }
+    public NSObject? Item 
+    { 
+        get 
+        {
+            ItemSelector ??= Selector.FromName("item");
+            return this.SendMessage<NSObject>(ItemSelector); 
+        }
+    }
 
 
     /// <summary>
@@ -121,7 +138,8 @@ public class NSLayoutAnchor<TAnchor> : NSObject where TAnchor : NSLayoutAnchor<T
     {
         get
         {
-            using var name = this.SendMessage<NSString>(NameSelector!);
+            NameSelector ??= Selector.FromName("name");
+            using var name = this.SendMessage<NSString>(NameSelector);
             return name?.ToString() ?? "";
         }
     }

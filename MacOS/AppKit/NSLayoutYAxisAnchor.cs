@@ -9,10 +9,10 @@ namespace CarinaStudio.MacOS.AppKit;
 public class NSLayoutYAxisAnchor : NSLayoutAnchor<NSLayoutYAxisAnchor>
 {
     // Static fields.
-    static readonly Selector? AnchorWithOffsetSelector;
-    static readonly Selector? ConstEqToSysSpacingBelowMultipierSelector;
-    static readonly Selector? ConstGtOrEqToSysSpacingBelowMultipierSelector;
-    static readonly Selector? ConstLtOrEqToSysSpacingBelowMultipierSelector;
+    static Selector? AnchorWithOffsetSelector;
+    static Selector? ConstEqToSysSpacingBelowMultipierSelector;
+    static Selector? ConstGtOrEqToSysSpacingBelowMultipierSelector;
+    static Selector? ConstLtOrEqToSysSpacingBelowMultipierSelector;
     static readonly Class? NSLayoutYAxisAnchorClass;
 
 
@@ -22,10 +22,6 @@ public class NSLayoutYAxisAnchor : NSLayoutAnchor<NSLayoutYAxisAnchor>
         if (Platform.IsNotMacOS)
             return;
         NSLayoutYAxisAnchorClass = Class.GetClass(nameof(NSLayoutYAxisAnchor)).AsNonNull();
-        AnchorWithOffsetSelector = Selector.FromName("anchorWithOffsetTo:");
-        ConstEqToSysSpacingBelowMultipierSelector = Selector.FromName("constraintEqualToAnchorSystemSpacingBelow:multiplier:");
-        ConstGtOrEqToSysSpacingBelowMultipierSelector = Selector.FromName("constraintGreaterThanOrEqualToAnchorSystemSpacingBelow:multiplier:");
-        ConstLtOrEqToSysSpacingBelowMultipierSelector = Selector.FromName("constraintLessThanOrEqualToAnchorSystemSpacingBelow:multiplier:");
     }
 
 
@@ -41,30 +37,42 @@ public class NSLayoutYAxisAnchor : NSLayoutAnchor<NSLayoutYAxisAnchor>
     /// </summary>
     /// <param name="otherAnchor">Other anchor.</param>
     /// <returns>Layout dimension.</returns>
-    public NSLayoutDimension AnchorWithOffset(NSLayoutYAxisAnchor otherAnchor) =>
-        this.SendMessage<NSLayoutDimension>(AnchorWithOffsetSelector!, otherAnchor);
+    public NSLayoutDimension AnchorWithOffset(NSLayoutYAxisAnchor otherAnchor)
+    {
+        AnchorWithOffsetSelector ??= Selector.FromName("anchorWithOffsetTo:");
+        return this.SendMessage<NSLayoutDimension>(AnchorWithOffsetSelector, otherAnchor);
+    }
 
 
     /// <summary>
     /// Define constraint.
     /// </summary>
     /// <returns>Constraint.</returns>
-    public NSLayoutConstraint ConstraintEqualToSystemSpacingBelow(NSLayoutXAxisAnchor anchor, float multiplier) =>
-        this.SendMessage<NSLayoutConstraint>(ConstEqToSysSpacingBelowMultipierSelector!, anchor, multiplier);
+    public NSLayoutConstraint ConstraintEqualToSystemSpacingBelow(NSLayoutXAxisAnchor anchor, float multiplier)
+    {
+        ConstEqToSysSpacingBelowMultipierSelector ??= Selector.FromName("constraintEqualToAnchorSystemSpacingBelow:multiplier:");
+        return this.SendMessage<NSLayoutConstraint>(ConstEqToSysSpacingBelowMultipierSelector, anchor, multiplier);
+    }
     
 
     /// <summary>
     /// Define constraint.
     /// </summary>
     /// <returns>Constraint.</returns>
-    public NSLayoutConstraint ConstraintGreaterThanOrEqualToSystemSpacingBelow(NSLayoutXAxisAnchor anchor, float multiplier) =>
-        this.SendMessage<NSLayoutConstraint>(ConstGtOrEqToSysSpacingBelowMultipierSelector!, anchor, multiplier);
+    public NSLayoutConstraint ConstraintGreaterThanOrEqualToSystemSpacingBelow(NSLayoutXAxisAnchor anchor, float multiplier)
+    {
+        ConstGtOrEqToSysSpacingBelowMultipierSelector ??= Selector.FromName("constraintGreaterThanOrEqualToAnchorSystemSpacingBelow:multiplier:");
+        return this.SendMessage<NSLayoutConstraint>(ConstGtOrEqToSysSpacingBelowMultipierSelector, anchor, multiplier);
+    }
     
 
     /// <summary>
     /// Define constraint.
     /// </summary>
     /// <returns>Constraint.</returns>
-    public NSLayoutConstraint ConstraintLessThanOrEqualToSystemSpacingBelow(NSLayoutXAxisAnchor anchor, float multiplier) =>
-        this.SendMessage<NSLayoutConstraint>(ConstLtOrEqToSysSpacingBelowMultipierSelector!, anchor, multiplier);
+    public NSLayoutConstraint ConstraintLessThanOrEqualToSystemSpacingBelow(NSLayoutXAxisAnchor anchor, float multiplier)
+    {
+        ConstLtOrEqToSysSpacingBelowMultipierSelector ??= Selector.FromName("constraintLessThanOrEqualToAnchorSystemSpacingBelow:multiplier:");
+        return this.SendMessage<NSLayoutConstraint>(ConstLtOrEqToSysSpacingBelowMultipierSelector, anchor, multiplier);
+    }
 }

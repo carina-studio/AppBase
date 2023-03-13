@@ -9,18 +9,18 @@ namespace CarinaStudio.MacOS.AppKit;
 public class NSProgressIndicator : NSView
 {
     // Static fields.
-    static readonly Property? ControlSizeProperty;
-    static readonly Property? ControlTintProperty;
-    static readonly Property? DoubleValueProperty;
-    static readonly Selector? IncrementBySelector;
-    static readonly Property? IsBezeledProperty;
-    static readonly Property? IsIndeterminateProperty;
-    static readonly Property? MaxValueProperty;
-    static readonly Property? MinValueProperty;
+    static Property? ControlSizeProperty;
+    static Property? ControlTintProperty;
+    static Property? DoubleValueProperty;
+    static Selector? IncrementBySelector;
+    static Property? IsBezeledProperty;
+    static Property? IsIndeterminateProperty;
+    static Property? MaxValueProperty;
+    static Property? MinValueProperty;
     static readonly Class? NSProgressIndicatorClass;
-    static readonly Selector? StartAnimationSelector;
-    static readonly Selector? StopAnimationSelector;
-    static readonly Property? StyleProperty;
+    static Selector? StartAnimationSelector;
+    static Selector? StopAnimationSelector;
+    static Property? StyleProperty;
 
 
     // Static initializer.
@@ -29,17 +29,6 @@ public class NSProgressIndicator : NSView
         if (Platform.IsNotMacOS)
             return;
         NSProgressIndicatorClass = Class.GetClass("NSProgressIndicator").AsNonNull();
-        ControlSizeProperty = NSProgressIndicatorClass.GetProperty("controlSize");
-        ControlTintProperty = NSProgressIndicatorClass.GetProperty("controlTint");
-        DoubleValueProperty = NSProgressIndicatorClass.GetProperty("doubleValue");
-        IncrementBySelector = Selector.FromName("incrementBy:");
-        IsBezeledProperty = NSProgressIndicatorClass.GetProperty("bezeled");
-        IsIndeterminateProperty = NSProgressIndicatorClass.GetProperty("indeterminate");
-        MaxValueProperty = NSProgressIndicatorClass.GetProperty("maxValue");
-        MinValueProperty = NSProgressIndicatorClass.GetProperty("minValue");
-        StartAnimationSelector = Selector.FromName("startAnimation:");
-        StopAnimationSelector = Selector.FromName("stopAnimation:");
-        StyleProperty = NSProgressIndicatorClass.GetProperty("style");
     }
 
 
@@ -52,10 +41,12 @@ public class NSProgressIndicator : NSView
 
 
     // Constructor.
+#pragma warning disable IDE0051
     NSProgressIndicator(IntPtr handle, bool ownsInstance) : base(handle, false, ownsInstance) =>
         this.VerifyClass(NSProgressIndicatorClass!);
     NSProgressIndicator(Class cls, IntPtr handle, bool ownsInstance) : base(cls, handle, ownsInstance)
     { }
+#pragma warning restore IDE0051
 
 
     /// <summary>
@@ -63,8 +54,16 @@ public class NSProgressIndicator : NSView
     /// </summary>
     public NSControlSize ControlSize
     {
-        get => this.GetProperty<NSControlSize>(ControlSizeProperty!);
-        set => this.SetProperty(ControlSizeProperty!, value);
+        get 
+        {
+            ControlSizeProperty ??= NSProgressIndicatorClass!.GetProperty("controlSize").AsNonNull();
+            return this.GetProperty<NSControlSize>(ControlSizeProperty);
+        }
+        set 
+        {
+            ControlSizeProperty ??= NSProgressIndicatorClass!.GetProperty("controlSize").AsNonNull();
+            this.SetProperty(ControlSizeProperty, value);
+        }
     }
     
 
@@ -73,8 +72,16 @@ public class NSProgressIndicator : NSView
     /// </summary>
     public NSControlTint ControlTint
     {
-        get => this.GetProperty<NSControlTint>(ControlTintProperty!);
-        set => this.SetProperty(ControlTintProperty!, value);
+        get 
+        {
+            ControlTintProperty ??= NSProgressIndicatorClass!.GetProperty("controlTint").AsNonNull();
+            return this.GetProperty<NSControlTint>(ControlTintProperty);
+        }
+        set 
+        {
+            ControlTintProperty ??= NSProgressIndicatorClass!.GetProperty("controlTint").AsNonNull();
+            this.SetProperty(ControlTintProperty, value);
+        }
     }
     
 
@@ -83,8 +90,16 @@ public class NSProgressIndicator : NSView
     /// </summary>
     public double DoubleValue
     {
-        get => this.GetProperty<double>(DoubleValueProperty!);
-        set => this.SetProperty<double>(DoubleValueProperty!, value);
+        get 
+        {
+            DoubleValueProperty ??= NSProgressIndicatorClass!.GetProperty("doubleValue").AsNonNull();
+            return this.GetProperty<double>(DoubleValueProperty);
+        }
+        set 
+        {
+            DoubleValueProperty ??= NSProgressIndicatorClass!.GetProperty("doubleValue").AsNonNull();
+            this.SetProperty<double>(DoubleValueProperty, value);
+        }
     }
     
 
@@ -92,8 +107,11 @@ public class NSProgressIndicator : NSView
     /// Increment the value of progress indicator.
     /// </summary>
     /// <param name="delta">Value to incremenet.</param>
-    public void Increment(double delta) =>
-        this.SendMessage(IncrementBySelector!, delta);
+    public void Increment(double delta)
+    {
+        IncrementBySelector ??= Selector.FromName("incrementBy:");
+        this.SendMessage(IncrementBySelector, delta);
+    }
     
 
     /// <summary>
@@ -101,8 +119,16 @@ public class NSProgressIndicator : NSView
     /// </summary>
     public bool IsBezeled
     {
-        get => this.GetProperty<bool>(IsBezeledProperty!);
-        set => this.SetProperty(IsBezeledProperty!, value);
+        get 
+        {
+            IsBezeledProperty ??= NSProgressIndicatorClass!.GetProperty("bezeled").AsNonNull();
+            return this.GetProperty<bool>(IsBezeledProperty);
+        }
+        set 
+        {
+            IsBezeledProperty ??= NSProgressIndicatorClass!.GetProperty("bezeled").AsNonNull();
+            this.SetProperty(IsBezeledProperty, value);
+        }
     }
     
 
@@ -111,8 +137,16 @@ public class NSProgressIndicator : NSView
     /// </summary>
     public bool IsIndeterminate
     {
-        get => this.GetProperty<bool>(IsIndeterminateProperty!);
-        set => this.SetProperty<bool>(IsIndeterminateProperty!, value);
+        get 
+        {
+            IsIndeterminateProperty ??= NSProgressIndicatorClass!.GetProperty("indeterminate").AsNonNull();
+            return this.GetProperty<bool>(IsIndeterminateProperty);
+        }
+        set 
+        {
+            IsIndeterminateProperty ??= NSProgressIndicatorClass!.GetProperty("indeterminate").AsNonNull();
+            this.SetProperty<bool>(IsIndeterminateProperty, value);
+        }
     }
 
 
@@ -121,8 +155,16 @@ public class NSProgressIndicator : NSView
     /// </summary>
     public double MaxValue
     {
-        get => this.GetProperty<double>(MaxValueProperty!);
-        set => this.SetProperty<double>(MaxValueProperty!, value);
+        get 
+        {
+            MaxValueProperty ??= NSProgressIndicatorClass!.GetProperty("maxValue").AsNonNull();
+            return this.GetProperty<double>(MaxValueProperty);
+        }
+        set 
+        {
+            MaxValueProperty ??= NSProgressIndicatorClass!.GetProperty("maxValue").AsNonNull();
+            this.SetProperty<double>(MaxValueProperty, value);
+        }
     }
 
 
@@ -131,8 +173,16 @@ public class NSProgressIndicator : NSView
     /// </summary>
     public double MinValue
     {
-        get => this.GetProperty<double>(MinValueProperty!);
-        set => this.SetProperty<double>(MinValueProperty!, value);
+        get 
+        {
+            MinValueProperty ??= NSProgressIndicatorClass!.GetProperty("minValue").AsNonNull();
+            return this.GetProperty<double>(MinValueProperty);
+        }
+        set 
+        {
+            MinValueProperty ??= NSProgressIndicatorClass!.GetProperty("minValue").AsNonNull();
+            this.SetProperty<double>(MinValueProperty, value);
+        }
     }
 
 
@@ -140,16 +190,22 @@ public class NSProgressIndicator : NSView
     /// Start animation of indeterminate progress indicator.
     /// </summary>
     /// <param name="sender">Sender.</param>
-    public void StartAnimation(NSObject? sender = null) =>
-        this.SendMessage(StartAnimationSelector!, sender);
+    public void StartAnimation(NSObject? sender = null) 
+    {
+        StartAnimationSelector ??= Selector.FromName("startAnimation:");
+        this.SendMessage(StartAnimationSelector, sender);
+    }
     
 
     /// <summary>
     /// Stop animation of indeterminate progress indicator.
     /// </summary>
     /// <param name="sender">Sender.</param>
-    public void StopAnimation(NSObject? sender = null) =>
-        this.SendMessage(StopAnimationSelector!, sender);
+    public void StopAnimation(NSObject? sender = null)
+    {
+        StopAnimationSelector ??= Selector.FromName("stopAnimation:");
+        this.SendMessage(StopAnimationSelector, sender);
+    }
     
 
     /// <summary>
@@ -157,7 +213,15 @@ public class NSProgressIndicator : NSView
     /// </summary>
     public NSProgressIndicatorStyle Style
     {
-        get => this.GetProperty<NSProgressIndicatorStyle>(StyleProperty!);
-        set => this.SetProperty(StyleProperty!, value);
+        get 
+        {
+            StyleProperty ??= NSProgressIndicatorClass!.GetProperty("style").AsNonNull();
+            return this.GetProperty<NSProgressIndicatorStyle>(StyleProperty);
+        }
+        set 
+        {
+            StyleProperty ??= NSProgressIndicatorClass!.GetProperty("style").AsNonNull();
+            this.SetProperty(StyleProperty, value);
+        }
     }
 }

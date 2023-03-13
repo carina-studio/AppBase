@@ -56,16 +56,16 @@ public class NSWindow : NSResponder
 
 
     // Static fields.
-    static readonly Property? AppearanceProperty;
-    static readonly Selector? CloseSelector;
-    static readonly Property? ContentViewProperty;
-    static readonly Property? DelegateProperty;
-    static readonly Selector? InitWithRectAndScreenSelector;
-    static readonly Selector? InitWithRectSelector;
-    static readonly Selector? MakeKeyAndOrderFrontSelector;
+    static Property? AppearanceProperty;
+    static Selector? CloseSelector;
+    static Property? ContentViewProperty;
+    static Property? DelegateProperty;
+    static Selector? InitWithRectAndScreenSelector;
+    static Selector? InitWithRectSelector;
+    static Selector? MakeKeyAndOrderFrontSelector;
     static readonly Class? NSWindowClass;
-    static readonly Property? SubtitleProperty;
-    static readonly Property? TitleProperty;
+    static Property? SubtitleProperty;
+    static Property? TitleProperty;
 
 
     // Static initializer.
@@ -74,15 +74,6 @@ public class NSWindow : NSResponder
         if (Platform.IsNotMacOS)
             return;
         NSWindowClass = Class.GetClass("NSWindow").AsNonNull();
-        AppearanceProperty = NSWindowClass.GetProperty("appearance");
-        CloseSelector = Selector.FromName("close");
-        ContentViewProperty = NSWindowClass.GetProperty("contentView");
-        DelegateProperty = NSWindowClass.GetProperty("delegate");
-        InitWithRectAndScreenSelector = Selector.FromName("initWithContentRect:styleMask:backing:defer:screen:");
-        InitWithRectSelector = Selector.FromName("initWithContentRect:styleMask:backing:defer:");
-        MakeKeyAndOrderFrontSelector = Selector.FromName("makeKeyAndOrderFront:");
-        SubtitleProperty = NSWindowClass.GetProperty("subtitle");
-        TitleProperty = NSWindowClass.GetProperty("title");
     }
 
 
@@ -142,16 +133,27 @@ public class NSWindow : NSResponder
     /// </summary>
     public NSAppearance? Appearance
     {
-        get => this.GetProperty<NSAppearance>(AppearanceProperty!);
-        set => this.SetProperty(AppearanceProperty!, value);
+        get 
+        {
+            AppearanceProperty ??= NSWindowClass!.GetProperty("appearance").AsNonNull();
+            return this.GetProperty<NSAppearance>(AppearanceProperty);
+        }
+        set 
+        {
+            AppearanceProperty ??= NSWindowClass!.GetProperty("appearance").AsNonNull();
+            this.SetProperty(AppearanceProperty, value);
+        }
     }
 
 
     /// <summary>
     /// Close the window.
     /// </summary>
-    public void Close() =>
+    public void Close()
+    {
+        CloseSelector ??= Selector.FromName("close");
         this.SendMessage(CloseSelector!);
+    }
 
 
     /// <summary>
@@ -159,8 +161,16 @@ public class NSWindow : NSResponder
     /// </summary>
     public NSView? ContentView
     {
-        get => this.GetProperty<NSView>(ContentViewProperty!);
-        set => this.SetProperty(ContentViewProperty!, value);
+        get 
+        {
+            ContentViewProperty ??= NSWindowClass!.GetProperty("contentView").AsNonNull();
+            return this.GetProperty<NSView>(ContentViewProperty);
+        }
+        set 
+        {
+            ContentViewProperty ??= NSWindowClass!.GetProperty("contentView").AsNonNull();
+            this.SetProperty(ContentViewProperty, value);
+        }
     }
 
 
@@ -169,8 +179,16 @@ public class NSWindow : NSResponder
     /// </summary>
     public NSObject? Delegate
     {
-        get => this.GetProperty<NSObject>(DelegateProperty!);
-        set => this.SetProperty(DelegateProperty!, value);
+        get 
+        {
+            DelegateProperty ??= NSWindowClass!.GetProperty("delegate").AsNonNull();
+            return this.GetProperty<NSObject>(DelegateProperty);
+        }
+        set 
+        {
+            DelegateProperty ??= NSWindowClass!.GetProperty("delegate").AsNonNull();
+            this.SetProperty(DelegateProperty, value);
+        }
     }
 
 
@@ -178,23 +196,32 @@ public class NSWindow : NSResponder
     /// Initialize allocated instance.
     /// </summary>
     /// <returns>Handle of initialized instance</returns>
-    protected static IntPtr Initialize(IntPtr obj, NSRect contentRect, StyleMask style, BackingStoreType backingStoreType, bool defer) =>
-        NSObject.SendMessage<IntPtr>(obj, InitWithRectSelector!, contentRect, style, backingStoreType, defer);
+    protected static IntPtr Initialize(IntPtr obj, NSRect contentRect, StyleMask style, BackingStoreType backingStoreType, bool defer)
+    {
+        InitWithRectSelector ??= Selector.FromName("initWithContentRect:styleMask:backing:defer:");
+        return NSObject.SendMessage<IntPtr>(obj, InitWithRectSelector, contentRect, style, backingStoreType, defer);
+    }
     
 
     /// <summary>
     /// Initialize allocated instance.
     /// </summary>
     /// <returns>Handle of initialized instance</returns>
-    protected static IntPtr Initialize(IntPtr obj, NSRect contentRect, StyleMask style, BackingStoreType backingStoreType, bool defer, NSObject? screen) =>
-        NSObject.SendMessage<IntPtr>(obj, InitWithRectAndScreenSelector!, contentRect, style, backingStoreType, defer, screen);
+    protected static IntPtr Initialize(IntPtr obj, NSRect contentRect, StyleMask style, BackingStoreType backingStoreType, bool defer, NSObject? screen)
+    {
+        InitWithRectAndScreenSelector ??= Selector.FromName("initWithContentRect:styleMask:backing:defer:screen:");
+        return NSObject.SendMessage<IntPtr>(obj, InitWithRectAndScreenSelector, contentRect, style, backingStoreType, defer, screen);
+    }
     
 
     /// <summary>
     /// Show the window.
     /// </summary>
-    public void MakeKeyAndOrderFront() =>
-        this.SendMessage(MakeKeyAndOrderFrontSelector!, this);
+    public void MakeKeyAndOrderFront()
+    {
+        MakeKeyAndOrderFrontSelector ??= Selector.FromName("makeKeyAndOrderFront:");
+        this.SendMessage(MakeKeyAndOrderFrontSelector, this);
+    }
     
 
     /// <summary>
@@ -205,7 +232,8 @@ public class NSWindow : NSResponder
     {
         get
         {
-            var handle = this.GetProperty<IntPtr>(SubtitleProperty!);
+            SubtitleProperty ??= NSWindowClass!.GetProperty("subtitle").AsNonNull();
+            var handle = this.GetProperty<IntPtr>(SubtitleProperty);
             if (handle == default)
                 return "";
             return NSObject.FromHandle<NSString>(handle, false)!.ToString();
@@ -213,8 +241,9 @@ public class NSWindow : NSResponder
         set
         {
             this.VerifyReleased();
+            SubtitleProperty ??= NSWindowClass!.GetProperty("subtitle").AsNonNull();
             using var s = new NSString(value ?? "");
-            this.SetProperty(SubtitleProperty!, s);
+            this.SetProperty(SubtitleProperty, s);
         }
     }
 
@@ -227,6 +256,7 @@ public class NSWindow : NSResponder
     {
         get
         {
+            TitleProperty ??= NSWindowClass!.GetProperty("title").AsNonNull();
             var handle = this.GetProperty<IntPtr>(TitleProperty!);
             if (handle == default)
                 return "";
@@ -235,6 +265,7 @@ public class NSWindow : NSResponder
         set
         {
             this.VerifyReleased();
+            TitleProperty ??= NSWindowClass!.GetProperty("title").AsNonNull();
             using var s = new NSString(value ?? "");
             this.SetProperty(TitleProperty!, s);
         }

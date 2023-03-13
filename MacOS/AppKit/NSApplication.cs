@@ -27,18 +27,18 @@ public unsafe class NSApplication : NSResponder
 
 
     // Static fields.
-    static readonly Selector? ActivateSelector;
-    static readonly Property? AppearanceProperty;
+    static Selector? ActivateSelector;
+    static Property? AppearanceProperty;
     static volatile NSApplication? _Current;
-    static readonly Selector? DeactivateSelector;
-    static readonly Property? DelegateProperty;
-    static readonly Selector? DockTileSelector;
-    static readonly Property? IconImageProperty;
-    static readonly Selector? IsRunningSelector;
-    static readonly Selector? MainWindowSelector;
+    static Selector? DeactivateSelector;
+    static Property? DelegateProperty;
+    static Selector? DockTileSelector;
+    static Property? IconImageProperty;
+    static Selector? IsRunningSelector;
+    static Selector? MainWindowSelector;
     static readonly Class? NSApplicationClass;
-    static readonly Selector? RunSelector;
-    static readonly Selector? WindowsSelector;
+    static Selector? RunSelector;
+    static Selector? WindowsSelector;
 
 
     // Fields.
@@ -58,16 +58,6 @@ public unsafe class NSApplication : NSResponder
             NSAppPtr = (IntPtr*)NativeLibrary.GetExport(libHandle, "NSApp");
         }
         NSApplicationClass = Class.GetClass("NSApplication").AsNonNull();
-        ActivateSelector = Selector.FromName("activateIgnoringOtherApps:");
-        AppearanceProperty = NSApplicationClass.GetProperty("appearance");
-        DeactivateSelector = Selector.FromName("deactivate");
-        DelegateProperty = NSApplicationClass.GetProperty("delegate");
-        DockTileSelector = Selector.FromName("dockTile");
-        IconImageProperty = NSApplicationClass.GetProperty("applicationIconImage");
-        IsRunningSelector = Selector.FromName("isRunning");
-        MainWindowSelector = Selector.FromName("mainWindow");
-        RunSelector = Selector.FromName("run");
-        WindowsSelector = Selector.FromName("windows");
     }
 
 
@@ -82,8 +72,11 @@ public unsafe class NSApplication : NSResponder
     /// Activate the application.
     /// </summary>
     /// <param name="ignoreOtherApps">True to active application regardless.</param>
-    public void Activate(bool ignoreOtherApps) =>
-        this.SendMessage(ActivateSelector!, ignoreOtherApps);
+    public void Activate(bool ignoreOtherApps)
+    {
+        ActivateSelector ??= Selector.FromName("activateIgnoringOtherApps:");
+        this.SendMessage(ActivateSelector, ignoreOtherApps);
+    }
     
 
     /// <summary>
@@ -91,8 +84,16 @@ public unsafe class NSApplication : NSResponder
     /// </summary>
     public NSAppearance? Appearance
     {
-        get => this.GetProperty<NSAppearance>(AppearanceProperty!);
-        set => this.SetProperty(AppearanceProperty!, value);
+        get 
+        {
+            AppearanceProperty ??= NSApplicationClass!.GetProperty("appearance").AsNonNull();
+            return this.GetProperty<NSAppearance>(AppearanceProperty);
+        }
+        set 
+        {
+            AppearanceProperty ??= NSApplicationClass!.GetProperty("appearance").AsNonNull();
+            this.SetProperty(AppearanceProperty, value);
+        }
     }
     
 
@@ -105,7 +106,8 @@ public unsafe class NSApplication : NSResponder
         get
         {
             this.VerifyReleased();
-            var handle = this.GetProperty<IntPtr>(IconImageProperty!);
+            IconImageProperty ??= NSApplicationClass!.GetProperty("applicationIconImage").AsNonNull();
+            var handle = this.GetProperty<IntPtr>(IconImageProperty);
             if (this.appIconImage is null)
             {
                 if (handle == IntPtr.Zero)
@@ -121,8 +123,9 @@ public unsafe class NSApplication : NSResponder
             this.VerifyReleased();
             if (this.appIconImage == value)
                 return;
+            IconImageProperty ??= NSApplicationClass!.GetProperty("applicationIconImage").AsNonNull();
             this.appIconImage = value;
-            this.SetProperty<NSObject>(IconImageProperty!, value);
+            this.SetProperty<NSObject>(IconImageProperty, value);
         }
     }
 
@@ -141,8 +144,10 @@ public unsafe class NSApplication : NSResponder
                 var app = NSAppPtr != null ? *NSAppPtr : IntPtr.Zero;
                 if (app == IntPtr.Zero)
                     return null;
-                _Current = new(app, true);
-                _Current.IsDefaultInstance = true;
+                _Current = new(app, true)
+                {
+                    IsDefaultInstance = true
+                };
                 return _Current;
             });
         }
@@ -152,8 +157,11 @@ public unsafe class NSApplication : NSResponder
     /// <summary>
     /// Deactivate the application.
     /// </summary>
-    public void Deactivate() =>
-        this.SendMessage(DeactivateSelector!);
+    public void Deactivate()
+    {
+        DeactivateSelector ??= Selector.FromName("deactivate");
+        this.SendMessage(DeactivateSelector);
+    }
 
 
     /// <summary>
@@ -161,8 +169,16 @@ public unsafe class NSApplication : NSResponder
     /// </summary>
     public NSObject? Delegate
     {
-        get => this.GetProperty<NSObject>(DelegateProperty!);
-        set => this.SetProperty(DelegateProperty!, value);
+        get 
+        {
+            DelegateProperty ??= NSApplicationClass!.GetProperty("delegate").AsNonNull();
+            return this.GetProperty<NSObject>(DelegateProperty);
+        }
+        set 
+        {
+            DelegateProperty ??= NSApplicationClass!.GetProperty("delegate").AsNonNull();
+            this.SetProperty(DelegateProperty, value);
+        }
     }
 
 
@@ -174,7 +190,8 @@ public unsafe class NSApplication : NSResponder
         get
         {
             this.VerifyReleased();
-            return this.dockTile ?? this.SendMessage<IntPtr>(DockTileSelector!).Let(it =>
+            DockTileSelector ??= Selector.FromName("dockTile");
+            return this.dockTile ?? this.SendMessage<IntPtr>(DockTileSelector).Let(it =>
             {
                 this.dockTile = new(it);
                 return this.dockTile;
@@ -186,7 +203,14 @@ public unsafe class NSApplication : NSResponder
     /// <summary>
     /// Check whether the main event loop is runnig or not.
     /// </summary>
-    public bool IsRunning { get => this.SendMessage<bool>(IsRunningSelector!); }
+    public bool IsRunning 
+    { 
+        get 
+        {
+            IsRunningSelector ??= Selector.FromName("isRunning");
+            return this.SendMessage<bool>(IsRunningSelector); 
+        }
+    }
 
 
     /// <summary>
@@ -197,7 +221,8 @@ public unsafe class NSApplication : NSResponder
         get
         {
             this.VerifyReleased();
-            var handle = this.SendMessage<IntPtr>(MainWindowSelector!);
+            MainWindowSelector ??= Selector.FromName("mainWindow");
+            var handle = this.SendMessage<IntPtr>(MainWindowSelector);
             if (handle != IntPtr.Zero)
             {
                 if (this.mainWindow == null || this.mainWindow.Handle != handle)
@@ -213,8 +238,11 @@ public unsafe class NSApplication : NSResponder
     /// <summary>
     /// Start the main event loop.
     /// </summary>
-    public void Run() =>
-        this.SendMessage(RunSelector!);
+    public void Run()
+    {
+        RunSelector ??= Selector.FromName("run");
+        this.SendMessage(RunSelector);
+    }
 
 
     /// <summary>
@@ -232,8 +260,10 @@ public unsafe class NSApplication : NSResponder
                 var handle = NSObject.SendMessage<IntPtr>(NSApplicationClass!.Handle, selector);
                 if (handle == default)
                     throw new Exception("Unable to create NSApplication instance.");
-                _Current = new(handle, true);
-                _Current.IsDefaultInstance = true;
+                _Current = new(handle, true)
+                {
+                    IsDefaultInstance = true
+                };
                 return _Current;
             });
         }
@@ -243,5 +273,12 @@ public unsafe class NSApplication : NSResponder
     /// <summary>
     /// Get array of windows.
     /// </summary>
-    public NSArray<NSWindow> Windows { get => this.SendMessage<NSArray<NSWindow>>(WindowsSelector!); }
+    public NSArray<NSWindow> Windows 
+    { 
+        get 
+        {
+            WindowsSelector ??= Selector.FromName("windows");
+            return this.SendMessage<NSArray<NSWindow>>(WindowsSelector); 
+        }
+    }
 }

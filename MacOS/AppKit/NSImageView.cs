@@ -9,9 +9,9 @@ namespace CarinaStudio.MacOS.AppKit;
 public class NSImageView : NSControl
 {
     // Static fields.
-    static readonly Property? ImageAlignmentProperty;
-    static readonly Property? ImageProperty;
-    static readonly Property? ImageScalingProperty;
+    static Property? ImageAlignmentProperty;
+    static Property? ImageProperty;
+    static Property? ImageScalingProperty;
     static readonly Class? NSImageViewClass;
 
 
@@ -21,9 +21,6 @@ public class NSImageView : NSControl
         if (Platform.IsNotMacOS)
             return;
         NSImageViewClass = Class.GetClass(nameof(NSImageView)).AsNonNull();
-        ImageAlignmentProperty = NSImageViewClass.GetProperty("imageAlignment");
-        ImageProperty = NSImageViewClass.GetProperty("image");
-        ImageScalingProperty = NSImageViewClass.GetProperty("imageScaling");
     }
 
 
@@ -68,8 +65,16 @@ public class NSImageView : NSControl
     /// </summary>
     public NSImage? Image
     {
-        get => this.GetProperty<NSImage>(ImageProperty!);
-        set => this.SetProperty(ImageProperty!, value);
+        get 
+        {
+            ImageProperty ??= NSImageViewClass!.GetProperty("image").AsNonNull();
+            return this.GetProperty<NSImage>(ImageProperty);
+        }
+        set 
+        {
+            ImageProperty ??= NSImageViewClass!.GetProperty("image").AsNonNull();
+            this.SetProperty(ImageProperty, value);
+        }
     }
 
 
@@ -78,8 +83,16 @@ public class NSImageView : NSControl
     /// </summary>
     public NSImageAlignment ImageAlignment
     {
-        get => this.GetProperty<NSImageAlignment>(ImageAlignmentProperty!);
-        set => this.SetProperty(ImageAlignmentProperty!, value);
+        get 
+        {
+            ImageAlignmentProperty ??= NSImageViewClass!.GetProperty("imageAlignment").AsNonNull();
+            return this.GetProperty<NSImageAlignment>(ImageAlignmentProperty);
+        }
+        set 
+        {
+            ImageAlignmentProperty ??= NSImageViewClass!.GetProperty("imageAlignment").AsNonNull();
+            this.SetProperty(ImageAlignmentProperty, value);
+        }
     }
 
 
@@ -88,7 +101,15 @@ public class NSImageView : NSControl
     /// </summary>
     public NSImageScaling ImageScaling
     {
-        get => this.GetProperty<NSImageScaling>(ImageScalingProperty!);
-        set => this.SetProperty(ImageScalingProperty!, value);
+        get 
+        {
+            ImageScalingProperty ??= NSImageViewClass!.GetProperty("imageScaling").AsNonNull();
+            return this.GetProperty<NSImageScaling>(ImageScalingProperty);
+        }
+        set 
+        {
+            ImageScalingProperty ??= NSImageViewClass!.GetProperty("imageScaling").AsNonNull();
+            this.SetProperty(ImageScalingProperty, value);
+        }
     }
 }

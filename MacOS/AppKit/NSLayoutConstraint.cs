@@ -51,7 +51,7 @@ public class NSLayoutConstraint : NSObject
 
 
     // Static fields.
-    static readonly Property? IsActiveProperty;
+    static Property? IsActiveProperty;
     static readonly Class? NSLayoutConstraintClass;
 
 
@@ -61,7 +61,6 @@ public class NSLayoutConstraint : NSObject
         if (Platform.IsNotMacOS)
             return;
         NSLayoutConstraintClass = Class.GetClass(nameof(NSLayoutConstraint)).AsNonNull();
-        IsActiveProperty = NSLayoutConstraintClass.GetProperty("active");
     }
 
 
@@ -77,7 +76,15 @@ public class NSLayoutConstraint : NSObject
     /// </summary>
     public bool IsActive
     {
-        get => this.GetProperty<bool>(IsActiveProperty!);
-        set => this.SetProperty(IsActiveProperty!, value);
+        get 
+        {
+            IsActiveProperty ??= NSLayoutConstraintClass!.GetProperty("active").AsNonNull();
+            return this.GetProperty<bool>(IsActiveProperty);
+        }
+        set 
+        {
+            IsActiveProperty ??= NSLayoutConstraintClass!.GetProperty("active").AsNonNull();
+            this.SetProperty(IsActiveProperty, value);
+        }
     }
 }
