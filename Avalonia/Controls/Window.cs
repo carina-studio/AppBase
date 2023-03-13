@@ -1,6 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using CarinaStudio.Collections;
+using CarinaStudio.MacOS.AppKit;
 using CarinaStudio.Threading;
 using System;
 using System.Collections.Generic;
@@ -62,6 +63,8 @@ namespace CarinaStudio.Controls
 				var hasDialogs = false;
 				static void RefreshChildWindowPositions(Avalonia.Controls.Window parent)
 				{
+					if (Platform.IsNotMacOS)
+						return;
 					var childWindows = parent is Window window
 						? window.children
 						: GetInternalChildWindows(parent);
@@ -70,7 +73,11 @@ namespace CarinaStudio.Controls
 					foreach (var (childWindow, isDialog) in childWindows)
 					{
 						if (!isDialog)
-							childWindow.Activate();
+						{
+							var handle = (childWindow.PlatformImpl?.Handle.Handle).GetValueOrDefault();
+							var childNSWindow = NSWindow.FromHandle<NSWindow>(handle);
+							childNSWindow?.OrderFront();
+						}
 						RefreshChildWindowPositions(childWindow);
 					}
 				}
