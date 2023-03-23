@@ -296,7 +296,7 @@ namespace CarinaStudio.Controls
 			// [Workaround] move to actual center of owner/screen on Linux.
 			if (Platform.IsLinux)
 			{
-				var titleBarHeightInPixels = 75; // Not an accurate value
+				var titleBarHeightInPixels = WindowExtensions.GetTitleBarHeightInPixels();
 				switch (this.WindowStartupLocation)
 				{
 					case WindowStartupLocation.CenterOwner:

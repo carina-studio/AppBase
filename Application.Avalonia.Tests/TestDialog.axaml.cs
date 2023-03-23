@@ -21,8 +21,9 @@ namespace CarinaStudio
 
         public void GenerateResult()
         {
-            var random = new Random();
-            this.Close(random.Next(256));
+            //var random = new Random();
+            //this.Close(random.Next(256));
+            this.MoveToCenterOfScreen();
         }
 
         protected override void OnOpened(EventArgs e)
