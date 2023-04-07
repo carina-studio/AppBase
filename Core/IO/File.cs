@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace CarinaStudio.IO
 {
@@ -10,6 +11,16 @@ namespace CarinaStudio.IO
 	/// </summary>
 	public static class File
 	{
+		/// <summary>
+		/// Check whether the given file exists or not asynchronously.
+		/// </summary>
+		/// <param name="path">Path to the file.</param>
+		/// <param name="cancellationToken">Cancellation.</param>
+		/// <returns>Task of checking existence of file.</returns>
+		public static Task<bool> ExistsAsync(string? path, CancellationToken cancellationToken = default) => 
+			Task.Run(() => System.IO.File.Exists(path), cancellationToken);
+
+
 		/// <summary>
 		/// Try opening file with given timeout.
 		/// </summary>
