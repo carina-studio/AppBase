@@ -25,7 +25,7 @@ namespace CarinaStudio.Windows.Input
 					if (this.canExecute != value)
 					{
 						this.canExecute = value;
-						this.CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+						this.InvalidateCanExecute();
 					}
 				}));
 				if (canExecute is ObservableValue<bool> observableValue)
@@ -39,7 +39,7 @@ namespace CarinaStudio.Windows.Input
 		/// </summary>
 		/// <param name="parameter">Parameter.</param>
 		/// <returns></returns>
-		public bool CanExecute(object? parameter) => this.canExecute;
+		public virtual bool CanExecute(object? parameter) => this.canExecute;
 
 
 		/// <summary>
@@ -53,5 +53,12 @@ namespace CarinaStudio.Windows.Input
 		/// </summary>
 		/// <param name="parameter">Parameter.</param>
 		public abstract void Execute(object? parameter);
+		
+		
+		/// <summary>
+		/// Raise <see cref="CanExecuteChanged"/> event.
+		/// </summary>
+		protected void InvalidateCanExecute() => 
+			this.CanExecuteChanged?.Invoke(this, EventArgs.Empty);
 	}
 }

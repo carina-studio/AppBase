@@ -18,6 +18,9 @@ using CarinaStudio.Threading;
 using System.ComponentModel;
 using System.Linq;
 using System.IO;
+using System.Threading.Tasks;
+using System.Windows.Input;
+using CarinaStudio.Windows.Input;
 
 namespace CarinaStudio
 {
@@ -30,6 +33,7 @@ namespace CarinaStudio
 
         public MainWindow()
         {
+            this.TestCommand = new Command(this.Test);
             InitializeComponent();
             this.textBlock = new Avalonia.Controls.TextBlock().Also(it =>
             {
@@ -199,8 +203,10 @@ namespace CarinaStudio
         ScheduledAction? animateDockTileProgressAction;
 
 
-        public async void Test()
+        public async Task Test()
         {
+            await Task.Delay(3000);
+            return;
             /*
             this.textBlock?.RemoveFromParent();
             this.textBlock = null;
@@ -301,5 +307,8 @@ namespace CarinaStudio
             });
             */
         }
+        
+        
+        public ICommand TestCommand { get; }
     }
 }

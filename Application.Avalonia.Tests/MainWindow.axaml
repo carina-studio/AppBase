@@ -14,7 +14,7 @@
 	</Window.Resources>
 
 	<StackPanel Name="stackPanel" Orientation="Vertical">
-		<Button Command="{Binding $parent[Window].Test}" Content="Test"/>
+		<Button Command="{Binding $parent[Window].TestCommand}" Content="Test"/>
 		<StackPanel Orientation="Horizontal">
 			<TextBlock Text="HasDialogs: " VerticalAlignment="Center"/>
 			<TextBlock Text="{Binding $parent[Window].HasDialogs}" VerticalAlignment="Center"/>
