@@ -16,7 +16,7 @@ namespace CarinaStudio.Controls
         /// <summary>
 		/// Property of <see cref="IsValidInput"/>.
 		/// </summary>
-		public static readonly AvaloniaProperty<bool> IsValidInputProperty = AvaloniaProperty.RegisterDirect<InputDialog, bool>(nameof(IsValidInput), d => d.isValidInput);
+		public static readonly DirectProperty<InputDialog, bool> IsValidInputProperty = AvaloniaProperty.RegisterDirect<InputDialog, bool>(nameof(IsValidInput), d => d.isValidInput);
 
 
         // Fields.
@@ -36,7 +36,7 @@ namespace CarinaStudio.Controls
             {
                 if (this.IsClosed)
                     return;
-                this.SetAndRaise<bool>(IsValidInputProperty, ref this.isValidInput, this.OnValidateInput());
+                this.SetAndRaise(IsValidInputProperty, ref this.isValidInput, this.OnValidateInput());
             });
         }
 
@@ -102,7 +102,7 @@ namespace CarinaStudio.Controls
         /// <summary>
 		/// Check whether user input of dialog is valid or not.
 		/// </summary>
-		public bool IsValidInput { get => this.isValidInput; }
+		public bool IsValidInput => this.isValidInput;
 
 
         /// <summary>
@@ -145,9 +145,6 @@ namespace CarinaStudio.Controls
         /// <summary>
 		/// Get application instance.
 		/// </summary>
-		public new TApp Application
-        {
-            get => (base.Application as TApp) ?? throw new ArgumentException($"Application doesn't implement {typeof(TApp)} interface.");
-        }
+		public new TApp Application => (base.Application as TApp) ?? throw new ArgumentException($"Application doesn't implement {typeof(TApp)} interface.");
     }
 }

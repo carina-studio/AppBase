@@ -6,6 +6,7 @@
 		<AssemblyName>CarinaStudio.AppBase.Avalonia</AssemblyName>
 		<PackageId>CarinaStudio.AppBase.Avalonia</PackageId>
 		<Description>AppBase is a base library set for .NET application. CarinaStudio.AppBase.Avalonia provides controls and extensions for Avalonia.</Description>
+		<!--<DefineConstants>AVALONIA_11_0_0_P6_OR_ABOVE</DefineConstants>-->
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

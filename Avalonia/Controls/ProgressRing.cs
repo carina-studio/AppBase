@@ -33,8 +33,8 @@ namespace CarinaStudio.Controls
         /// </summary>
         public bool IsIndeterminate
         {
-            get => this.GetValue<bool>(IsIndeterminateProperty);
-            set => this.SetValue<bool>(IsIndeterminateProperty, value);
+            get => this.GetValue(IsIndeterminateProperty);
+            set => this.SetValue(IsIndeterminateProperty, value);
         }
 
 
@@ -43,8 +43,8 @@ namespace CarinaStudio.Controls
         /// </summary>
         public double RingBorderThickness
         {
-            get => this.GetValue<double>(RingBorderThicknessProperty);
-            set => this.SetValue<double>(RingBorderThicknessProperty, value);
+            get => this.GetValue(RingBorderThicknessProperty);
+            set => this.SetValue(RingBorderThicknessProperty, value);
         }
 
 
@@ -53,8 +53,8 @@ namespace CarinaStudio.Controls
         /// </summary>
         public double RingThickness
         {
-            get => this.GetValue<double>(RingThicknessProperty);
-            set => this.SetValue<double>(RingThicknessProperty, value);
+            get => this.GetValue(RingThicknessProperty);
+            set => this.SetValue(RingThicknessProperty, value);
         }
 
 

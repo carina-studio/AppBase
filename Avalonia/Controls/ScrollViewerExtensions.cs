@@ -1,5 +1,5 @@
-﻿using Avalonia.Controls;
-using System;
+﻿using Avalonia;
+using Avalonia.Controls;
 
 namespace CarinaStudio.Controls
 {
@@ -14,15 +14,20 @@ namespace CarinaStudio.Controls
 		/// <param name="scrollViewer"><see cref="ScrollViewer"/>.</param>
 		/// <param name="control">Control inside <see cref="ScrollViewer"/>.</param>
 		/// <returns>True if control has been scrolled into view.</returns>
-		public static bool ScrollIntoView(this ScrollViewer scrollViewer, IControl control)
+		public static bool ScrollIntoView(this ScrollViewer scrollViewer, Control control)
 		{
 			// check size
 			if (scrollViewer == control)
 				return false;
 			var scrollViewerBounds = scrollViewer.Bounds;
 			var controlBounds = control.Bounds;
-			if (scrollViewerBounds.IsEmpty || controlBounds.IsEmpty)
+			if (scrollViewerBounds.Width <= 0
+			    || scrollViewerBounds.Height <= 0
+			    || controlBounds.Width <= 0
+			    || controlBounds.Height <= 0)
+			{
 				return false;
+			}
 
 			// calculate offset in scroll viewer
 			var offsetTop = controlBounds.Top;
@@ -30,8 +35,12 @@ namespace CarinaStudio.Controls
 			var parent = control.Parent;
 			while (parent != scrollViewer && parent != null)
 			{
-				offsetTop += parent.Bounds.Top;
-				offsetLeft += parent.Bounds.Left;
+				if (parent is Visual visual)
+				{
+					var bounds = visual.Bounds;
+					offsetTop += bounds.Top;
+					offsetLeft += bounds.Left;
+				}
 				parent = parent.Parent;
 			}
 			if (parent == null)
@@ -65,7 +74,7 @@ namespace CarinaStudio.Controls
 				isScrollNeeded = true;
 			}
 			if (isScrollNeeded)
-				scrollViewer.Offset = new Avalonia.Vector(scrollOffsetX, scrollOffsetY);
+				scrollViewer.Offset = new Vector(scrollOffsetX, scrollOffsetY);
 			return true;
 		}
 	}

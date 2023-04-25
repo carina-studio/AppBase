@@ -17,19 +17,19 @@ namespace CarinaStudio.Controls
 		/// <summary>
 		/// Property of <see cref="HasDialogs"/>.
 		/// </summary>
-		public static readonly AvaloniaProperty<bool> HasDialogsProperty = AvaloniaProperty.RegisterDirect<Window, bool>(nameof(HasDialogs), w => w.hasDialogs);
+		public static readonly DirectProperty<Window, bool> HasDialogsProperty = AvaloniaProperty.RegisterDirect<Window, bool>(nameof(HasDialogs), w => w.hasDialogs);
 		/// <summary>
 		/// Property of <see cref="IsClosed"/>.
 		/// </summary>
-		public static readonly AvaloniaProperty<bool> IsClosedProperty = AvaloniaProperty.RegisterDirect<Window, bool>(nameof(IsClosed), w => w.isClosed);
+		public static readonly DirectProperty<Window, bool> IsClosedProperty = AvaloniaProperty.RegisterDirect<Window, bool>(nameof(IsClosed), w => w.isClosed);
 		/// <summary>
 		/// Property of <see cref="IsOpened"/>.
 		/// </summary>
-		public static readonly AvaloniaProperty<bool> IsOpenedProperty = AvaloniaProperty.RegisterDirect<Window, bool>(nameof(IsOpened), w => w.isOpened);
+		public static readonly DirectProperty<Window, bool> IsOpenedProperty = AvaloniaProperty.RegisterDirect<Window, bool>(nameof(IsOpened), w => w.isOpened);
 		/// <summary>
 		/// Property of <see cref="IsShownAsDialog"/>.
 		/// </summary>
-		public static readonly AvaloniaProperty<bool> IsShownAsDialogProperty = AvaloniaProperty.RegisterDirect<Window, bool>(nameof(IsShownAsDialog), w => w.isShownAsDialog);
+		public static readonly DirectProperty<Window, bool> IsShownAsDialogProperty = AvaloniaProperty.RegisterDirect<Window, bool>(nameof(IsShownAsDialog), w => w.isShownAsDialog);
 
 
 		// Constants.
@@ -81,7 +81,7 @@ namespace CarinaStudio.Controls
 						RefreshChildWindowPositions(childWindow);
 					}
 				}
-				foreach (var (childWindow, isDialog) in this.children!)
+				foreach (var (_, isDialog) in this.children!)
 				{
 					if (isDialog)
 					{
@@ -153,13 +153,13 @@ namespace CarinaStudio.Controls
 		/// <summary>
 		/// Get whether at least one dialog owned by this window is shown or not.
 		/// </summary>
-		public bool HasDialogs { get => this.hasDialogs; }
+		public bool HasDialogs => this.hasDialogs;
 
 
 		/// <summary>
 		/// Check whether window is closed or not.
 		/// </summary>
-		public bool IsClosed { get => this.isClosed; }
+		public bool IsClosed => this.isClosed;
 
 
 		// Check whether given window is shown as dialog or not.
@@ -184,13 +184,13 @@ namespace CarinaStudio.Controls
 		/// <summary>
 		/// Check whether window is opened or not.
 		/// </summary>
-		public bool IsOpened { get => this.isOpened; }
+		public bool IsOpened => this.isOpened;
 
 
 		/// <summary>
 		/// Check whether window is shown as dialog or not.
 		/// </summary>
-		public bool IsShownAsDialog { get => this.isShownAsDialog; }
+		public bool IsShownAsDialog => this.isShownAsDialog;
 
 
 		// Called when child window opened or closed.
@@ -312,12 +312,9 @@ namespace CarinaStudio.Controls
 								PixelPoint ownerPosition;
 								Size ownerSize;
 								var heightWithTitleBar = height + titleBarHeight;
-								if (owner is CarinaStudio.Controls.Window csWindow)
+								if (owner is Window csWindow)
 								{
-									ownerPosition = csWindow.expectedInitPosition?.Let(it =>
-									{
-										return new PixelPoint(it.X, (int)(it.Y + titleBarHeight * screenScale + 0.5));
-									}) ?? csWindow.Position;
+									ownerPosition = csWindow.expectedInitPosition?.Let(it => new PixelPoint(it.X, (int)(it.Y + titleBarHeight * screenScale + 0.5))) ?? csWindow.Position;
 									ownerSize = csWindow.expectedInitSize ?? new(csWindow.Width, csWindow.Height);
 								}
 								else
