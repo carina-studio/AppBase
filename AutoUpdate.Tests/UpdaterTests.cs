@@ -323,9 +323,9 @@ namespace CarinaStudio.AutoUpdate
 		}
 		void GeneratePackageFile(string rootDirectory, string directory, ZipArchive zipArchive)
 		{
-			foreach (var fileName in Directory.EnumerateFiles(directory))
+			foreach (var fileName in System.IO.Directory.EnumerateFiles(directory))
 				zipArchive.CreateEntryFromFile(fileName, Path.GetRelativePath(rootDirectory, fileName).Replace('\\', '/'));
-			foreach (var subDirectory in Directory.EnumerateDirectories(directory))
+			foreach (var subDirectory in System.IO.Directory.EnumerateDirectories(directory))
 				this.GeneratePackageFile(rootDirectory, subDirectory, zipArchive);
 		}
 
@@ -361,6 +361,8 @@ namespace CarinaStudio.AutoUpdate
 				{
 					if (e.PropertyName == nameof(Updater.Progress))
 					{
+						if (updater.State != UpdaterState.DownloadingPackage)
+							return;
 						var progress = updater.Progress;
 						if (double.IsFinite(progress))
 						{

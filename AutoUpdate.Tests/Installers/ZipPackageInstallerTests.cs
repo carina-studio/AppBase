@@ -26,9 +26,9 @@ namespace CarinaStudio.AutoUpdate.Installers
 		}
 		void CreatePackageFile(string rootDirectory, string directory, ZipArchive zipArchive)
 		{
-			foreach (var fileName in Directory.EnumerateFiles(directory))
+			foreach (var fileName in System.IO.Directory.EnumerateFiles(directory))
 				zipArchive.CreateEntryFromFile(fileName, Path.GetRelativePath(rootDirectory, fileName).Replace('\\', '/'));
-			foreach (var subDirectory in Directory.EnumerateDirectories(directory))
+			foreach (var subDirectory in System.IO.Directory.EnumerateDirectories(directory))
 				this.CreatePackageFile(rootDirectory, subDirectory, zipArchive);
 		}
 	}

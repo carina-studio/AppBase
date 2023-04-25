@@ -15,18 +15,18 @@ namespace CarinaStudio.AutoUpdate
 	/// <summary>
 	/// Core object to perform auto/self update.
 	/// </summary>
-	public class Updater : BaseDisposableApplicationObject, INotifyPropertyChanged, IThreadDependent
+	public class Updater : BaseDisposableApplicationObject, INotifyPropertyChanged
 	{
 		// Fields.
 		string? applicationDirectoryPath;
 		bool backupApplicationCompletely;
-		readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+		readonly CancellationTokenSource cancellationTokenSource = new();
 		readonly ILogger logger;
 		IPackageInstaller? packageInstaller;
 		IPackageResolver? packageResolver;
 		double progress = double.NaN;
 		UpdaterState state = UpdaterState.Initializing;
-		readonly object waitingSyncLock = new object();
+		readonly object waitingSyncLock = new();
 
 
 		/// <summary>
@@ -89,14 +89,14 @@ namespace CarinaStudio.AutoUpdate
 				this.logger.LogWarning("Cancelled after backing up application");
 				Global.RunWithoutErrorAsync(() => 
 				{
-					this.logger.LogTrace($"Delete back up directory '{backupDirectory}'");
+					this.logger.LogTrace("Delete back up directory '{backupDirectory}'", backupDirectory);
 					try
 					{
 						Directory.Delete(backupDirectory, true);
 					}
 					catch (Exception ex)
 					{
-						this.logger.LogError(ex, $"Failed to delete back up directory '{backupDirectory}'");
+						this.logger.LogError(ex, "Failed to delete back up directory '{backupDirectory}'", backupDirectory);
 					}
 				});
 				this.CompleteUpdating(null);
@@ -157,7 +157,7 @@ namespace CarinaStudio.AutoUpdate
 		{
 			if (this.state == state)
 				return true;
-			this.logger.LogDebug($"Change state from {this.state} to {state}");
+			this.logger.LogDebug("Change state from {currentState} to {state}", this.state, state);
 			this.state = state;
 			this.OnPropertyChanged(nameof(State));
 			return (this.state == state);
@@ -212,7 +212,7 @@ namespace CarinaStudio.AutoUpdate
 		{
 			try
 			{
-				this.logger.LogTrace($"Start copying items in '{srcDirectory}' to '{destDirectory}'");
+				this.logger.LogTrace("Start copying items in '{srcDirectory}' to '{destDirectory}'", srcDirectory, destDirectory);
 				foreach (var srcFilePath in Directory.EnumerateFiles(srcDirectory))
 				{
 					var retryCount = 10;
@@ -221,10 +221,10 @@ namespace CarinaStudio.AutoUpdate
 					{
 						try
 						{
-							this.logger.LogTrace($"Copy '{srcFilePath}' to '{destFilePath}'");
+							this.logger.LogTrace("Copy '{srcFilePath}' to '{destFilePath}'", srcFilePath, destFilePath);
 							if (File.Exists(destFilePath))
 							{
-								this.logger.LogTrace($"Delete destination file '{destFilePath}' first");
+								this.logger.LogTrace("Delete destination file '{destFilePath}' first", destFilePath);
 								File.Delete(destFilePath);
 							}
 							File.Copy(srcFilePath, destFilePath, false);
@@ -235,12 +235,12 @@ namespace CarinaStudio.AutoUpdate
 							if (retryCount > 0)
 							{
 								--retryCount;
-								this.logger.LogError(ex, $"Failed to copy '{srcFilePath}' to '{destFilePath}', try copy again");
+								this.logger.LogError(ex, "Failed to copy '{srcFilePath}' to '{destFilePath}', try copy again", srcFilePath, destFilePath);
 								Thread.Sleep(500);
 							}
 							else
 							{
-								this.logger.LogError(ex, $"Failed to copy '{srcFilePath}' to '{destFilePath}'");
+								this.logger.LogError(ex, "Failed to copy '{srcFilePath}' to '{destFilePath}'", srcFilePath, destFilePath);
 								if (throwException)
 									throw;
 								break;
@@ -263,7 +263,7 @@ namespace CarinaStudio.AutoUpdate
 					}
 					catch (Exception ex)
 					{
-						this.logger.LogError(ex, $"Failed to copy items from '{srcSubDirectory}' to '{destSubDirectory}'");
+						this.logger.LogError(ex, "Failed to copy items from '{srcSubDirectory}' to '{destSubDirectory}'", srcSubDirectory, destSubDirectory);
 						if (throwException)
 							throw;
 					}
@@ -273,11 +273,11 @@ namespace CarinaStudio.AutoUpdate
 						return;
 					}
 				}
-				this.logger.LogTrace($"Complete copying items in '{srcDirectory}' to '{destDirectory}'");
+				this.logger.LogTrace("Complete copying items in '{srcDirectory}' to '{destDirectory}'", srcDirectory, destDirectory);
 			}
 			catch (Exception ex)
 			{
-				this.logger.LogError(ex, $"Error occurred while copying items in '{srcDirectory}' to '{destDirectory}'");
+				this.logger.LogError(ex, "Error occurred while copying items in '{srcDirectory}' to '{destDirectory}'", srcDirectory, destDirectory);
 				if (throwException)
 					throw;
 			}
@@ -308,12 +308,12 @@ namespace CarinaStudio.AutoUpdate
 				{
 					var directory = Path.Combine(Path.GetTempPath(), $"CarinaStudio-AutoUpdate-{DateTime.Now.ToBinary()}");
 					Directory.CreateDirectory(directory);
-					this.logger.LogTrace($"Directory to backup application: '{directory}'");
+					this.logger.LogTrace("Directory to backup application: '{directory}'", directory);
 					return directory;
 				}
 				catch (Exception ex)
 				{
-					this.logger.LogError(ex, $"Unable to create directory to back up application");
+					this.logger.LogError(ex, "Unable to create directory to back up application");
 					exception = ex;
 					return null;
 				}
@@ -373,11 +373,11 @@ namespace CarinaStudio.AutoUpdate
 				return null;
 
 			// create temp file
-			var packageFilePath = (string?)null;
+			string? packageFilePath;
 			try
 			{
 				packageFilePath = await Task.Run(Path.GetTempFileName);
-				this.logger.LogTrace($"Temp file for downloaded package: {packageFilePath}");
+				this.logger.LogTrace("Temp file for downloaded package: {packageFilePath}", packageFilePath);
 			}
 			catch (Exception ex)
 			{
@@ -392,7 +392,7 @@ namespace CarinaStudio.AutoUpdate
 			{
 				if (this.cancellationTokenSource.IsCancellationRequested)
 					return;
-				this.logger.LogTrace($"Size of downloaded package: {downloadedSize}, total: {this.PackageSize.GetValueOrDefault()}");
+				this.logger.LogTrace("Size of downloaded package: {downloadedSize}, total: {size}", downloadedSize, this.PackageSize.GetValueOrDefault());
 				this.DownloadedPackageSize = downloadedSize;
 				this.OnPropertyChanged(nameof(DownloadedPackageSize));
 				var packageSize = this.PackageSize.GetValueOrDefault();
@@ -404,7 +404,7 @@ namespace CarinaStudio.AutoUpdate
 				await Task.Run(() =>
 				{
 					// get response
-					this.logger.LogDebug($"Start downloading package from '{packageUri}'");
+					this.logger.LogDebug("Start downloading package from '{packageUri}'", packageUri);
 #pragma warning disable SYSLIB0014
 					using var response = WebRequest.Create(packageUri).GetResponse();
 #pragma warning restore SYSLIB0014
@@ -423,11 +423,13 @@ namespace CarinaStudio.AutoUpdate
 					{
 						packageSize = response.ContentLength;
 					}
+					// ReSharper disable EmptyGeneralCatchClause
 					catch
 					{ }
+					// ReSharper restore EmptyGeneralCatchClause
 					if (packageSize > 0)
 					{
-						this.logger.LogDebug($"Size of package to download: {packageSize}");
+						this.logger.LogDebug("Size of package to download: {packageSize}", packageSize);
 						this.SynchronizationContext.Post(() =>
 						{
 							this.PackageSize = packageSize;
@@ -453,7 +455,7 @@ namespace CarinaStudio.AutoUpdate
 						readCount = downloadStream.Read(buffer, 0, buffer.Length);
 					}
 					reportProgressAction.Reschedule();
-					this.logger.LogDebug($"Complete downloading package from '{packageUri}'");
+					this.logger.LogDebug("Complete downloading package from '{packageUri}'", packageUri);
 				});
 			}
 			catch (Exception ex)
@@ -514,7 +516,7 @@ namespace CarinaStudio.AutoUpdate
 						}
 						catch (Exception ex)
 						{
-							this.logger.LogError(ex, $"Failed to backup file '{targetFilePath}' before installation");
+							this.logger.LogError(ex, "Failed to backup file '{targetFilePath}' before installation", targetFilePath);
 							return false;
 						}
 					};
@@ -631,7 +633,7 @@ namespace CarinaStudio.AutoUpdate
 		/// <summary>
 		/// Get current progress of updating. Range is [0.0, 1.0] or <see cref="double.NaN"/> if progress is unavailable.
 		/// </summary>
-		public double Progress { get => this.progress; }
+		public double Progress => this.progress;
 
 
 		/// <summary>
@@ -702,7 +704,7 @@ namespace CarinaStudio.AutoUpdate
 		}
 
 
-		// Restore backuped application.
+		// Restore backed up application.
 		async Task RestoreApplicationAsync(string backupDirectory)
 		{
 			// check state
@@ -725,8 +727,10 @@ namespace CarinaStudio.AutoUpdate
 			{
 				await Task.Run(() => this.CopyFiles(backupDirectory, this.applicationDirectoryPath.AsNonNull(), new CancellationToken(), false));
 			}
+			// ReSharper disable EmptyGeneralCatchClause
 			catch
 			{ }
+			// ReSharper restore EmptyGeneralCatchClause
 		}
 
 
@@ -794,7 +798,7 @@ namespace CarinaStudio.AutoUpdate
 							Monitor.Wait(this.waitingSyncLock, 1000);
 					}
 				}
-			});
+			}, CancellationToken.None);
 			if (this.IsUpdating)
 				throw new TaskCanceledException();
 			return true;
@@ -804,7 +808,7 @@ namespace CarinaStudio.AutoUpdate
 		/// <summary>
 		/// Get current state.
 		/// </summary>
-		public UpdaterState State { get => this.state; }
+		public UpdaterState State => this.state;
 
 
 		// Updating process.
@@ -834,7 +838,7 @@ namespace CarinaStudio.AutoUpdate
 				return;
 
 			// wait for backing up application
-			var backupDirectory = (string?)null;
+			string? backupDirectory;
 			if (backupTask.IsCompleted)
 				backupDirectory = backupTask.Result;
 			else
@@ -883,7 +887,7 @@ namespace CarinaStudio.AutoUpdate
 		void VerifyInitializing()
 		{
 			if (this.state != UpdaterState.Initializing)
-				throw new InvalidOperationException($"Cannot perform oprtation when state is {this.state}.");
+				throw new InvalidOperationException($"Cannot perform operation when state is {this.state}.");
 		}
 
 

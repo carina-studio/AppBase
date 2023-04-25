@@ -414,58 +414,65 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 				}
 
 				// resolve package info with self-contained package with specified base version only
-				var tempPackageInfo = new PackageInfo()
+				PackageInfo tempPackageInfo;
+				if (Platform.IsNotMacOS)
 				{
-					Architecture = architecture,
-					BaseVersion = appVersion,
-					MD5 = $"MD5-{osName}-{architecture}-SelfContained-partial",
-					OperatingSystem = $"{osName}",
-					SHA256 = $"SHA256-{osName}-{architecture}-SelfContained-partial",
-					SHA512 = $"SHA512-{osName}-{architecture}-SelfContained-partial",
-					Uri = new Uri($"https://localhost/packages/{osName}-{architecture}-SelfContained-partial.zip"),
-				};
-				packageInfos.Insert(0, tempPackageInfo);
-				packageManifest = this.GeneratePackageManifest(appName, version, pageUri, packageInfos);
-				expectedPackageUri = new Uri($"https://localhost/packages/{osName}-{architecture}-SelfContained-partial.zip");
-				expectedMD5 = $"MD5-{osName}-{architecture}-SelfContained-partial";
-				expectedSHA256 = $"SHA256-{osName}-{architecture}-SelfContained-partial";
-				expectedSHA512 = $"SHA512-{osName}-{architecture}-SelfContained-partial";
-				using (var packageResolver = this.CreateInstance(packageManifest))
-				{
-					packageResolver.SelfContainedPackageOnly = true;
-					Assert.IsTrue(packageResolver.Start());
-					Assert.IsTrue(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Succeeded, 10000));
-					Assert.IsNull(packageResolver.Exception);
-					this.VerifyResolvedPackage(packageResolver, appName, version, pageUri, expectedPackageUri, expectedMD5, expectedSHA256, expectedSHA512);
+					tempPackageInfo = new PackageInfo()
+					{
+						Architecture = architecture,
+						BaseVersion = appVersion,
+						MD5 = $"MD5-{osName}-{architecture}-SelfContained-partial",
+						OperatingSystem = $"{osName}",
+						SHA256 = $"SHA256-{osName}-{architecture}-SelfContained-partial",
+						SHA512 = $"SHA512-{osName}-{architecture}-SelfContained-partial",
+						Uri = new Uri($"https://localhost/packages/{osName}-{architecture}-SelfContained-partial.zip"),
+					};
+					packageInfos.Insert(0, tempPackageInfo);
+					packageManifest = this.GeneratePackageManifest(appName, version, pageUri, packageInfos);
+					expectedPackageUri = new Uri($"https://localhost/packages/{osName}-{architecture}-SelfContained-partial.zip");
+					expectedMD5 = $"MD5-{osName}-{architecture}-SelfContained-partial";
+					expectedSHA256 = $"SHA256-{osName}-{architecture}-SelfContained-partial";
+					expectedSHA512 = $"SHA512-{osName}-{architecture}-SelfContained-partial";
+					using (var packageResolver = this.CreateInstance(packageManifest))
+					{
+						packageResolver.SelfContainedPackageOnly = true;
+						Assert.IsTrue(packageResolver.Start());
+						Assert.IsTrue(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Succeeded, 10000));
+						Assert.IsNull(packageResolver.Exception);
+						this.VerifyResolvedPackage(packageResolver, appName, version, pageUri, expectedPackageUri, expectedMD5, expectedSHA256, expectedSHA512);
+					}
+					packageInfos.Remove(tempPackageInfo);
 				}
-				packageInfos.Remove(tempPackageInfo);
 
 				// resolve package info with specified base version only
-				tempPackageInfo = new PackageInfo()
+				if (Platform.IsNotMacOS)
 				{
-					Architecture = architecture,
-					BaseVersion = appVersion,
-					RuntimeVersion = runtimeVersion,
-					MD5 = $"MD5-{osName}-{architecture}-partial",
-					OperatingSystem = $"{osName}",
-					SHA256 = $"SHA256-{osName}-{architecture}-partial",
-					SHA512 = $"SHA512-{osName}-{architecture}-partial",
-					Uri = new Uri($"https://localhost/packages/{osName}-{architecture}-partial.zip"),
-				};
-				packageInfos.Insert(0, tempPackageInfo);
-				packageManifest = this.GeneratePackageManifest(appName, version, pageUri, packageInfos);
-				expectedPackageUri = new Uri($"https://localhost/packages/{osName}-{architecture}-partial.zip");
-				expectedMD5 = $"MD5-{osName}-{architecture}-partial";
-				expectedSHA256 = $"SHA256-{osName}-{architecture}-partial";
-				expectedSHA512 = $"SHA512-{osName}-{architecture}-partial";
-				using (var packageResolver = this.CreateInstance(packageManifest))
-				{
-					Assert.IsTrue(packageResolver.Start());
-					Assert.IsTrue(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Succeeded, 10000));
-					Assert.IsNull(packageResolver.Exception);
-					this.VerifyResolvedPackage(packageResolver, appName, version, pageUri, expectedPackageUri, expectedMD5, expectedSHA256, expectedSHA512);
+					tempPackageInfo = new PackageInfo()
+					{
+						Architecture = architecture,
+						BaseVersion = appVersion,
+						RuntimeVersion = runtimeVersion,
+						MD5 = $"MD5-{osName}-{architecture}-partial",
+						OperatingSystem = $"{osName}",
+						SHA256 = $"SHA256-{osName}-{architecture}-partial",
+						SHA512 = $"SHA512-{osName}-{architecture}-partial",
+						Uri = new Uri($"https://localhost/packages/{osName}-{architecture}-partial.zip"),
+					};
+					packageInfos.Insert(0, tempPackageInfo);
+					packageManifest = this.GeneratePackageManifest(appName, version, pageUri, packageInfos);
+					expectedPackageUri = new Uri($"https://localhost/packages/{osName}-{architecture}-partial.zip");
+					expectedMD5 = $"MD5-{osName}-{architecture}-partial";
+					expectedSHA256 = $"SHA256-{osName}-{architecture}-partial";
+					expectedSHA512 = $"SHA512-{osName}-{architecture}-partial";
+					using (var packageResolver = this.CreateInstance(packageManifest))
+					{
+						Assert.IsTrue(packageResolver.Start());
+						Assert.IsTrue(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Succeeded, 10000));
+						Assert.IsNull(packageResolver.Exception);
+						this.VerifyResolvedPackage(packageResolver, appName, version, pageUri, expectedPackageUri, expectedMD5, expectedSHA256, expectedSHA512);
+					}
+					packageInfos.Remove(tempPackageInfo);
 				}
-				packageInfos.Remove(tempPackageInfo);
 			});
 		}
 

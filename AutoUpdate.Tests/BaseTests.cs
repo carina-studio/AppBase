@@ -25,7 +25,7 @@ namespace CarinaStudio.AutoUpdate
 		/// <summary>
 		/// Get <see cref="IApplication"/> instance for testing.
 		/// </summary>
-		protected IApplication Application { get => this.application.AsNonNull(); }
+		protected IApplication Application => this.application.AsNonNull();
 
 
 		/// <summary>
@@ -35,7 +35,7 @@ namespace CarinaStudio.AutoUpdate
 		public void ClearRootTempDirectory()
 		{
 			if (!string.IsNullOrEmpty(this.tempDirectory))
-				Directory.Delete(this.tempDirectory, true);
+				System.IO.Directory.Delete(this.tempDirectory, true);
 		}
 
 
@@ -59,8 +59,8 @@ namespace CarinaStudio.AutoUpdate
 		/// <param name="filePaths"><see cref="ISet{T}"/> to collect file paths.</param>
 		protected void CollectFilePaths(string directory, ISet<string> filePaths)
 		{
-			filePaths.AddAll(Directory.EnumerateFiles(directory));
-			foreach (var subDirectory in Directory.EnumerateDirectories(directory))
+			filePaths.AddAll(System.IO.Directory.EnumerateFiles(directory));
+			foreach (var subDirectory in System.IO.Directory.EnumerateDirectories(directory))
 				this.CollectFilePaths(subDirectory, filePaths);
 		}
 
@@ -75,9 +75,9 @@ namespace CarinaStudio.AutoUpdate
 			var path = Path.Combine(this.RootTempDirectoryPath, name);
 			while (true)
 			{
-				if (!Directory.Exists(path))
+				if (!System.IO.Directory.Exists(path))
 				{
-					Directory.CreateDirectory(path);
+					System.IO.Directory.CreateDirectory(path);
 					return path;
 				}
 				name = Tests.Random.GenerateRandomString(8);
@@ -105,7 +105,7 @@ namespace CarinaStudio.AutoUpdate
 			}
 
 			// create second level files
-			var subDirectoryInfo = Directory.CreateDirectory(Path.Combine(rootDirectory, "SubDirectory_1"));
+			var subDirectoryInfo = System.IO.Directory.CreateDirectory(Path.Combine(rootDirectory, "SubDirectory_1"));
 			for (var i = Tests.Random.Next(1, 17); i > 0; --i)
 			{
 				using var stream = Tests.Random.CreateFileWithRandomName(subDirectoryInfo);
@@ -113,7 +113,7 @@ namespace CarinaStudio.AutoUpdate
 				Tests.Random.NextBytes(data);
 				stream.Write(data);
 			}
-			subDirectoryInfo = Directory.CreateDirectory(Path.Combine(rootDirectory, "SubDirectory_2"));
+			subDirectoryInfo = System.IO.Directory.CreateDirectory(Path.Combine(rootDirectory, "SubDirectory_2"));
 			for (var i = Tests.Random.Next(1, 17); i > 0; --i)
 			{
 				using var stream = Tests.Random.CreateFileWithRandomName(subDirectoryInfo);
@@ -123,7 +123,7 @@ namespace CarinaStudio.AutoUpdate
 			}
 
 			// create third level files
-			subDirectoryInfo = Directory.CreateDirectory(Path.Combine(subDirectoryInfo.FullName, "SubDirectory_3"));
+			subDirectoryInfo = System.IO.Directory.CreateDirectory(Path.Combine(subDirectoryInfo.FullName, "SubDirectory_3"));
 			for (var i = Tests.Random.Next(1, 17); i > 0; --i)
 			{
 				using var stream = Tests.Random.CreateFileWithRandomName(subDirectoryInfo);
@@ -150,7 +150,7 @@ namespace CarinaStudio.AutoUpdate
 		/// <summary>
 		/// Get root temporary directory.
 		/// </summary>
-		protected string RootTempDirectoryPath { get => this.tempDirectory ?? throw new InvalidOperationException(); }
+		protected string RootTempDirectoryPath => this.tempDirectory ?? throw new InvalidOperationException();
 
 
 		/// <summary>
@@ -176,7 +176,7 @@ namespace CarinaStudio.AutoUpdate
 		public void SetupRootTempDirectory()
 		{
 			var path = Path.Combine(Path.GetTempPath(), $"{this.GetType().Name}-{DateTime.Now.ToBinary()}");
-			Directory.CreateDirectory(path);
+			System.IO.Directory.CreateDirectory(path);
 			this.tempDirectory = path;
 		}
 
@@ -249,8 +249,8 @@ namespace CarinaStudio.AutoUpdate
 		protected void VerifyFilesAndDirectories(string refDirectory, string directory)
 		{
 			// verify files
-			var refFileNames = Directory.GetFiles(refDirectory).Also(it => Array.Sort(it, string.Compare));
-			var fileNames = Directory.GetFiles(directory).Also(it => Array.Sort(it, string.Compare));
+			var refFileNames = System.IO.Directory.GetFiles(refDirectory).Also(it => Array.Sort(it, string.Compare));
+			var fileNames = System.IO.Directory.GetFiles(directory).Also(it => Array.Sort(it, string.Compare));
 			Assert.AreEqual(refFileNames.Length, fileNames.Length);
 			for (var i = refFileNames.Length - 1; i >= 0; --i)
 			{
@@ -263,8 +263,8 @@ namespace CarinaStudio.AutoUpdate
 			}
 
 			// verify sub directories
-			var refSubDirectories = Directory.GetDirectories(refDirectory).Also(it => Array.Sort(it, string.Compare));
-			var subDirectories = Directory.GetDirectories(directory).Also(it => Array.Sort(it, string.Compare));
+			var refSubDirectories = System.IO.Directory.GetDirectories(refDirectory).Also(it => Array.Sort(it, string.Compare));
+			var subDirectories = System.IO.Directory.GetDirectories(directory).Also(it => Array.Sort(it, string.Compare));
 			Assert.AreEqual(refSubDirectories.Length, subDirectories.Length);
 			for (var i = refSubDirectories.Length - 1; i >= 0; --i)
 			{
