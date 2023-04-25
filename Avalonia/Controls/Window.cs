@@ -74,7 +74,11 @@ namespace CarinaStudio.Controls
 					{
 						if (!isDialog)
 						{
+#if AVALONIA_11_0_0_P4
 							var handle = (childWindow.PlatformImpl?.Handle.Handle).GetValueOrDefault();
+#else
+							var handle = (childWindow.TryGetPlatformHandle()?.Handle).GetValueOrDefault();
+#endif
 							var childNSWindow = NSWindow.FromHandle<NSWindow>(handle);
 							childNSWindow?.OrderFront();
 						}

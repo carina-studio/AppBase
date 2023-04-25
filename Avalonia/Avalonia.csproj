@@ -6,7 +6,6 @@
 		<AssemblyName>CarinaStudio.AppBase.Avalonia</AssemblyName>
 		<PackageId>CarinaStudio.AppBase.Avalonia</PackageId>
 		<Description>AppBase is a base library set for .NET application. CarinaStudio.AppBase.Avalonia provides controls and extensions for Avalonia.</Description>
-		<!--<DefineConstants>AVALONIA_11_0_0_P6_OR_ABOVE</DefineConstants>-->
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -18,12 +17,22 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Avalonia" Version="11.0.0-preview4" />
+		<PackageReference Include="Avalonia" Version="$(AvaloniaVersion)" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\Core\Core.csproj" />
 		<ProjectReference Include="..\MacOS\MacOS.csproj" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(AvaloniaVersion)'!='11.0.0-preview4'">
+		<AvaloniaResource Remove="Theme/Base.axaml" />
+		<AvaloniaResource Remove="Theme/Dark.axaml" />
+		<AvaloniaResource Remove="Theme/Light.axaml" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(AvaloniaVersion)'=='11.0.0-preview4'">
+		<AvaloniaResource Remove="Theme/Default.axaml" />
 	</ItemGroup>
 
 </Project>

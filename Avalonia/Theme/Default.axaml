@@ -1,0 +1,147 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:CarinaStudio.Controls"
+        xmlns:preseters="using:CarinaStudio.Controls.Presenters">
+
+    <!-- Resources -->
+    <Styles.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+        
+                <!-- Dark -->
+                <ResourceDictionary x:Key="Dark">
+                    
+                    <!-- ObjectTextBox -->
+                    <SolidColorBrush x:Key="ObjectTextBoxBackgroundInvalid" Color="#663333"/>
+                    <SolidColorBrush x:Key="ObjectTextBoxBackgroundInvalidPointerOver" Color="#733939"/>
+
+                    <!-- ValueTextBox -->
+                    <SolidColorBrush x:Key="ValueTextBoxBackgroundInvalid" Color="#663333"/>
+                    <SolidColorBrush x:Key="ValueTextBoxBackgroundInvalidPointerOver" Color="#733939"/>
+
+                    <!-- LinkTextBlock -->
+                    <SolidColorBrush x:Key="LinkTextBlockForeground" Color="#0085e5"/>
+                    <SolidColorBrush x:Key="LinkTextBlockForegroundDisabled" Color="#4d0085e5"/>
+                    <SolidColorBrush x:Key="LinkTextBlockForegroundPointerOver" Color="#32aaff"/>
+                    <SolidColorBrush x:Key="LinkTextBlockForegroundPressed" Color="#0077cc"/>
+                    
+                </ResourceDictionary>
+                
+                <!-- Default -->
+                <ResourceDictionary x:Key="Default">
+                    
+                    <!-- ObjectTextBox -->
+                    <SolidColorBrush x:Key="ObjectTextBoxBackgroundInvalid" Color="#ff0000"/>
+                    <SolidColorBrush x:Key="ObjectTextBoxBackgroundInvalidPointerOver" Color="#ff0000"/>
+                    <SolidColorBrush x:Key="ObjectTextBoxBorderInvalid" Color="#ff0000"/>
+                    <SolidColorBrush x:Key="ObjectTextBoxBorderInvalidPointerOver" Color="#ff0000"/>
+
+                    <!-- ValueTextBox -->
+                    <SolidColorBrush x:Key="ValueTextBoxBackgroundInvalid" Color="#ff0000"/>
+                    <SolidColorBrush x:Key="ValueTextBoxBackgroundInvalidPointerOver" Color="#ff0000"/>
+                    <SolidColorBrush x:Key="ValueTextBoxBorderInvalid" Color="#ff0000"/>
+                    <SolidColorBrush x:Key="ValueTextBoxBorderInvalidPointerOver" Color="#ff0000"/>
+                    
+                </ResourceDictionary>
+                
+                <!-- Light -->
+                <ResourceDictionary x:Key="Light">
+                    
+                    <!-- ObjectTextBox -->
+                    <SolidColorBrush x:Key="ObjectTextBoxBackgroundInvalid" Color="#ffb3b3"/>
+                    <SolidColorBrush x:Key="ObjectTextBoxBackgroundInvalidPointerOver" Color="#ffbfbf"/>
+
+                    <!-- ValueTextBox -->
+                    <SolidColorBrush x:Key="ValueTextBoxBackgroundInvalid" Color="#ffb3b3"/>
+                    <SolidColorBrush x:Key="ValueTextBoxBackgroundInvalidPointerOver" Color="#ffbfbf"/>
+
+                    <!-- LinkTextBlock -->
+                    <SolidColorBrush x:Key="LinkTextBlockForeground" Color="#0077cc"/>
+                    <SolidColorBrush x:Key="LinkTextBlockForegroundDisabled" Color="#4d0077cc"/>
+                    <SolidColorBrush x:Key="LinkTextBlockForegroundPointerOver" Color="#0085e5"/>
+                    <SolidColorBrush x:Key="LinkTextBlockForegroundPressed" Color="#0068b2"/>
+                    
+                </ResourceDictionary>
+
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
+    </Styles.Resources>
+
+    <!-- LinkTextBlock -->
+	<Style Selector="controls|LinkTextBlock">
+		<Setter Property="Background" Value="{x:Static Brushes.Transparent}"/>
+		<Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Focusable" Value="True"/>
+		<Setter Property="Foreground" Value="{DynamicResource LinkTextBlockForeground}"/>
+		<Setter Property="ToolTip.Tip" Value="{Binding $self.Uri}"/>
+	</Style>
+	<Style Selector="controls|LinkTextBlock:disabled">
+        <Setter Property="Focusable" Value="False"/>
+		<Setter Property="Foreground" Value="{DynamicResource LinkTextBlockForegroundDisabled}"/>
+	</Style>
+	<Style Selector="controls|LinkTextBlock:pointerover">
+		<Setter Property="Foreground" Value="{DynamicResource LinkTextBlockForegroundPointerOver}"/>
+	</Style>
+	<Style Selector="controls|LinkTextBlock:pressed">
+		<Setter Property="Foreground" Value="{DynamicResource LinkTextBlockForegroundPressed}"/>
+	</Style>
+
+    <!-- ObjectTextBox -->
+    <Style Selector="TextBox:invalidObjectTextBoxText">
+        <Setter Property="Background" Value="{DynamicResource ObjectTextBoxBackgroundInvalid}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ObjectTextBoxBorderInvalid}"/>
+    </Style>
+    <Style Selector="TextBox:invalidObjectTextBoxText:disabled /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="{DynamicResource ObjectTextBoxBackgroundInvalid}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ObjectTextBoxBorderInvalid}"/>
+    </Style>
+    <Style Selector="TextBox:invalidObjectTextBoxText:focus /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="{DynamicResource ObjectTextBoxBackgroundInvalid}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ObjectTextBoxBorderInvalid}"/>
+    </Style>
+    <Style Selector="TextBox:invalidObjectTextBoxText:pointerover /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="{DynamicResource ObjectTextBoxBackgroundInvalidPointerOver}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ObjectTextBoxBorderInvalidPointerOver}"/>
+    </Style>
+
+    <!-- ProgressRing -->
+    <Style Selector="controls|ProgressRing">
+        <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundBaseLowBrush}"/>
+		<Setter Property="Foreground" Value="{DynamicResource SystemControlHighlightAccentBrush}"/>
+        <Setter Property="RingBorderThickness" Value="0"/>
+        <Setter Property="RingThickness" Value="5"/>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <preseters:ProgressRingPresenter
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding RingBorderThickness}"
+                    IsIndeterminate="{TemplateBinding IsIndeterminate}"
+                    MaxProgress="{TemplateBinding Maximum}"
+                    MinProgress="{TemplateBinding Minimum}"
+                    Progress="{TemplateBinding Value}"
+                    ProgressBrush="{TemplateBinding Foreground}"
+                    RingBrush="{TemplateBinding Background}"
+                    RingThickness="{TemplateBinding RingThickness}"/>
+            </ControlTemplate>
+        </Setter>
+	</Style>
+
+    <!-- ValueTextBox -->
+    <Style Selector="TextBox:invalidValueTextBoxText">
+        <Setter Property="Background" Value="{DynamicResource ValueTextBoxBackgroundInvalid}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ValueTextBoxBorderInvalid}"/>
+    </Style>
+    <Style Selector="TextBox:invalidValueTextBoxText:disabled /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="{DynamicResource ValueTextBoxBackgroundInvalid}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ValueTextBoxBorderInvalid}"/>
+    </Style>
+    <Style Selector="TextBox:invalidValueTextBoxText:focus /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="{DynamicResource ValueTextBoxBackgroundInvalid}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ValueTextBoxBorderInvalid}"/>
+    </Style>
+    <Style Selector="TextBox:invalidValueTextBoxText:pointerover /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="{DynamicResource ValueTextBoxBackgroundInvalidPointerOver}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ValueTextBoxBorderInvalidPointerOver}"/>
+    </Style>
+
+</Styles>

@@ -3,6 +3,5 @@
              x:Class="CarinaStudio.App">
     <Application.Styles>
         <FluentTheme/>
-        <StyleInclude Source="avares://CarinaStudio.AppBase.Avalonia/Theme/Light.axaml"/>
     </Application.Styles>
 </Application>

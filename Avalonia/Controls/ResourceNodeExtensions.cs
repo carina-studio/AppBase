@@ -1,5 +1,5 @@
 ﻿using Avalonia.Controls;
-#if AVALONIA_11_0_0_P6_OR_ABOVE
+#if !AVALONIA_11_0_0_P4
 using Avalonia.Styling;
 #endif
 using System.Diagnostics.CodeAnalysis;
@@ -11,7 +11,7 @@ namespace CarinaStudio.Controls
     /// </summary>
     public static class ResourceNodeExtensions
     {
-#if AVALONIA_11_0_0_P6_OR_ABOVE
+#if !AVALONIA_11_0_0_P4
 	    // Get actual theme of given object.
 	    static ThemeVariant? GetActualThemeVariant(object obj) => obj switch
 	    {
@@ -21,7 +21,7 @@ namespace CarinaStudio.Controls
 #endif
 	    
 	    
-#if AVALONIA_11_0_0_P6_OR_ABOVE
+#if !AVALONIA_11_0_0_P4
 	    /// <summary>
 	    /// Try getting resource with given type.
 	    /// </summary>
@@ -75,7 +75,7 @@ namespace CarinaStudio.Controls
 #endif
 
 
-#if AVALONIA_11_0_0_P6_OR_ABOVE
+#if !AVALONIA_11_0_0_P4
 	    /// <summary>
 	    /// Try getting resource with given type.
 	    /// </summary>

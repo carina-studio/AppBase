@@ -1,4 +1,6 @@
 <Project>
+    
+    <!-- Properties -->
     <PropertyGroup>
 
         <!-- Version -->
@@ -14,6 +16,15 @@
         <Nullable>enable</Nullable>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageProjectUrl>https://carina-studio.github.io/AppBase/</PackageProjectUrl>
+        
+        <!-- Avalonia -->
+        <AvaloniaVersion>11.0.0-preview4</AvaloniaVersion>
 
     </PropertyGroup>
+
+    <!-- Compilation Constants -->
+    <PropertyGroup Condition="'$(AvaloniaVersion)'=='11.0.0-preview4'">
+        <DefineConstants>AVALONIA_11_0_0_P4</DefineConstants>
+    </PropertyGroup>
+    
 </Project>
