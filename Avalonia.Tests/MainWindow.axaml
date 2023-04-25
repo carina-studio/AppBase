@@ -94,9 +94,17 @@
 			<abControls:IntegerTextBox Name="integerTextBox1" HorizontalAlignment="Left" IsNullValueAllowed="False" Width="300"/>
 			<TextBlock Classes="Footer" Text="{Binding #integerTextBox1.Value, StringFormat={}Value: {0}}"/>
 			<Separator Classes="Small"/>
-
-			<abControls:IntegerTextBox Name="integerTextBox2" HorizontalAlignment="Left" IsNullValueAllowed="True" Watermark="Null value allowed" Width="300"/>
+			
+			<abControls:IntegerTextBox Name="integerTextBox2" HorizontalAlignment="Left" IsNullValueAllowed="False" Maximum="10" Minimum="-10" Watermark="Range: [-10, 10]" Width="300"/>
 			<TextBlock Classes="Footer" Text="{Binding #integerTextBox2.Value, StringFormat={}Value: {0}}"/>
+			<Separator Classes="Small"/>
+
+			<abControls:IntegerTextBox Name="integerTextBox3" HorizontalAlignment="Left" IsNullValueAllowed="True" Watermark="Null value allowed" Width="300"/>
+			<TextBlock Classes="Footer" Text="{Binding #integerTextBox3.Value, StringFormat={}Value: {0}}"/>
+			<Separator Classes="Small"/>
+			
+			<abControls:IntegerTextBox Name="integerTextBox4" HorizontalAlignment="Left" IsNullValueAllowed="True" Maximum="10" Minimum="-10" Watermark="Range: [-10, 10], Nullable" Width="300"/>
+			<TextBlock Classes="Footer" Text="{Binding #integerTextBox4.Value, StringFormat={}Value: {0}}"/>
 			<Separator/>
 
 			<!-- LinkTextBlock -->

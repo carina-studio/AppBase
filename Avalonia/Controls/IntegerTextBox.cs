@@ -1,7 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
-using System;
 using System.Text;
 using System.Threading;
 
@@ -40,12 +39,12 @@ namespace CarinaStudio.Controls
 
 
         /// <summary>
-        /// Get or set whether positive sign (+) can be accpeted or not.
+        /// Get or set whether positive sign (+) can be accepted or not.
         /// </summary>
         public bool AcceptsPositiveSign
         {
-            get => this.GetValue<bool>(AcceptsPositiveSignProperty);
-            set => this.SetValue<bool>(AcceptsPositiveSignProperty, value);
+            get => this.GetValue(AcceptsPositiveSignProperty);
+            set => this.SetValue(AcceptsPositiveSignProperty, value);
         }
 
 
@@ -54,7 +53,7 @@ namespace CarinaStudio.Controls
         {
             if (value < this.Minimum)
                 return Minimum;
-            else if (value > this.Maximum)
+            if (value > this.Maximum)
                 return this.Maximum;
             return value;
         }
@@ -65,12 +64,12 @@ namespace CarinaStudio.Controls
         /// </summary>
         public long Maximum
         {
-            get => this.GetValue<long>(MaximumProperty);
+            get => this.GetValue(MaximumProperty);
             set
             {
                 if (value < this.Minimum)
                     value = this.Minimum;
-                this.SetValue<long>(MaximumProperty, value);
+                this.SetValue(MaximumProperty, value);
             }
         }
 
@@ -80,12 +79,12 @@ namespace CarinaStudio.Controls
         /// </summary>
         public long Minimum
         {
-            get => this.GetValue<long>(MinimumProperty);
+            get => this.GetValue(MinimumProperty);
             set
             {
                 if (value > this.Maximum)
                     value = this.Maximum;
-                this.SetValue<long>(MinimumProperty, value);
+                this.SetValue(MinimumProperty, value);
             }
         }
 
@@ -137,7 +136,7 @@ namespace CarinaStudio.Controls
                 if (!this.AcceptsPositiveSign)
                 {
                     var s = this.Text;
-                    if (s != null && s.Length > 0 && s[0] == '+')
+                    if (!string.IsNullOrEmpty(s) && s[0] == '+')
                         this.Text = s[1..^0];
                 }
             }
@@ -160,11 +159,10 @@ namespace CarinaStudio.Controls
             }
             else if (property == TextProperty)
             {
-                var s = (change.NewValue as string);
-                if (s != null)
+                if (change.NewValue is string s)
                 {
                     if (s.Length > MaxTextLength)
-                        s = s[0..MaxTextLength];
+                        s = s[..MaxTextLength];
                     for (var i = 0; i < s.Length; ++i)
                     {
                         var c = s[i];
@@ -180,7 +178,7 @@ namespace CarinaStudio.Controls
                             if (i == 0)
                                 continue;
                         }
-                        var newString = new StringBuilder(s[0..i]);
+                        var newString = new StringBuilder(s[..i]);
                         for (++i; i < s.Length; ++i)
                         {
                             c = s[i];
@@ -203,7 +201,7 @@ namespace CarinaStudio.Controls
         protected override void OnTextInput(TextInputEventArgs e)
         {
             var s = e.Text;
-            if (s != null && s.Length > 0)
+            if (!string.IsNullOrEmpty(s))
             {
                 if (this.Text?.Length > MaxTextLength)
                     e.Text = "";

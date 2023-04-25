@@ -4,6 +4,7 @@ using Avalonia.Input;
 using Avalonia.Styling;
 using CarinaStudio.Threading;
 using System;
+using Avalonia.Interactivity;
 
 namespace CarinaStudio.Controls
 {
@@ -13,6 +14,10 @@ namespace CarinaStudio.Controls
     /// <typeparam name="T">Type of object.</typeparam>
     public abstract class ValueTextBox<T> : TextBox, IStyleable where T : struct
 	{
+		/// <summary>
+		/// Property of <see cref="CoerceValueWhenLostFocus"/>.
+		/// </summary>
+		public static readonly StyledProperty<bool> CoerceValueWhenLostFocusProperty = AvaloniaProperty.Register<ValueTextBox<T>, bool>(nameof(CoerceValueWhenLostFocus), true);
 		/// <summary>
 		/// Property of <see cref="DefaultValue"/>.
 		/// </summary>
@@ -37,6 +42,7 @@ namespace CarinaStudio.Controls
 
 		// Fields.
 		bool isTextValid = true;
+		T? lastValidValue;
 		readonly ScheduledAction validateAction;
 
 
@@ -45,6 +51,8 @@ namespace CarinaStudio.Controls
 		/// </summary>
 		protected ValueTextBox()
 		{
+			if (!IsNullValueAllowedProperty.GetDefaultValue(this.GetType()))
+				this.lastValidValue = this.GetValue(DefaultValueProperty);
 			this.validateAction = new ScheduledAction(() => this.Validate());
 		}
 
@@ -54,7 +62,7 @@ namespace CarinaStudio.Controls
 		/// </summary>
 		/// <param name="x">First value.</param>
 		/// <param name="y">Second value.</param>
-		/// <returns>True if two values are equalvant.</returns>
+		/// <returns>True if two values are equivalent.</returns>
 		protected virtual bool CheckValueEquality(T? x, T? y) => x?.Equals(y) ?? y == null;
 
 
@@ -64,6 +72,16 @@ namespace CarinaStudio.Controls
 		/// <param name="value">Set value.</param>
 		/// <returns>Coerced value.</returns>
 		protected virtual T CoerceValue(T value) => value;
+
+
+		/// <summary>
+		/// Get or set whether value should be coerced when the control lost its focus or not.
+		/// </summary>
+		public bool CoerceValueWhenLostFocus
+		{
+			get => this.GetValue(CoerceValueWhenLostFocusProperty);
+			set => this.SetValue(CoerceValueWhenLostFocusProperty, value);
+		}
 
 
 		/// <summary>
@@ -79,8 +97,8 @@ namespace CarinaStudio.Controls
 		/// </summary>
 		public T DefaultValue 
 		{
-			 get => this.GetValue<T>(DefaultValueProperty);
-			 set => this.SetValue<T>(DefaultValueProperty, value);
+			 get => this.GetValue(DefaultValueProperty);
+			 set => this.SetValue(DefaultValueProperty, value);
 		}
 
 
@@ -89,15 +107,33 @@ namespace CarinaStudio.Controls
 		/// </summary>
 		public bool IsNullValueAllowed
 		{
-			get => this.GetValue<bool>(IsNullValueAllowedProperty);
-			set => this.SetValue<bool>(IsNullValueAllowedProperty, value);
+			get => this.GetValue(IsNullValueAllowedProperty);
+			set => this.SetValue(IsNullValueAllowedProperty, value);
 		}
 
 
 		/// <summary>
 		/// Get whether input <see cref="TextBox.Text"/> represent a valid value or not.
 		/// </summary>
-		public bool IsTextValid { get => this.isTextValid; }
+		public bool IsTextValid => this.isTextValid;
+
+
+		/// <inheritdoc/>
+		protected override void OnLostFocus(RoutedEventArgs e)
+		{
+			if (this.GetValue(CoerceValueWhenLostFocusProperty))
+			{
+				this.validateAction.ExecuteIfScheduled();
+				if (!this.isTextValid)
+				{
+					if (this.CheckValueEquality(this.GetValue(ValueProperty), this.lastValidValue))
+						this.OnValueChanged(this.lastValidValue);
+					else
+						this.SetValue(ValueProperty, this.lastValidValue);
+				}
+			}
+			base.OnLostFocus(e);
+		}
 
 
 		/// <inheritdoc/>
@@ -105,11 +141,25 @@ namespace CarinaStudio.Controls
 		{
 			base.OnPropertyChanged(change);
 			var property = change.Property;
-			if (property == DefaultValueProperty)
+			if (property == CoerceValueWhenLostFocusProperty)
+			{
+				if ((bool)change.NewValue! && !this.IsFocused)
+				{
+					this.validateAction.ExecuteIfScheduled();
+					if (!this.isTextValid)
+					{
+						if (this.CheckValueEquality(this.GetValue(ValueProperty), this.lastValidValue))
+							this.OnValueChanged(this.lastValidValue);
+						else
+							this.SetValue(ValueProperty, this.lastValidValue);
+					}
+				}
+			}
+			else if (property == DefaultValueProperty)
 				this.Validate();
 			else if (property == IsNullValueAllowedProperty)
 			{
-				if (!(bool)((object?)change.NewValue).AsNonNull())
+				if (!(bool)change.NewValue.AsNonNull())
 				{
 					if (!this.validateAction.ExecuteIfScheduled() && this.Value == null)
 						this.ResetToDefaultValue();
@@ -130,21 +180,9 @@ namespace CarinaStudio.Controls
 			else if (property == ValueProperty)
 			{
 				var value = (T?)change.NewValue;
-				if (value == null && !this.IsNullValueAllowed)
-					value = value.GetValueOrDefault();
-				if (value != null)
-				{
-					if (!this.Validate(false, out var currentValue) || !this.CheckValueEquality(currentValue, value))
-					{
-						var fromEmptyString = string.IsNullOrEmpty(this.Text);
-						this.Text = this.ConvertToText(value.Value);
-						this.validateAction.ExecuteIfScheduled();
-						if (this.IsFocused && fromEmptyString && !string.IsNullOrEmpty(this.Text))
-							this.SelectAll();
-					}
-				}
-				else if (this.Text != null)
-					this.Text = "";
+				if (value is null && !this.IsNullValueAllowed)
+					value = this.GetValue(DefaultValueProperty);
+				this.OnValueChanged(value);
 			}
 		}
 
@@ -155,20 +193,43 @@ namespace CarinaStudio.Controls
 			if (string.IsNullOrEmpty(this.Text))
 			{
 				var text = e.Text;
-				if (text != null && text.Length > 0 && char.IsWhiteSpace(text[0]))
+				if (!string.IsNullOrEmpty(text) && char.IsWhiteSpace(text[0]))
 					e.Handled = true;
 			}
 			base.OnTextInput(e);
 		}
 
 
+		/// <summary>
+		/// Called when value changed.
+		/// </summary>
+		/// <param name="value">New value.</param>
+		protected virtual void OnValueChanged(T? value)
+		{
+			if (value is not null)
+			{
+				if (!this.Validate(false, out var currentValue) || !this.CheckValueEquality(currentValue, value))
+				{
+					var fromEmptyString = string.IsNullOrEmpty(this.Text);
+					this.Text = this.ConvertToText(value.Value);
+					this.validateAction.ExecuteIfScheduled();
+					if (this.IsFocused && fromEmptyString && !string.IsNullOrEmpty(this.Text))
+						this.SelectAll();
+				}
+			}
+			else if (!string.IsNullOrWhiteSpace(this.Text))
+				this.Text = "";
+		}
+
+
 		// Reset to default value.
 		void ResetToDefaultValue()
 		{
-			var value = this.GetValue<T>(DefaultValueProperty);
-			this.SetValue<T?>(ValueProperty, value);
+			var value = this.GetValue(DefaultValueProperty);
+			this.lastValidValue = value;
+			this.SetValue(ValueProperty, value);
 			this.Text = this.ConvertToText(value);
-			this.SetAndRaise<bool>(IsTextValidProperty, ref this.isTextValid, true);
+			this.SetAndRaise(IsTextValidProperty, ref this.isTextValid, true);
 			this.PseudoClasses.Set(":invalidValueTextBoxText", false);
 			this.validateAction.Cancel();
 			if (this.IsFocused)
@@ -189,7 +250,7 @@ namespace CarinaStudio.Controls
 		/// </summary>
 		/// <returns>True if input <see cref="TextBox.Text"/> generates a valid value.</returns>
 		public bool Validate() =>
-			this.Validate(true, out var _);
+			this.Validate(true, out _);
 
 
 		// Validate text.
@@ -223,14 +284,15 @@ namespace CarinaStudio.Controls
 					value = null;
 					if (updateValueAndText)
 					{
-						this.SetValue<T?>(ValueProperty, null);
-						this.SetAndRaise<bool>(IsTextValidProperty, ref this.isTextValid, true);
+						this.lastValidValue = null;
+						this.SetValue(ValueProperty, null);
+						this.SetAndRaise(IsTextValidProperty, ref this.isTextValid, true);
 						this.PseudoClasses.Set(":invalidValueTextBoxText", false);
 					}
 				}
 				else
 				{
-					value = this.GetValue<T>(DefaultValueProperty);
+					value = this.GetValue(DefaultValueProperty);
 					if (updateValueAndText)
 						this.ResetToDefaultValue();
 				}
@@ -238,22 +300,24 @@ namespace CarinaStudio.Controls
 			}
 
 			// try convert to object
-			if (!this.TryConvertToValue(text, out value) || value == null)
+			if (!this.TryConvertToValue(text, out value) || value is null)
 			{
 				if (updateValueAndText)
 				{
-					this.SetAndRaise<bool>(IsTextValidProperty, ref this.isTextValid, false);
+					this.SetAndRaise(IsTextValidProperty, ref this.isTextValid, false);
 					this.PseudoClasses.Set(":invalidValueTextBoxText", true);
 				}
 				return false;
 			}
 
 			// complete
+			value = this.CoerceValue(value.Value);
 			if (updateValueAndText)
 			{
+				this.lastValidValue = value;
 				if (!this.CheckValueEquality(value, this.Value))
-					this.SetValue<T?>(ValueProperty, value);
-				this.SetAndRaise<bool>(IsTextValidProperty, ref this.isTextValid, true);
+					this.SetValue(ValueProperty, value);
+				this.SetAndRaise(IsTextValidProperty, ref this.isTextValid, true);
 				this.PseudoClasses.Set(":invalidValueTextBoxText", false);
 			}
 			return true;
@@ -265,8 +329,8 @@ namespace CarinaStudio.Controls
 		/// </summary>
 		public int ValidationDelay
 		{
-			get => this.GetValue<int>(ValidationDelayProperty);
-			set => this.SetValue<int>(ValidationDelayProperty, value);
+			get => this.GetValue(ValidationDelayProperty);
+			set => this.SetValue(ValidationDelayProperty, value);
 		}
 
 
@@ -275,13 +339,23 @@ namespace CarinaStudio.Controls
 		/// </summary>
 		public T? Value
 		{
-			get => this.GetValue<T?>(ValueProperty);
+			get => this.GetValue(ValueProperty);
 			set
 			{
 				this.validateAction.ExecuteIfScheduled();
-				if (value == null && !this.IsNullValueAllowed)
-					value = value.GetValueOrDefault();
-				this.SetValue<T?>(ValueProperty, value != null ? this.CoerceValue(value.GetValueOrDefault()) : (T?)null);
+				if (value is not null)
+				{
+					this.lastValidValue = this.CoerceValue(value.Value);
+					value = this.lastValidValue;
+				}
+				else if (!this.IsNullValueAllowed)
+				{
+					this.lastValidValue = this.GetValue(DefaultValueProperty);
+					value = this.lastValidValue;
+				}
+				else
+					this.lastValidValue = null;
+				this.SetValue(ValueProperty, value);
 			}
 		}
 

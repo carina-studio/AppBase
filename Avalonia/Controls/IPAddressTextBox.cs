@@ -1,7 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
-using System;
 using System.Net;
 
 namespace CarinaStudio.Controls
@@ -32,8 +31,8 @@ namespace CarinaStudio.Controls
         /// </summary>
         public bool IPv4Only
         {
-            get => this.GetValue<bool>(IPv4OnlyProperty);
-            set => this.SetValue<bool>(IPv4OnlyProperty, value);
+            get => this.GetValue(IPv4OnlyProperty);
+            set => this.SetValue(IPv4OnlyProperty, value);
         }
 
 
@@ -50,7 +49,7 @@ namespace CarinaStudio.Controls
         protected override void OnTextInput(TextInputEventArgs e)
         {
             var s = e.Text;
-            if (s != null && s.Length > 0)
+            if (!string.IsNullOrEmpty(s))
             {
                 var c = s[0];
                 switch (c)
@@ -58,13 +57,13 @@ namespace CarinaStudio.Controls
                     case '.':
                         break;
                     case ':':
-                        if (this.GetValue<bool>(IPv4OnlyProperty))
+                        if (this.GetValue(IPv4OnlyProperty))
                             e.Text = "";
                         break;
                     default:
                         if (c >= '0' && c <= '9')
                             break;
-                        if (!this.GetValue<bool>(IPv4OnlyProperty))
+                        if (!this.GetValue(IPv4OnlyProperty))
                         {
                             if (c >= 'a' && c <= 'z')
                                 break;
@@ -85,7 +84,7 @@ namespace CarinaStudio.Controls
             if (IPAddress.TryParse(text, out obj))
             {
                 if (obj.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork
-                    || !this.GetValue<bool>(IPv4OnlyProperty))
+                    || !this.GetValue(IPv4OnlyProperty))
                 {
                     return true;
                 }

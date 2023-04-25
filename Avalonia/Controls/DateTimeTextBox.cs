@@ -1,5 +1,4 @@
-﻿using Avalonia;
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using System;
 using System.Globalization;
 using System.Text.RegularExpressions;
@@ -37,8 +36,7 @@ namespace CarinaStudio.Controls
         protected override bool TryConvertToValue(string text, out DateTime? value)
         {
             // try parsing by default culture
-            var dateTime = DateTime.Now;
-            if (DateTime.TryParse(text, DefaultCultureInfo, DateTimeStyles.None, out dateTime))
+            if (DateTime.TryParse(text, DefaultCultureInfo, DateTimeStyles.None, out var dateTime))
             {
                 value = dateTime;
                 return true;
@@ -109,8 +107,10 @@ namespace CarinaStudio.Controls
                     value = new DateTime(year, month, day, hours, minutes, (int)seconds).AddMilliseconds(milliseconds);
                     return true;
                 }
+                // ReSharper disable EmptyGeneralCatchClause
                 catch
                 { }
+                // ReSharper restore EmptyGeneralCatchClause
             }
 
             // unable to parse
