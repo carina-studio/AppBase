@@ -28,12 +28,18 @@ namespace CarinaStudio.Input
 		/// </summary>
 		/// <param name="data"><see cref="IDataObject"/>.</param>
 		/// <returns>True if at least one file name is contained in <see cref="IDataObject"/>.</returns>
-		public static bool HasFileNames(this IDataObject data) => data.GetFileNames()?.Let(it =>
+		public static bool HasFileNames(this IDataObject data) => Global.RunOrDefault(() =>
 		{
-			foreach (var _ in it)
-				return true;
-			return false;
-		}) ?? false;
+			return data.GetFileNames()?.Let(it =>
+			{
+				foreach (var fileName in it)
+				{
+					if (!string.IsNullOrEmpty(fileName))
+						return true;
+				}
+				return false;
+			}) ?? false;
+		});
 
 
 		/// <summary>
@@ -47,9 +53,9 @@ namespace CarinaStudio.Input
 		public static bool TryGetData<T>(this IDataObject dataObject, string format, out T? data) where T : class
 		{
 			var rawData = dataObject.Get(format);
-			if (rawData != null && typeof(T).IsAssignableFrom(rawData.GetType()))
+			if (rawData is T dataT)
 			{
-				data = (T)rawData;
+				data = dataT;
 				return true;
 			}
 			data = default;
@@ -65,22 +71,25 @@ namespace CarinaStudio.Input
 		/// <returns>True if only one file name contained in <see cref="IDataObject"/>, or false if no file name or more than one file names are contained.</returns>
 		public static bool TryGetSingleFileName(this IDataObject data, out string? fileName)
 		{
-			fileName = data.GetFileNames()?.Let(it =>
+			fileName = Global.RunOrDefault(() =>
 			{
-				var fileName = (string?)null;
-				foreach (var candidate in it)
+				return data.GetFileNames()?.Let(it =>
 				{
-					if (candidate != null)
+					var fileName = default(string);
+					foreach (var candidate in it)
 					{
-						if (fileName == null)
-							fileName = candidate;
-						else
-							return null;
+						if (!string.IsNullOrEmpty(candidate))
+						{
+							if (fileName is null)
+								fileName = candidate;
+							else
+								return null;
+						}
 					}
-				}
-				return fileName;
+					return fileName;
+				});
 			});
-			return (fileName != null);
+			return (fileName is not null);
 		}
 
 
@@ -95,7 +104,7 @@ namespace CarinaStudio.Input
 		public static bool TryGetValue<T>(this IDataObject dataObject, string format, out T value) where T : struct
 		{
 			var rawData = dataObject.Get(format);
-			if (rawData != null && rawData is T targetValue)
+			if (rawData is T targetValue)
 			{
 				value = targetValue;
 				return true;
