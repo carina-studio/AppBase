@@ -151,6 +151,24 @@
 			<Separator Classes="Small"/>
 			<abControls:ProgressRing Background="Green" BorderBrush="DarkGreen" Foreground="Yellow" Height="50" HorizontalAlignment="Left" IsIndeterminate="True" RingBorderThickness="2" RingThickness="10" Value="66" Width="70"/>
 			<Separator/>
+			
+			<!-- RealNumberTextBox -->
+			<TextBlock Classes="Header1" Text="RealNumberTextBox"/>
+			<abControls:RealNumberTextBox Name="realNumberTextBox1" HorizontalAlignment="Left" IsNullValueAllowed="False" Width="300"/>
+			<TextBlock Classes="Footer" Text="{Binding #realNumberTextBox1.Value, StringFormat={}Value: {0}}"/>
+			<Separator Classes="Small"/>
+			
+			<abControls:RealNumberTextBox Name="realNumberTextBox2" HorizontalAlignment="Left" IsNullValueAllowed="False" Maximum="10" Minimum="-10" Watermark="Range: [-10, 10]" Width="300"/>
+			<TextBlock Classes="Footer" Text="{Binding #realNumberTextBox2.Value, StringFormat={}Value: {0}}"/>
+			<Separator Classes="Small"/>
+
+			<abControls:RealNumberTextBox Name="realNumberTextBox3" HorizontalAlignment="Left" IsNullValueAllowed="True" Watermark="Null value allowed" Width="300"/>
+			<TextBlock Classes="Footer" Text="{Binding #realNumberTextBox3.Value, StringFormat={}Value: {0}}"/>
+			<Separator Classes="Small"/>
+			
+			<abControls:RealNumberTextBox Name="realNumberTextBox4" HorizontalAlignment="Left" IsNullValueAllowed="True" Maximum="10" Minimum="-10" Watermark="Range: [-10, 10], Nullable" Width="300"/>
+			<TextBlock Classes="Footer" Text="{Binding #realNumberTextBox4.Value, StringFormat={}Value: {0}}"/>
+			<Separator/>
 
 			<!-- SelectableTextBlock -->
 			<TextBlock Classes="Header1" Text="SelectableTextBlock"/>
