@@ -46,8 +46,10 @@ namespace CarinaStudio
 						this.syncContext.Post(_ => this.eventInfo.RemoveEventHandler(target, this.handlerEntry), null);
 						return;
 					}
+					// ReSharper disable EmptyGeneralCatchClause
 					catch
 					{ }
+					// ReSharper restore EmptyGeneralCatchClause
 				}
 				this.eventInfo.RemoveEventHandler(target, this.handlerEntry);
 			}
@@ -97,8 +99,10 @@ namespace CarinaStudio
 						this.syncContext.Post(_ => this.eventInfo.RemoveEventHandler(target, this.handlerEntry), null);
 						return;
 					}
+					// ReSharper disable EmptyGeneralCatchClause
 					catch
 					{ }
+					// ReSharper restore EmptyGeneralCatchClause
 				}
 				this.eventInfo.RemoveEventHandler(target, this.handlerEntry);
 			}
@@ -503,8 +507,7 @@ namespace CarinaStudio
 		/// <typeparam name="R">Type of generated value.</typeparam>
 		/// <returns>Generated value.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		[return: MaybeNull]
-		public static R TryCastAndRun<T, R>(this object? obj, Func<T, R> func)
+		public static R? TryCastAndRun<T, R>(this object? obj, Func<T, R> func)
 		{
 			if (obj is T target)
 				return func(target);

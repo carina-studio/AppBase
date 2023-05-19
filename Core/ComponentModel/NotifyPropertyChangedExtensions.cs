@@ -14,13 +14,15 @@ namespace CarinaStudio.ComponentModel
         {
             // Fields.
             readonly WeakReference<PropertyChangedEventHandler> handlerRef;
-            volatile bool isDisposed;
+            int isDisposed;
+            readonly SynchronizationContext? syncContext;
             readonly INotifyPropertyChanged target;
 
             // Constructor.
             public WeakEventHandlerAdapter(INotifyPropertyChanged target, PropertyChangedEventHandler handler)
             {
                 this.handlerRef = new WeakReference<PropertyChangedEventHandler>(handler);
+                this.syncContext = SynchronizationContext.Current;
                 this.target = target;
                 target.PropertyChanged += this.OnPropertyChanged;
             }
@@ -28,11 +30,19 @@ namespace CarinaStudio.ComponentModel
             // Dispose.
             public void Dispose()
             {
-                lock (this)
+                if (Interlocked.Exchange(ref this.isDisposed, 1) != 0)
+                    return;
+                if (this.syncContext != null && this.syncContext != SynchronizationContext.Current)
                 {
-                    if (this.isDisposed)
+                    try
+                    {
+                        this.syncContext.Post(_ => this.target.PropertyChanged -= this.OnPropertyChanged, null);
                         return;
-                    this.isDisposed = true;
+                    }
+                    // ReSharper disable EmptyGeneralCatchClause
+                    catch
+                    { }
+                    // ReSharper restore EmptyGeneralCatchClause
                 }
                 this.target.PropertyChanged -= this.OnPropertyChanged;
             }
@@ -40,16 +50,10 @@ namespace CarinaStudio.ComponentModel
             // Entry of PropertyChanged event handler.
             void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
             {
-                if (this.handlerRef.TryGetTarget(out var handler) && handler != null)
+                if (this.handlerRef.TryGetTarget(out var handler))
                     handler(sender, e);
                 else
-                {
-                    var syncContext = SynchronizationContext.Current;
-                    if (syncContext != null)
-                        syncContext.Post(_ => this.Dispose(), null);
-                    else
-                        this.Dispose();
-                }
+                    this.Dispose();
             }
         }
 
