@@ -12,28 +12,33 @@ namespace CarinaStudio
 	/// </summary>
 	public static class ObjectExtensions
 	{
-		// Adapter of weak event handler.
-		class WeakEventHandlerAdapter : IDisposable
+		// Base class of adapter of weak event handler.
+		abstract class BaseWeakEventHandlerAdapter<THandler> : IDisposable where THandler : Delegate
 		{
 			// Fields.
 			readonly EventInfo eventInfo;
-			readonly EventHandler handlerEntry;
-			readonly WeakReference<EventHandler> handlerRef;
+			readonly THandler handlerStub;
+			readonly WeakReference<THandler> handlerRef;
 			int isDisposed;
 			readonly SynchronizationContext? syncContext;
 			readonly object target;
-
+			
 			// Constructor.
-			public WeakEventHandlerAdapter(object target, string eventName, EventHandler handler)
+			protected BaseWeakEventHandlerAdapter(object target, string eventName, THandler handler)
 			{
 				this.eventInfo = target.GetType().GetEvent(eventName) ?? throw new ArgumentException($"Cannot find event '{eventName}' in {target.GetType().Name}.");
-				this.handlerEntry = this.OnEventReceived;
-				this.handlerRef = new WeakReference<EventHandler>(handler);
+				// ReSharper disable VirtualMemberCallInConstructor
+				this.handlerStub = this.CreateEventHandlerStub();
+				// ReSharper restore VirtualMemberCallInConstructor
+				this.handlerRef = new(handler);
 				this.syncContext = SynchronizationContext.Current;
 				this.target = target;
-				this.eventInfo.AddEventHandler(target, this.handlerEntry);
+				this.eventInfo.AddEventHandler(target, this.handlerStub);
 			}
 
+			// Called to create stub of event handler.
+			protected abstract THandler CreateEventHandlerStub();
+			
 			// Dispose.
 			public void Dispose()
 			{
@@ -43,7 +48,7 @@ namespace CarinaStudio
 				{
 					try
 					{
-						this.syncContext.Post(_ => this.eventInfo.RemoveEventHandler(target, this.handlerEntry), null);
+						this.syncContext.Post(_ => this.eventInfo.RemoveEventHandler(target, this.handlerStub), null);
 						return;
 					}
 					// ReSharper disable EmptyGeneralCatchClause
@@ -51,70 +56,118 @@ namespace CarinaStudio
 					{ }
 					// ReSharper restore EmptyGeneralCatchClause
 				}
-				this.eventInfo.RemoveEventHandler(target, this.handlerEntry);
+				this.eventInfo.RemoveEventHandler(target, this.handlerStub);
 			}
 
-			// Entry of event handler.
-			void OnEventReceived(object? sender, EventArgs e)
+			// Invoke event handler.
+			protected void InvokeEventHandler(params object?[] args)
 			{
 				if (this.handlerRef.TryGetTarget(out var handler))
-					handler(sender, e);
+					handler.DynamicInvoke(args);
 				else
 					this.Dispose();
 			}
 		}
+		
+		// Adapter of weak event handler.
+		class WeakActionEventHandlerAdapter : BaseWeakEventHandlerAdapter<Action>
+		{
+			// Constructor.
+			public WeakActionEventHandlerAdapter(object target, string eventName, Action handler) : base(target, eventName, handler)
+			{ }
+
+			/// <inheritdoc/>.
+			protected override Action CreateEventHandlerStub() =>
+				this.OnEventReceived;
+
+			// Entry of event handler.
+			void OnEventReceived() =>
+				this.InvokeEventHandler();
+		}
+		
+		
+		// Adapter of weak event handler.
+		class WeakActionEventHandlerAdapter<TArg> : BaseWeakEventHandlerAdapter<Action<TArg>>
+		{
+			// Constructor.
+			public WeakActionEventHandlerAdapter(object target, string eventName, Action<TArg> handler) : base(target, eventName, handler)
+			{ }
+
+			/// <inheritdoc/>.
+			protected override Action<TArg> CreateEventHandlerStub() =>
+				this.OnEventReceived;
+
+			// Entry of event handler.
+			void OnEventReceived(TArg arg) =>
+				this.InvokeEventHandler(arg);
+		}
+		
+		
+		// Adapter of weak event handler.
+		class WeakActionEventHandlerAdapter<TArg1, TArg2> : BaseWeakEventHandlerAdapter<Action<TArg1, TArg2>>
+		{
+			// Constructor.
+			public WeakActionEventHandlerAdapter(object target, string eventName, Action<TArg1, TArg2> handler) : base(target, eventName, handler)
+			{ }
+
+			/// <inheritdoc/>.
+			protected override Action<TArg1, TArg2> CreateEventHandlerStub() =>
+				this.OnEventReceived;
+
+			// Entry of event handler.
+			void OnEventReceived(TArg1 arg1, TArg2 arg2) =>
+				this.InvokeEventHandler(arg1, arg2);
+		}
+		
+		
+		// Adapter of weak event handler.
+		class WeakActionEventHandlerAdapter<TArg1, TArg2, TArg3> : BaseWeakEventHandlerAdapter<Action<TArg1, TArg2, TArg3>>
+		{
+			// Constructor.
+			public WeakActionEventHandlerAdapter(object target, string eventName, Action<TArg1, TArg2, TArg3> handler) : base(target, eventName, handler)
+			{ }
+
+			/// <inheritdoc/>.
+			protected override Action<TArg1, TArg2, TArg3> CreateEventHandlerStub() =>
+				this.OnEventReceived;
+
+			// Entry of event handler.
+			void OnEventReceived(TArg1 arg1, TArg2 arg2, TArg3 arg3) =>
+				this.InvokeEventHandler(arg1, arg2, arg3);
+		}
+		
+		
+		// Adapter of weak event handler.
+		class WeakEventHandlerAdapter : BaseWeakEventHandlerAdapter<EventHandler>
+		{
+			// Constructor.
+			public WeakEventHandlerAdapter(object target, string eventName, EventHandler handler) : base(target, eventName, handler)
+			{ }
+
+			/// <inheritdoc/>.
+			protected override EventHandler CreateEventHandlerStub() =>
+				this.OnEventReceived;
+
+			// Entry of event handler.
+			void OnEventReceived(object? sender, EventArgs e) =>
+				this.InvokeEventHandler(sender, e);
+		}
 
 
 		// Adapter of weak event handler.
-		class WeakEventHandlerAdapter<TArgs> : IDisposable where TArgs : EventArgs
+		class WeakEventHandlerAdapter<TArgs> : BaseWeakEventHandlerAdapter<EventHandler<TArgs>> where TArgs : EventArgs
 		{
-			// Fields.
-			readonly EventInfo eventInfo;
-			readonly EventHandler<TArgs> handlerEntry;
-			readonly WeakReference<EventHandler<TArgs>> handlerRef;
-			int isDisposed;
-			readonly SynchronizationContext? syncContext;
-			readonly object target;
-
 			// Constructor.
-			public WeakEventHandlerAdapter(object target, string eventName, EventHandler<TArgs> handler)
-			{
-				this.eventInfo = target.GetType().GetEvent(eventName) ?? throw new ArgumentException($"Cannot find event '{eventName}' in {target.GetType().Name}.");
-				this.handlerEntry = this.OnEventReceived;
-				this.handlerRef = new WeakReference<EventHandler<TArgs>>(handler);
-				this.syncContext = SynchronizationContext.Current;
-				this.target = target;
-				this.eventInfo.AddEventHandler(target, this.handlerEntry);
-			}
+			public WeakEventHandlerAdapter(object target, string eventName, EventHandler<TArgs> handler) : base(target, eventName, handler)
+			{ }
 
-			// Dispose.
-			public void Dispose()
-			{
-				if (Interlocked.Exchange(ref this.isDisposed, 1) != 0)
-					return;
-				if (this.syncContext != null && this.syncContext != SynchronizationContext.Current)
-				{
-					try
-					{
-						this.syncContext.Post(_ => this.eventInfo.RemoveEventHandler(target, this.handlerEntry), null);
-						return;
-					}
-					// ReSharper disable EmptyGeneralCatchClause
-					catch
-					{ }
-					// ReSharper restore EmptyGeneralCatchClause
-				}
-				this.eventInfo.RemoveEventHandler(target, this.handlerEntry);
-			}
+			/// <inheritdoc/>.
+			protected override EventHandler<TArgs> CreateEventHandlerStub() =>
+				this.OnEventReceived;
 
 			// Entry of event handler.
-			void OnEventReceived(object? sender, TArgs e)
-			{
-				if (this.handlerRef.TryGetTarget(out var handler))
-					handler(sender, e);
-				else
-					this.Dispose();
-			}
+			void OnEventReceived(object? sender, TArgs e) =>
+				this.InvokeEventHandler(sender, e);
 		}
 
 
@@ -138,6 +191,50 @@ namespace CarinaStudio
 		/// <returns><see cref="IDisposable"/> which represents added weak event handler. You can call <see cref="IDisposable.Dispose"/> to remove weak event handler explicitly.</returns>
 		public static IDisposable AddWeakEventHandler<TArgs>(this object target, string eventName, EventHandler<TArgs> handler) where TArgs : EventArgs =>
 			new WeakEventHandlerAdapter<TArgs>(target, eventName, handler);
+		
+		
+		/// <summary>
+		/// Add weak event handler.
+		/// </summary>
+		/// <param name="target"><see cref="object"/>.</param>
+		/// <param name="eventName">Name of event.</param>
+		/// <param name="handler">Event handler.</param>
+		/// <returns><see cref="IDisposable"/> which represents added weak event handler. You can call <see cref="IDisposable.Dispose"/> to remove weak event handler explicitly.</returns>
+		public static IDisposable AddWeakEventHandler(this object target, string eventName, Action handler) =>
+			new WeakActionEventHandlerAdapter(target, eventName, handler);
+		
+		
+		/// <summary>
+		/// Add weak event handler.
+		/// </summary>
+		/// <param name="target"><see cref="object"/>.</param>
+		/// <param name="eventName">Name of event.</param>
+		/// <param name="handler">Event handler.</param>
+		/// <returns><see cref="IDisposable"/> which represents added weak event handler. You can call <see cref="IDisposable.Dispose"/> to remove weak event handler explicitly.</returns>
+		public static IDisposable AddWeakEventHandler<TArg>(this object target, string eventName, Action<TArg> handler) =>
+			new WeakActionEventHandlerAdapter<TArg>(target, eventName, handler);
+		
+		
+		/// <summary>
+		/// Add weak event handler.
+		/// </summary>
+		/// <param name="target"><see cref="object"/>.</param>
+		/// <param name="eventName">Name of event.</param>
+		/// <param name="handler">Event handler.</param>
+		/// <returns><see cref="IDisposable"/> which represents added weak event handler. You can call <see cref="IDisposable.Dispose"/> to remove weak event handler explicitly.</returns>
+		public static IDisposable AddWeakEventHandler<TArg1, TArg2>(this object target, string eventName, Action<TArg1, TArg2> handler) =>
+			new WeakActionEventHandlerAdapter<TArg1, TArg2>(target, eventName, handler);
+		
+		
+		/// <summary>
+		/// Add weak event handler.
+		/// </summary>
+		/// <param name="target"><see cref="object"/>.</param>
+		/// <param name="eventName">Name of event.</param>
+		/// <param name="handler">Event handler.</param>
+		/// <returns><see cref="IDisposable"/> which represents added weak event handler. You can call <see cref="IDisposable.Dispose"/> to remove weak event handler explicitly.</returns>
+		public static IDisposable AddWeakEventHandler<TArg1, TArg2, TArg3>(this object target, string eventName, Action<TArg1, TArg2, TArg3> handler) =>
+			new WeakActionEventHandlerAdapter<TArg1, TArg2, TArg3>(target, eventName, handler);
 
 
 		/// <summary>
