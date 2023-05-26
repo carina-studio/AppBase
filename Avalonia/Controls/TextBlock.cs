@@ -6,6 +6,7 @@ using Avalonia.Media;
 using Avalonia.Styling;
 using CarinaStudio.Collections;
 using CarinaStudio.Threading;
+using Microsoft.Extensions.Logging;
 using System;
 
 namespace CarinaStudio.Controls
@@ -42,6 +43,7 @@ namespace CarinaStudio.Controls
         bool isMultiLineText;
         bool isTextTrimmed;
         readonly ScheduledAction updateToolTipAction;
+        int updateToolTipFailureCount;
         Window? window;
 
 
@@ -57,38 +59,55 @@ namespace CarinaStudio.Controls
             this.TextTrimming = TextTrimming.CharacterEllipsis;
             this.updateToolTipAction = new ScheduledAction(() =>
             {
-                if (!this.isTextTrimmed
-                    || !this.GetValue<bool>(ShowToolTipWhenTextTrimmedProperty)
-                    || (Platform.IsMacOS && this.window?.IsActive == false))
+                try
                 {
-                    this.ClearValue(ToolTip.TipProperty);
-                }
-                else
-                {
-                    var inlines = this.Inlines;
-                    var text = inlines.IsNotEmpty() ? inlines.Text : this.Text;
-                    if (string.IsNullOrEmpty(text))
+                    if (!this.isTextTrimmed
+                        || !this.GetValue(ShowToolTipWhenTextTrimmedProperty)
+                        || (Platform.IsMacOS && this.window?.IsActive == false))
+                    {
                         this.ClearValue(ToolTip.TipProperty);
+                    }
                     else
                     {
-                        var toolTipText = text.Length <= MaxToolTipLength
-                            ? text
-                            : $"{text[0..MaxToolTipLength]}…";
-                        var toolTip = this.GetValue(ToolTipTemplateProperty)?.Build(toolTipText)?.Also(control =>
+                        var inlines = this.Inlines;
+                        var text = inlines.IsNotEmpty() ? inlines.Text : this.Text;
+                        if (string.IsNullOrEmpty(text))
+                            this.ClearValue(ToolTip.TipProperty);
+                        else
                         {
-                            control.DataContext = toolTipText;
-                        }) ?? (object)toolTipText;
-                        this.SetValue(ToolTip.TipProperty, toolTip);
+                            var toolTipText = text.Length <= MaxToolTipLength
+                                ? text
+                                : $"{text[0..MaxToolTipLength]}…";
+                            var toolTip = this.GetValue(ToolTipTemplateProperty)?.Build(toolTipText)?.Also(control =>
+                            {
+                                control.DataContext = toolTipText;
+                            }) ?? (object)toolTipText;
+                            this.SetValue(ToolTip.TipProperty, toolTip);
+                        }
                     }
+                    this.updateToolTipFailureCount = 0;
+                }
+                catch (Exception ex)
+                {
+                    ++this.updateToolTipFailureCount;
+                    this.DebugLogger?.LogWarning(ex, "Failed to update tool tip, failure count: {count}", this.updateToolTipFailureCount);
+                    if (this.updateToolTipFailureCount <= 5)
+                        this.updateToolTipAction!.Schedule(500);
                 }
             });
         }
+        
+        
+        /// <summary>
+        /// Get or set logger for debugging purpose.
+        /// </summary>
+        public ILogger? DebugLogger { get; set; }
 
 
         /// <summary>
         /// Check whether text inside the <see cref="TextBlock"/> has multiple lines or not.
         /// </summary>
-        public bool IsMultiLineText { get => this.isMultiLineText; }
+        public bool IsMultiLineText => this.isMultiLineText;
 
 
         /// <summary>
@@ -110,7 +129,7 @@ namespace CarinaStudio.Controls
                 // check multi line
                 var textLayout = this.TextLayout;
                 var lineCount = textLayout.TextLines.Count;
-                this.SetAndRaise<bool>(IsMultiLineTextProperty, ref this.isMultiLineText, lineCount > 1);
+                this.SetAndRaise(IsMultiLineTextProperty, ref this.isMultiLineText, lineCount > 1);
 
                 // check trimming
                 var isTextTrimmed = false;
@@ -135,7 +154,7 @@ namespace CarinaStudio.Controls
             this.window = this.FindLogicalAncestorOfType<Window>();
             if (Platform.IsMacOS)
             {
-                this.isWindowActiveObserverToken = this.window?.GetObservable(Window.IsActiveProperty)?.Subscribe(_ => 
+                this.isWindowActiveObserverToken = this.window?.GetObservable(Window.IsActiveProperty).Subscribe(_ => 
                     this.updateToolTipAction.Schedule());
             }
         }
@@ -155,8 +174,8 @@ namespace CarinaStudio.Controls
         /// </summary>
         public bool ShowToolTipWhenTextTrimmed
         {
-            get => this.GetValue<bool>(ShowToolTipWhenTextTrimmedProperty);
-            set => this.SetValue<bool>(ShowToolTipWhenTextTrimmedProperty, value);
+            get => this.GetValue(ShowToolTipWhenTextTrimmedProperty);
+            set => this.SetValue(ShowToolTipWhenTextTrimmedProperty, value);
         }
 
 
