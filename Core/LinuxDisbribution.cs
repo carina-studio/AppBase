@@ -12,6 +12,14 @@ namespace CarinaStudio
         /// </summary>
         Unknown,
         /// <summary>
+        /// Alpine Linux.
+        /// </summary>
+        Alpine,
+        /// <summary>
+        /// CentOS.
+        /// </summary>
+        CentOS,
+        /// <summary>
         /// Debian.
         /// </summary>
         Debian,
@@ -19,6 +27,10 @@ namespace CarinaStudio
         /// Fedora.
         /// </summary>
         Fedora,
+        /// <summary>
+        /// Red Hat.
+        /// </summary>
+        RedHat,
         /// <summary>
         /// Ubuntu.
         /// </summary>

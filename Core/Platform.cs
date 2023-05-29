@@ -232,10 +232,30 @@ namespace CarinaStudio
 							using var reader = new StreamReader("/proc/version", Encoding.UTF8);
 							linuxDistribution = reader.ReadLine()?.Let(data =>
 							{
+								if (data.Contains("(Alpine"))
+									return LinuxDistribution.Alpine;
 								if (data.Contains("(Debian"))
 									return LinuxDistribution.Debian;
-								if (data.Contains("(Fedora") || data.Contains("fedoraproject"))
+								if (data.Contains("(Fedora") || data.Contains(".fedoraproject.org") || Regex.IsMatch(data, "\\.fc\\d+\\."))
 									return LinuxDistribution.Fedora;
+								if (data.Contains("(Red Hat") || data.Contains(".redhat.com"))
+								{
+									try
+									{
+										using var redHatReleaseReader = new StreamReader("/etc/redhat-release", Encoding.UTF8);
+										var release = redHatReleaseReader.ReadLine();
+										if (release is not null)
+										{
+											if (release.StartsWith("CentOS", StringComparison.InvariantCultureIgnoreCase))
+												return LinuxDistribution.CentOS;
+											if (release.StartsWith("Fedora", StringComparison.InvariantCultureIgnoreCase))
+												return LinuxDistribution.Fedora;
+										}
+									}
+									catch
+									{ }
+									return LinuxDistribution.RedHat;
+								}
 								if (data.Contains("(Ubuntu"))
 									return LinuxDistribution.Ubuntu;
 								return LinuxDistribution.Unknown;
