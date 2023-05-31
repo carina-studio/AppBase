@@ -205,8 +205,6 @@ namespace CarinaStudio
 
         public async Task Test()
         {
-            await Task.Delay(3000);
-            return;
             /*
             this.textBlock?.RemoveFromParent();
             this.textBlock = null;

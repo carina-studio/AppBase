@@ -327,8 +327,13 @@ namespace CarinaStudio.Controls
 									ownerSize = new(owner.Width, owner.Height);
 								}
 								var offsetX = (int)((ownerSize.Width - width) / 2 * screenScale + 0.5);
+#if AVALONIA_11_0_0_P4
 								var offsetY = (int)((ownerSize.Height + titleBarHeight - heightWithTitleBar) / 2 * screenScale + 0.5);
 								var position = new PixelPoint(ownerPosition.X + offsetX, ownerPosition.Y + offsetY - (int)(titleBarHeight * screenScale + 0.5));
+#else
+								var offsetY = (int)((ownerSize.Height - height) / 2 * screenScale + 0.5);
+								var position = new PixelPoint(ownerPosition.X + offsetX, ownerPosition.Y + offsetY);
+#endif
 								this.expectedInitPosition = position;
 								this.expectedInitSize = new(width, height);
 								this.WindowStartupLocation = WindowStartupLocation.Manual;
@@ -339,24 +344,28 @@ namespace CarinaStudio.Controls
 
 					case WindowStartupLocation.CenterScreen:
 					{
-						(this.Screens.ScreenFromWindow(this.PlatformImpl!) ?? this.Screens.Primary)?.Let(screen =>
+#if AVALONIA_11_0_0_P4
+						var screen = this.Screens.ScreenFromWindow(this.PlatformImpl!) ?? this.Screens.Primary;
+#else
+						var screen = this.Screens.ScreenFromWindow(this) ?? this.Screens.Primary;
+#endif
+						if (screen is null)
+							break;
+						var screenScale = screen.Scaling;
+						var workingArea = screen.WorkingArea;
+						var titleBarHeight = titleBarHeightInPixels / screenScale;
+						var width = this.Width;
+						var height = this.Height;
+						if (double.IsFinite(width) && double.IsFinite(height))
 						{
-							var screenScale = screen.Scaling;
-							var workingArea = screen.WorkingArea;
-							var titleBarHeight = titleBarHeightInPixels / screenScale;
-							var width = this.Width;
-							var height = this.Height;
-							if (double.IsFinite(width) && double.IsFinite(height))
-							{
-								var heightWithTitleBar = height + titleBarHeight;
-								var offsetX = (int)((workingArea.Width - (width * screenScale)) / 2 + 0.5);
-								var offsetY = (int)((workingArea.Height - (heightWithTitleBar * screenScale)) / 2 + 0.5);
-								var position = new PixelPoint(workingArea.TopLeft.X + offsetX, workingArea.TopLeft.Y + offsetY);
-								this.expectedInitPosition = position;
-								this.expectedInitSize = new(width, height);
-								this.WindowStartupLocation = WindowStartupLocation.Manual;
-							}
-						});
+							var heightWithTitleBar = height + titleBarHeight;
+							var offsetX = (int)((workingArea.Width - (width * screenScale)) / 2 + 0.5);
+							var offsetY = (int)((workingArea.Height - (heightWithTitleBar * screenScale)) / 2 + 0.5);
+							var position = new PixelPoint(workingArea.TopLeft.X + offsetX, workingArea.TopLeft.Y + offsetY);
+							this.expectedInitPosition = position;
+							this.expectedInitSize = new(width, height);
+							this.WindowStartupLocation = WindowStartupLocation.Manual;
+						}
 						break;
 					}
 				}

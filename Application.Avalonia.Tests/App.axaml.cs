@@ -28,7 +28,7 @@ namespace CarinaStudio
         // Program entry.
         public static void Main(string[] args)
         {
-            //Environment.SetEnvironmentVariable("AVALONIA_SCREEN_SCALE_FACTORS", "Virtual-1=2");
+            //Environment.SetEnvironmentVariable("AVALONIA_GLOBAL_SCALE_FACTOR", "2");
             BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
         }
 
