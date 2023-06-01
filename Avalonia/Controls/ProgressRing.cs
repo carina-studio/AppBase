@@ -1,6 +1,8 @@
 using Avalonia;
 using Avalonia.Controls.Primitives;
+#if AVALONIA_11_0_0_P4
 using Avalonia.Styling;
+#endif
 using System;
 
 namespace CarinaStudio.Controls
@@ -8,7 +10,10 @@ namespace CarinaStudio.Controls
     /// <summary>
     /// Progress ring.
     /// </summary>
-    public class ProgressRing : RangeBase, IStyleable
+    public class ProgressRing : RangeBase
+#if AVALONIA_11_0_0_P4
+        , IStyleable
+#endif
     {
         /// <summary>
         /// Property of <see cref="IsIndeterminate"/>.
@@ -18,13 +23,13 @@ namespace CarinaStudio.Controls
         /// Property of <see cref="RingBorderThickness"/>.
         /// </summary>
         public static readonly StyledProperty<double> RingBorderThicknessProperty = AvaloniaProperty.Register<ProgressRing, double>(nameof(RingBorderThickness), 0,
-            coerce: (o, it) => Math.Max(0, it),
+            coerce: (_, it) => Math.Max(0, it),
             validate: double.IsFinite);
         /// <summary>
         /// Property of <see cref="RingThickness"/>.
         /// </summary>
         public static readonly StyledProperty<double> RingThicknessProperty = AvaloniaProperty.Register<ProgressRing, double>(nameof(RingThickness), 5,
-            coerce: (o, it) => Math.Max(1, it),
+            coerce: (_, it) => Math.Max(1, it),
             validate: double.IsFinite);
         
 
@@ -58,7 +63,12 @@ namespace CarinaStudio.Controls
         }
 
 
-        // Interface implementations.
-		Type IStyleable.StyleKey => typeof(ProgressRing);
+#if AVALONIA_11_0_0_P4
+        /// <inheritdoc/>
+        Type IStyleable.StyleKey => typeof(ProgressRing);
+#else
+        /// <inheritdoc/>
+        protected override Type StyleKeyOverride => typeof(ProgressRing);
+#endif
     }
 }

@@ -58,7 +58,7 @@ namespace CarinaStudio.Controls
                         break;
                     case ':':
                         if (this.GetValue(IPv4OnlyProperty))
-                            e.Text = "";
+                            e.Handled = true;
                         break;
                     default:
                         if (c >= '0' && c <= '9')
@@ -70,7 +70,7 @@ namespace CarinaStudio.Controls
                             if (c >= 'A' && c <= 'Z')
                                 break;
                         }
-                        e.Text = "";
+                        e.Handled = true;
                         break;
                 }
             }

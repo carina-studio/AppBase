@@ -223,7 +223,7 @@ public class RealNumberTextBox : ValueTextBox<double>
                     case 'p':
                         break;
                     default:
-                        e.Text = "";
+                        e.Handled = true;
                         break;
                 }
             }

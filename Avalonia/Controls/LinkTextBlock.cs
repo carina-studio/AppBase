@@ -1,7 +1,9 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+#if AVALONIA_11_0_0_P4
 using Avalonia.Styling;
+#endif
 using Avalonia.VisualTree;
 using System;
 using System.Windows.Input;
@@ -11,7 +13,10 @@ namespace CarinaStudio.Controls
     /// <summary>
     /// <see cref="TextBlock"/> which supports open the link.
     /// </summary>
-    public class LinkTextBlock : TextBlock, IStyleable
+    public class LinkTextBlock : TextBlock
+#if AVALONIA_11_0_0_P4
+        , IStyleable
+#endif
     {
         /// <summary>
         /// Property of <see cref="Command"/>.
@@ -45,7 +50,7 @@ namespace CarinaStudio.Controls
             var command = this.Command;
             if (command != null)
             {
-                var parameter = this.GetValue<object?>(CommandParameterProperty);
+                var parameter = this.GetValue(CommandParameterProperty);
                 if (command.CanExecute(parameter))
                     command.Execute(parameter);
             }
@@ -59,8 +64,8 @@ namespace CarinaStudio.Controls
         /// </summary>
         public ICommand? Command
         {
-            get => this.GetValue<ICommand?>(CommandProperty);
-            set => this.SetValue<ICommand?>(CommandProperty, value);
+            get => this.GetValue(CommandProperty);
+            set => this.SetValue(CommandProperty, value);
         }
 
 
@@ -69,8 +74,8 @@ namespace CarinaStudio.Controls
         /// </summary>
         public object? CommandParameter
         {
-            get => this.GetValue<object?>(CommandParameterProperty);
-            set => this.SetValue<object?>(CommandParameterProperty, value);
+            get => this.GetValue(CommandParameterProperty);
+            set => this.SetValue(CommandParameterProperty, value);
         }
 
 
@@ -79,13 +84,13 @@ namespace CarinaStudio.Controls
         {
             get
             {
-                var command = this.GetValue<ICommand?>(CommandProperty);
+                var command = this.GetValue(CommandProperty);
                 if (command != null)
                 {
-                    if (!command.CanExecute(this.GetValue<object?>(CommandParameterProperty)))
+                    if (!command.CanExecute(this.GetValue(CommandParameterProperty)))
                         return false;
                 }
-                else if (this.GetValue<Uri?>(UriProperty) == null)
+                else if (this.GetValue(UriProperty) == null)
                     return false;
                 return base.IsEnabledCore;
             }
@@ -162,6 +167,15 @@ namespace CarinaStudio.Controls
                 this.UpdateIsEffectivelyEnabled();
             }
         }
+        
+        
+#if AVALONIA_11_0_0_P4
+        /// <inheritdoc/>
+        Type IStyleable.StyleKey => typeof(LinkTextBlock);
+#else
+        /// <inheritdoc/>
+        protected override Type StyleKeyOverride => typeof(LinkTextBlock);
+#endif
 
 
         /// <summary>
@@ -169,12 +183,8 @@ namespace CarinaStudio.Controls
         /// </summary>
         public Uri? Uri
         {
-            get => this.GetValue<Uri?>(UriProperty);
-            set => this.SetValue<Uri?>(UriProperty, value);
+            get => this.GetValue(UriProperty);
+            set => this.SetValue(UriProperty, value);
         }
-
-
-        // Interface implementation.
-        Type IStyleable.StyleKey { get; } = typeof(LinkTextBlock);
     }
 }

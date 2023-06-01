@@ -1,13 +1,18 @@
 using System;
 using Avalonia;
+#if AVALONIA_11_0_0_P4
 using Avalonia.Styling;
+#endif
 
 namespace CarinaStudio.Controls
 {
     /// <summary>
     /// <see cref="TextBlock"/> which shows formatted text on it.
     /// </summary>
-    public class FormattedTextBlock : TextBlock, IStyleable
+    public class FormattedTextBlock : TextBlock
+#if AVALONIA_11_0_0_P4
+        , IStyleable
+#endif
     {
         /// <summary>
         /// Property of <see cref="Arg1"/>.
@@ -65,7 +70,7 @@ namespace CarinaStudio.Controls
             this.formattedString.Subscribe(text =>
             {
                 this.isUpdatingText = true;
-                this.SetValue<string?>(TextProperty, text);
+                this.SetValue(TextProperty, text);
                 this.isUpdatingText = false;
             });
             this.GetObservable(Arg1Property).Subscribe(arg => this.formattedString.Arg1 = arg);
@@ -92,8 +97,8 @@ namespace CarinaStudio.Controls
         /// </summary>
         public object? Arg1
         {
-            get => this.GetValue<object?>(Arg1Property);
-            set => this.SetValue<object?>(Arg1Property, value);
+            get => this.GetValue(Arg1Property);
+            set => this.SetValue(Arg1Property, value);
         }
 
 
@@ -102,8 +107,8 @@ namespace CarinaStudio.Controls
         /// </summary>
         public object? Arg2
         {
-            get => this.GetValue<object?>(Arg2Property);
-            set => this.SetValue<object?>(Arg2Property, value);
+            get => this.GetValue(Arg2Property);
+            set => this.SetValue(Arg2Property, value);
         }
 
 
@@ -112,8 +117,8 @@ namespace CarinaStudio.Controls
         /// </summary>
         public object? Arg3
         {
-            get => this.GetValue<object?>(Arg3Property);
-            set => this.SetValue<object?>(Arg3Property, value);
+            get => this.GetValue(Arg3Property);
+            set => this.SetValue(Arg3Property, value);
         }
 
 
@@ -122,8 +127,8 @@ namespace CarinaStudio.Controls
         /// </summary>
         public object? Arg4
         {
-            get => this.GetValue<object?>(Arg4Property);
-            set => this.SetValue<object?>(Arg4Property, value);
+            get => this.GetValue(Arg4Property);
+            set => this.SetValue(Arg4Property, value);
         }
 
 
@@ -132,8 +137,8 @@ namespace CarinaStudio.Controls
         /// </summary>
         public object? Arg5
         {
-            get => this.GetValue<object?>(Arg5Property);
-            set => this.SetValue<object?>(Arg5Property, value);
+            get => this.GetValue(Arg5Property);
+            set => this.SetValue(Arg5Property, value);
         }
 
 
@@ -142,8 +147,8 @@ namespace CarinaStudio.Controls
         /// </summary>
         public object? Arg6
         {
-            get => this.GetValue<object?>(Arg6Property);
-            set => this.SetValue<object?>(Arg6Property, value);
+            get => this.GetValue(Arg6Property);
+            set => this.SetValue(Arg6Property, value);
         }
 
 
@@ -152,8 +157,8 @@ namespace CarinaStudio.Controls
         /// </summary>
         public object? Arg7
         {
-            get => this.GetValue<object?>(Arg7Property);
-            set => this.SetValue<object?>(Arg7Property, value);
+            get => this.GetValue(Arg7Property);
+            set => this.SetValue(Arg7Property, value);
         }
 
 
@@ -162,8 +167,8 @@ namespace CarinaStudio.Controls
         /// </summary>
         public object? Arg8
         {
-            get => this.GetValue<object?>(Arg8Property);
-            set => this.SetValue<object?>(Arg8Property, value);
+            get => this.GetValue(Arg8Property);
+            set => this.SetValue(Arg8Property, value);
         }
 
 
@@ -172,8 +177,8 @@ namespace CarinaStudio.Controls
         /// </summary>
         public object? Arg9
         {
-            get => this.GetValue<object?>(Arg9Property);
-            set => this.SetValue<object?>(Arg9Property, value);
+            get => this.GetValue(Arg9Property);
+            set => this.SetValue(Arg9Property, value);
         }
 
 
@@ -182,18 +187,23 @@ namespace CarinaStudio.Controls
         /// </summary>
         public string? Format
         {
-            get => this.GetValue<string?>(FormatProperty);
-            set => this.SetValue<string?>(FormatProperty, value);
+            get => this.GetValue(FormatProperty);
+            set => this.SetValue(FormatProperty, value);
         }
+        
+        
+#if AVALONIA_11_0_0_P4
+        /// <inheritdoc/>
+        Type IStyleable.StyleKey => typeof(Avalonia.Controls.TextBlock);
+#else
+        /// <inheritdoc/>
+        protected override Type StyleKeyOverride => typeof(Avalonia.Controls.TextBlock);
+#endif
 
 
         /// <summary>
         /// Get formatted text.
         /// </summary>
-        public new string? Text { get => base.Text; }
-
-
-        // Interface implementation.
-        Type IStyleable.StyleKey { get; } = typeof(Avalonia.Controls.TextBlock);
+        public new string? Text => base.Text;
     }
 }

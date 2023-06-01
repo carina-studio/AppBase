@@ -1,9 +1,10 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
-using Avalonia.Rendering;
+using CarinaStudio.Collections;
 using CarinaStudio.Threading;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace CarinaStudio.Controls.Presenters
@@ -21,7 +22,7 @@ namespace CarinaStudio.Controls.Presenters
         /// Property of <see cref="BorderThickness"/>.
         /// </summary>
         public static readonly StyledProperty<double> BorderThicknessProperty = AvaloniaProperty.Register<ProgressRingPresenter, double>(nameof(BorderThickness), 1,
-            coerce: (o, it) => Math.Max(0, it),
+            coerce: (_, it) => Math.Max(0, it),
             validate: double.IsFinite);
         /// <summary>
         /// Property of <see cref="IsIndeterminate"/>.
@@ -31,7 +32,7 @@ namespace CarinaStudio.Controls.Presenters
         /// Property of <see cref="MaxProgress"/>.
         /// </summary>
         public static readonly StyledProperty<double> MaxProgressProperty = AvaloniaProperty.Register<ProgressRingPresenter, double>(nameof(MaxProgress), 100,
-            coerce: (o, it) => Math.Max(o.GetValue<double>(MinProgressProperty.AsNonNull()), it),
+            coerce: (o, it) => Math.Max(o.GetValue<double>(MinProgressProperty!), it),
             validate: double.IsFinite);
         /// <summary>
         /// Property of <see cref="MinProgress"/>.
@@ -64,21 +65,30 @@ namespace CarinaStudio.Controls.Presenters
         /// Property of <see cref="RingThickness"/>.
         /// </summary>
         public static readonly StyledProperty<double> RingThicknessProperty = AvaloniaProperty.Register<ProgressRingPresenter, double>(nameof(RingThickness), 5,
-            coerce: (o, it) => Math.Max(1, it),
+            coerce: (_, it) => Math.Max(1, it),
             validate: double.IsFinite);
 
 
         // Constants.
         const int IntermediateProgressAnimationDuration = 1000;
-        const int IntermediateProgressAnimationUpdateInterval = 0;
+        const int RenderTimerInterval = 15;
         
 
         // Static fields.
         static readonly StyledProperty<double> IndeterminateProgressProperty = AvaloniaProperty.Register<ProgressRingPresenter, double>("IndeterminateProgress", 0);
+        static readonly List<ProgressRingPresenter> RenderTimerClients = new();
+        static readonly ScheduledAction RenderTimerTickAction = new(() =>
+        {
+            var renderTimerClients = RenderTimerClients;
+            if (renderTimerClients.IsEmpty())
+                return;
+            for (var i = renderTimerClients.Count - 1; i >= 0; --i)
+                renderTimerClients[i].OnRenderTimerTick();
+            RenderTimerTickAction!.Schedule(RenderTimerInterval);
+        });
         
 
         // Fields.
-        readonly ScheduledAction animateIntermediateProgressAction;
         Pen? borderPen;
         long indeterminateProgressAnimationStartTime = -1;
         bool isAttachedToVisualTree;
@@ -86,7 +96,6 @@ namespace CarinaStudio.Controls.Presenters
         StreamGeometry? progressGeometry;
         Pen? progressPen;
         double progressStartAngle = double.NaN;
-        IRenderTimer? renderTimer;
         Pen? ringPen;
         readonly Stopwatch stopwatch = new();
         
@@ -112,9 +121,7 @@ namespace CarinaStudio.Controls.Presenters
         /// Initialize new <see cref="ProgressRingPresenter"/> instance.
         /// </summary>
         public ProgressRingPresenter()
-        { 
-            this.animateIntermediateProgressAction = new(this.AnimateIntermediateProgress);
-        }
+        { }
 
 
         // Animate intermediate progress.
@@ -123,7 +130,7 @@ namespace CarinaStudio.Controls.Presenters
             if (this.indeterminateProgressAnimationStartTime >= 0)
             {
                 var duration = (this.stopwatch.ElapsedMilliseconds - this.indeterminateProgressAnimationStartTime) % IntermediateProgressAnimationDuration;
-                this.SetValue<double>(IndeterminateProgressProperty, (double)duration / IntermediateProgressAnimationDuration);
+                this.SetValue(IndeterminateProgressProperty, (double)duration / IntermediateProgressAnimationDuration);
             }
             else
                 this.indeterminateProgressAnimationStartTime = this.stopwatch.ElapsedMilliseconds;
@@ -136,8 +143,8 @@ namespace CarinaStudio.Controls.Presenters
         /// </summary>
         public IBrush? BorderBrush
         {
-            get => this.GetValue<IBrush?>(BorderBrushProperty);
-            set => this.SetValue<IBrush?>(BorderBrushProperty, value);
+            get => this.GetValue(BorderBrushProperty);
+            set => this.SetValue(BorderBrushProperty, value);
         }
 
 
@@ -146,17 +153,17 @@ namespace CarinaStudio.Controls.Presenters
         /// </summary>
         public double BorderThickness
         {
-            get => this.GetValue<double>(BorderThicknessProperty);
-            set => this.SetValue<double>(BorderThicknessProperty, value);
+            get => this.GetValue(BorderThicknessProperty);
+            set => this.SetValue(BorderThicknessProperty, value);
         }
 
 
         // Invalidate and update progress angles.
         void InvalidateProgressAngles()
         {
-            if (this.GetValue<bool>(IsIndeterminateProperty))
+            if (this.GetValue(IsIndeterminateProperty))
             {
-                var progress = this.GetValue<double>(IndeterminateProgressProperty);
+                var progress = this.GetValue(IndeterminateProgressProperty);
                 var centerAngle = progress * 360 - 90;
                 var sweepAngle = progress >= 0.5
                     ? 15 + (1 - progress) * 75
@@ -166,9 +173,9 @@ namespace CarinaStudio.Controls.Presenters
             }
             else
             {
-                var min = this.GetValue<double>(MinProgressProperty);
-                var max = this.GetValue<double>(MaxProgressProperty);
-                var progress = this.GetValue<double>(ProgressProperty);
+                var min = this.GetValue(MinProgressProperty);
+                var max = this.GetValue(MaxProgressProperty);
+                var progress = this.GetValue(ProgressProperty);
                 this.progressStartAngle = -90;
                 if (max > min)
                     this.progressEndAngle = (progress / (max - min)) * 360 - 90;
@@ -184,8 +191,8 @@ namespace CarinaStudio.Controls.Presenters
         /// </summary>
         public bool IsIndeterminate
         {
-            get => this.GetValue<bool>(IsIndeterminateProperty);
-            set => this.SetValue<bool>(IsIndeterminateProperty, value);
+            get => this.GetValue(IsIndeterminateProperty);
+            set => this.SetValue(IsIndeterminateProperty, value);
         }
 
 
@@ -194,8 +201,8 @@ namespace CarinaStudio.Controls.Presenters
         /// </summary>
         public double MaxProgress
         {
-            get => this.GetValue<double>(MaxProgressProperty);
-            set => this.SetValue<double>(MaxProgressProperty, value);
+            get => this.GetValue(MaxProgressProperty);
+            set => this.SetValue(MaxProgressProperty, value);
         }
 
 
@@ -204,8 +211,8 @@ namespace CarinaStudio.Controls.Presenters
         /// </summary>
         public double MinProgress
         {
-            get => this.GetValue<double>(MinProgressProperty);
-            set => this.SetValue<double>(MinProgressProperty, value);
+            get => this.GetValue(MinProgressProperty);
+            set => this.SetValue(MinProgressProperty, value);
         }
 
 
@@ -214,12 +221,11 @@ namespace CarinaStudio.Controls.Presenters
         {
             base.OnAttachedToVisualTree(e);
             this.stopwatch.Start();
-            this.renderTimer = AvaloniaLocator.Current.GetService<IRenderTimer>();
-            if (this.GetValue<bool>(IsIndeterminateProperty))
+            if (this.GetValue(IsIndeterminateProperty))
             {
-                this.SetValue<double>(IndeterminateProgressProperty, 0);
+                this.SetValue(IndeterminateProgressProperty, 0);
                 this.indeterminateProgressAnimationStartTime = this.stopwatch.ElapsedMilliseconds;
-                this.renderTimer?.Let(it => it.Tick += this.OnRenderTimerTick);
+                RegisterToRenderTimer(this);
             }
             this.isAttachedToVisualTree = true;
         }
@@ -228,18 +234,17 @@ namespace CarinaStudio.Controls.Presenters
         /// <inheritdoc/>
         protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
         {
-            this.renderTimer?.Let(it => it.Tick -= this.OnRenderTimerTick);
+            UnregisterFromRenderTimer(this);
             this.indeterminateProgressAnimationStartTime = -1;
             this.isAttachedToVisualTree = false;
             this.stopwatch.Stop();
-            this.renderTimer = null;
             base.OnDetachedFromVisualTree(e);
         }
 
 
         // Called when receiving notification from render timer.
-        void OnRenderTimerTick(TimeSpan _) =>
-            this.animateIntermediateProgressAction.Schedule(IntermediateProgressAnimationUpdateInterval);
+        void OnRenderTimerTick() =>
+            this.AnimateIntermediateProgress();
 
 
         /// <inheritdoc/>
@@ -256,21 +261,21 @@ namespace CarinaStudio.Controls.Presenters
             }
             else if (property == IsIndeterminateProperty)
             {
-                if (!this.GetValue<bool>(IsIndeterminateProperty))
+                if (!this.GetValue(IsIndeterminateProperty))
                 {
                     this.indeterminateProgressAnimationStartTime = -1;
-                    this.renderTimer?.Let(it => it.Tick -= this.OnRenderTimerTick);
+                    UnregisterFromRenderTimer(this);
                     this.InvalidateProgressAngles();
                 }
                 else if (this.isAttachedToVisualTree)
                 {
-                    this.SetValue<double>(IndeterminateProgressProperty, 0);
-                    this.renderTimer?.Let(it => it.Tick += this.OnRenderTimerTick);
+                    this.SetValue(IndeterminateProgressProperty, 0);
+                    RegisterToRenderTimer(this);
                 }
             }
             else if (property == ProgressProperty)
             {
-                if (!this.GetValue<bool>(IsIndeterminateProperty))
+                if (!this.GetValue(IsIndeterminateProperty))
                     this.InvalidateProgressAngles();
             }
             else if (property == ProgressBrushProperty)
@@ -302,8 +307,8 @@ namespace CarinaStudio.Controls.Presenters
         /// </summary>
         public double Progress
         {
-            get => this.GetValue<double>(ProgressProperty);
-            set => this.SetValue<double>(ProgressProperty, value);
+            get => this.GetValue(ProgressProperty);
+            set => this.SetValue(ProgressProperty, value);
         }
 
 
@@ -312,8 +317,16 @@ namespace CarinaStudio.Controls.Presenters
         /// </summary>
         public IBrush? ProgressBrush
         {
-            get => this.GetValue<IBrush?>(ProgressBrushProperty);
-            set => this.SetValue<IBrush?>(ProgressBrushProperty, value);
+            get => this.GetValue(ProgressBrushProperty);
+            set => this.SetValue(ProgressBrushProperty, value);
+        }
+
+
+        // Register presenter to render timer.
+        static void RegisterToRenderTimer(ProgressRingPresenter presenter)
+        {
+            RenderTimerClients.Add(presenter);
+            RenderTimerTickAction.Schedule(RenderTimerInterval);
         }
 
 
@@ -326,18 +339,18 @@ namespace CarinaStudio.Controls.Presenters
             var height = bounds.Height;
             var centerX = width / 2;
             var centerY = height / 2;
-            var ringThickness = this.GetValue<double>(RingThicknessProperty);
-            var borderThickness = this.GetValue<double>(BorderThicknessProperty);
+            var ringThickness = this.GetValue(RingThicknessProperty);
+            var borderThickness = this.GetValue(BorderThicknessProperty);
             var hasBorder = Math.Abs(borderThickness) >= 0.1;
             if (hasBorder && this.borderPen == null)
             {
-                var brush = this.GetValue<IBrush?>(BorderBrushProperty);
+                var brush = this.GetValue(BorderBrushProperty);
                 if (brush != null)
                     this.borderPen = new Pen(brush, borderThickness);
             }
             if (this.ringPen == null)
             {
-                var brush = this.GetValue<IBrush?>(RingBrushProperty);
+                var brush = this.GetValue(RingBrushProperty);
                 if (brush != null)
                     this.ringPen = new Pen(brush, ringThickness);
             }
@@ -360,7 +373,7 @@ namespace CarinaStudio.Controls.Presenters
             }
             if (this.progressPen == null)
             {
-                var brush = this.GetValue<IBrush?>(ProgressBrushProperty);
+                var brush = this.GetValue(ProgressBrushProperty);
                 if (brush != null)
                     this.progressPen = new Pen(brush, ringThickness, lineCap: PenLineCap.Round);
             }
@@ -409,8 +422,8 @@ namespace CarinaStudio.Controls.Presenters
         /// </summary>
         public IBrush? RingBrush
         {
-            get => this.GetValue<IBrush?>(RingBrushProperty);
-            set => this.SetValue<IBrush?>(RingBrushProperty, value);
+            get => this.GetValue(RingBrushProperty);
+            set => this.SetValue(RingBrushProperty, value);
         }
 
 
@@ -419,8 +432,16 @@ namespace CarinaStudio.Controls.Presenters
         /// </summary>
         public double RingThickness
         {
-            get => this.GetValue<double>(RingThicknessProperty);
-            set => this.SetValue<double>(RingThicknessProperty, value);
+            get => this.GetValue(RingThicknessProperty);
+            set => this.SetValue(RingThicknessProperty, value);
+        }
+        
+        
+        // Unregister presenter from render timer.
+        static void UnregisterFromRenderTimer(ProgressRingPresenter presenter)
+        {
+            if (RenderTimerClients.Remove(presenter) && RenderTimerClients.IsEmpty())
+                RenderTimerTickAction.Cancel();
         }
     }
 }

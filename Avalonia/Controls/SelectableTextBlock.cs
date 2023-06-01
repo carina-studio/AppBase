@@ -3,7 +3,9 @@ using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using Avalonia.LogicalTree;
 using Avalonia.Media;
+#if AVALONIA_11_0_0_P4
 using Avalonia.Styling;
+#endif
 using CarinaStudio.Collections;
 using CarinaStudio.Threading;
 using Microsoft.Extensions.Logging;
@@ -14,7 +16,10 @@ namespace CarinaStudio.Controls
     /// <summary>
     /// Extended <see cref="Avalonia.Controls.SelectableTextBlock"/>.
     /// </summary>
-    public class SelectableTextBlock : Avalonia.Controls.SelectableTextBlock, IStyleable
+    public class SelectableTextBlock : Avalonia.Controls.SelectableTextBlock
+#if AVALONIA_11_0_0_P4
+        , IStyleable
+#endif
     {
         /// <summary>
         /// Property of <see cref="IsMultiLineText"/>.
@@ -179,8 +184,13 @@ namespace CarinaStudio.Controls
         }
 
 
-        // Interface implementation.
-        Type IStyleable.StyleKey { get; } = typeof(Avalonia.Controls.SelectableTextBlock);
+#if AVALONIA_11_0_0_P4
+        /// <inheritdoc/>
+        Type IStyleable.StyleKey => typeof(Avalonia.Controls.SelectableTextBlock);
+#else
+        /// <inheritdoc/>
+        protected override Type StyleKeyOverride => typeof(Avalonia.Controls.SelectableTextBlock);
+#endif
 
 
         /// <summary>

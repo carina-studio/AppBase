@@ -204,7 +204,7 @@ namespace CarinaStudio.Controls
             if (!string.IsNullOrEmpty(s))
             {
                 if (this.Text?.Length > MaxTextLength)
-                    e.Text = "";
+                    e.Handled = true;
                 else
                 {
                     var c = s[0];
@@ -213,15 +213,15 @@ namespace CarinaStudio.Controls
                         if (c == '+')
                         {
                             if (!this.AcceptsPositiveSign || this.Maximum <= 0 || this.SelectionStart != 0)
-                                e.Text = "";
+                                e.Handled = true;
                         }
                         else if (c == '-')
                         {
                             if (this.Minimum >= 0 || this.SelectionStart != 0)
-                                e.Text = "";
+                                e.Handled = true;
                         }
                         else
-                            e.Text = "";
+                            e.Handled = true;
                     }
                 }
             }
