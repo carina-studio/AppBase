@@ -9,6 +9,12 @@ namespace CarinaStudio.AutoUpdate.Installers
 	public interface IPackageInstaller : IUpdaterComponent
 	{
 		/// <summary>
+		/// Get or set whether old application icons are needed to be deleted after installation or not.
+		/// </summary>
+		bool DeleteOldApplicationIcons { get; set; }
+		
+		
+		/// <summary>
 		/// Get set of path of installed files.
 		/// </summary>
 		ISet<string> InstalledFilePaths { get; }
