@@ -24,6 +24,10 @@ public class RealNumberTextBox : ValueTextBox<double>
     /// Property of <see cref="Minimum"/>.
     /// </summary>
     public static readonly StyledProperty<double> MinimumProperty = AvaloniaProperty.Register<RealNumberTextBox, double>(nameof(Minimum), double.MinValue, validate: double.IsFinite);
+    /// <summary>
+    /// Property of <see cref="ValueTextBox{Double}.Value"/>.
+    /// </summary>
+    public static readonly new DirectProperty<RealNumberTextBox, double?> ValueProperty = AvaloniaProperty.RegisterDirect<RealNumberTextBox, double?>(nameof(Value), t => t.Value, (t, v) => t.Value = v);
 
 
     /// <summary>

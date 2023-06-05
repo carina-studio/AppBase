@@ -1,4 +1,5 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
 using System;
 using System.Globalization;
 using System.Text.RegularExpressions;
@@ -10,6 +11,12 @@ namespace CarinaStudio.Controls
     /// </summary>
     public class DateTimeTextBox : ValueTextBox<DateTime>
     {
+        /// <summary>
+        /// Property of <see cref="ValueTextBox{DateTime}.Value"/>.
+        /// </summary>
+        public static readonly new DirectProperty<DateTimeTextBox, DateTime?> ValueProperty = AvaloniaProperty.RegisterDirect<DateTimeTextBox, DateTime?>(nameof(Value), t => t.Value, (t, v) => t.Value = v);
+        
+        
         // Constants.
         const long DecadeInSeconds = 3600 * 24 * 365 * 10;
         const long DecadeInMillis = DecadeInSeconds * 1000;

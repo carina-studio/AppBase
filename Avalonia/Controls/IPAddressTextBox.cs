@@ -14,6 +14,10 @@ namespace CarinaStudio.Controls
         /// Property of <see cref="IPv4Only"/>.
         /// </summary>
         public static readonly StyledProperty<bool> IPv4OnlyProperty = AvaloniaProperty.Register<IPAddressTextBox, bool>(nameof(IPv4Only), false);
+        /// <summary>
+        /// Property of <see cref="ObjectTextBox{IPAddress}.Object"/>.
+        /// </summary>
+        public static readonly new DirectProperty<IPAddressTextBox, IPAddress?> ObjectProperty = AvaloniaProperty.RegisterDirect<IPAddressTextBox, IPAddress?>(nameof(Object), t => t.Object, (t, o) => t.Object = o);
 
 
         /// <summary>

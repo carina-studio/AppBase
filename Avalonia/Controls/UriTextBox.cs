@@ -15,6 +15,10 @@ namespace CarinaStudio.Controls
 		/// </summary>
 		public static readonly StyledProperty<string?> DefaultUriSchemeProperty = AvaloniaProperty.Register<UriTextBox, string?>(nameof(DefaultUriScheme), null);
 		/// <summary>
+		/// Property of <see cref="ObjectTextBox{Uri}.Object"/>.
+		/// </summary>
+		public static readonly new DirectProperty<UriTextBox, Uri?> ObjectProperty = AvaloniaProperty.RegisterDirect<UriTextBox, Uri?>(nameof(Object), t => t.Object, (t, o) => t.Object = o);
+		/// <summary>
 		/// Property of <see cref="UriKind"/>.
 		/// </summary>
 		public static readonly StyledProperty<UriKind> UriKindProperty = AvaloniaProperty.Register<UriTextBox, UriKind>(nameof(IsTextValid), UriKind.Absolute);
@@ -39,8 +43,8 @@ namespace CarinaStudio.Controls
 		/// </summary>
 		public string? DefaultUriScheme
 		{
-			get => this.GetValue<string?>(DefaultUriSchemeProperty);
-			set => this.SetValue<string?>(DefaultUriSchemeProperty, value);
+			get => this.GetValue(DefaultUriSchemeProperty);
+			set => this.SetValue(DefaultUriSchemeProperty, value);
 		}
 
 
@@ -59,7 +63,7 @@ namespace CarinaStudio.Controls
 		{
 			if (!UriSchemeRegex.IsMatch(text))
 			{
-				var defaultScheme = this.GetValue<string?>(DefaultUriSchemeProperty);
+				var defaultScheme = this.GetValue(DefaultUriSchemeProperty);
 				if (!string.IsNullOrWhiteSpace(defaultScheme))
 					text = $"{defaultScheme}://{text}";
 			}
@@ -72,8 +76,8 @@ namespace CarinaStudio.Controls
 		/// </summary>
 		public UriKind UriKind
 		{
-			get => this.GetValue<UriKind>(UriKindProperty);
-			set => this.SetValue<UriKind>(UriKindProperty, value);
+			get => this.GetValue(UriKindProperty);
+			set => this.SetValue(UriKindProperty, value);
 		}
 	}
 }

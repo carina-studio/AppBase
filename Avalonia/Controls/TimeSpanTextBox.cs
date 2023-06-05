@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Controls;
 using System;
 using System.Globalization;
@@ -10,6 +11,12 @@ namespace CarinaStudio.Controls
     /// </summary>
     public class TimeSpanTextBox : ValueTextBox<TimeSpan>
     {
+        /// <summary>
+        /// Property of <see cref="ValueTextBox{TimeSpan}.Value"/>.
+        /// </summary>
+        public static readonly new DirectProperty<TimeSpanTextBox, TimeSpan?> ValueProperty = AvaloniaProperty.RegisterDirect<TimeSpanTextBox, TimeSpan?>(nameof(Value), t => t.Value, (t, v) => t.Value = v);
+        
+        
         // Static fields.
         static readonly Regex CustomFormatRegex = new("^[\\+\\-]?((?<Days>[\\d]+)(\\s+|\\.+|\\-+)(?<Hours>[\\d]{1,2})|(?<Hours>[\\d]+))(\\s+|\\:+|\\.+|\\-+)(?<Minutes>[\\d]{1,2})(\\s+|\\:+|\\.+|\\-+)(?<Seconds>[\\d]{1,2}(\\.[\\d]+)?)[\\s]*$");
         static readonly CultureInfo DefaultCultureInfo = CultureInfo.GetCultureInfo("en-US");
