@@ -1,7 +1,6 @@
 ﻿using CarinaStudio.Collections;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace CarinaStudio
@@ -38,9 +37,9 @@ namespace CarinaStudio
         // Fields.
         readonly CombinationMode combinationMode;
         bool isAttaching;
-        IDisposable?[] observerDisposables = new IDisposable?[0];
-        IObservable<bool>[] sources = new IObservable<bool>[0];
-        bool[] sourceValues = new bool[0];
+        IDisposable?[] observerDisposables = Array.Empty<IDisposable?>();
+        IObservable<bool>[] sources = Array.Empty<IObservable<bool>>();
+        bool[] sourceValues = Array.Empty<bool>();
 
 
         /// <summary>
@@ -150,15 +149,15 @@ namespace CarinaStudio
                 return;
             foreach (var disposable in this.observerDisposables)
                 disposable?.Dispose();
-            this.observerDisposables = new IDisposable?[0];
-            this.sources = new IObservable<bool>[0];
-            this.sourceValues = new bool[0];
+            this.observerDisposables = Array.Empty<IDisposable?>();
+            this.sources = Array.Empty<IObservable<bool>>();
+            this.sourceValues = Array.Empty<bool>();
             this.UpdateValue(null);
         }
 
 
         /// <inheritdoc/>
-		public override bool Equals([AllowNull] bool value) => this.Value == value;
+		public override bool Equals(bool value) => this.Value == value;
 
 
         // Update value.
@@ -180,7 +179,7 @@ namespace CarinaStudio
                             return;
                         }
                     }
-                    this.Value = this.sources.IsNotEmpty() ? true : this.DefaultValue;
+                    this.Value = this.sources.IsNotEmpty() || this.DefaultValue;
                     return;
                 case CombinationMode.Or:
                     if (changedValue != null && changedValue.Value)
@@ -196,7 +195,7 @@ namespace CarinaStudio
                             return;
                         }
                     }
-                    this.Value = this.sources.IsNotEmpty() ? false : this.DefaultValue;
+                    this.Value = !this.sources.IsNotEmpty() && this.DefaultValue;
                     return;
                 case CombinationMode.Nand:
                     if (changedValue != null && !changedValue.Value)
@@ -212,7 +211,7 @@ namespace CarinaStudio
                             return;
                         }
                     }
-                    this.Value = this.sources.IsNotEmpty() ? false : this.DefaultValue;
+                    this.Value = !this.sources.IsNotEmpty() && this.DefaultValue;
                     return;
                 case CombinationMode.Nor:
                     if (changedValue != null && changedValue.Value)
@@ -228,7 +227,7 @@ namespace CarinaStudio
                             return;
                         }
                     }
-                    this.Value = this.sources.IsNotEmpty() ? true : this.DefaultValue;
+                    this.Value = this.sources.IsNotEmpty() || this.DefaultValue;
                     return;
                 default:
                     throw new NotSupportedException();

@@ -6,19 +6,20 @@ namespace CarinaStudio.Windows.Input
 	/// <summary>
 	/// <see cref="IObservable{T}"/> which reflects <see cref="ICommand.CanExecute(object)"/>.
 	/// </summary>
-	/// <remarks><see cref="ObservableCommandState"/> uses weak event handler to monitor state of <see cref="ICommand"/> so it is not necessary to unbind from <see cref="ICommand"/> explicitly.</remarks>
-	public class ObservableCommandState : ObservableValue<bool>
+	/// <typeparam name="TParameter">Type of parameter of command.</typeparam>
+	/// <remarks><see cref="ObservableCommandState{TParameter}"/> uses weak event handler to monitor state of <see cref="ICommand"/> so it is not necessary to unbind from <see cref="ICommand"/> explicitly.</remarks>
+	public class ObservableCommandState<TParameter> : ObservableValue<bool>
 	{
 		// Handler for CanExecuteChanged.
 		class CanExecuteChangedHandler
 		{
 			// Fields.
-			readonly WeakReference<ObservableCommandState> ownerReference;
+			readonly WeakReference<ObservableCommandState<TParameter>> ownerReference;
 
 			// Constructor.
-			public CanExecuteChangedHandler(ObservableCommandState owner)
+			public CanExecuteChangedHandler(ObservableCommandState<TParameter> owner)
 			{
-				this.ownerReference = new WeakReference<ObservableCommandState>(owner);
+				this.ownerReference = new WeakReference<ObservableCommandState<TParameter>>(owner);
 			}
 
 			// Called when CanExecuteChanged.
@@ -33,19 +34,21 @@ namespace CarinaStudio.Windows.Input
 		// Fields.
 		readonly CanExecuteChangedHandler canExecuteChangedHandler;
 		readonly bool defaultValue;
+		TParameter? parameter;
 
 
 		/// <summary>
-		/// Initialize new <see cref="ObservableCommandState"/> instance.
+		/// Initialize new <see cref="ObservableCommandState{TParameter}"/> instance.
 		/// </summary>
 		/// <param name="command"><see cref="ICommand"/> to bind to.</param>
+		/// <param name="parameter">Parameter of command.</param>
 		/// <param name="defaultValue">Default value used when no <see cref="ICommand"/> bound.</param>
-		public ObservableCommandState(ICommand? command = null, bool defaultValue = default)
+		public ObservableCommandState(ICommand? command = null, TParameter? parameter = default, bool defaultValue = default)
 		{
 			this.canExecuteChangedHandler = new CanExecuteChangedHandler(this);
 			this.defaultValue = defaultValue;
 			if (command != null)
-				this.Bind(command);
+				this.Bind(command, parameter);
 			else
 				this.Value = this.defaultValue;
 		}
@@ -64,18 +67,27 @@ namespace CarinaStudio.Windows.Input
 		/// Bind to <see cref="ICommand"/>.
 		/// </summary>
 		/// <param name="command"><see cref="ICommand"/> to bind to.</param>
+		/// <param name="parameter">Parameter of command.</param>
 		/// <exception cref="InvalidOperationException">Instance is already bound to another command.</exception>
-		public void Bind(ICommand command)
+		public void Bind(ICommand command, TParameter? parameter = default)
 		{
-			if (this.Command != null)
+			if (this.Command is not null)
 			{
 				if (this.Command == command)
+				{
+					if (!(this.parameter?.Equals(parameter) ?? parameter is null))
+					{
+						this.parameter = parameter;
+						this.Value = command.CanExecute(parameter);
+					}
 					return;
+				}
 				throw new InvalidOperationException("Already bound to another command.");
 			}
 			this.Command = command;
+			this.parameter = parameter;
 			command.CanExecuteChanged += this.canExecuteChangedHandler.OnCanExecuteChanged;
-			this.Value = command.CanExecute(null);
+			this.Value = command.CanExecute(parameter);
 		}
 
 
@@ -88,7 +100,7 @@ namespace CarinaStudio.Windows.Input
 		// Called when CanExecuteChanged.
 		void OnCanExecuteChanged()
 		{
-			this.Value = this.Command?.CanExecute(null) ?? this.defaultValue;
+			this.Value = this.Command?.CanExecute(this.parameter) ?? this.defaultValue;
 		}
 
 
@@ -101,6 +113,7 @@ namespace CarinaStudio.Windows.Input
 				return;
 			this.Command.CanExecuteChanged -= this.canExecuteChangedHandler.OnCanExecuteChanged;
 			this.Command = null;
+			this.parameter = default;
 			this.Value = this.defaultValue;
 		}
 	}
