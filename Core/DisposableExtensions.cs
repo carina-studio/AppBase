@@ -24,7 +24,7 @@ namespace CarinaStudio
 
 #pragma warning disable CS8600
 		/// <summary>
-		/// Exhange the source <see cref="IDisposable"/> with another one.
+		/// Exchange the source <see cref="IDisposable"/> with another one.
 		/// </summary>
 		/// <typeparam name="T">Type of source <see cref="IDisposable"/>.</typeparam>
 		/// <typeparam name="R">Type of result <see cref="IDisposable"/>.</typeparam>
@@ -41,15 +41,15 @@ namespace CarinaStudio
 			}
 			finally
 			{
-				if (!object.ReferenceEquals(source, result))
-					source?.Dispose();
+				if (!ReferenceEquals(source, result))
+					source.Dispose();
 			}
 			return result;
 		}
 
 
 		/// <summary>
-		/// Exhange the source <see cref="IDisposable"/> with another one.
+		/// Exchange the source <see cref="IDisposable"/> with another one.
 		/// </summary>
 		/// <typeparam name="T">Type of source <see cref="IDisposable"/>.</typeparam>
 		/// <typeparam name="R">Type of result <see cref="IDisposable"/>.</typeparam>
@@ -66,8 +66,8 @@ namespace CarinaStudio
 			}
 			finally
 			{
-				if (!object.ReferenceEquals(source, result))
-					source?.Dispose();
+				if (!ReferenceEquals(source, result))
+					source.Dispose();
 			}
 			return result;
 		}
@@ -75,7 +75,7 @@ namespace CarinaStudio
 
 
 		/// <summary>
-		/// Exhange the source <see cref="IDisposable"/> with another one asynchronously.
+		/// Exchange the source <see cref="IDisposable"/> with another one asynchronously.
 		/// </summary>
 		/// <typeparam name="T">Type of source <see cref="IDisposable"/>.</typeparam>
 		/// <typeparam name="R">Type of result <see cref="IDisposable"/>.</typeparam>
@@ -92,12 +92,12 @@ namespace CarinaStudio
 			}
 			finally
 			{
-				if (!object.ReferenceEquals(source, result))
+				if (!ReferenceEquals(source, result))
 				{
 					if (source is IAsyncDisposable asyncDisposable)
 						await asyncDisposable.DisposeAsync();
 					else
-						source?.Dispose();
+						source.Dispose();
 				}
 			}
 			return result;
@@ -105,7 +105,7 @@ namespace CarinaStudio
 
 
 		/// <summary>
-		/// Exhange the source <see cref="IDisposable"/> with another one asynchronously.
+		/// Exchange the source <see cref="IDisposable"/> with another one asynchronously.
 		/// </summary>
 		/// <typeparam name="T">Type of source <see cref="IDisposable"/>.</typeparam>
 		/// <typeparam name="R">Type of result <see cref="IDisposable"/>.</typeparam>
@@ -122,12 +122,12 @@ namespace CarinaStudio
 			}
 			finally
 			{
-				if (!object.ReferenceEquals(source, result))
+				if (!ReferenceEquals(source, result))
 				{
 					if (source is IAsyncDisposable asyncDisposable)
 						await asyncDisposable.DisposeAsync();
 					else
-						source?.Dispose();
+						source.Dispose();
 				}
 			}
 			return result;

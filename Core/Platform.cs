@@ -42,7 +42,7 @@ namespace CarinaStudio
 				if (process != null)
 				{
 					var latestVersion = (Version?)null;
-					var targetRuntine = IsWindows ? "Microsoft.WindowsDesktop.App" : "Microsoft.NETCore.App";
+					var targetRuntime = IsWindows ? "Microsoft.WindowsDesktop.App" : "Microsoft.NETCore.App";
 					var line = process.StandardOutput.ReadLine();
 					while (line != null)
 					{
@@ -51,7 +51,7 @@ namespace CarinaStudio
 							var match = runtimeVersionRegex.Match(line);
 							if (match.Success)
 							{
-								if (match.Groups["Runtime"].Value != targetRuntine)
+								if (match.Groups["Runtime"].Value != targetRuntime)
 									continue;
 								if (match.Groups["VersionPostfix"].Success && stableVersionOnly)
 									continue;
@@ -70,8 +70,10 @@ namespace CarinaStudio
 					return latestVersion;
 				}
 			}
+			// ReSharper disable EmptyGeneralCatchClause
 			catch
 			{ }
+			// ReSharper restore EmptyGeneralCatchClause
 			return null;
 		}
 
@@ -99,7 +101,7 @@ namespace CarinaStudio
 		/// Check whether the desktop environment is GNOME or not if current operating system is Linux.
 		/// </summary>
 		[Obsolete("Use LinuxDesktop instead.")]
-		public static bool IsGnome { get => LinuxDesktop == LinuxDesktop.Gnome; }
+		public static bool IsGnome => LinuxDesktop == LinuxDesktop.Gnome;
 
 
 		/// <summary>
@@ -164,19 +166,19 @@ namespace CarinaStudio
 		/// <summary>
 		/// Check whether the version of Windows is Windows 10+ or not.
 		/// </summary>
-		public static bool IsWindows10OrAbove { get => WindowsVersion >= WindowsVersion.Windows10; }
+		public static bool IsWindows10OrAbove => WindowsVersion >= WindowsVersion.Windows10;
 
 
 		/// <summary>
 		/// Check whether the version of Windows is Windows 11+ or not.
 		/// </summary>
-		public static bool IsWindows11OrAbove { get => WindowsVersion >= WindowsVersion.Windows11; }
+		public static bool IsWindows11OrAbove => WindowsVersion >= WindowsVersion.Windows11;
 
 
 		/// <summary>
 		/// Check whether the version of Windows is Windows 8+ or not.
 		/// </summary>
-		public static bool IsWindows8OrAbove { get => WindowsVersion >= WindowsVersion.Windows8; }
+		public static bool IsWindows8OrAbove => WindowsVersion >= WindowsVersion.Windows8;
 
 
 		/// <summary>
@@ -252,8 +254,10 @@ namespace CarinaStudio
 												return LinuxDistribution.Fedora;
 										}
 									}
+									// ReSharper disable EmptyGeneralCatchClause
 									catch
 									{ }
+									// ReSharper restore EmptyGeneralCatchClause
 									return LinuxDistribution.RedHat;
 								}
 								if (data.Contains("(Ubuntu"))
@@ -286,8 +290,10 @@ namespace CarinaStudio
 			{
 				isDirectory = Directory.Exists(path);
 			}
+			// ReSharper disable EmptyGeneralCatchClause
 			catch
 			{ }
+			// ReSharper restore EmptyGeneralCatchClause
 
 			// open file manager
 			using var process = new Process();
@@ -346,8 +352,10 @@ namespace CarinaStudio
 							Arguments = isDirectory ? path : (Path.GetDirectoryName(path) ?? ""),
 						});
 					}
+					// ReSharper disable EmptyGeneralCatchClause
 					catch
 					{ }
+					// ReSharper restore EmptyGeneralCatchClause
 				}
 			}
 		});

@@ -193,8 +193,10 @@ namespace CarinaStudio
 			{
 				action();
 			}
+			// ReSharper disable EmptyGeneralCatchClause
 			catch
 			{ }
+			// ReSharper restore EmptyGeneralCatchClause
 		}
 
 
@@ -209,8 +211,10 @@ namespace CarinaStudio
 			{
 				action();
 			}
+			// ReSharper disable EmptyGeneralCatchClause
 			catch
 			{ }
+			// ReSharper restore EmptyGeneralCatchClause
 		});
 	}
 }

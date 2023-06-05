@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 
 namespace CarinaStudio
 {
@@ -7,7 +6,7 @@ namespace CarinaStudio
 	/// Value which is observable.
 	/// </summary>
 	/// <typeparam name="T">Type of value.</typeparam>
-	public abstract class ObservableValue<T> : IEquatable<T>, IObservable<T>
+	public abstract class ObservableValue<T> : IObservable<T>
 	{
 		// Holder of observer.
 		class ObserverHolder : IDisposable
@@ -16,7 +15,7 @@ namespace CarinaStudio
 			public bool IsDisposed;
 			public ObserverHolder? Next;
 			public readonly IObserver<T> Observer;
-			public readonly ObservableValue<T> Owner;
+			readonly ObservableValue<T> Owner;
 
 			// Constructor.
 			public ObserverHolder(ObservableValue<T>  owner, IObserver<T> observer)
@@ -52,56 +51,31 @@ namespace CarinaStudio
 
 
 		/// <summary>
-		/// Check whether given value should be treated as same as value of the instance or not.
+		/// Check equality of values.
 		/// </summary>
-		/// <param name="value">Value to check.</param>
-		/// <returns>True if two values are treated as same value.</returns>
-		public virtual bool Equals([AllowNull] T value)
-		{
-			if (value != null)
-				return value.Equals(this.value);
-			return this.value == null;
-		}
-
-
-		/// <summary>
-		/// Check whether given object should be treated as same as the instance or not.
-		/// </summary>
-		/// <param name="obj">Object to check.</param>
-		/// <returns>True if given object should be treated as same as the instance.</returns>
-		public override bool Equals(object? obj)
-		{
-			if (obj is T value)
-				return this.Equals(value);
-			if (obj is ObservableValue<T> observableValue)
-				return this.Equals(observableValue.value);
-			return false;
-		}
-
-
-		/// <summary>
-		/// Calculate hash-code based-on its value.
-		/// </summary>
-		/// <returns>Hash-code.</returns>
-		public override int GetHashCode() => this.value?.GetHashCode() ?? 0;
+		/// <param name="x">First value.</param>
+		/// <param name="y">Second value.</param>
+		/// <returns>True if two values are equivalent.</returns>
+		protected virtual bool CheckValuesEquality(T x, T y) =>
+			x?.Equals(y) ?? y is null;
 
 
 		/// <summary>
 		/// Check whether at least one <see cref="IObserver{T}"/> has been subscribed to this instance or not.
 		/// </summary>
-		public bool HasObservers { get => this.observerListHead != null; }
+		public bool HasObservers => this.observerListHead != null;
 
 
 		/// <summary>
 		/// Check whether value is not null or not.
 		/// </summary>
-		public bool IsNotNull { get => this.value != null; }
+		public bool IsNotNull => this.value != null;
 
 
 		/// <summary>
 		/// Check whether value is null or not.
 		/// </summary>
-		public bool IsNull { get => this.value == null; }
+		public bool IsNull => this.value == null;
 
 
 		// Notify all observers.
@@ -165,42 +139,6 @@ namespace CarinaStudio
 
 
 		/// <summary>
-		/// Equality operator.
-		/// </summary>
-		/// <param name="x"><see cref="ObservableValue{T}"/>.</param>
-		/// <param name="y">Raw value.</param>
-		/// <returns>True if operands are equavalent.</returns>
-		public static bool operator ==(ObservableValue<T> x, T y) => x.Equals(y);
-
-
-		/// <summary>
-		/// Equality operator.
-		/// </summary>
-		/// <param name="x"><see cref="ObservableValue{T}"/>.</param>
-		/// <param name="y"><see cref="ObservableValue{T}"/>.</param>
-		/// <returns>True if operands are equavalent.</returns>
-		public static bool operator ==(ObservableValue<T> x, ObservableValue<T> y) => x.Equals(y.value);
-
-
-		/// <summary>
-		/// Inequality operator.
-		/// </summary>
-		/// <param name="x"><see cref="ObservableValue{T}"/>.</param>
-		/// <param name="y">Raw value.</param>
-		/// <returns>True if operands are not equavalent.</returns>
-		public static bool operator !=(ObservableValue<T> x, T y) => !x.Equals(y);
-
-
-		/// <summary>
-		/// Inequality operator.
-		/// </summary>
-		/// <param name="x"><see cref="ObservableValue{T}"/>.</param>
-		/// <param name="y"><see cref="ObservableValue{T}"/>.</param>
-		/// <returns>True if operands are not equavalent.</returns>
-		public static bool operator !=(ObservableValue<T> x, ObservableValue<T> y) => !x.Equals(y.value);
-
-
-		/// <summary>
 		/// Convert to value itself explicitly.
 		/// </summary>
 		/// <param name="value"><see cref="ObservableValue{T}"/>.</param>
@@ -232,7 +170,7 @@ namespace CarinaStudio
 		public override string? ToString() => this.value?.ToString();
 
 
-		// Ubsubscribe observer.
+		// Unsubscribe observer.
 		void Unsubscribe(ObserverHolder observerHolder)
 		{
 			if (observerHolder.IsDisposed)
@@ -272,7 +210,7 @@ namespace CarinaStudio
 			get => this.value;
 			protected set
 			{
-				if (this.Equals(value))
+				if (this.CheckValuesEquality(this.value, value))
 					return;
 				++this.valueVersion;
 				this.value = value;

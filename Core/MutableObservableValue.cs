@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 
 namespace CarinaStudio
 {
@@ -41,7 +40,8 @@ namespace CarinaStudio
 
 
 		/// <inheritdoc/>
-		public override bool Equals([AllowNull] bool value) => this.Value == value;
+		protected override bool CheckValuesEquality(bool x, bool y) =>
+			x == y;
 
 
 		/// <summary>
@@ -78,6 +78,11 @@ namespace CarinaStudio
 		/// <param name="initialValue">Initial value.</param>
 		public MutableObservableInt32(int initialValue = default) : base(initialValue)
 		{ }
+		
+		
+		/// <inheritdoc/>
+		protected override bool CheckValuesEquality(int x, int y) =>
+			x == y;
 
 
 		/// <summary>
@@ -85,10 +90,6 @@ namespace CarinaStudio
 		/// </summary>
 		/// <param name="value">Value to decrease.</param>
 		public void Decrease(int value) => this.Value -= value;
-
-
-		/// <inheritdoc/>
-		public override bool Equals([AllowNull] int value) => this.Value == value;
 
 
 		/// <summary>
@@ -134,6 +135,11 @@ namespace CarinaStudio
 		/// <param name="initialValue">Initial value.</param>
 		public MutableObservableInt64(long initialValue = default) : base(initialValue)
 		{ }
+		
+		
+		/// <inheritdoc/>
+		protected override bool CheckValuesEquality(long x, long y) =>
+			x == y;
 
 
 		/// <summary>
@@ -141,10 +147,6 @@ namespace CarinaStudio
 		/// </summary>
 		/// <param name="value">Value to decrease.</param>
 		public void Decrease(long value) => this.Value -= value;
-
-
-		/// <inheritdoc/>
-		public override bool Equals([AllowNull] long value) => this.Value == value;
 
 
 		/// <summary>
@@ -192,26 +194,22 @@ namespace CarinaStudio
 		{ }
 
 
-		/// <inheritdoc/>
-		public override bool Equals(string? value) => this.Value == value;
-
-
 		/// <summary>
 		/// Check whether string is null/empty or not.
 		/// </summary>
-		public bool IsNullOrEmpty { get => string.IsNullOrEmpty(this.Value); }
+		public bool IsNullOrEmpty => string.IsNullOrEmpty(this.Value);
 
 
 		/// <summary>
 		/// Check whether string is null/blank or not.
 		/// </summary>
-		public bool IsNullOrWhiteSpace { get => string.IsNullOrWhiteSpace(this.Value); }
+		public bool IsNullOrWhiteSpace => string.IsNullOrWhiteSpace(this.Value);
 
 
 		/// <summary>
 		/// Get the length of string. Return 0 if string is null.
 		/// </summary>
-		public int Length { get => this.Value?.Length ?? 0; }
+		public int Length => this.Value?.Length ?? 0;
 
 
 		/// <summary>
@@ -219,6 +217,6 @@ namespace CarinaStudio
 		/// </summary>
 		/// <param name="index">Index of character in string.</param>
 		/// <returns>Character in string.</returns>
-		public char this[int index] { get => this.Value?[index] ?? throw new ArgumentOutOfRangeException(); }
+		public char this[int index] => this.Value?[index] ?? throw new ArgumentOutOfRangeException();
 	}
 }

@@ -1,5 +1,3 @@
-using System;
-
 namespace CarinaStudio
 {
     /// <summary>
@@ -17,7 +15,7 @@ namespace CarinaStudio
     /// <typeparam name="T1">Type of 1st argument.</typeparam>
     /// <typeparam name="R">Type of returned type of reference.</typeparam>
     /// <returns>Result.</returns>
-    public delegate R RefInFunc<T1, R>(ref T1 arg1);
+    public delegate R RefInFunc<T1, out R>(ref T1 arg1);
 
 
     /// <summary>
@@ -35,7 +33,7 @@ namespace CarinaStudio
     /// <typeparam name="T1">Type of 1st argument.</typeparam>
     /// <typeparam name="R">Type of returned type of reference.</typeparam>
     /// <returns>Reference to variable.</returns>
-    public delegate ref R RefOutFunc<T1, R>(T1 arg1);
+    public delegate ref R RefOutFunc<in T1, R>(T1 arg1);
 
 
     /// <summary>
@@ -47,7 +45,7 @@ namespace CarinaStudio
     /// <typeparam name="T2">Type of 2nd argument.</typeparam>
     /// <typeparam name="R">Type of returned type of reference.</typeparam>
     /// <returns>Reference to variable.</returns>
-    public delegate ref R RefOutFunc<T1, T2, R>(T1 arg1, T2 arg2);
+    public delegate ref R RefOutFunc<in T1, in T2, R>(T1 arg1, T2 arg2);
 
 
     /// <summary>
@@ -61,5 +59,5 @@ namespace CarinaStudio
     /// <typeparam name="T3">Type of 3rd argument.</typeparam>
     /// <typeparam name="R">Type of returned type of reference.</typeparam>
     /// <returns>Reference to variable.</returns>
-    public delegate ref R RefOutFunc<T1, T2, T3, R>(T1 arg1, T2 arg2, T3 arg3);
+    public delegate ref R RefOutFunc<in T1, in T2, in T3, R>(T1 arg1, T2 arg2, T3 arg3);
 }

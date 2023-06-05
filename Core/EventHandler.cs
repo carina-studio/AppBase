@@ -1,6 +1,3 @@
-using System;
-using System.Diagnostics.CodeAnalysis;
-
 namespace CarinaStudio
 {
     /// <summary>
@@ -10,5 +7,5 @@ namespace CarinaStudio
     /// <param name="e">Event data.</param>
     /// <typeparam name="TSender">Type of sender.</typeparam>
     /// <typeparam name="TArgs">Type of event data.</typeparam>
-    public delegate void EventHandler<in TSender, in TArgs>([AllowNull] TSender sender, [DisallowNull] TArgs e);
+    public delegate void EventHandler<in TSender, in TArgs>(TSender? sender, TArgs e);
 }

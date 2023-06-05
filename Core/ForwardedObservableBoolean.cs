@@ -156,10 +156,6 @@ namespace CarinaStudio
         }
 
 
-        /// <inheritdoc/>
-		public override bool Equals(bool value) => this.Value == value;
-
-
         // Update value.
         void UpdateValue(bool? changedValue)
         {

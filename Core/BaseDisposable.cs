@@ -40,7 +40,7 @@ namespace CarinaStudio
 		/// <summary>
 		/// Check whether instance has disposed or not.
 		/// </summary>
-		protected bool IsDisposed { get => this.isDisposed != 0; }
+		protected bool IsDisposed => this.isDisposed != 0;
 
 
 		/// <summary>

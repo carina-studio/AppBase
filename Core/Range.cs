@@ -5,7 +5,7 @@ namespace CarinaStudio
     /// <summary>
     /// Represent a range of values.
     /// </summary>
-    public struct Range<T> : IEquatable<Range<T>> where T : struct, IComparable<T>
+    public readonly struct Range<T> : IEquatable<Range<T>> where T : struct, IComparable<T>
     {
         /// <summary>
         /// Empty range.
@@ -242,7 +242,7 @@ namespace CarinaStudio
         /// <summary>
         /// Check whether it is an closed range or not.
         /// </summary>
-        public bool IsClosed { get => this.Start.HasValue && this.End.HasValue; }
+        public bool IsClosed => this.Start.HasValue && this.End.HasValue;
 
 
         /// <summary>
@@ -295,13 +295,13 @@ namespace CarinaStudio
         /// <summary>
         /// Check whether it is an open range without either start or end or both.
         /// </summary>
-        public bool IsOpen { get => !this.Start.HasValue || !this.End.HasValue; }
+        public bool IsOpen => !this.Start.HasValue || !this.End.HasValue;
 
 
         /// <summary>
         /// Check whether it is a universal range which covers all values or not.
         /// </summary>
-        public bool IsUniversal { get => !this.Start.HasValue && !this.End.HasValue; }
+        public bool IsUniversal => !this.Start.HasValue && !this.End.HasValue;
 
 
         // Get max value.
@@ -426,7 +426,7 @@ namespace CarinaStudio
         public static uint Length(this Range<int> range)
         {
             if (range.Start.HasValue && range.End.HasValue)
-                return (uint)((long)range.End.Value - (long)range.Start.Value);
+                return (uint)(range.End.Value - (long)range.Start.Value);
             throw new ArgumentException("Cannot get length of open range.");
         }
 
@@ -460,7 +460,7 @@ namespace CarinaStudio
         public static int Length(this Range<sbyte> range)
         {
             if (range.Start.HasValue && range.End.HasValue)
-                return (int)range.End.Value - (int)range.Start.Value;
+                return range.End.Value - range.Start.Value;
             throw new ArgumentException("Cannot get length of open range.");
         }
 
@@ -473,7 +473,7 @@ namespace CarinaStudio
         public static int Length(this Range<short> range)
         {
             if (range.Start.HasValue && range.End.HasValue)
-                return (int)range.End.Value - (int)range.Start.Value;
+                return range.End.Value - range.Start.Value;
             throw new ArgumentException("Cannot get length of open range.");
         }
 
@@ -486,7 +486,7 @@ namespace CarinaStudio
         public static uint Length(this Range<uint> range)
         {
             if (range.Start.HasValue && range.End.HasValue)
-                return (uint)range.End.Value - (uint)range.Start.Value;
+                return range.End.Value - range.Start.Value;
             throw new ArgumentException("Cannot get length of open range.");
         }
 
@@ -499,7 +499,7 @@ namespace CarinaStudio
         public static ulong Length(this Range<ulong> range)
         {
             if (range.Start.HasValue && range.End.HasValue)
-                return (ulong)range.End.Value - (ulong)range.Start.Value;
+                return range.End.Value - range.Start.Value;
             throw new ArgumentException("Cannot get length of open range.");
         }
 
@@ -512,7 +512,7 @@ namespace CarinaStudio
         public static int Length(this Range<ushort> range)
         {
             if (range.Start.HasValue && range.End.HasValue)
-                return (int)range.End.Value - (int)range.Start.Value;
+                return range.End.Value - range.Start.Value;
             throw new ArgumentException("Cannot get length of open range.");
         }
 
@@ -531,12 +531,12 @@ namespace CarinaStudio
             {
                 if (offset > 0)
                 {
-                    if (offset > (int)byte.MaxValue - it)
+                    if (offset > byte.MaxValue - it)
                         throw new OverflowException();
                 }
                 else
                 {
-                    if (offset < (int)byte.MinValue - it)
+                    if (offset < byte.MinValue - it)
                         throw new OverflowException();
                 }
                 return it + offset;
@@ -545,12 +545,12 @@ namespace CarinaStudio
             {
                 if (offset > 0)
                 {
-                    if (offset > (int)byte.MaxValue - it)
+                    if (offset > byte.MaxValue - it)
                         throw new OverflowException();
                 }
                 else
                 {
-                    if (offset < (int)byte.MinValue - it)
+                    if (offset < byte.MinValue - it)
                         throw new OverflowException();
                 }
                 return it + offset;
@@ -567,12 +567,8 @@ namespace CarinaStudio
         /// <returns>New range.</returns>
         public static Range<DateTime> Offsets(this Range<DateTime> range, TimeSpan offset)
         {
-            var start = range.Start.HasValue
-                ? range.Start.Value + offset
-                : (DateTime?)null;
-            var end = range.End.HasValue
-                ? range.End.Value + offset
-                : (DateTime?)null;
+            var start = range.Start + offset;
+            var end = range.End + offset;
             return new Range<DateTime>(start, end);
         }
 
@@ -585,12 +581,8 @@ namespace CarinaStudio
         /// <returns>New range.</returns>
         public static Range<double> Offsets(this Range<double> range, double offset)
         {
-            var start = range.Start.HasValue
-                ? range.Start.Value + offset
-                : (double?)null;
-            var end = range.End.HasValue
-                ? range.End.Value + offset
-                : (double?)null;
+            var start = range.Start + offset;
+            var end = range.End + offset;
             return new Range<double>(start, end);
         }
 
@@ -603,12 +595,8 @@ namespace CarinaStudio
         /// <returns>New range.</returns>
         public static Range<float> Offsets(this Range<float> range, float offset)
         {
-            var start = range.Start.HasValue
-                ? range.Start.Value + offset
-                : (float?)null;
-            var end = range.End.HasValue
-                ? range.End.Value + offset
-                : (float?)null;
+            var start = range.Start + offset;
+            var end = range.End + offset;
             return new Range<float>(start, end);
         }
 
@@ -693,7 +681,7 @@ namespace CarinaStudio
                 }
                 return it + offset;
             });
-            return new Range<long>((long?)start, (long?)end);
+            return new Range<long>(start, end);
         }
 
 
@@ -711,12 +699,12 @@ namespace CarinaStudio
             {
                 if (offset > 0)
                 {
-                    if (offset > (int)sbyte.MaxValue - it)
+                    if (offset > sbyte.MaxValue - it)
                         throw new OverflowException();
                 }
                 else
                 {
-                    if (offset < (int)sbyte.MinValue - it)
+                    if (offset < sbyte.MinValue - it)
                         throw new OverflowException();
                 }
                 return it + offset;
@@ -725,12 +713,12 @@ namespace CarinaStudio
             {
                 if (offset > 0)
                 {
-                    if (offset > (int)sbyte.MaxValue - it)
+                    if (offset > sbyte.MaxValue - it)
                         throw new OverflowException();
                 }
                 else
                 {
-                    if (offset < (int)sbyte.MinValue - it)
+                    if (offset < sbyte.MinValue - it)
                         throw new OverflowException();
                 }
                 return it + offset;
@@ -753,12 +741,12 @@ namespace CarinaStudio
             {
                 if (offset > 0)
                 {
-                    if (offset > (int)short.MaxValue - it)
+                    if (offset > short.MaxValue - it)
                         throw new OverflowException();
                 }
                 else
                 {
-                    if (offset < (int)short.MinValue - it)
+                    if (offset < short.MinValue - it)
                         throw new OverflowException();
                 }
                 return it + offset;
@@ -767,12 +755,12 @@ namespace CarinaStudio
             {
                 if (offset > 0)
                 {
-                    if (offset > (int)short.MaxValue - it)
+                    if (offset > short.MaxValue - it)
                         throw new OverflowException();
                 }
                 else
                 {
-                    if (offset < (int)short.MinValue - it)
+                    if (offset < short.MinValue - it)
                         throw new OverflowException();
                 }
                 return it + offset;

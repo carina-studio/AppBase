@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace CarinaStudio
+﻿namespace CarinaStudio
 {
     /// <summary>
     /// Version of Windows currently running on.

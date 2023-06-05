@@ -3,10 +3,9 @@ using System;
 namespace CarinaStudio
 {
     /// <summary>
-    /// Implementation of <see cref="IObservable{T}"/> with fixed value.
+    /// Base class of <see cref="FixedObservableValue{T}"/>.
     /// </summary>
-    /// <typeparam name="T">Type of value.</typeparam>
-    public class FixedObservableValue<T> : IObservable<T>
+    public abstract class FixedObservableValue
     {
         /// <summary>
         /// Default instance for False.
@@ -36,8 +35,20 @@ namespace CarinaStudio
         /// Default instance for zero.
         /// </summary>
         public static readonly IObservable<float> ZeroInSingle = new FixedObservableValue<float>(0);
-
-
+        
+        
+        // Constructor.
+        internal FixedObservableValue()
+        { }
+    }
+    
+    
+    /// <summary>
+    /// Implementation of <see cref="IObservable{T}"/> with fixed value.
+    /// </summary>
+    /// <typeparam name="T">Type of value.</typeparam>
+    public class FixedObservableValue<T> : FixedObservableValue, IObservable<T>
+    {
         /// <summary>
         /// Initialize new <see cref="FixedObservableValue{T}"/> instance.
         /// </summary>
