@@ -65,6 +65,39 @@ namespace CarinaStudio
 		/// </summary>
 		public void Toggle() => this.Value = !this.Value;
 	}
+	
+	
+	/// <summary>
+	/// Specific <see cref="MutableObservableValue{T}"/> for <see cref="double"/> value.
+	/// </summary>
+	public class MutableObservableDouble : MutableObservableValue<double>
+	{
+		/// <summary>
+		/// Initialize new <see cref="MutableObservableDouble"/> instance.
+		/// </summary>
+		/// <param name="initialValue">Initial value.</param>
+		public MutableObservableDouble(double initialValue = default) : base(initialValue)
+		{ }
+
+
+		/// <inheritdoc/>
+		protected override bool CheckValuesEquality(double x, double y) =>
+			Math.Abs(x - y) <= double.Epsilon;
+
+
+		/// <summary>
+		/// Decrease by given value.
+		/// </summary>
+		/// <param name="value">Value to decrease.</param>
+		public void Decrease(double value) => this.Value -= value;
+
+
+		/// <summary>
+		/// Increase by given value.
+		/// </summary>
+		/// <param name="value">Value to increase.</param>
+		public void Increase(double value) => this.Value += value;
+	}
 
 
 	/// <summary>
@@ -178,6 +211,39 @@ namespace CarinaStudio
 			value.Value -= 1;
 			return value;
 		}
+	}
+	
+	
+	/// <summary>
+	/// Specific <see cref="MutableObservableValue{T}"/> for <see cref="float"/> value.
+	/// </summary>
+	public class MutableObservableSingle : MutableObservableValue<float>
+	{
+		/// <summary>
+		/// Initialize new <see cref="MutableObservableSingle"/> instance.
+		/// </summary>
+		/// <param name="initialValue">Initial value.</param>
+		public MutableObservableSingle(float initialValue = default) : base(initialValue)
+		{ }
+
+
+		/// <inheritdoc/>
+		protected override bool CheckValuesEquality(float x, float y) =>
+			Math.Abs(x - y) <= float.Epsilon;
+
+
+		/// <summary>
+		/// Decrease by given value.
+		/// </summary>
+		/// <param name="value">Value to decrease.</param>
+		public void Decrease(float value) => this.Value -= value;
+
+
+		/// <summary>
+		/// Increase by given value.
+		/// </summary>
+		/// <param name="value">Value to increase.</param>
+		public void Increase(float value) => this.Value += value;
 	}
 
 
