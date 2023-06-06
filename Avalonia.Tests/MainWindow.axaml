@@ -67,6 +67,13 @@
 				<Separator Classes="Small"/>
 				<Button Command="{Binding $parent[Window].SetDateTimeToDateTimeTextBox}" Content="Set to current time"/>
 			</StackPanel>
+			<Separator Classes="Small"/>
+			
+			<StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+				<abControls:DateTimeTextBox Name="dateTimeTextBox4" HorizontalAlignment="Left" Value="{Binding $parent[Window].DateTimeValue, Mode=TwoWay}" Width="300"/>
+				<Separator Classes="Small"/>
+				<Button Command="{Binding $parent[Window].SetDateTimeToDateTimeValue}" Content="Set to current time through binding"/>
+			</StackPanel>
 			<Separator/>
 
 			<!-- FormattedString -->
@@ -132,6 +139,13 @@
 				<abControls:IPAddressTextBox Name="ipAddressTextBox3" HorizontalAlignment="Left" Width="300"/>
 				<Separator Classes="Small"/>
 				<Button Command="{Binding $parent[Window].SetIPAddressToIPAddressTextBox}" Content="Set IP address"/>
+			</StackPanel>
+			<Separator Classes="Small"/>
+			
+			<StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+				<abControls:IPAddressTextBox Name="ipAddressTextBox4" HorizontalAlignment="Left" Object="{Binding $parent[Window].IPAddressObject, Mode=TwoWay}" Width="300"/>
+				<Separator Classes="Small"/>
+				<Button Command="{Binding $parent[Window].SetIPAddressToIPAddressObject}" Content="Set IP address through binding"/>
 			</StackPanel>
 			<Separator/>
 

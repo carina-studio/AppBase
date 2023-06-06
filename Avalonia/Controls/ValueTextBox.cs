@@ -49,7 +49,12 @@ public abstract class ValueTextBox : TextBox
 	/// <summary>
 	/// Property of <see cref="Value"/>.
 	/// </summary>
-	public static readonly StyledProperty<object?> ValueProperty = AvaloniaProperty.Register<ValueTextBox, object?>(nameof(Value), null);
+	public static readonly StyledProperty<object?> ValueProperty = AvaloniaProperty.Register<ValueTextBox, object?>(nameof(Value), null, coerce: (o, v) =>
+	{
+		if (o is ValueTextBox textBox && v is not null)
+			return textBox.CoerceValue(v);
+		return v;
+	});
 	
 	
 	// Fields.
@@ -139,7 +144,7 @@ public abstract class ValueTextBox : TextBox
 			if (!this.isTextValid)
 			{
 				if (this.CheckValueEquality(this.GetValue(ValueProperty), this.lastValidValue))
-					this.OnValueChanged(this.lastValidValue);
+					this.UpdateText(this.lastValidValue);
 				else
 					this.SetValue(ValueProperty, this.lastValidValue);
 			}
@@ -161,7 +166,7 @@ public abstract class ValueTextBox : TextBox
 				if (!this.isTextValid)
 				{
 					if (this.CheckValueEquality(this.GetValue(ValueProperty), this.lastValidValue))
-						this.OnValueChanged(this.lastValidValue);
+						this.UpdateText(this.lastValidValue);
 					else
 						this.SetValue(ValueProperty, this.lastValidValue);
 				}
@@ -194,7 +199,7 @@ public abstract class ValueTextBox : TextBox
 			var value = change.NewValue;
 			if (value is null && !this.IsNullValueAllowed)
 				value = this.GetValue(DefaultValueProperty);
-			this.OnValueChanged(value);
+			this.UpdateText(value);
 		}
 	}
 
@@ -209,28 +214,6 @@ public abstract class ValueTextBox : TextBox
 				e.Handled = true;
 		}
 		base.OnTextInput(e);
-	}
-
-
-	/// <summary>
-	/// Called when value changed.
-	/// </summary>
-	/// <param name="value">New value.</param>
-	protected virtual void OnValueChanged(object? value)
-	{
-		if (value is not null)
-		{
-			if (!this.Validate(false, out var currentValue) || !this.CheckValueEquality(currentValue, value))
-			{
-				var fromEmptyString = string.IsNullOrEmpty(this.Text);
-				this.Text = this.ConvertToText(value);
-				this.validateAction.ExecuteIfScheduled();
-				if (this.IsFocused && fromEmptyString && !string.IsNullOrEmpty(this.Text))
-					this.SelectAll();
-			}
-		}
-		else if (!string.IsNullOrWhiteSpace(this.Text))
-			this.Text = "";
 	}
 
 
@@ -270,6 +253,25 @@ public abstract class ValueTextBox : TextBox
 	/// <param name="value">Converted value.</param>
 	/// <returns>True if conversion succeeded.</returns>
 	protected abstract bool TryConvertToValue(string text, out object? value);
+	
+	
+	// Update text for given value.
+	void UpdateText(object? value)
+	{
+		if (value is not null)
+		{
+			if (!this.Validate(false, out var currentValue) || !this.CheckValueEquality(currentValue, value))
+			{
+				var fromEmptyString = string.IsNullOrEmpty(this.Text);
+				this.Text = this.ConvertToText(value);
+				this.validateAction.ExecuteIfScheduled();
+				if (this.IsFocused && fromEmptyString && !string.IsNullOrEmpty(this.Text))
+					this.SelectAll();
+			}
+		}
+		else if (!string.IsNullOrWhiteSpace(this.Text))
+			this.Text = "";
+	}
 
 
 	/// <summary>
@@ -456,16 +458,20 @@ public abstract class ValueTextBox<T> : ValueTextBox where T : struct
 
 
 	/// <inheritdoc/>
-	protected override sealed void OnValueChanged(object? value) =>
-		this.OnValueChanged(value is T t ? t : null);
+	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+	{
+		if (change.Property == ValueProperty)
+			this.RaiseValueChanged((T?)change.OldValue, (T?)change.NewValue);
+		base.OnPropertyChanged(change);
+	}
 
 
 	/// <summary>
-	/// Called when value changed.
+	/// Raise property changed event of <see cref="Value"/>.
 	/// </summary>
-	/// <param name="value">New value.</param>
-	protected virtual void OnValueChanged(T? value) =>
-		base.OnValueChanged(value);
+	/// <param name="oldValue">Old value.</param>
+	/// <param name="newValue">New value.</param>
+	protected abstract void RaiseValueChanged(T? oldValue, T? newValue);
 
 
 	/// <inheritdoc/>
@@ -493,9 +499,5 @@ public abstract class ValueTextBox<T> : ValueTextBox where T : struct
 	/// <summary>
 	/// Get or set value.
 	/// </summary>
-	public new T? Value
-	{
-		get => (T?)base.Value;
-		set => base.Value = value;
-	}
+	public new abstract T? Value { get; set; }
 }

@@ -277,11 +277,24 @@ public abstract class ObjectTextBox<T> : ObjectTextBox where T : class
 	/// <summary>
 	/// Get or set object.
 	/// </summary>
-	public new T? Object
+	public new abstract T? Object { get; set; }
+
+
+	/// <inheritdoc/>
+	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 	{
-		get => (T?)base.Object;
-		set => base.Object = value;
+		if (change.Property == ObjectProperty)
+			this.RaiseObjectChanged((T?)change.OldValue, (T?)change.NewValue);
+		base.OnPropertyChanged(change);
 	}
+
+
+	/// <summary>
+	/// Raise property changed event of <see cref="Object"/>.
+	/// </summary>
+	/// <param name="oldValue">Old value.</param>
+	/// <param name="newValue">New value.</param>
+	protected abstract void RaiseObjectChanged(T? oldValue, T? newValue);
 
 
 	/// <inheritdoc/>

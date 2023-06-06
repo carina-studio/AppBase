@@ -40,6 +40,11 @@ namespace CarinaStudio.Controls
 
 
         /// <inheritdoc/>.
+        protected override void RaiseValueChanged(DateTime? oldValue, DateTime? newValue) =>
+            this.RaisePropertyChanged(ValueProperty, oldValue, newValue);
+
+
+        /// <inheritdoc/>.
         protected override bool TryConvertToValue(string text, out DateTime? value)
         {
             // try parsing by default culture
@@ -123,6 +128,14 @@ namespace CarinaStudio.Controls
             // unable to parse
             value = null;
             return false;
+        }
+
+
+        /// <inheritdoc/>
+        public override DateTime? Value
+        {
+            get => (DateTime?)((ValueTextBox)this).Value;
+            set => ((ValueTextBox)this).Value = value;
         }
     }
 }

@@ -33,6 +33,11 @@ namespace CarinaStudio.Controls
             this.MaxLength = 128;
             this.PseudoClasses.Set(":timeSpanTextBox", true);
         }
+        
+        
+        /// <inheritdoc/>.
+        protected override void RaiseValueChanged(TimeSpan? oldValue, TimeSpan? newValue) =>
+            this.RaisePropertyChanged(ValueProperty, oldValue, newValue);
 
 
         /// <inheritdoc/>.
@@ -133,6 +138,13 @@ namespace CarinaStudio.Controls
 
             // unable to parse
             return false;
+        }
+        
+        /// <inheritdoc/>
+        public override TimeSpan? Value
+        {
+            get => (TimeSpan?)((ValueTextBox)this).Value;
+            set => ((ValueTextBox)this).Value = value;
         }
     }
 }

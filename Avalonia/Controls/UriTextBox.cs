@@ -46,6 +46,14 @@ namespace CarinaStudio.Controls
 			get => this.GetValue(DefaultUriSchemeProperty);
 			set => this.SetValue(DefaultUriSchemeProperty, value);
 		}
+		
+		
+		/// <inheritdoc/>.
+		public override Uri? Object
+		{
+			get => (Uri?)((ObjectTextBox)this).Object;
+			set => ((ObjectTextBox)this).Object = value;
+		}
 
 
 		/// <inheritdoc/>
@@ -56,6 +64,11 @@ namespace CarinaStudio.Controls
 			if (property == DefaultUriSchemeProperty || property == UriKindProperty)
 				this.Validate();
 		}
+
+
+		/// <inheritdoc/>.
+		protected override void RaiseObjectChanged(Uri? oldValue, Uri? newValue) =>
+			this.RaisePropertyChanged(ObjectProperty, oldValue, newValue);
 
 
 		/// <inheritdoc/>

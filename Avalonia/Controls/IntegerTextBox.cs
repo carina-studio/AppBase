@@ -231,6 +231,11 @@ namespace CarinaStudio.Controls
             }
             base.OnTextInput(e);
         }
+        
+        
+        /// <inheritdoc/>.
+        protected override void RaiseValueChanged(long? oldValue, long? newValue) =>
+            this.RaisePropertyChanged(ValueProperty, oldValue, newValue);
 
 
         /// <inheritdoc/>
@@ -243,6 +248,14 @@ namespace CarinaStudio.Controls
             }
             value = null;
             return false;
+        }
+        
+        
+        /// <inheritdoc/>
+        public override long? Value
+        {
+            get => (long?)((ValueTextBox)this).Value;
+            set => ((ValueTextBox)this).Value = value;
         }
     }
 }

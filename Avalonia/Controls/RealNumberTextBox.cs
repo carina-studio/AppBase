@@ -117,93 +117,93 @@ public class RealNumberTextBox : ValueTextBox<double>
     
     
     /// <inheritdoc/>
-        protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+        var property = change.Property;
+        if (property == DefaultValueProperty)
         {
-            base.OnPropertyChanged(change);
-            var property = change.Property;
-            if (property == DefaultValueProperty)
-            {
-                if (this.DefaultValue < this.Minimum)
-                    this.DefaultValue = this.Minimum;
-                else if (this.DefaultValue > this.Maximum)
-                    this.DefaultValue = this.Maximum;
-            }
-            else if (property == IsNaNAllowedProperty)
-            {
-                if (!(bool)change.NewValue!)
-                    this.Validate();
-            }
-            else if (property == MaximumProperty || property == MinimumProperty)
-            {
+            if (this.DefaultValue < this.Minimum)
+                this.DefaultValue = this.Minimum;
+            else if (this.DefaultValue > this.Maximum)
+                this.DefaultValue = this.Maximum;
+        }
+        else if (property == IsNaNAllowedProperty)
+        {
+            if (!(bool)change.NewValue!)
                 this.Validate();
-                if (this.DefaultValue < this.Minimum)
-                    this.DefaultValue = this.Minimum;
-                else if (this.DefaultValue > this.Maximum)
-                    this.DefaultValue = this.Maximum;
-                if (!this.IsNullValueAllowed)
-                    this.Value = this.CoerceValue(this.Value.GetValueOrDefault());
-            }
-            else if (property == TextProperty)
+        }
+        else if (property == MaximumProperty || property == MinimumProperty)
+        {
+            this.Validate();
+            if (this.DefaultValue < this.Minimum)
+                this.DefaultValue = this.Minimum;
+            else if (this.DefaultValue > this.Maximum)
+                this.DefaultValue = this.Maximum;
+            if (!this.IsNullValueAllowed)
+                this.Value = this.CoerceValue(this.Value.GetValueOrDefault());
+        }
+        else if (property == TextProperty)
+        {
+            if (change.NewValue is string s)
             {
-                if (change.NewValue is string s)
+                var length = s.Length;
+                var areValidChars = true;
+                for (var i = length - 1; i >= 0 && areValidChars; --i)
                 {
-                    var length = s.Length;
-                    var areValidChars = true;
-                    for (var i = length - 1; i >= 0 && areValidChars; --i)
+                    var c = s[i];
+                    if (c >= '0' && c <= '9')
+                        continue;
+                    switch (c)
+                    {
+                        case '+':
+                        case '-':
+                        case '.':
+                        case 'a':
+                        case 'e':
+                        case 'i':
+                        case 'n':
+                        case 'p':
+                            break;
+                        default:
+                            areValidChars = false;
+                            break;
+                    }
+                }
+                if (!areValidChars)
+                {
+                    var newText = new StringBuilder();
+                    for (var i = 0; i < length; ++i)
                     {
                         var c = s[i];
                         if (c >= '0' && c <= '9')
-                            continue;
-                        switch (c)
+                            newText.Append(c);
+                        else
                         {
-                            case '+':
-                            case '-':
-                            case '.':
-                            case 'a':
-                            case 'e':
-                            case 'i':
-                            case 'n':
-                            case 'p':
-                                break;
-                            default:
-                                areValidChars = false;
-                                break;
-                        }
-                    }
-                    if (!areValidChars)
-                    {
-                        var newText = new StringBuilder();
-                        for (var i = 0; i < length; ++i)
-                        {
-                            var c = s[i];
-                            if (c >= '0' && c <= '9')
-                                newText.Append(c);
-                            else
+                            switch (c)
                             {
-                                switch (c)
-                                {
-                                    case '+':
-                                    case '-':
-                                    case '.':
-                                    case 'a':
-                                    case 'e':
-                                    case 'i':
-                                    case 'n':
-                                    case 'p':
-                                        newText.Append(c);
-                                        break;
-                                }
+                                case '+':
+                                case '-':
+                                case '.':
+                                case 'a':
+                                case 'e':
+                                case 'i':
+                                case 'n':
+                                case 'p':
+                                    newText.Append(c);
+                                    break;
                             }
                         }
-                        SynchronizationContext.Current?.Post(_ =>
-                        {
-                            if (this.Text == (change.NewValue as string))
-                                this.Text = newText.ToString();
-                        }, null);
                     }
+                    SynchronizationContext.Current?.Post(_ =>
+                    {
+                        if (this.Text == (change.NewValue as string))
+                            this.Text = newText.ToString();
+                    }, null);
                 }
             }
         }
+    }
     
     
     /// <inheritdoc/>
@@ -234,6 +234,11 @@ public class RealNumberTextBox : ValueTextBox<double>
         }
         base.OnTextInput(e);
     }
+    
+    
+    /// <inheritdoc/>.
+    protected override void RaiseValueChanged(double? oldValue, double? newValue) =>
+        this.RaisePropertyChanged(ValueProperty, oldValue, newValue);
     
     
     /// <inheritdoc/>
@@ -271,5 +276,13 @@ public class RealNumberTextBox : ValueTextBox<double>
         }
         value = null;
         return false;
+    }
+    
+    
+    /// <inheritdoc/>
+    public override double? Value
+    {
+        get => (double?)((ValueTextBox)this).Value;
+        set => ((ValueTextBox)this).Value = value;
     }
 }

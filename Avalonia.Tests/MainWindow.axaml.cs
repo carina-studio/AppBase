@@ -12,6 +12,17 @@ namespace CarinaStudio
 {
     partial class MainWindow : Avalonia.Controls.Window
     {
+        static readonly DirectProperty<MainWindow, DateTime?> DateTimeValueProperty = AvaloniaProperty.RegisterDirect<MainWindow, DateTime?>(nameof(DateTimeValue), 
+            w => w.dateTimeValue, 
+            (w, d) => w.DateTimeValue = d);
+        static readonly DirectProperty<MainWindow, IPAddress?> IPAddressObjectProperty = AvaloniaProperty.RegisterDirect<MainWindow, IPAddress?>(nameof(IPAddressObject), 
+            w => w.ipAddressObject, 
+            (w, o) => w.IPAddressObject = o);
+
+
+        DateTime? dateTimeValue = DateTime.Now;
+        IPAddress? ipAddressObject = IPAddress.Loopback;
+        
         public MainWindow()
         {
             AvaloniaXamlLoader.Load(this);
@@ -32,12 +43,26 @@ namespace CarinaStudio
         }
 
 
+        public DateTime? DateTimeValue
+        {
+            get => this.dateTimeValue;
+            set => this.SetAndRaise(DateTimeValueProperty, ref this.dateTimeValue, value);
+        }
+
+
         public void ExecuteLinkTextBlockCommand(object? parameter) =>
             (parameter as Avalonia.Controls.TextBlock)?.Let(it => it.Text = "Command executed!!!");
         
 
         public void IncreateProgressRingValue() => 
             this.FindControl<ProgressRing>("progressRing2")?.Let(it => it.Value = it.Minimum + (it.Value + 9) % (it.Maximum - it.Minimum));
+        
+        
+        public IPAddress? IPAddressObject
+        {
+            get => this.ipAddressObject;
+            set => this.SetAndRaise(IPAddressObjectProperty, ref this.ipAddressObject, value);
+        }
         
 
         string LongText { get; } = new string(new char[65536 * 10].Also(it =>
@@ -56,8 +81,16 @@ namespace CarinaStudio
         }));
 
 
+        public void SetDateTimeToDateTimeValue() =>
+            this.DateTimeValue = DateTime.Now;
+
+
         public void SetDateTimeToDateTimeTextBox() =>
             this.FindControl<DateTimeTextBox>("dateTimeTextBox3")?.Let(it => it.Value = DateTime.Now);
+
+
+        public void SetIPAddressToIPAddressObject() =>
+            this.IPAddressObject = IPAddress.Loopback;
 
 
         public void SetIPAddressToIPAddressTextBox() =>

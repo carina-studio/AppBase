@@ -41,6 +41,14 @@ namespace CarinaStudio.Controls
 
 
         /// <inheritdoc/>.
+        public override IPAddress? Object
+        {
+            get => (IPAddress?)((ObjectTextBox)this).Object;
+            set => ((ObjectTextBox)this).Object = value;
+        }
+
+
+        /// <inheritdoc/>.
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
         {
             base.OnPropertyChanged(change);
@@ -80,6 +88,11 @@ namespace CarinaStudio.Controls
             }
             base.OnTextInput(e);
         }
+        
+        
+        /// <inheritdoc/>.
+        protected override void RaiseObjectChanged(IPAddress? oldValue, IPAddress? newValue) =>
+            this.RaisePropertyChanged(ObjectProperty, oldValue, newValue);
 
 
         /// <inheritdoc/>
