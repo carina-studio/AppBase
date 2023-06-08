@@ -60,7 +60,7 @@ namespace CarinaStudio.Controls
 	    /// <returns></returns>
 	    public static T FindResourceOrDefault<T>(this IResourceHost resourceHost, object key, ThemeVariant? theme, T defaultValue = default)
 	    {
-		    if (resourceHost.TryFindResource(key, theme, out var rawRes) && rawRes is T targetRes)
+		    if (resourceHost.FindResource(theme, key) is T targetRes)
 			    return targetRes;
 		    return defaultValue;
 	    }
@@ -109,7 +109,7 @@ namespace CarinaStudio.Controls
 	    /// <returns>True if resource found.</returns>
 	    public static bool TryFindResource<T>(this IResourceHost resourceHost, object key, ThemeVariant? theme, [NotNullWhen(true)] out T? res) where T : class
 	    {
-		    if (resourceHost.TryFindResource(key, theme, out var rawRes) && rawRes is T targetRes)
+		    if (resourceHost.FindResource(theme, key) is T targetRes)
 		    {
 			    res = targetRes;
 			    return true;
@@ -163,7 +163,7 @@ namespace CarinaStudio.Controls
 	    /// <returns>True if resource found.</returns>
 	    public static bool TryFindResource<T>(this IResourceHost resourceHost, object key, ThemeVariant? theme, [NotNullWhen(true)] out T? res) where T : struct
 	    {
-		    if (resourceHost.TryFindResource(key, theme, out var rawRes) && rawRes is T targetRes)
+		    if (resourceHost.FindResource(theme, key) is T targetRes)
 		    {
 			    res = targetRes;
 			    return true;
