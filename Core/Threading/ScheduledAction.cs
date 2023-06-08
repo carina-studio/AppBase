@@ -75,10 +75,14 @@ namespace CarinaStudio.Threading
 		/// </summary>
 		public void Execute()
 		{
-			if (SynchronizationContext.Current != this.SynchronizationContext)
-				throw new InvalidOperationException("Cannot execute on the thread with another SynchronizationContext.");
 			this.Cancel();
-			this.action();
+			var currentSyncContext = SynchronizationContext.Current;
+			if (currentSyncContext == this.SynchronizationContext)
+				this.action();
+			else if (currentSyncContext is not null)
+				currentSyncContext.Send(_ => this.action(), null);
+			else
+				throw new InvalidOperationException("No SynchronizationContext on current thread.");
 		}
 
 
@@ -115,7 +119,7 @@ namespace CarinaStudio.Threading
 		/// <summary>
 		/// Check whether execution has been scheduled or not.
 		/// </summary>
-		public bool IsScheduled { get => this.token != null; }
+		public bool IsScheduled => this.token != null;
 
 
 		/// <summary>
