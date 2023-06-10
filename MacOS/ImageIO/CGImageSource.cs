@@ -35,6 +35,21 @@ public class CGImageSource : CFObject
             throw new ArgumentException("Type of instance is not CGImageSource.");
     }
 
+    
+    /// <summary>
+    /// Get properties of the image at a specified location.
+    /// </summary>
+    /// <param name="index">Location.</param>
+    /// <param name="options">Options.</param>
+    /// <returns>Properties got from image source.</returns>
+    public CFDictionary? CopyPropertiesAtIndex(int index, CFDictionary? options = null)
+    {
+        if (index < 0)
+            throw new ArgumentOutOfRangeException(nameof(index));
+        var handle = CGImageSourceCopyPropertiesAtIndex(this.Handle, (nuint)index, options?.Handle ?? default);
+        return handle != default ? new CFDictionary(handle, false, true) : null;
+    }
+
 
     /// <summary>
     /// Create primary image.
