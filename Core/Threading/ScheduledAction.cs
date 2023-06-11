@@ -76,13 +76,10 @@ namespace CarinaStudio.Threading
 		public void Execute()
 		{
 			this.Cancel();
-			var currentSyncContext = SynchronizationContext.Current;
-			if (currentSyncContext == this.SynchronizationContext)
+			if (SynchronizationContext.Current == this.SynchronizationContext)
 				this.action();
-			else if (currentSyncContext is not null)
-				currentSyncContext.Send(_ => this.action(), null);
 			else
-				throw new InvalidOperationException("No SynchronizationContext on current thread.");
+				this.SynchronizationContext.Send(_ => this.action(), null);
 		}
 
 
@@ -107,13 +104,10 @@ namespace CarinaStudio.Threading
 		{
 			if (this.Cancel())
 			{
-				var currentSyncContext = SynchronizationContext.Current;
-				if (currentSyncContext == this.SynchronizationContext)
+				if (SynchronizationContext.Current == this.SynchronizationContext)
 					this.action();
-				else if (currentSyncContext is not null)
-					currentSyncContext.Send(_ => this.action(), null);
 				else
-					throw new InvalidOperationException("No SynchronizationContext on current thread.");
+					this.SynchronizationContext.Send(_ => this.action(), null);
 				return true;
 			}
 			return false;

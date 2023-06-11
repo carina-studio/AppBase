@@ -36,7 +36,7 @@ namespace CarinaStudio.Threading
 			Thread.Sleep(200);
 			Assert.IsFalse(executed, "Action should not be executed.");
 
-			// canecl after execution
+			// cancel after execution
 			scheduledAction.Schedule(200);
 			Assert.IsTrue(scheduledAction.IsScheduled, "Action should be scheduled.");
 			Thread.Sleep(400);
@@ -53,91 +53,87 @@ namespace CarinaStudio.Threading
 		public void ExecutionTest()
 		{
 			// prepare
-			var syncContext = new SynchronizationContext();
+			using var syncContext = new SingleThreadSynchronizationContext();
 			var executed = false;
+			var execSyncContext = default(SynchronizationContext);
 			var scheduledAction = new ScheduledAction(syncContext, () =>
 			{
+				Thread.Sleep(500);
+				execSyncContext = SynchronizationContext.Current;
 				executed = true;
 			});
-			var prevSyncContext = SynchronizationContext.Current;
-			SynchronizationContext.SetSynchronizationContext(syncContext);
 
-			// test
-			try
+			// execute
+			scheduledAction.Execute();
+			Assert.IsTrue(executed, "Action should be executed.");
+			Assert.AreEqual(syncContext, execSyncContext, "Action should be executed by specific SynchronizationContext.");
+
+			// execute after scheduling
+			executed = false;
+			execSyncContext = default;
+			scheduledAction.Schedule(200);
+			Assert.IsTrue(scheduledAction.IsScheduled, "Action should be scheduled.");
+			scheduledAction.Execute();
+			Assert.IsTrue(executed, "Action should be executed.");
+			Assert.AreEqual(syncContext, execSyncContext, "Action should be executed by specific SynchronizationContext.");
+			Assert.IsFalse(scheduledAction.IsScheduled, "Action should not be scheduled.");
+
+			// execute on other thread
+			executed = false;
+			execSyncContext = default;
+			var exception = (Exception?)null;
+			ThreadPool.QueueUserWorkItem((_) =>
 			{
-				// execute
-				scheduledAction.Execute();
-				Assert.IsTrue(executed, "Action should be executed.");
-
-				// execute after scheduling
-				executed = false;
-				scheduledAction.Schedule(200);
-				Assert.IsTrue(scheduledAction.IsScheduled, "Action should be scheduled.");
-				scheduledAction.Execute();
-				Assert.IsTrue(executed, "Action should be executed.");
-				Assert.IsFalse(scheduledAction.IsScheduled, "Action should not be scheduled.");
-
-				// execute on other thread
-				executed = false;
-				var exception = (Exception?)null;
-				ThreadPool.QueueUserWorkItem((_) =>
+				try
 				{
-					try
-					{
-						scheduledAction.Execute();
-						throw new AssertionException("Should not execute on another thread.");
-					}
-					catch (InvalidOperationException)
-					{ }
-					catch (Exception ex)
-					{
-						exception = ex;
-					}
-				});
-				Thread.Sleep(200);
-				if (exception != null)
-					throw exception;
-				Assert.IsFalse(executed, "Action should not be executed.");
-
-				// execute before scheduling
-				Assert.IsFalse(scheduledAction.ExecuteIfScheduled(), "Should not execute before scheduling.");
-				Assert.IsFalse(executed, "Action should not be executed.");
-
-				// execute after scheduling
-				scheduledAction.Schedule(200);
-				Assert.IsTrue(scheduledAction.IsScheduled, "Action should be scheduled.");
-				Assert.IsTrue(scheduledAction.ExecuteIfScheduled(), "Should execute after scheduling.");
-				Assert.IsTrue(executed, "Action should be executed.");
-				Assert.IsFalse(scheduledAction.IsScheduled, "Action should not be scheduled.");
-
-				// execute on other thread
-				executed = false;
-				exception = null;
-				scheduledAction.Schedule(200);
-				Assert.IsTrue(scheduledAction.IsScheduled, "Action should be scheduled.");
-				ThreadPool.QueueUserWorkItem((_) =>
+					scheduledAction.Execute();
+				}
+				catch (Exception ex)
 				{
-					try
-					{
-						scheduledAction.ExecuteIfScheduled();
-						throw new AssertionException("Should not execute on another thread.");
-					}
-					catch (InvalidOperationException)
-					{ }
-					catch (Exception ex)
-					{
-						exception = ex;
-					}
-				});
-				Thread.Sleep(400);
-				if (exception != null)
-					throw exception;
-				Assert.IsTrue(executed, "Action should be executed.");
-			}
-			finally
+					exception = ex;
+				}
+			});
+			Thread.Sleep(1000);
+			if (exception != null)
+				throw exception;
+			Assert.IsTrue(executed, "Action should be executed.");
+			Assert.AreEqual(syncContext, execSyncContext, "Action should be executed by specific SynchronizationContext.");
+
+			// execute before scheduling
+			executed = false;
+			execSyncContext = default;
+			Assert.IsFalse(scheduledAction.ExecuteIfScheduled(), "Should not execute before scheduling.");
+			Assert.IsFalse(executed, "Action should not be executed.");
+
+			// execute after scheduling
+			scheduledAction.Schedule(200);
+			Assert.IsTrue(scheduledAction.IsScheduled, "Action should be scheduled.");
+			Assert.IsTrue(scheduledAction.ExecuteIfScheduled(), "Should execute after scheduling.");
+			Assert.IsTrue(executed, "Action should be executed.");
+			Assert.AreEqual(syncContext, execSyncContext, "Action should be executed by specific SynchronizationContext.");
+			Assert.IsFalse(scheduledAction.IsScheduled, "Action should not be scheduled.");
+
+			// execute on other thread
+			executed = false;
+			exception = null;
+			scheduledAction.Schedule(200);
+			Assert.IsTrue(scheduledAction.IsScheduled, "Action should be scheduled.");
+			ThreadPool.QueueUserWorkItem((_) =>
 			{
-				SynchronizationContext.SetSynchronizationContext(prevSyncContext);
-			}
+				try
+				{
+					scheduledAction.ExecuteIfScheduled();
+				}
+				catch (Exception ex)
+				{
+					exception = ex;
+				}
+			});
+			Thread.Sleep(1000);
+			if (exception != null)
+				throw exception;
+			Assert.IsTrue(executed, "Action should be executed.");
+			Assert.AreEqual(syncContext, execSyncContext, "Action should be executed by specific SynchronizationContext.");
 		}
 
 
