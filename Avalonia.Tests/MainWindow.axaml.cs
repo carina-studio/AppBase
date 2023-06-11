@@ -31,11 +31,7 @@ namespace CarinaStudio
 
         public async void ClipboardTest()
         {
-#if AVALONIA_11_0_0_P4
-            var clipboard = App.Current!.Clipboard!;
-#else
             var clipboard = this.Clipboard!;
-#endif
             var data = new byte[] { 128 };
             await clipboard.SetTextAndDataAsync("Text", "CustomDataFormat", data);
             var dataAndText = await clipboard.GetDataOrTextAsync("CustomDataFormat");

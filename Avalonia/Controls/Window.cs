@@ -74,11 +74,7 @@ namespace CarinaStudio.Controls
 					{
 						if (!isDialog)
 						{
-#if AVALONIA_11_0_0_P4
-							var handle = (childWindow.PlatformImpl?.Handle.Handle).GetValueOrDefault();
-#else
 							var handle = (childWindow.TryGetPlatformHandle()?.Handle).GetValueOrDefault();
-#endif
 							var childNSWindow = NSWindow.FromHandle<NSWindow>(handle);
 							childNSWindow?.OrderFront();
 						}
@@ -327,13 +323,8 @@ namespace CarinaStudio.Controls
 									ownerSize = new(owner.Width, owner.Height);
 								}
 								var offsetX = (int)((ownerSize.Width - width) / 2 * screenScale + 0.5);
-#if AVALONIA_11_0_0_P4
-								var offsetY = (int)((ownerSize.Height + titleBarHeight - heightWithTitleBar) / 2 * screenScale + 0.5);
-								var position = new PixelPoint(ownerPosition.X + offsetX, ownerPosition.Y + offsetY - (int)(titleBarHeight * screenScale + 0.5));
-#else
 								var offsetY = (int)((ownerSize.Height - height) / 2 * screenScale + 0.5);
 								var position = new PixelPoint(ownerPosition.X + offsetX, ownerPosition.Y + offsetY);
-#endif
 								this.expectedInitPosition = position;
 								this.expectedInitSize = new(width, height);
 								this.WindowStartupLocation = WindowStartupLocation.Manual;
@@ -344,11 +335,7 @@ namespace CarinaStudio.Controls
 
 					case WindowStartupLocation.CenterScreen:
 					{
-#if AVALONIA_11_0_0_P4
-						var screen = this.Screens.ScreenFromWindow(this.PlatformImpl!) ?? this.Screens.Primary;
-#else
 						var screen = this.Screens.ScreenFromWindow(this) ?? this.Screens.Primary;
-#endif
 						if (screen is null)
 							break;
 						var screenScale = screen.Scaling;

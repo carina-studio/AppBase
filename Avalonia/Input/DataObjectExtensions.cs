@@ -31,17 +31,6 @@ namespace CarinaStudio.Input
 		/// <returns>True if at least one file name is contained in <see cref="IDataObject"/>.</returns>
 		public static bool HasFileNames(this IDataObject data) => Global.RunOrDefault(() =>
 		{
-#if AVALONIA_11_0_0_P4
-			return data.GetFileNames()?.Let(it =>
-			{
-				foreach (var fileName in it)
-				{
-					if (!string.IsNullOrEmpty(fileName))
-						return true;
-				}
-				return false;
-			}) ?? false;
-#else
 			return data.GetFiles()?.Let(it =>
 			{
 				foreach (var item in it)
@@ -51,7 +40,6 @@ namespace CarinaStudio.Input
 				}
 				return false;
 			}) ?? false;
-#endif
 		});
 
 
@@ -86,23 +74,6 @@ namespace CarinaStudio.Input
 		{
 			fileName = Global.RunOrDefault(() =>
 			{
-#if AVALONIA_11_0_0_P4
-				return data.GetFileNames()?.Let(it =>
-				{
-					var fileName = default(string);
-					foreach (var candidate in it)
-					{
-						if (!string.IsNullOrEmpty(candidate))
-						{
-							if (fileName is null)
-								fileName = candidate;
-							else
-								return null;
-						}
-					}
-					return fileName;
-				});
-#else
 				return data.GetFiles()?.Let(it =>
 				{
 					var fileName = default(string);
@@ -119,7 +90,6 @@ namespace CarinaStudio.Input
 					}
 					return fileName;
 				});
-#endif
 			});
 			return (fileName is not null);
 		}

@@ -1,9 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
-#if AVALONIA_11_0_0_P4
-using Avalonia.Styling;
-#endif
 using CarinaStudio.Threading;
 using System;
 
@@ -13,9 +10,6 @@ namespace CarinaStudio.Controls;
 /// <see cref="TextBox"/> which treat input text as object with specific type.
 /// </summary>
 public abstract class ObjectTextBox : TextBox
-#if AVALONIA_11_0_0_P4
-	, IStyleable
-#endif
 {
 	/// <summary>
 	/// Property of <see cref="IsTextValid"/>.
@@ -138,13 +132,8 @@ public abstract class ObjectTextBox : TextBox
 	}
 	
 	
-#if AVALONIA_11_0_0_P4
-	/// <inheritdoc/>
-	Type IStyleable.StyleKey => typeof(TextBox);
-#else
 	/// <inheritdoc/>
 	protected override Type StyleKeyOverride => typeof(TextBox);
-#endif
 
 
 	/// <summary>

@@ -4,9 +4,9 @@
     <PropertyGroup>
 
         <!-- Version -->
-        <AssemblyVersion>2.0.31.611</AssemblyVersion>
-        <PackageVersion>2.0.31.611-preview</PackageVersion>
-        <Version>2.0.31.611</Version>
+        <AssemblyVersion>2.1.0.612</AssemblyVersion>
+        <PackageVersion>2.1.0.612-dev</PackageVersion>
+        <Version>2.1.0.612</Version>
 
         <!-- Other information -->
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -18,13 +18,8 @@
         <PackageProjectUrl>https://carina-studio.github.io/AppBase/</PackageProjectUrl>
         
         <!-- Avalonia -->
-        <AvaloniaVersion>11.0.0-preview4</AvaloniaVersion>
+        <AvaloniaVersion>11.0.0-rc1.1</AvaloniaVersion>
 
-    </PropertyGroup>
-
-    <!-- Compilation Constants -->
-    <PropertyGroup Condition="'$(AvaloniaVersion)'=='11.0.0-preview4'">
-        <DefineConstants>AVALONIA_11_0_0_P4</DefineConstants>
     </PropertyGroup>
     
 </Project>

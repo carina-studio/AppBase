@@ -39,11 +39,7 @@ namespace CarinaStudio
             base.OnFrameworkInitializationCompleted();
             this.Styles.Add(new StyleInclude(new Uri("avares://CarinaStudio.AppBase.Avalonia"))
             {
-#if !AVALONIA_11_0_0_P4
                 Source = new("Theme/Default.axaml", UriKind.Relative),
-#else
-                Source = new("Theme/Dark.axaml", UriKind.Relative),
-#endif
             });
             (this.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.Let(it =>
             {

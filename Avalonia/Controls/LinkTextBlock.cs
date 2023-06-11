@@ -1,9 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
-#if AVALONIA_11_0_0_P4
-using Avalonia.Styling;
-#endif
 using Avalonia.VisualTree;
 using System;
 using System.Windows.Input;
@@ -14,9 +11,6 @@ namespace CarinaStudio.Controls
     /// <see cref="TextBlock"/> which supports open the link.
     /// </summary>
     public class LinkTextBlock : TextBlock
-#if AVALONIA_11_0_0_P4
-        , IStyleable
-#endif
     {
         /// <summary>
         /// Property of <see cref="Command"/>.
@@ -169,13 +163,8 @@ namespace CarinaStudio.Controls
         }
         
         
-#if AVALONIA_11_0_0_P4
-        /// <inheritdoc/>
-        Type IStyleable.StyleKey => typeof(LinkTextBlock);
-#else
         /// <inheritdoc/>
         protected override Type StyleKeyOverride => typeof(LinkTextBlock);
-#endif
 
 
         /// <summary>

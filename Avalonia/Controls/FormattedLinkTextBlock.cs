@@ -1,8 +1,5 @@
 using System;
 using Avalonia;
-#if AVALONIA_11_0_0_P4
-using Avalonia.Styling;
-#endif
 
 namespace CarinaStudio.Controls
 {
@@ -10,9 +7,6 @@ namespace CarinaStudio.Controls
     /// <see cref="FormattedLinkTextBlock"/> which shows formatted text on it.
     /// </summary>
     public class FormattedLinkTextBlock : LinkTextBlock
-#if AVALONIA_11_0_0_P4
-        , IStyleable
-#endif
     {
         /// <summary>
         /// Property of <see cref="Arg1"/>.
@@ -191,14 +185,9 @@ namespace CarinaStudio.Controls
             set => this.SetValue(FormatProperty, value);
         }
 
-
-#if AVALONIA_11_0_0_P4
-        /// <inheritdoc/>
-        Type IStyleable.StyleKey => typeof(LinkTextBlock);
-#else
+        
         /// <inheritdoc/>
         protected override Type StyleKeyOverride => typeof(LinkTextBlock);
-#endif
 
 
         /// <summary>

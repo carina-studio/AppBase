@@ -2,9 +2,6 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-#if AVALONIA_11_0_0_P4
-using Avalonia.Styling;
-#endif
 using CarinaStudio.Threading;
 using System;
 
@@ -14,9 +11,6 @@ namespace CarinaStudio.Controls;
 /// <see cref="TextBox"/> which treat input text as given value with specific type.
 /// </summary>
 public abstract class ValueTextBox : TextBox
-#if AVALONIA_11_0_0_P4
-	, IStyleable
-#endif
 {
 	/// <summary>
 	/// Property of <see cref="CoerceValueWhenLostFocus"/>.
@@ -237,16 +231,11 @@ public abstract class ValueTextBox : TextBox
 	}
 	
 	
-#if AVALONIA_11_0_0_P4
-	/// <inheritdoc/>
-	Type IStyleable.StyleKey => typeof(TextBox);
-#else
     /// <inheritdoc/>
     protected override Type StyleKeyOverride => typeof(TextBox);
-#endif
 
 
-	/// <summary>
+    /// <summary>
 	/// Try converting text to value.
 	/// </summary>
 	/// <param name="text">Text.</param>
