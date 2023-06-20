@@ -29,7 +29,7 @@ namespace CarinaStudio
         protected override void OnOpened(EventArgs e)
         {
             base.OnOpened(e);
-            this.SynchronizationContext.Post(this.Get<Button>("generateResultButton").Focus);
+            this.SynchronizationContext.Post(() => this.Get<Button>("generateResultButton").Focus());
             //if (this.IsShownAsDialog)
                 //this.SynchronizationContext.PostDelayed(this.Close, 7000);
         }

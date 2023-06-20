@@ -1,8 +1,11 @@
-﻿using CarinaStudio.Configuration;
+﻿using Avalonia.Controls;
+using Avalonia.Styling;
+using CarinaStudio.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
@@ -45,7 +48,7 @@ namespace CarinaStudio
 		/// <summary>
 		/// Get <see cref="Application"/> instance for current process.
 		/// </summary>
-		public static new Application Current { get => (Application)Avalonia.Application.Current.AsNonNull(); }
+		public static new Application Current => (Application)Avalonia.Application.Current.AsNonNull();
 
 
 		/// <summary>
@@ -125,7 +128,7 @@ namespace CarinaStudio
 		/// <summary>
 		/// Path to root of private directory which is suitable to be accessed by this application.
 		/// </summary>
-		public virtual string RootPrivateDirectoryPath { get => this.rootPrivateDirPath ?? throw new NotSupportedException(); }
+		public virtual string RootPrivateDirectoryPath => this.rootPrivateDirPath ?? throw new NotSupportedException();
 
 
 		/// <summary>
@@ -137,7 +140,7 @@ namespace CarinaStudio
 		/// <summary>
 		/// Get <see cref="SynchronizationContext"/>.
 		/// </summary>
-		public SynchronizationContext SynchronizationContext { get => this.synchronizationContext ?? throw new InvalidOperationException("Application is not ready yet."); }
+		public SynchronizationContext SynchronizationContext => this.synchronizationContext ?? throw new InvalidOperationException("Application is not ready yet.");
 
 
 		/// <summary>
@@ -152,5 +155,10 @@ namespace CarinaStudio
 			add => this.propertyChangedHandlers += value;
 			remove => this.propertyChangedHandlers -= value;
 		}
+
+
+		/// <inheritdoc/>
+		public bool TryFindResource(object key, ThemeVariant? theme, [NotNullWhen(true)] out object? value) =>
+			ResourceNodeExtensions.TryFindResource(this, key, theme, out value);
 	}
 }

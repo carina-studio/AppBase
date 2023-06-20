@@ -21,17 +21,8 @@ namespace CarinaStudio.Controls
 		/// <returns>Token of binding.</returns>
 		public static IDisposable BindToResource<T>(this T target, AvaloniaProperty property, object resourceKey) where T : AvaloniaObject, IResourceHost =>
 			target.Bind(property, new CachedResource<object?>(target, resourceKey));
-		
-		
-	    // Get actual theme of given object.
-	    static ThemeVariant? GetActualThemeVariant(object obj) => obj switch
-	    {
-		    IThemeVariantHost host => host.ActualThemeVariant,
-		    _ => null,
-	    };
 
 
-	    
 #pragma warning disable CS8601
 	    /// <summary>
 	    /// Find resource with given type or use default value.
@@ -42,7 +33,7 @@ namespace CarinaStudio.Controls
 	    /// <param name="defaultValue">Default value.</param>
 	    /// <returns></returns>
 	    public static T FindResourceOrDefault<T>(this IResourceHost resourceHost, object key, T defaultValue = default) =>
-		    FindResourceOrDefault(resourceHost, key, GetActualThemeVariant(resourceHost), defaultValue);
+		    FindResourceOrDefault(resourceHost, key, ResourceNodeExtensions.GetActualThemeVariant(resourceHost), defaultValue);
 
 	    
 	    /// <summary>
@@ -72,7 +63,7 @@ namespace CarinaStudio.Controls
 	    /// <param name="res">Found resource.</param>
 	    /// <returns>True if resource found.</returns>
 	    public static bool TryFindResource<T>(this IResourceHost resourceHost, object key, [NotNullWhen(true)] out T? res) where T : class =>
-		    TryFindResource(resourceHost, key, GetActualThemeVariant(resourceHost), out res);
+		    TryFindResource(resourceHost, key, ResourceNodeExtensions.GetActualThemeVariant(resourceHost), out res);
 
 
 	    /// <summary>
@@ -105,7 +96,7 @@ namespace CarinaStudio.Controls
 	    /// <param name="res">Found resource.</param>
 	    /// <returns>True if resource found.</returns>
 	    public static bool TryFindResource<T>(this IResourceHost resourceHost, object key, [NotNullWhen(true)] out T? res) where T : struct =>
-		    TryFindResource(resourceHost, key, GetActualThemeVariant(resourceHost), out res);
+		    TryFindResource(resourceHost, key, ResourceNodeExtensions.GetActualThemeVariant(resourceHost), out res);
 	    
 	    
 	    /// <summary>

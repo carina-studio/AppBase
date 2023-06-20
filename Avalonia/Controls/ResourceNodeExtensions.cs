@@ -10,7 +10,7 @@ namespace CarinaStudio.Controls
     public static class ResourceNodeExtensions
     {
 	    // Get actual theme of given object.
-	    static ThemeVariant? GetActualThemeVariant(object obj) => obj switch
+	    internal static ThemeVariant? GetActualThemeVariant(object obj) => obj switch
 	    {
 		    IThemeVariantHost host => host.ActualThemeVariant,
 		    _ => null,
