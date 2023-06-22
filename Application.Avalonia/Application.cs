@@ -59,7 +59,7 @@ namespace CarinaStudio
 			get
             {
 				try
-                {
+				{
 					return Current;
                 }
 				catch
@@ -72,6 +72,11 @@ namespace CarinaStudio
 
 		/// <inheritdoc/>
 		public abstract IObservable<string?> GetObservableString(string key);
+
+
+		/// <inheritdoc/>
+		public IObservable<object?> GetResourceObservable(object key, Func<object?, object?>? converter = null) =>
+			ResourceNodeExtensions.GetResourceObservable(this, key, converter);
 
 
 		/// <summary>

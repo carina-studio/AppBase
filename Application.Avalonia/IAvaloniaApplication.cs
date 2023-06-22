@@ -1,4 +1,5 @@
 ﻿using Avalonia.Styling;
+using System;
 using System.Diagnostics.CodeAnalysis;
 
 namespace CarinaStudio;
@@ -8,6 +9,15 @@ namespace CarinaStudio;
 /// </summary>
 public interface IAvaloniaApplication : IApplication
 {
+	/// <summary>
+	/// Get observable resource with given key.
+	/// </summary>
+	/// <param name="key">Key.</param>
+	/// <param name="converter">Value converter.</param>
+	/// <returns>Observable value of resource.</returns>
+	IObservable<object?> GetResourceObservable(object key, Func<object?, object?>? converter = null);
+
+
     /// <summary>
     /// Try finding resource within the object.
     /// </summary>
