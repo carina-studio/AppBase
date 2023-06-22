@@ -9,7 +9,7 @@ namespace CarinaStudio.Data.Converters
     /// <summary>
 	/// Predefined <see cref="IValueConverter"/>s to convert from <see cref="IComparable"/>s or <see cref="IComparable{T}"/>s.
 	/// </summary>
-    public class ComparableConverters
+    public static class ComparableConverters
     {
         /// <summary>
         /// Convert from <see cref="IComparable"/> to <see cref="bool"/> if value is greater than parameter.
@@ -77,7 +77,7 @@ namespace CarinaStudio.Data.Converters
                     {
                         if (interfaceType.GenericTypeArguments[0].IsAssignableFrom(paramType))
                         {
-                            var comparingResult = (int)interfaceType.GetMethod(nameof(IComparable.CompareTo))!.Invoke(value, new object?[] { parameter })!;
+                            var comparingResult = (int)interfaceType.GetMethod(nameof(IComparable.CompareTo))!.Invoke(value, new[] { parameter })!;
                             return this.resultGenerator(comparingResult);
                         }
                     }
@@ -106,7 +106,7 @@ namespace CarinaStudio.Data.Converters
             {
                 var compareToMethod = (System.Reflection.MethodInfo?)null;
                 if (typeof(IComparable).IsAssignableFrom(targetType))
-                    compareToMethod = targetType.GetMethod(nameof(IComparable.CompareTo), 0, new Type[]{ typeof(object) }).AsNonNull();
+                    compareToMethod = targetType.GetMethod(nameof(IComparable.CompareTo), 0, new[] { typeof(object) }).AsNonNull();
                 else
                 {
                     if (targetType == typeof(object))
@@ -140,7 +140,7 @@ namespace CarinaStudio.Data.Converters
                 {
                     if (value == null)
                         continue;
-                    if (!targetType.IsAssignableFrom(value.GetType()))
+                    if (!targetType.IsInstanceOfType(value))
                         continue;
                     if (result == null)
                         result = value;
@@ -152,6 +152,7 @@ namespace CarinaStudio.Data.Converters
                             var comparisonResult = (int)compareToMethod.Invoke(value, args)!;
                             result = this.selector(value, result, comparisonResult);
                         }
+                        // ReSharper disable once EmptyGeneralCatchClause
                         catch
                         { }
                     }

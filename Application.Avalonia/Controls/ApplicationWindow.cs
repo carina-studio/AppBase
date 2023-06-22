@@ -8,7 +8,7 @@ namespace CarinaStudio.Controls
 	/// <summary>
 	/// <see cref="CarinaStudio.Controls.Window"/> which implements <see cref="IApplicationObject"/>.
 	/// </summary>
-	public class ApplicationWindow : CarinaStudio.Controls.Window, IApplicationObject
+	public class ApplicationWindow : Window, IApplicationObject
 	{
 		/// <summary>
 		/// Initialize new <see cref="ApplicationWindow"/> instance.
@@ -35,19 +35,19 @@ namespace CarinaStudio.Controls
 		/// <summary>
 		/// Get persistent state.
 		/// </summary>
-		protected ISettings PersistentState { get => this.Application.PersistentState; }
+		protected ISettings PersistentState => this.Application.PersistentState;
 
 
 		/// <summary>
 		/// Get application settings.
 		/// </summary>
-		protected ISettings Settings { get => this.Application.Settings; }
+		protected ISettings Settings => this.Application.Settings;
 
 
 		/// <summary>
 		/// Get <see cref="SynchronizationContext"/>.
 		/// </summary>
-		public SynchronizationContext SynchronizationContext { get => this.Application.SynchronizationContext; }
+		public SynchronizationContext SynchronizationContext => this.Application.SynchronizationContext;
 	}
 
 
@@ -60,9 +60,6 @@ namespace CarinaStudio.Controls
 		/// <summary>
 		/// Get application instance.
 		/// </summary>
-		public new TApp Application
-		{
-			get => (base.Application as TApp) ?? throw new ArgumentException($"Application doesn't implement {typeof(TApp)} interface.");
-		}
-	}
+		public new TApp Application => (base.Application as TApp) ?? throw new ArgumentException($"Application doesn't implement {typeof(TApp)} interface.");
+    }
 }

@@ -48,7 +48,7 @@ namespace CarinaStudio
 		/// <summary>
 		/// Check whether instance has disposed or not.
 		/// </summary>
-		protected bool IsDisposed { get => this.isDisposed != 0; }
+		protected bool IsDisposed => this.isDisposed != 0;
 
 
 		/// <summary>
@@ -76,6 +76,6 @@ namespace CarinaStudio
 
 
         /// <inheritdoc/>
-        public new TApp Application { get => (TApp)base.Application; }
+        public new TApp Application => (TApp)base.Application;
     }
 }

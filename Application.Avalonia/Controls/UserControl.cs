@@ -1,6 +1,5 @@
 ﻿using CarinaStudio.Configuration;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Threading;
 
 namespace CarinaStudio.Controls
@@ -58,13 +57,13 @@ namespace CarinaStudio.Controls
         /// <summary>
         /// Get persistent state.
         /// </summary>
-        protected ISettings PersistentState { get => this.Application.PersistentState; }
+        protected ISettings PersistentState => this.Application.PersistentState;
 
 
         /// <summary>
         /// Get application settings.
         /// </summary>
-        protected ISettings Settings { get => this.Application.Settings; }
+        protected ISettings Settings => this.Application.Settings;
 
 
         /// <inheritdoc/>
@@ -78,6 +77,6 @@ namespace CarinaStudio.Controls
     public abstract class UserControl<TApp> : UserControl, IApplicationObject<TApp> where TApp : class, IApplication
     {
         /// <inheritdoc/>
-        public new TApp Application { get => (TApp)base.Application; }
+        public new TApp Application => (TApp)base.Application;
     }
 }

@@ -1,6 +1,7 @@
 using Avalonia.Data.Converters;
 using System;
 using System.Diagnostics;
+// ReSharper disable CompareOfFloatsByEqualityOperator
 
 namespace CarinaStudio.Data.Converters
 {

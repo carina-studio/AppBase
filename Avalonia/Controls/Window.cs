@@ -311,7 +311,6 @@ namespace CarinaStudio.Controls
 							{
 								PixelPoint ownerPosition;
 								Size ownerSize;
-								var heightWithTitleBar = height + titleBarHeight;
 								if (owner is Window csWindow)
 								{
 									ownerPosition = csWindow.expectedInitPosition?.Let(it => new PixelPoint(it.X, (int)(it.Y + titleBarHeight * screenScale + 0.5))) ?? csWindow.Position;

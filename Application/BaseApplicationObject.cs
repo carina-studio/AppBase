@@ -1,5 +1,4 @@
 ﻿using CarinaStudio.Configuration;
-using System;
 using System.Threading;
 
 namespace CarinaStudio
@@ -30,17 +29,17 @@ namespace CarinaStudio
         /// <summary>
         /// Get persistent state of application.
         /// </summary>
-        protected ISettings PersistentState { get => this.Application.PersistentState; }
+        protected ISettings PersistentState => this.Application.PersistentState;
 
 
         /// <summary>
         /// Get settings of application.
         /// </summary>
-        protected ISettings Settings { get => this.Application.Settings; }
+        protected ISettings Settings => this.Application.Settings;
 
 
         /// <inheritdoc/>.
-        public SynchronizationContext SynchronizationContext { get => this.Application.SynchronizationContext; }
+        public SynchronizationContext SynchronizationContext => this.Application.SynchronizationContext;
     }
 
 
@@ -58,6 +57,6 @@ namespace CarinaStudio
 
 
         /// <inheritdoc/>
-        public new TApp Application { get => (TApp)base.Application; }
+        public new TApp Application => (TApp)base.Application;
     }
 }

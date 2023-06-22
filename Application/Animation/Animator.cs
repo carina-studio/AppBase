@@ -72,7 +72,7 @@ namespace CarinaStudio.Animation
             }
 
             // Get current time for animation.
-            public long CurrentTimeMilliseconds { get => this.stopwatch.ElapsedMilliseconds; }
+            public long CurrentTimeMilliseconds => this.stopwatch.ElapsedMilliseconds;
 
             // Check whether animation of given animator is scheduled or not.
             public bool IsAnimationScheduled(Animator animator) =>
@@ -372,7 +372,7 @@ namespace CarinaStudio.Animation
         /// <summary>
         /// Check whether animation is started or not.
         /// </summary>
-        public bool IsStarted { get => this.startTime >= 0; }
+        public bool IsStarted => this.startTime >= 0;
 
 
         /// <summary>
@@ -409,7 +409,7 @@ namespace CarinaStudio.Animation
 
 
         /// <summary>
-        /// Start animation. The current animation whill be cancelled before starting new one.
+        /// Start animation. The current animation will be cancelled before starting new one.
         /// </summary>
         public void Start()
         {
@@ -476,10 +476,10 @@ namespace CarinaStudio.Animation
         {
             it.Duration = duration;
             if (completedAction != null)
-                it.Completed += (_, e) => completedAction();
+                it.Completed += (_, _) => completedAction();
             it.Interpolator = interpolator;
             it.Interval = interval;
-            it.ProgressChanged += (_, e) => progressChangedAction(it.Progress);
+            it.ProgressChanged += (_, _) => progressChangedAction(it.Progress);
             it.Start();
         });
 
@@ -579,7 +579,7 @@ namespace CarinaStudio.Animation
             it.Duration = duration;
             it.Interpolator = interpolator;
             it.Interval = interval;
-            it.ProgressChanged += (_, e) => progressChangedAction(it.Progress);
+            it.ProgressChanged += (_, _) => progressChangedAction(it.Progress);
             it.Start();
         }).StartAndWaitForCompletionAsync(cancellationToken);
 
@@ -610,7 +610,7 @@ namespace CarinaStudio.Animation
 
             // prepare
             var syncLock = new object();
-            var completedOrCancelledHandler = new EventHandler((_, e) =>
+            var completedOrCancelledHandler = new EventHandler((_, _) =>
             {
                 lock (syncLock)
                 {

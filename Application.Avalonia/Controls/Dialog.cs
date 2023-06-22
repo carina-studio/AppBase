@@ -44,9 +44,6 @@ namespace CarinaStudio.Controls
 		/// <summary>
 		/// Get application instance.
 		/// </summary>
-		public new TApp Application
-        {
-			get => (base.Application as TApp) ?? throw new ArgumentException($"Application doesn't implement {typeof(TApp)} interface.");
-		}
+		public new TApp Application => (base.Application as TApp) ?? throw new ArgumentException($"Application doesn't implement {typeof(TApp)} interface.");
 	}
 }

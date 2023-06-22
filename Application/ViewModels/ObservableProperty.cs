@@ -86,7 +86,7 @@ namespace CarinaStudio.ViewModels
 		public static ObservableProperty<TValue> Register<TOwner, TValue>(string name, TValue defaultValue = default, Func<TOwner, TValue, TValue>? coerce = null, Predicate<TValue>? validate = null)
 		{
 			return new ObservableProperty<TValue>(typeof(TOwner), name, defaultValue, 
-				coerce != null ? (o, value) => coerce((TOwner)o, value) : (Func<object, TValue, TValue>?)null, 
+				coerce != null ? (o, value) => coerce((TOwner)o, value) : null, 
 				validate);
 		}
 #pragma warning restore CS8601
@@ -112,7 +112,7 @@ namespace CarinaStudio.ViewModels
 		/// <summary>
 		/// Default validation function.
 		/// </summary>
-		public static readonly Predicate<T> DefaultValidationFunction = (value) => true;
+		public static readonly Predicate<T> DefaultValidationFunction = _ => true;
 
 
 		// Constructor.

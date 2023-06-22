@@ -14,6 +14,7 @@ namespace CarinaStudio.Controls
 		/// </summary>
 		/// <param name="itemsControl"><see cref="ItemsControl"/>.</param>
 		/// <returns>Number of items, or 0 if number of items cannot be determined.</returns>
+		[Obsolete("Use ItemCount property instead.")]
 		public static int GetItemCount(this ItemsControl itemsControl) => itemsControl.Items?.Let(it =>
 		{
 			if (it is ICollection collection)
@@ -27,6 +28,7 @@ namespace CarinaStudio.Controls
 					return 0;
 				}) ?? 0;
 			}
+			// ReSharper disable once EmptyGeneralCatchClause
 			catch
 			{ }
 			return 0;

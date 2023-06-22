@@ -49,8 +49,6 @@ namespace CarinaStudio.Data.Converters
 				return this.equalityChecker(targetValue, this.TrueValue);
 			if (targetValue is IEquatable<TValue> equatable)
 				return equatable.Equals(this.TrueValue);
-			if (targetValue == null)
-				return this.TrueValue == null;
 			return targetValue.Equals(this.TrueValue);
 		}
 

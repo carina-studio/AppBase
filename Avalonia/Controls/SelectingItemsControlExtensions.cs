@@ -1,5 +1,4 @@
 ﻿using Avalonia.Controls.Primitives;
-using System;
 
 namespace CarinaStudio.Controls
 {
@@ -15,7 +14,7 @@ namespace CarinaStudio.Controls
 		/// <param name="scrollIntoView">True to scroll new selected item into view.</param>
 		public static void SelectFirstItem(this SelectingItemsControl control, bool scrollIntoView = true)
 		{
-			var itemCount = control.GetItemCount();
+			var itemCount = control.ItemCount;
 			if (itemCount > 0)
 			{
 				control.SelectedIndex = 0;
@@ -32,7 +31,7 @@ namespace CarinaStudio.Controls
 		/// <param name="scrollIntoView">True to scroll new selected item into view.</param>
 		public static void SelectLastItem(this SelectingItemsControl control, bool scrollIntoView = true)
 		{
-			var itemCount = control.GetItemCount();
+			var itemCount = control.ItemCount;
 			if (itemCount > 0)
 			{
 				control.SelectedIndex = itemCount - 1;
@@ -50,7 +49,7 @@ namespace CarinaStudio.Controls
 		/// <returns>New index of selected item.</returns>
 		public static int SelectNextItem(this SelectingItemsControl control, bool scrollIntoView = true)
 		{
-			var itemCount = control.GetItemCount();
+			var itemCount = control.ItemCount;
 			if (itemCount > 0)
 			{
 				var newIndex = control.SelectedIndex;
@@ -75,7 +74,7 @@ namespace CarinaStudio.Controls
 		/// <returns>New index of selected item.</returns>
 		public static int SelectPreviousItem(this SelectingItemsControl control, bool scrollIntoView = true)
 		{
-			var itemCount = control.GetItemCount();
+			var itemCount = control.ItemCount;
 			if (itemCount > 0)
 			{
 				var newIndex = control.SelectedIndex;

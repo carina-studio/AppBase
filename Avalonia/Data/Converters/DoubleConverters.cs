@@ -1,5 +1,4 @@
 using Avalonia.Data.Converters;
-using CarinaStudio.Collections;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -20,7 +19,7 @@ namespace CarinaStudio.Data.Converters
         /// </summary>
         public static readonly IMultiValueConverter Division = new DivisionConverter();
         /// <summary>
-        /// <see cref="IMultiValueConverter"/> perform Mmltiplication on <see cref="double"/> values.
+        /// <see cref="IMultiValueConverter"/> perform multiplication on <see cref="double"/> values.
         /// </summary>
         public static readonly IMultiValueConverter Multiplication = new MultiplicationConverter();
         /// <summary>

@@ -1,7 +1,6 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.VisualTree;
-using System;
 
 namespace CarinaStudio.Controls
 {

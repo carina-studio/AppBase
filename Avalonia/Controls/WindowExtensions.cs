@@ -12,7 +12,7 @@ namespace CarinaStudio.Controls
     public static class WindowExtensions
     {
         // Static fields.
-        static volatile FieldInfo? dialogResultField;
+        static FieldInfo? dialogResultField;
         static readonly HashSet<Avalonia.Controls.Window> dialogWindows = new();
 
 
@@ -110,7 +110,7 @@ namespace CarinaStudio.Controls
         {
             var taskCompletionSource = new TaskCompletionSource<T>();
             var closedHandler = (EventHandler?)null;
-            closedHandler = (_, e) =>
+            closedHandler = (_, _) =>
             {
                 window.Closed -= closedHandler;
                 dialogWindows.Remove(window);

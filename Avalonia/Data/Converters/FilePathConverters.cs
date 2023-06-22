@@ -1,5 +1,4 @@
 using Avalonia.Data.Converters;
-using System;
 using System.IO;
 
 namespace CarinaStudio.Data.Converters

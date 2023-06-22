@@ -35,8 +35,8 @@ namespace CarinaStudio.Data.Converters
                 if (targetType != typeof(object) && targetType != typeof(bool))
                     return null;
                 if (this.equivalent)
-                    return value?.Equals(parameter) ?? (parameter == null);
-                return value != null ? !value.Equals(parameter) : (parameter != null);
+                    return value?.Equals(parameter) ?? (parameter is null);
+                return !value?.Equals(parameter) ?? (parameter is not null);
             }
 
             // Convert back.

@@ -12,7 +12,7 @@ namespace CarinaStudio.Animation
         /// </summary>
         public static readonly Func<double, double> Acceleration = CreateAccelerationInterpolator(2);
         /// <summary>
-        /// Default intepolator which outputs the input value directly.
+        /// Default interpolator which outputs the input value directly.
         /// </summary>
         public static readonly Func<double, double> Default = p => p;
         /// <summary>
@@ -28,7 +28,7 @@ namespace CarinaStudio.Animation
         /// </summary>
         public static readonly Func<double, double> FastDeceleration = CreateDecelerationInterpolator(3);
         /// <summary>
-        /// Intepolator which inverts the input value.
+        /// Interpolator which inverts the input value.
         /// </summary>
         public static readonly Func<double, double> Inverted = p => (1 - p);
         /// <summary>

@@ -63,7 +63,7 @@ namespace CarinaStudio
             public readonly IObserver<string> Observer;
             public SubscribedObserver? Previous;
             public SubscribedObserver? Next;
-            public readonly FormattedString Owner;
+            readonly FormattedString Owner;
 
             // Constructor.
             public SubscribedObserver(FormattedString owner, IObserver<string> observer)
@@ -79,7 +79,6 @@ namespace CarinaStudio
 
 
         // Fields.
-        readonly IObserver<object?> argObserver;
         string formattedString = "";
         bool hasPendingDisposedObservers;
         bool isUpdatingStringScheduled;
@@ -94,7 +93,7 @@ namespace CarinaStudio
         public FormattedString()
         {
             Dispatcher.UIThread.VerifyAccess();
-            this.argObserver = new Observer<object?>(_ => this.ScheduleUpdatingString());
+            var argObserver = new Observer<object?>(_ => this.ScheduleUpdatingString());
             this.updateStringAction = () =>
             {
                 if (this.isUpdatingStringScheduled)
@@ -103,16 +102,16 @@ namespace CarinaStudio
                     this.UpdateString();
                 }
             };
-            this.GetObservable(Arg1Property).Subscribe(this.argObserver);
-            this.GetObservable(Arg2Property).Subscribe(this.argObserver);
-            this.GetObservable(Arg3Property).Subscribe(this.argObserver);
-            this.GetObservable(Arg4Property).Subscribe(this.argObserver);
-            this.GetObservable(Arg5Property).Subscribe(this.argObserver);
-            this.GetObservable(Arg6Property).Subscribe(this.argObserver);
-            this.GetObservable(Arg7Property).Subscribe(this.argObserver);
-            this.GetObservable(Arg8Property).Subscribe(this.argObserver);
-            this.GetObservable(Arg9Property).Subscribe(this.argObserver);
-            this.GetObservable(FormatProperty).Subscribe(this.argObserver);
+            this.GetObservable(Arg1Property).Subscribe(argObserver);
+            this.GetObservable(Arg2Property).Subscribe(argObserver);
+            this.GetObservable(Arg3Property).Subscribe(argObserver);
+            this.GetObservable(Arg4Property).Subscribe(argObserver);
+            this.GetObservable(Arg5Property).Subscribe(argObserver);
+            this.GetObservable(Arg6Property).Subscribe(argObserver);
+            this.GetObservable(Arg7Property).Subscribe(argObserver);
+            this.GetObservable(Arg8Property).Subscribe(argObserver);
+            this.GetObservable(Arg9Property).Subscribe(argObserver);
+            this.GetObservable(FormatProperty).Subscribe(argObserver);
         }
 
 
@@ -121,7 +120,7 @@ namespace CarinaStudio
         /// </summary>
         public object? Arg1
         {
-            get => this.GetValue<object?>(Arg1Property);
+            get => this.GetValue(Arg1Property);
             set => this.SetValue(Arg1Property, value);
         }
 
@@ -131,7 +130,7 @@ namespace CarinaStudio
         /// </summary>
         public object? Arg2
         {
-            get => this.GetValue<object?>(Arg2Property);
+            get => this.GetValue(Arg2Property);
             set => this.SetValue(Arg2Property, value);
         }
 
@@ -141,7 +140,7 @@ namespace CarinaStudio
         /// </summary>
         public object? Arg3
         {
-            get => this.GetValue<object?>(Arg3Property);
+            get => this.GetValue(Arg3Property);
             set => this.SetValue(Arg3Property, value);
         }
 
@@ -151,7 +150,7 @@ namespace CarinaStudio
         /// </summary>
         public object? Arg4
         {
-            get => this.GetValue<object?>(Arg4Property);
+            get => this.GetValue(Arg4Property);
             set => this.SetValue(Arg4Property, value);
         }
 
@@ -161,7 +160,7 @@ namespace CarinaStudio
         /// </summary>
         public object? Arg5
         {
-            get => this.GetValue<object?>(Arg5Property);
+            get => this.GetValue(Arg5Property);
             set => this.SetValue(Arg5Property, value);
         }
 
@@ -171,7 +170,7 @@ namespace CarinaStudio
         /// </summary>
         public object? Arg6
         {
-            get => this.GetValue<object?>(Arg6Property);
+            get => this.GetValue(Arg6Property);
             set => this.SetValue(Arg6Property, value);
         }
 
@@ -181,7 +180,7 @@ namespace CarinaStudio
         /// </summary>
         public object? Arg7
         {
-            get => this.GetValue<object?>(Arg7Property);
+            get => this.GetValue(Arg7Property);
             set => this.SetValue(Arg7Property, value);
         }
 
@@ -191,7 +190,7 @@ namespace CarinaStudio
         /// </summary>
         public object? Arg8
         {
-            get => this.GetValue<object?>(Arg8Property);
+            get => this.GetValue(Arg8Property);
             set => this.SetValue(Arg8Property, value);
         }
 
@@ -201,7 +200,7 @@ namespace CarinaStudio
         /// </summary>
         public object? Arg9
         {
-            get => this.GetValue<object?>(Arg9Property);
+            get => this.GetValue(Arg9Property);
             set => this.SetValue(Arg9Property, value);
         }
 
@@ -211,7 +210,7 @@ namespace CarinaStudio
         /// </summary>
         public string? Format
         {
-            get => this.GetValue<string?>(FormatProperty);
+            get => this.GetValue(FormatProperty);
             set => this.SetValue(FormatProperty, value);
         }
 
@@ -320,7 +319,7 @@ namespace CarinaStudio
             this.formattedString;
 
 
-        // Unsubdcribe observer.
+        // Unsubscribe observer.
         void Unsubscribe(SubscribedObserver observer)
         {
             if (observer.IsDisposed)
@@ -345,25 +344,25 @@ namespace CarinaStudio
         // Update formatted string.
         void UpdateString()
         {
-            var format = this.GetValue<string?>(FormatProperty);
+            var format = this.GetValue(FormatProperty);
             var formattedString = string.IsNullOrEmpty(format)
                 ? ""
-                : string.Format(format, new object?[] {
-                    this.GetValue<object?>(Arg1Property),
-                    this.GetValue<object?>(Arg2Property),
-                    this.GetValue<object?>(Arg3Property),
-                    this.GetValue<object?>(Arg4Property),
-                    this.GetValue<object?>(Arg5Property),
-                    this.GetValue<object?>(Arg6Property),
-                    this.GetValue<object?>(Arg7Property),
-                    this.GetValue<object?>(Arg8Property),
-                    this.GetValue<object?>(Arg9Property),
-                });
+                : string.Format(format, 
+                    this.GetValue(Arg1Property),
+                    this.GetValue(Arg2Property),
+                    this.GetValue(Arg3Property),
+                    this.GetValue(Arg4Property),
+                    this.GetValue(Arg5Property),
+                    this.GetValue(Arg6Property),
+                    this.GetValue(Arg7Property),
+                    this.GetValue(Arg8Property),
+                    this.GetValue(Arg9Property)
+                );
             if (this.formattedString.Length != formattedString.Length
                 || formattedString.Length > 1024
                 || this.formattedString != formattedString)
             {
-                this.SetAndRaise<string>(StringProperty, ref this.formattedString, formattedString);
+                this.SetAndRaise(StringProperty, ref this.formattedString, formattedString);
                 this.Notify();
             }
         }

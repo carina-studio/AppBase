@@ -1,6 +1,5 @@
 ﻿using Avalonia;
 using Avalonia.VisualTree;
-using System;
 
 namespace CarinaStudio.VisualTree
 {
@@ -23,7 +22,7 @@ namespace CarinaStudio.VisualTree
                 return visualT;
             foreach (var childVisual in visual.GetVisualDescendants())
             {
-                var descendant = ((Visual)childVisual).FindDescendantOfTypeAndName<T>(name, true);
+                var descendant = childVisual.FindDescendantOfTypeAndName<T>(name, true);
                 if (descendant != null)
                     return descendant;
             }

@@ -38,7 +38,7 @@ namespace CarinaStudio.ViewModels
 
 
 		// Static fields.
-		static volatile int nextId = 0;
+		static int nextId;
 
 
 		// Fields.
@@ -91,7 +91,7 @@ namespace CarinaStudio.ViewModels
 
 
 		// Check equality of two values.
-		static bool CheckValueEuqality(object? x, object? y)
+		static bool CheckValueEquality(object? x, object? y)
 		{
 			if (x != null)
 				return x.Equals(y);
@@ -108,7 +108,7 @@ namespace CarinaStudio.ViewModels
 		/// <returns>Coerced value.</returns>
 		protected T CoerceValue<T>(ObservableProperty<T> property, T value)
 		{
-			if (!property.OwnerType.IsAssignableFrom(this.GetType()))
+			if (!property.OwnerType.IsInstanceOfType(this))
 				throw new ArgumentException($"{this.GetType().Name} is not owner of property '{property.Name}'.");
 			return property.CoercionFunction(this, value);
 		}
@@ -118,6 +118,7 @@ namespace CarinaStudio.ViewModels
 		/// Dispose the view-model.
 		/// </summary>
 		/// <param name="disposing">True to release managed resources.</param>
+		// ReSharper disable ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
 		protected override void Dispose(bool disposing)
 		{
 			// check thread
@@ -143,12 +144,13 @@ namespace CarinaStudio.ViewModels
 
 			// check necessary tasks
 			if (this.waitingNecessaryTasks.IsNotEmpty())
-				this.Logger?.LogWarning($"There are {this.waitingNecessaryTasks.Count} necessary task(s) not completed yet");
+				this.Logger?.LogWarning("There are {count} necessary task(s) not completed yet", this.waitingNecessaryTasks.Count);
 
 			// notify owner
 			if (disposing)
 				this.Owner?.OnOwnedViewModelRemoved(this);
 		}
+		// ReSharper restore ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
 
 
 		/// <summary>
@@ -177,7 +179,7 @@ namespace CarinaStudio.ViewModels
 			this.VerifyAccess();
 			if (this.propertyValues.TryGetValue(property, out var propertyValue) && propertyValue != null)
 				return (ObservablePropertyValue<T>)propertyValue;
-			if (!property.OwnerType.IsAssignableFrom(this.GetType()))
+			if (!property.OwnerType.IsInstanceOfType(this))
 				throw new ArgumentException($"{this.GetType().Name} is not owner of property '{property.Name}'.");
 			return new ObservablePropertyValue<T>(property).Also((it) => this.propertyValues[property] = it);
 		}
@@ -186,7 +188,7 @@ namespace CarinaStudio.ViewModels
 		/// <summary>
 		/// Check whether at least one necessary task is not completed yet or not.
 		/// </summary>
-		public bool HasNecessaryTasks { get => this.GetValue(HasNecessaryTasksProperty); }
+		public bool HasNecessaryTasks => this.GetValue(HasNecessaryTasksProperty);
 
 
 		/// <summary>
@@ -360,7 +362,7 @@ namespace CarinaStudio.ViewModels
 			this.VerifyDisposed();
 
 			// check owner
-			if (!property.OwnerType.IsAssignableFrom(this.GetType()))
+			if (!property.OwnerType.IsInstanceOfType(this))
 				throw new ArgumentException($"{this.GetType().Name} is not owner of property '{property.Name}'.");
 
 			// coerce value
@@ -376,7 +378,7 @@ namespace CarinaStudio.ViewModels
 				oldValue = ((ObservablePropertyValue<T>)propertyValueObj).Value;
 
 			// check equality
-			if (CheckValueEuqality(oldValue, value))
+			if (CheckValueEquality(oldValue, value))
 				return;
 
 			// update value
@@ -482,6 +484,6 @@ namespace CarinaStudio.ViewModels
 		/// <summary>
 		/// Get <see cref="IApplication"/> which view-model belongs to.
 		/// </summary>
-		public new TApplication Application { get => (TApplication)base.Application; }
+		public new TApplication Application => (TApplication)base.Application;
 	}
 }
