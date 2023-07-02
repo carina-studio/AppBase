@@ -36,6 +36,22 @@ public static unsafe class CGImageProperties
     /// </summary>
     public static readonly CFString Depth;
     /// <summary>
+    /// Please refer to <a href="https://developer.apple.com/documentation/imageio/kCGImagePropertyDPIHeight">kCGImagePropertyDPIHeight</a>.
+    /// </summary>
+    public static readonly CFString DPIHeight;
+    /// <summary>
+    /// Please refer to <a href="https://developer.apple.com/documentation/imageio/kCGImagePropertyDPIWidth">kCGImagePropertyDPIWidth</a>.
+    /// </summary>
+    public static readonly CFString DPIWidth;
+    /// <summary>
+    /// Please refer to <a href="https://developer.apple.com/documentation/imageio/kCGImagePropertyFileContentsDictionary">kCGImagePropertyFileContentsDictionary</a>.
+    /// </summary>
+    public static readonly CFString FileContentsDictionary;
+    /// <summary>
+    /// Please refer to <a href="https://developer.apple.com/documentation/imageio/kCGImagePropertyFileSize">kCGImagePropertyFileSize</a>.
+    /// </summary>
+    public static readonly CFString FileSize;
+    /// <summary>
     /// Please refer to <a href="https://developer.apple.com/documentation/imageio/kCGImagePropertyHasAlpha">kCGImagePropertyHasAlpha</a>.
     /// </summary>
     public static readonly CFString HasAlpha;
@@ -43,6 +59,10 @@ public static unsafe class CGImageProperties
     /// Please refer to <a href="https://developer.apple.com/documentation/imageio/kCGImagePropertyImageCount">kCGImagePropertyImageCount</a>.
     /// </summary>
     public static readonly CFString ImageCount;
+    /// <summary>
+    /// Please refer to <a href="https://developer.apple.com/documentation/imageio/kCGImagePropertyImages">kCGImagePropertyImages</a>.
+    /// </summary>
+    public static readonly CFString Images;
     /// <summary>
     /// Please refer to <a href="https://developer.apple.com/documentation/imageio/kCGImagePropertyNamedColorSpace">kCGImagePropertyNamedColorSpace</a>.
     /// </summary>
@@ -67,6 +87,14 @@ public static unsafe class CGImageProperties
     /// Please refer to <a href="https://developer.apple.com/documentation/imageio/kCGImagePropertyPrimaryImage">kCGImagePropertyPrimaryImage</a>.
     /// </summary>
     public static readonly CFString PrimaryImage;
+    /// <summary>
+    /// Please refer to <a href="https://developer.apple.com/documentation/imageio/kCGImagePropertyProfileName">kCGImagePropertyProfileName</a>.
+    /// </summary>
+    public static readonly CFString ProfileName;
+    /// <summary>
+    /// Please refer to <a href="https://developer.apple.com/documentation/imageio/kCGImagePropertyThumbnailImages">kCGImagePropertyThumbnailImages</a>.
+    /// </summary>
+    public static readonly CFString ThumbnailImages;
 
 
     // Static initializer.
@@ -86,13 +114,20 @@ public static unsafe class CGImageProperties
         ColorModelLab = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyColorModelLab"), false, false);
         ColorModelRGB = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyColorModelRGB"), false, false);
         Depth = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyDepth"), false, false);
+        DPIHeight = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyDPIHeight"), false, false);
+        DPIWidth = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyDPIWidth"), false, false);
+        FileContentsDictionary = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyFileContentsDictionary"), false, false);
+        FileSize = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyFileSize"), false, false);
         HasAlpha = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyHasAlpha"), false, false);
         ImageCount = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyImageCount"), false, false);
+        Images = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyImages"), false, false);
         NamedColorSpace = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyNamedColorSpace"), false, false);
         Orientation = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyOrientation"), false, false);
         PixelFormat = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyPixelFormat"), false, false);
         PixelHeight = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyPixelHeight"), false, false);
         PixelWidth = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyPixelWidth"), false, false);
         PrimaryImage = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyPrimaryImage"), false, false);
+        ProfileName = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyProfileName"), false, false);
+        ThumbnailImages = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyThumbnailImages"), false, false);
     }
 }
