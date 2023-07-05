@@ -216,5 +216,23 @@ namespace CarinaStudio
 			{ }
 			// ReSharper restore EmptyGeneralCatchClause
 		});
+		
+		
+		/// <summary>
+		/// Run given action and ignore any error occurred asynchronously.
+		/// </summary>
+		/// <param name="action">Action to run.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static async Task RunWithoutErrorAsync(Func<Task> action)
+		{
+			try
+			{
+				await action();
+			}
+			// ReSharper disable EmptyGeneralCatchClause
+			catch
+			{ }
+			// ReSharper restore EmptyGeneralCatchClause
+		}
 	}
 }
