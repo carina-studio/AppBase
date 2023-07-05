@@ -10,6 +10,18 @@ namespace CarinaStudio;
 public interface IAvaloniaApplication : IApplication
 {
 	/// <summary>
+	/// Get instance of <see cref="IAvaloniaApplication"/> of current process.
+	/// </summary>
+	public static IAvaloniaApplication Current => (IAvaloniaApplication) Avalonia.Application.Current.AsNonNull();
+
+
+	/// <summary>
+	/// Get instance of <see cref="IAvaloniaApplication"/> of current process, or Null if instance doesn't exist.
+	/// </summary>
+	public static IAvaloniaApplication? CurrentOrNull => Avalonia.Application.Current as IAvaloniaApplication;
+	
+	
+	/// <summary>
 	/// Get observable resource with given key.
 	/// </summary>
 	/// <param name="key">Key.</param>
