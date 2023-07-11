@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CarinaStudio
 {
-    interface IApp : IApplication
+    interface IApp : IAvaloniaApplication
     {
     }
 }

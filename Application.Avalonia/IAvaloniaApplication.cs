@@ -1,4 +1,5 @@
 ﻿using Avalonia.Styling;
+using CarinaStudio.Threading;
 using System;
 using System.Diagnostics.CodeAnalysis;
 
@@ -7,7 +8,7 @@ namespace CarinaStudio;
 /// <summary>
 /// <see cref="IApplication"/> which based-on Avalonia.
 /// </summary>
-public interface IAvaloniaApplication : IApplication
+public interface IAvaloniaApplication : IApplication<DispatcherSynchronizationContext>
 {
 	/// <summary>
 	/// Get instance of <see cref="IAvaloniaApplication"/> of current process.

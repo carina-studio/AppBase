@@ -1,6 +1,7 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Styling;
 using CarinaStudio.Configuration;
+using CarinaStudio.Threading;
 using Microsoft.Extensions.Logging;
 using System;
 using System.ComponentModel;
@@ -21,7 +22,7 @@ namespace CarinaStudio
 		// Fields.
 		PropertyChangedEventHandler? propertyChangedHandlers;
 		readonly string? rootPrivateDirPath;
-		volatile SynchronizationContext? synchronizationContext;
+		volatile DispatcherSynchronizationContext? synchronizationContext;
 
 
 		/// <summary>
@@ -111,7 +112,7 @@ namespace CarinaStudio
 		/// </summary>
 		public override void OnFrameworkInitializationCompleted()
 		{
-			this.synchronizationContext = SynchronizationContext.Current.AsNonNull();
+			this.synchronizationContext = DispatcherSynchronizationContext.UIThread;
 			base.OnFrameworkInitializationCompleted();
 		}
 
@@ -142,10 +143,12 @@ namespace CarinaStudio
 		public abstract ISettings Settings { get; }
 
 
-		/// <summary>
-		/// Get <see cref="SynchronizationContext"/>.
-		/// </summary>
-		public SynchronizationContext SynchronizationContext => this.synchronizationContext ?? throw new InvalidOperationException("Application is not ready yet.");
+		/// <inheritdoc/>
+		public DispatcherSynchronizationContext SynchronizationContext => this.synchronizationContext ?? throw new InvalidOperationException("Application is not ready yet.");
+
+
+		/// <inheritdoc/>
+		SynchronizationContext ISynchronizable.SynchronizationContext => this.SynchronizationContext;
 
 
 		/// <summary>

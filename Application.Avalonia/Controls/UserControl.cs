@@ -1,4 +1,5 @@
 ﻿using CarinaStudio.Configuration;
+using CarinaStudio.Threading;
 using Microsoft.Extensions.Logging;
 using System.Threading;
 
@@ -74,9 +75,14 @@ namespace CarinaStudio.Controls
     /// <summary>
     /// <see cref="Avalonia.Controls.UserControl"/> which implements <see cref="IApplicationObject{TApp}"/>.
     /// </summary>
-    public abstract class UserControl<TApp> : UserControl, IApplicationObject<TApp> where TApp : class, IApplication
+    /// <typeparam name="TApp">Type of application.</typeparam>
+    public abstract class UserControl<TApp> : UserControl, IApplicationObject<TApp, DispatcherSynchronizationContext> where TApp : class, IAvaloniaApplication
     {
         /// <inheritdoc/>
         public new TApp Application => (TApp)base.Application;
+        
+        
+        /// <inheritdoc/>
+        public new DispatcherSynchronizationContext SynchronizationContext => this.Application.SynchronizationContext;
     }
 }

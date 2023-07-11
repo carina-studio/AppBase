@@ -1,7 +1,7 @@
 ﻿using CarinaStudio.Configuration;
+using CarinaStudio.Threading;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Threading;
 
 namespace CarinaStudio.Controls
 {
@@ -42,12 +42,6 @@ namespace CarinaStudio.Controls
 		/// Get application settings.
 		/// </summary>
 		protected ISettings Settings => this.Application.Settings;
-
-
-		/// <summary>
-		/// Get <see cref="SynchronizationContext"/>.
-		/// </summary>
-		public SynchronizationContext SynchronizationContext => this.Application.SynchronizationContext;
 	}
 
 
@@ -55,7 +49,7 @@ namespace CarinaStudio.Controls
 	/// <see cref="CarinaStudio.Controls.Window"/> which implements <see cref="IApplicationObject{TApplication}"/>.
 	/// </summary>
 	/// <typeparam name="TApp">Type of application.</typeparam>
-	public abstract class ApplicationWindow<TApp> : ApplicationWindow, IApplicationObject<TApp> where TApp : class, IApplication
+	public abstract class ApplicationWindow<TApp> : ApplicationWindow, IApplicationObject<TApp, DispatcherSynchronizationContext> where TApp : class, IAvaloniaApplication
     {
 		/// <summary>
 		/// Get application instance.

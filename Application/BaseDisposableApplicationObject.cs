@@ -65,6 +65,7 @@ namespace CarinaStudio
     /// <summary>
     /// Base implementation of <see cref="IApplicationObject"/> and <see cref="IDisposable"/>.
     /// </summary>
+    /// <typeparam name="TApp">Type of application.</typeparam>
     public abstract class BaseDisposableApplicationObject<TApp> : BaseDisposableApplicationObject, IApplicationObject<TApp> where TApp : class, IApplication
     {
         /// <summary>
@@ -77,5 +78,25 @@ namespace CarinaStudio
 
         /// <inheritdoc/>
         public new TApp Application => (TApp)base.Application;
+    }
+    
+    
+    /// <summary>
+    /// Base implementation of <see cref="IApplicationObject"/> and <see cref="IDisposable"/>.
+    /// </summary>
+    /// <typeparam name="TApp">Type of application.</typeparam>
+    /// <typeparam name="TSyncContext">Type of <see cref="SynchronizationContext"/>.</typeparam>
+    public abstract class BaseDisposableApplicationObject<TApp, TSyncContext> : BaseDisposableApplicationObject<TApp>, IApplicationObject<TApp, TSyncContext> where TApp : class, IApplication<TSyncContext> where TSyncContext : SynchronizationContext
+    {
+	    /// <summary>
+	    /// Initialize new <see cref="BaseDisposableApplicationObject{TApp, TSyncContext}"/> instance.
+	    /// </summary>
+	    /// <param name="app">Application.</param>
+	    protected BaseDisposableApplicationObject(TApp app) : base(app)
+	    { }
+
+
+	    /// <inheritdoc/>
+	    public new TSyncContext SynchronizationContext => this.Application.SynchronizationContext;
     }
 }

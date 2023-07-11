@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
+using System.Threading;
 
 namespace CarinaStudio
 {
@@ -78,6 +79,14 @@ namespace CarinaStudio
 		/// </summary>
 		event EventHandler StringsUpdated;
 	}
+	
+	
+	/// <summary>
+	/// Application interface. This is the top-level object for application infrastructure.
+	/// </summary>
+	/// <typeparam name="TSyncContext">Type of <see cref="SynchronizationContext"/>.</typeparam>
+	public interface IApplication<out TSyncContext> : IApplication, IThreadDependent<TSyncContext> where TSyncContext : SynchronizationContext
+	{ }
 
 
 	/// <summary>

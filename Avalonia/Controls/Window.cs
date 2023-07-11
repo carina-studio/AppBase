@@ -6,13 +6,14 @@ using CarinaStudio.Threading;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading;
 
 namespace CarinaStudio.Controls
 {
 	/// <summary>
 	/// Extended <see cref="Avalonia.Controls.Window"/>.
 	/// </summary>
-	public class Window : Avalonia.Controls.Window
+	public class Window : Avalonia.Controls.Window, ISynchronizable<DispatcherSynchronizationContext>
 	{
 		/// <summary>
 		/// Property of <see cref="HasDialogs"/>.
@@ -57,6 +58,9 @@ namespace CarinaStudio.Controls
 		/// </summary>
 		public Window()
 		{
+			// get synchronization context
+			this.SynchronizationContext = DispatcherSynchronizationContext.UIThread;
+
 			// setup actions
 			this.checkDialogsAction = new ScheduledAction(() =>
 			{
@@ -359,5 +363,13 @@ namespace CarinaStudio.Controls
 			else
 				this.clearInitSizeObserversAction.Execute();
 		}
+		
+		
+		/// <inheritdoc/>.
+		public DispatcherSynchronizationContext SynchronizationContext { get; }
+
+
+		/// <inheritdoc/>.
+		SynchronizationContext ISynchronizable.SynchronizationContext => this.SynchronizationContext;
 	}
 }

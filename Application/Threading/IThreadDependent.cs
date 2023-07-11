@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 
 namespace CarinaStudio.Threading
 {
@@ -13,6 +14,14 @@ namespace CarinaStudio.Threading
 		/// <returns>True if current thread is the thread which object depends on.</returns>
 		bool CheckAccess();
 	}
+	
+	
+	/// <summary>
+	/// Object which depends on specific thread.
+	/// </summary>
+	/// <typeparam name="TSyncContext">Type of <see cref="SynchronizationContext"/>.</typeparam>
+	public interface IThreadDependent<out TSyncContext> : ISynchronizable<TSyncContext>, IThreadDependent where TSyncContext : SynchronizationContext
+	{ }
 
 
 	/// <summary>

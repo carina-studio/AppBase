@@ -140,7 +140,7 @@ namespace CarinaStudio.Controls
     /// <see cref="Dialog{TApp}"/> which takes user input.
     /// </summary>
     /// <typeparam name="TApp">Type of application.</typeparam>
-    public abstract class InputDialog<TApp> : InputDialog where TApp : class, IApplication
+    public abstract class InputDialog<TApp> : InputDialog, IApplicationObject<TApp, DispatcherSynchronizationContext> where TApp : class, IAvaloniaApplication
     {
         /// <summary>
 		/// Get application instance.
