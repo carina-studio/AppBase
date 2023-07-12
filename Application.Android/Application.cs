@@ -2,7 +2,9 @@ using Android.Content;
 using Android.Content.PM;
 using Android.OS;
 using Android.Runtime;
+using CarinaStudio.Android.Threading;
 using CarinaStudio.Configuration;
+using CarinaStudio.Threading;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
@@ -17,7 +19,7 @@ namespace CarinaStudio.Android;
 /// <summary>
 /// Implementation of <see cref="IApplication"/> based-on <see cref="global::Android.App.Application"/>.
 /// </summary>
-public abstract class Application : global::Android.App.Application, IApplication
+public abstract class Application : global::Android.App.Application, IAndroidApplication
 {
     // Static fields.
     static volatile Application? CurrentApp;
@@ -30,7 +32,7 @@ public abstract class Application : global::Android.App.Application, IApplicatio
     string? rootPrivateDirectoryPath;
     ISettings? settings;
     readonly IDictionary<string, int> stringResIdMap = new ConcurrentDictionary<string, int>();
-    SynchronizationContext? synchronizationContext;
+    LooperSynchronizationContext? synchronizationContext;
 
 
     /// <summary>
@@ -51,23 +53,27 @@ public abstract class Application : global::Android.App.Application, IApplicatio
     /// <inheritdoc/>
     public bool CheckAccess() =>
         this.looper?.IsCurrentThread == true;
+
+
+    /// <inheritdoc/>
+    Context IContextObject.Context => this;
     
 
     /// <inheritdoc/>
-    public CultureInfo CultureInfo { get => this.cultureInfo ?? CultureInfo.InvariantCulture; }
+    public CultureInfo CultureInfo => this.cultureInfo ?? CultureInfo.InvariantCulture;
 
 
     /// <summary>
     /// Get <see cref="Application"/> instance of current process.
     /// </summary>
-    public static Application Current { get => CurrentApp ?? throw new InvalidOperationException("No application instance in current process."); }
+    public static Application Current => CurrentApp ?? throw new InvalidOperationException("No application instance in current process.");
 
 
     /// <summary>
     /// Get <see cref="Application"/> instance of current process. Return Null if there is no instance created in current process.
     /// </summary>
-    public static Application? CurrentOrNull { get => CurrentApp; }
-    
+    public static Application? CurrentOrNull => CurrentApp;
+
 
     /// <inheritdoc/>
     public virtual IObservable<string?> GetObservableString(string key) =>
@@ -83,7 +89,7 @@ public abstract class Application : global::Android.App.Application, IApplicatio
             resId = res.GetIdentifier(key, "string", this.PackageName);
             if (resId == 0)
             {
-                this.Logger.LogWarning($"Cannot find string with key '{key}'");
+                this.Logger.LogWarning("Cannot find string with key '{key}'", key);
                 return defaultValue;
             }
             this.stringResIdMap.TryAdd(key, resId);
@@ -122,12 +128,12 @@ public abstract class Application : global::Android.App.Application, IApplicatio
 
         // update culture info
         var locales = newConfig.Locales;
-        if (locales != null && !locales.IsEmpty)
+        if (!locales.IsEmpty)
         {
             var newCultureInfo = CultureInfo.GetCultureInfo(locales.Get(0)!.ToLanguageTag());
             if (this.cultureInfo == null || this.cultureInfo.ToString() != newCultureInfo.ToString())
             {
-                this.Logger.LogDebug($"Culture info changed: {this.cultureInfo} -> {newCultureInfo}");
+                this.Logger.LogDebug("Culture info changed: {cultureInfo} -> {newCultureInfo}", this.cultureInfo, newCultureInfo);
                 this.cultureInfo = newCultureInfo;
                 this.OnPropertyChanged(nameof(CultureInfo));
             }
@@ -153,7 +159,7 @@ public abstract class Application : global::Android.App.Application, IApplicatio
 
         // setup synchronization context
         this.looper = Looper.MyLooper().AsNonNull();
-        this.synchronizationContext = new Threading.LooperSynchronizationContext(this.looper);
+        this.synchronizationContext = new LooperSynchronizationContext(this.looper);
         System.Threading.SynchronizationContext.SetSynchronizationContext(this.synchronizationContext);
 
         // get current culture
@@ -161,7 +167,7 @@ public abstract class Application : global::Android.App.Application, IApplicatio
         if (locales != null && !locales.IsEmpty)
         {
             this.cultureInfo = CultureInfo.GetCultureInfo(locales.Get(0)!.ToLanguageTag());
-            this.Logger.LogDebug($"Culture info: {this.cultureInfo}");
+            this.Logger.LogDebug("Culture info: {cultureInfo}", this.cultureInfo);
         }
 
         // call base
@@ -188,7 +194,7 @@ public abstract class Application : global::Android.App.Application, IApplicatio
     
 
     /// <inheritdoc/>
-    public ISettings PersistentState { get => this.persistentState ?? throw new InvalidOperationException(); }
+    public ISettings PersistentState => this.persistentState ?? throw new InvalidOperationException();
 
 
     /// <inheritdoc/>
@@ -200,21 +206,26 @@ public abstract class Application : global::Android.App.Application, IApplicatio
     {
         get
         {
-            if (this.rootPrivateDirectoryPath == null)
-                this.rootPrivateDirectoryPath = this.DataDir!.AbsolutePath;
+            this.rootPrivateDirectoryPath ??= this.DataDir!.AbsolutePath;
             return this.rootPrivateDirectoryPath;
         }
     }
 
 
     /// <inheritdoc/>
-    public virtual ISettings Settings { get => this.settings ?? throw new InvalidOperationException(); }
+    public virtual ISettings Settings => this.settings ?? throw new InvalidOperationException();
 
 
     /// <inheritdoc/>
     public event EventHandler? StringsUpdated;
 
 
+    /// <summary>
+    /// Get <see cref="LooperSynchronizationContext"/> of main thread.
+    /// </summary>
+    public new LooperSynchronizationContext SynchronizationContext => this.synchronizationContext ?? throw new InvalidOperationException("Cannot get SynchronizationContext before calling OnCreate().");
+
+
     /// <inheritdoc/>
-    public new SynchronizationContext SynchronizationContext { get => this.synchronizationContext ?? throw new InvalidOperationException("Cannot get SynchronizationContext before calling OnCreate()."); }
+    SynchronizationContext ISynchronizable.SynchronizationContext => this.SynchronizationContext;
 }

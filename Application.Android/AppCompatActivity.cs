@@ -1,4 +1,7 @@
+using Android.Content;
 using Android.OS;
+using CarinaStudio.Android.Threading;
+using CarinaStudio.Threading;
 using Microsoft.Extensions.Logging;
 using System.ComponentModel;
 using System.Threading;
@@ -8,7 +11,7 @@ namespace CarinaStudio.Android;
 /// <summary>
 /// <see cref="AndroidX.AppCompat.App.AppCompatActivity"/> which implements <see cref="IApplicationObject"/>.
 /// </summary>
-public abstract class AppCompatActivity : AndroidX.AppCompat.App.AppCompatActivity, IApplicationObject
+public abstract class AppCompatActivity : AndroidX.AppCompat.App.AppCompatActivity, IApplicationObject, IContextObject, INotifyPropertyChanged
 {
     // Fields.
     volatile ILogger? logger;
@@ -20,23 +23,27 @@ public abstract class AppCompatActivity : AndroidX.AppCompat.App.AppCompatActivi
     /// </summary>
     protected AppCompatActivity()
     {
-        this.Application = Android.Application.Current;
+        this.Application = Application.Current;
     }
 
 
     /// <summary>
     /// Get application.
     /// </summary>
-    public new Android.Application Application { get; }
+    public new Application Application { get; }
 
 
     /// <inheritdoc/>
-    IApplication IApplicationObject.Application { get => this.Application; }
+    IApplication IApplicationObject.Application => this.Application;
 
 
     /// <inheritdoc/>
     public bool CheckAccess() =>
         this.Application.CheckAccess();
+    
+    
+    /// <inheritdoc/>
+    Context IContextObject.Context => this;
     
 
     /// <inheritdoc/>
@@ -48,7 +55,7 @@ public abstract class AppCompatActivity : AndroidX.AppCompat.App.AppCompatActivi
     
 
     /// <summary>
-    /// Check whether the window of activity has been focued or not.
+    /// Check whether the window of activity has been focused or not.
     /// </summary>
     public bool IsWindowFocused { get; private set; }
     
@@ -56,13 +63,11 @@ public abstract class AppCompatActivity : AndroidX.AppCompat.App.AppCompatActivi
     /// <summary>
     /// Get logger.
     /// </summary>
-    protected virtual ILogger Logger
-    {
-        get => this.logger ?? this.Application.LoggerFactory.CreateLogger(this.GetType().Name).Also(it =>
+    protected virtual ILogger Logger =>
+        this.logger ?? this.Application.LoggerFactory.CreateLogger(this.GetType().Name).Also(it =>
         {
             this.logger = it;
         });
-    }
 
 
     /// <inheritdoc/>
@@ -162,7 +167,7 @@ public abstract class AppCompatActivity : AndroidX.AppCompat.App.AppCompatActivi
             if (this.state != value)
             {
                 if (this.Application.IsDebuggable)
-                    this.Logger.LogDebug($"Change state: {this.state} -> {value}");
+                    this.Logger.LogDebug("Change state: {state} -> {value}",this.state, value);
                 this.state = value;
                 this.OnPropertyChanged(nameof(State));
             }
@@ -170,6 +175,23 @@ public abstract class AppCompatActivity : AndroidX.AppCompat.App.AppCompatActivi
     }
     
 
+    /// <summary>
+    /// Get <see cref="LooperSynchronizationContext"/> of main thread.
+    /// </summary>
+    public LooperSynchronizationContext SynchronizationContext => this.Application.SynchronizationContext;
+    
+    
     /// <inheritdoc/>
-    public SynchronizationContext SynchronizationContext { get => this.Application.SynchronizationContext; }
+    SynchronizationContext ISynchronizable.SynchronizationContext => this.Application.SynchronizationContext;
+}
+
+
+/// <summary>
+/// Activity which implements <see cref="IApplicationObject{T}"/>.
+/// </summary>
+/// <typeparam name="TApp">Type of application.</typeparam>
+public abstract class AppCompatActivity<TApp> : AppCompatActivity, IApplicationObject<TApp> where TApp : class, IAndroidApplication
+{
+    /// <inheritdoc/>
+    TApp IApplicationObject<TApp>.Application => (TApp)((IApplicationObject)this).Application;
 }

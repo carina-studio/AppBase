@@ -8,7 +8,7 @@ using System;
 namespace CarinaStudio.AppBase.App.Android;
 
 [Activity(Label = "@string/app_name", MainLauncher = true)]
-public class MainActivity : CarinaStudio.Android.AppCompatActivity
+public class MainActivity : CarinaStudio.Android.AppCompatActivity<App>
 {
     // Static fields.
     static readonly SettingKey<double> DoubleValueKey = new("MainActivity.DoubleValue", 3.14159);

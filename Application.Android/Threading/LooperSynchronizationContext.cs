@@ -10,6 +10,10 @@ namespace CarinaStudio.Android.Threading;
 /// </summary>
 public class LooperSynchronizationContext : SynchronizationContext
 {
+    // Static fields.
+    static volatile LooperSynchronizationContext? MainInstance;
+    
+    
     // Fields.
     readonly Handler handler;
     readonly Looper looper;
@@ -38,6 +42,27 @@ public class LooperSynchronizationContext : SynchronizationContext
         new LooperSynchronizationContext(this.looper);
 
 
+    /// <summary>
+    /// Get <see cref="LooperSynchronizationContext"/> instance for main looper.
+    /// </summary>
+    public static LooperSynchronizationContext Main
+    {
+        get
+        {
+            if (MainInstance is not null)
+                return MainInstance;
+            return typeof(LooperSynchronizationContext).Lock(() =>
+            {
+                // ReSharper disable ConvertIfStatementToNullCoalescingExpression
+                if (MainInstance is null)
+                    MainInstance = new(Looper.MainLooper.AsNonNull());
+                // ReSharper restore ConvertIfStatementToNullCoalescingExpression
+                return MainInstance;
+            });
+        }
+    }
+
+
     /// <inheritdoc/>
     public override void Post(SendOrPostCallback d, object? state)
     {
@@ -49,7 +74,7 @@ public class LooperSynchronizationContext : SynchronizationContext
     /// <inheritdoc/>
     public override void Send(SendOrPostCallback d, object? state)
     {
-        if (this.handler.Looper.IsCurrentThread == true)
+        if (this.handler.Looper.IsCurrentThread)
             d(state);
         else
         {

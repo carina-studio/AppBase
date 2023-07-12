@@ -1,6 +1,8 @@
+using Android.Content;
 using Android.OS;
+using CarinaStudio.Android.Threading;
+using CarinaStudio.Threading;
 using Microsoft.Extensions.Logging;
-using System;
 using System.ComponentModel;
 using System.Threading;
 
@@ -9,7 +11,7 @@ namespace CarinaStudio.Android;
 /// <summary>
 /// Base class of Activity which implements <see cref="IApplicationObject"/>.
 /// </summary>
-public abstract class Activity : global::Android.App.Activity, IApplicationObject, INotifyPropertyChanged
+public abstract class Activity : global::Android.App.Activity, IApplicationObject, IContextObject, INotifyPropertyChanged
 {
     // Fields.
     volatile ILogger? logger;
@@ -21,23 +23,27 @@ public abstract class Activity : global::Android.App.Activity, IApplicationObjec
     /// </summary>
     protected Activity()
     {
-        this.Application = Android.Application.Current;
+        this.Application = Application.Current;
     }
 
 
     /// <summary>
     /// Get application.
     /// </summary>
-    public new Android.Application Application { get; }
+    public new Application Application { get; }
 
 
     /// <inheritdoc/>
-    IApplication IApplicationObject.Application { get => this.Application; }
+    IApplication IApplicationObject.Application => this.Application;
 
 
     /// <inheritdoc/>
     public bool CheckAccess() =>
         this.Application.CheckAccess();
+
+
+    /// <inheritdoc/>
+    Context IContextObject.Context => this;
     
 
     /// <inheritdoc/>
@@ -49,7 +55,7 @@ public abstract class Activity : global::Android.App.Activity, IApplicationObjec
     
 
     /// <summary>
-    /// Check whether the window of activity has been focued or not.
+    /// Check whether the window of activity has been focused or not.
     /// </summary>
     public bool IsWindowFocused { get; private set; }
     
@@ -57,13 +63,11 @@ public abstract class Activity : global::Android.App.Activity, IApplicationObjec
     /// <summary>
     /// Get logger.
     /// </summary>
-    protected virtual ILogger Logger
-    {
-        get => this.logger ?? this.Application.LoggerFactory.CreateLogger(this.GetType().Name).Also(it =>
+    protected virtual ILogger Logger =>
+        this.logger ?? this.Application.LoggerFactory.CreateLogger(this.GetType().Name).Also(it =>
         {
             this.logger = it;
         });
-    }
 
 
     /// <inheritdoc/>
@@ -163,7 +167,7 @@ public abstract class Activity : global::Android.App.Activity, IApplicationObjec
             if (this.state != value)
             {
                 if (this.Application.IsDebuggable)
-                    this.Logger.LogDebug($"Change state: {this.state} -> {value}");
+                    this.Logger.LogDebug("Change state: {state} -> {value}", this.state, value);
                 this.state = value;
                 this.OnPropertyChanged(nameof(State));
             }
@@ -171,8 +175,25 @@ public abstract class Activity : global::Android.App.Activity, IApplicationObjec
     }
     
 
+    /// <summary>
+    /// Get <see cref="LooperSynchronizationContext"/> of main thread.
+    /// </summary>
+    public LooperSynchronizationContext SynchronizationContext => this.Application.SynchronizationContext;
+    
+    
     /// <inheritdoc/>
-    public SynchronizationContext SynchronizationContext { get => this.Application.SynchronizationContext; }
+    SynchronizationContext ISynchronizable.SynchronizationContext => this.Application.SynchronizationContext;
+}
+
+
+/// <summary>
+/// Activity which implements <see cref="IApplicationObject{T}"/>.
+/// </summary>
+/// <typeparam name="TApp">Type of application.</typeparam>
+public abstract class Activity<TApp> : Activity, IApplicationObject<TApp> where TApp : class, IAndroidApplication
+{
+    /// <inheritdoc/>
+    TApp IApplicationObject<TApp>.Application => (TApp)((IApplicationObject)this).Application;
 }
 
 
