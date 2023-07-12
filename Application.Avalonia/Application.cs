@@ -143,7 +143,9 @@ namespace CarinaStudio
 		public abstract ISettings Settings { get; }
 
 
-		/// <inheritdoc/>
+		/// <summary>
+		/// Get <see cref="DispatcherSynchronizationContext"/> of UI thread.
+		/// </summary>
 		public DispatcherSynchronizationContext SynchronizationContext => this.synchronizationContext ?? throw new InvalidOperationException("Application is not ready yet.");
 
 

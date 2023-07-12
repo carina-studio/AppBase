@@ -486,24 +486,4 @@ namespace CarinaStudio.ViewModels
 		/// </summary>
 		public new TApplication Application => (TApplication)base.Application;
 	}
-	
-	
-	/// <summary>
-	/// Base class for view-model.
-	/// </summary>
-	/// <typeparam name="TApplication">Type of application.</typeparam>
-	/// <typeparam name="TSyncContext">Type of <see cref="SynchronizationContext"/>.</typeparam>
-	public abstract class ViewModel<TApplication, TSyncContext> : ViewModel<TApplication>, IApplicationObject<TApplication, TSyncContext> where TApplication : class, IApplication<TSyncContext> where TSyncContext : SynchronizationContext
-	{
-		/// <summary>
-		/// Initialize new <see cref="ViewModel{TApplication, TSyncContext}"/> instance.
-		/// </summary>
-		/// <param name="app"><see cref="IApplication"/> which view-model belongs to.</param>
-		protected ViewModel(TApplication app) : base(app)
-		{ }
-
-
-		/// <inheritdoc/>
-		public new TSyncContext SynchronizationContext => this.Application.SynchronizationContext;
-	}
 }

@@ -13,7 +13,7 @@ namespace CarinaStudio.Controls
 	/// <summary>
 	/// Extended <see cref="Avalonia.Controls.Window"/>.
 	/// </summary>
-	public class Window : Avalonia.Controls.Window, ISynchronizable<DispatcherSynchronizationContext>
+	public class Window : Avalonia.Controls.Window, ISynchronizable
 	{
 		/// <summary>
 		/// Property of <see cref="HasDialogs"/>.
@@ -365,7 +365,9 @@ namespace CarinaStudio.Controls
 		}
 		
 		
-		/// <inheritdoc/>.
+		/// <summary>
+		/// Get <see cref="DispatcherSynchronizationContext"/> of UI thread.
+		/// </summary>
 		public DispatcherSynchronizationContext SynchronizationContext { get; }
 
 

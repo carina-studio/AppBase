@@ -1,5 +1,4 @@
-﻿using CarinaStudio.Threading;
-using System;
+﻿using System;
 
 namespace CarinaStudio.Controls
 {
@@ -40,7 +39,7 @@ namespace CarinaStudio.Controls
 	/// Base class of window of dialog.
 	/// </summary>
 	/// <typeparam name="TApp">Type of application.</typeparam>
-	public class Dialog<TApp> : Dialog, IApplicationObject<TApp, DispatcherSynchronizationContext> where TApp : class, IAvaloniaApplication
+	public class Dialog<TApp> : Dialog, IApplicationObject<TApp> where TApp : class, IAvaloniaApplication
 	{
 		/// <summary>
 		/// Get application instance.

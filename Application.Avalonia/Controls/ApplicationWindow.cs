@@ -1,5 +1,4 @@
 ﻿using CarinaStudio.Configuration;
-using CarinaStudio.Threading;
 using Microsoft.Extensions.Logging;
 using System;
 
@@ -49,7 +48,7 @@ namespace CarinaStudio.Controls
 	/// <see cref="CarinaStudio.Controls.Window"/> which implements <see cref="IApplicationObject{TApplication}"/>.
 	/// </summary>
 	/// <typeparam name="TApp">Type of application.</typeparam>
-	public abstract class ApplicationWindow<TApp> : ApplicationWindow, IApplicationObject<TApp, DispatcherSynchronizationContext> where TApp : class, IAvaloniaApplication
+	public abstract class ApplicationWindow<TApp> : ApplicationWindow, IApplicationObject<TApp> where TApp : class, IAvaloniaApplication
     {
 		/// <summary>
 		/// Get application instance.

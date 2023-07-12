@@ -1,5 +1,4 @@
 ﻿using CarinaStudio.Threading;
-using System.Threading;
 
 namespace CarinaStudio
 {
@@ -26,13 +25,4 @@ namespace CarinaStudio
 		/// </summary>
 		new TApplication Application { get; }
 	}
-	
-	
-	/// <summary>
-	/// Object which belongs to specific type of <see cref="IApplication{TSyncContext}"/>.
-	/// </summary>
-	/// <typeparam name="TApplication">Type of application.</typeparam>
-	/// <typeparam name="TSyncContext">Type of <see cref="SynchronizationContext"/>.</typeparam>
-	public interface IApplicationObject<out TApplication, out TSyncContext> : IApplicationObject<TApplication>, IThreadDependent<TSyncContext> where TApplication : class, IApplication<TSyncContext> where TSyncContext : SynchronizationContext
-	{ }
 }

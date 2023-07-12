@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 
 namespace CarinaStudio.Threading
@@ -13,8 +14,8 @@ namespace CarinaStudio.Threading
 		class DelayedCallback
 		{
 			// Fields
-			public readonly SendOrPostCallback Callback;
-			public readonly object? CallbackState;
+			readonly SendOrPostCallback Callback;
+			readonly object? CallbackState;
 			public volatile bool IsCancellable = true;
 			public volatile bool IsCancelled;
 			public volatile DelayedCallback? Next;
@@ -47,9 +48,9 @@ namespace CarinaStudio.Threading
 
 		// Fields.
 		static volatile DelayedCallback? DelayedCallbackListHead;
-		static readonly object DelayedCallbackSyncLock = new object();
+		static readonly object DelayedCallbackSyncLock = new();
 		static readonly Thread DelayedCallbackThread;
-		static readonly Stopwatch DelayedCallbackWatch = new Stopwatch();
+		static readonly Stopwatch DelayedCallbackWatch = new();
 
 
 		// Initializer.
@@ -70,7 +71,7 @@ namespace CarinaStudio.Threading
 		/// <returns>True if call-back cancelled successfully.</returns>
 		public static bool CancelDelayed(this SynchronizationContext synchronizationContext, object token)
 		{
-			if (!(token is DelayedCallback delayedCallback))
+			if (token is not DelayedCallback delayedCallback)
 				throw new ArgumentException("Invalid token.");
 			if (delayedCallback.SynchronizationContext != synchronizationContext)
 				return false;
@@ -87,7 +88,7 @@ namespace CarinaStudio.Threading
 					delayedCallback.IsCancelled = true;
 					return isSyncContextAlive;
 				}
-				else if (delayedCallback.Previous != null || delayedCallback.Next != null)
+				if (delayedCallback.Previous != null || delayedCallback.Next != null)
 				{
 					if (delayedCallback.Previous != null)
 						delayedCallback.Previous.Next = delayedCallback.Next;
@@ -167,7 +168,7 @@ namespace CarinaStudio.Threading
 		/// </summary>
 		/// <param name="synchronizationContext"><see cref="SynchronizationContext"/>.</param>
 		/// <param name="callback">Call-back.</param>
-		public static void Post(this SynchronizationContext synchronizationContext, Action callback) => synchronizationContext.Post((_) => callback(), null);
+		public static void Post(this SynchronizationContext synchronizationContext, Action callback) => synchronizationContext.Post(_ => callback(), null);
 
 
 		/// <summary>
@@ -177,7 +178,7 @@ namespace CarinaStudio.Threading
 		/// <param name="callback">Call-back.</param>
 		/// <param name="delayMillis">Delayed time in milliseconds.</param>
 		/// <returns>Token of posted delayed call-back.</returns>
-		public static object PostDelayed(this SynchronizationContext synchronizationContext, Action callback, int delayMillis) => PostDelayed(synchronizationContext, (_) => callback(), null, delayMillis);
+		public static object PostDelayed(this SynchronizationContext synchronizationContext, Action callback, int delayMillis) => PostDelayed(synchronizationContext, _ => callback(), null, delayMillis);
 
 
 		/// <summary>
@@ -255,6 +256,26 @@ namespace CarinaStudio.Threading
 		/// </summary>
 		/// <param name="synchronizationContext"><see cref="SynchronizationContext"/>.</param>
 		/// <param name="callback">Call-back.</param>
-		public static void Send(this SynchronizationContext synchronizationContext, Action callback) => synchronizationContext.Send((_) => callback(), null);
+		public static void Send(this SynchronizationContext synchronizationContext, Action callback) => synchronizationContext.Send(_ => callback(), null);
+
+
+		/// <summary>
+		/// Call given function and wait for result.
+		/// </summary>
+		/// <param name="synchronizationContext"><see cref="SynchronizationContext"/>.</param>
+		/// <param name="func">Function.</param>
+		/// <typeparam name="R">Type of result.</typeparam>
+		/// <returns>Result of function.</returns>
+#pragma warning disable CS8603
+		public static R Send<R>(this SynchronizationContext synchronizationContext, Func<R> func)
+		{
+			var result = default(R);
+			synchronizationContext.Send(_ =>
+			{
+				result = func();
+			}, null);
+			return result;
+		}
+#pragma warning restore CS8603
 	}
 }
