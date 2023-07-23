@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 
 namespace CarinaStudio.Threading
@@ -75,6 +74,7 @@ namespace CarinaStudio.Threading
 				throw new ArgumentException("Invalid token.");
 			if (delayedCallback.SynchronizationContext != synchronizationContext)
 				return false;
+			// ReSharper disable once IdentifierTypo
 			var stsc = (synchronizationContext as SingleThreadSynchronizationContext);
 			var isSyncContextAlive = (stsc == null || stsc.ExecutionThread.IsAlive);
 			lock (DelayedCallbackSyncLock)
@@ -168,7 +168,8 @@ namespace CarinaStudio.Threading
 		/// </summary>
 		/// <param name="synchronizationContext"><see cref="SynchronizationContext"/>.</param>
 		/// <param name="callback">Call-back.</param>
-		public static void Post(this SynchronizationContext synchronizationContext, Action callback) => synchronizationContext.Post(_ => callback(), null);
+		public static void Post(this SynchronizationContext synchronizationContext, Action callback) => 
+			synchronizationContext.Post(_ => callback(), null);
 
 
 		/// <summary>
@@ -178,7 +179,41 @@ namespace CarinaStudio.Threading
 		/// <param name="callback">Call-back.</param>
 		/// <param name="delayMillis">Delayed time in milliseconds.</param>
 		/// <returns>Token of posted delayed call-back.</returns>
-		public static object PostDelayed(this SynchronizationContext synchronizationContext, Action callback, int delayMillis) => PostDelayed(synchronizationContext, _ => callback(), null, delayMillis);
+		public static object PostDelayed(this SynchronizationContext synchronizationContext, Action callback, int delayMillis) => 
+			PostDelayed(synchronizationContext, _ => callback(), null, delayMillis);
+		
+		
+		/// <summary>
+		/// Post delayed call-back.
+		/// </summary>
+		/// <param name="synchronizationContext"><see cref="SynchronizationContext"/>.</param>
+		/// <param name="callback">Call-back.</param>
+		/// <param name="delay">Delayed time.</param>
+		/// <returns>Token of posted delayed call-back.</returns>
+		public static object PostDelayed(this SynchronizationContext synchronizationContext, Action callback, TimeSpan delay)
+		{
+			var ms = delay.TotalMilliseconds;
+			if (ms <= int.MaxValue)
+				return PostDelayed(synchronizationContext, _ => callback(), null, (int)ms);
+			throw new ArgumentException("The delayed time in milliseconds cannot be greater than Int32.MaxValue.");
+		}
+
+
+		/// <summary>
+		/// Post delayed call-back.
+		/// </summary>
+		/// <param name="synchronizationContext"><see cref="SynchronizationContext"/>.</param>
+		/// <param name="callback">Call-back.</param>
+		/// <param name="state">Custom state pass to call-back.</param>
+		/// <param name="delay">Delayed time.</param>
+		/// <returns>Token of posted delayed call-back.</returns>
+		public static object PostDelayed(this SynchronizationContext synchronizationContext, SendOrPostCallback callback, object? state, TimeSpan delay)
+		{
+			var ms = delay.TotalMilliseconds;
+			if (ms <= int.MaxValue)
+				return PostDelayed(synchronizationContext, callback, state, (int)ms);
+			throw new ArgumentException("The delayed time in milliseconds cannot be greater than Int32.MaxValue.");
+		}
 
 
 		/// <summary>
@@ -192,6 +227,7 @@ namespace CarinaStudio.Threading
 		public static object PostDelayed(this SynchronizationContext synchronizationContext, SendOrPostCallback callback, object? state, int delayMillis)
 		{
 			// check state
+			// ReSharper disable once IdentifierTypo
 			if (synchronizationContext is SingleThreadSynchronizationContext stsc && !stsc.ExecutionThread.IsAlive)
 				throw new ObjectDisposedException(nameof(SingleThreadSynchronizationContext));
 
