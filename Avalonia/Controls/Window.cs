@@ -48,6 +48,7 @@ namespace CarinaStudio.Controls
 		readonly IDisposable initWidthObserverToken;
 		bool isActiveBeforeClosing;
 		bool isClosed;
+		bool isFirstMeasurementBeforeOpening = true;
 		bool isOpened;
 		bool isShownAsDialog;
 		Window? owner;
@@ -197,6 +198,88 @@ namespace CarinaStudio.Controls
 		public bool IsShownAsDialog => this.isShownAsDialog;
 
 
+		/// <inheritdoc/>
+		protected override Size MeasureCore(Size availableSize)
+		{
+			// raise Opening event
+			var isFirstMeasurementBeforeOpening = this.isFirstMeasurementBeforeOpening;
+			if (isFirstMeasurementBeforeOpening)
+			{
+				this.isFirstMeasurementBeforeOpening = false;
+				this.OnOpening(EventArgs.Empty);
+			}
+			
+			// measure
+			var size = base.MeasureCore(availableSize);
+
+			// handle first measurement
+			if (isFirstMeasurementBeforeOpening && size.Width > 0 && size.Height > 0)
+			{
+				// notify
+				this.OnFirstMeasurementCompleted(size);
+
+				// [Workaround] move to actual center of owner/screen on Linux.
+				if (Platform.IsLinux)
+				{
+					var titleBarHeightInPixels = WindowExtensions.GetTitleBarHeightInPixels();
+					var width = size.Width;
+					var height = size.Height;
+					switch (this.WindowStartupLocation)
+					{
+						case WindowStartupLocation.CenterOwner:
+						{
+							this.owner?.Let(owner =>
+							{
+								var screenScale = owner.Screens.ScreenFromVisual(owner)?.Scaling ?? 1.0;
+								var titleBarHeight = titleBarHeightInPixels / screenScale;
+								PixelPoint ownerPosition;
+								Size ownerSize;
+								if (owner is Window csWindow)
+								{
+									ownerPosition = csWindow.expectedInitPosition?.Let(it => new PixelPoint(it.X, (int)(it.Y + titleBarHeight * screenScale + 0.5))) ?? csWindow.Position;
+									ownerSize = csWindow.expectedInitSize ?? new(csWindow.Width, csWindow.Height);
+								}
+								else
+								{
+									ownerPosition = owner.Position;
+									ownerSize = new(owner.Width, owner.Height);
+								}
+								var offsetX = (int)((ownerSize.Width - width) / 2 * screenScale + 0.5);
+								var offsetY = (int)((ownerSize.Height - height) / 2 * screenScale + 0.5);
+								var position = new PixelPoint(ownerPosition.X + offsetX, ownerPosition.Y + offsetY);
+								this.expectedInitPosition = position;
+								this.expectedInitSize = new(width, height);
+								this.WindowStartupLocation = WindowStartupLocation.Manual;
+							});
+							break;
+						}
+
+						case WindowStartupLocation.CenterScreen:
+						{
+							var screen = this.Screens.ScreenFromWindow(this) ?? this.Screens.Primary;
+							if (screen is null)
+								break;
+							var screenScale = screen.Scaling;
+							var workingArea = screen.WorkingArea;
+							var titleBarHeight = titleBarHeightInPixels / screenScale;
+							var heightWithTitleBar = height + titleBarHeight;
+							var offsetX = (int)((workingArea.Width - (width * screenScale)) / 2 + 0.5);
+							var offsetY = (int)((workingArea.Height - (heightWithTitleBar * screenScale)) / 2 + 0.5);
+							var position = new PixelPoint(workingArea.TopLeft.X + offsetX, workingArea.TopLeft.Y + offsetY);
+							this.expectedInitPosition = position;
+							this.expectedInitSize = new(width, height);
+							this.WindowStartupLocation = WindowStartupLocation.Manual;
+							break;
+						}
+					}
+				}
+			}
+
+			// complete
+			return size;
+		}
+
+
 		// Called when child window opened or closed.
 		internal void OnChildWindowOpenedOrClosed(bool isActiveBefore)
 		{
@@ -211,12 +294,21 @@ namespace CarinaStudio.Controls
 		/// <param name="e">Event data.</param>
 		protected override void OnClosed(EventArgs e)
 		{
+			this.isFirstMeasurementBeforeOpening = true;
 			this.owner?.OnChildWindowOpenedOrClosed(this.isActiveBeforeClosing);
 			this.SetAndRaise(IsOpenedProperty, ref this.isOpened, false);
 			this.SetAndRaise(IsClosedProperty, ref this.isClosed, true);
 			base.OnClosed(e);
 			this.owner = null;
 		}
+		
+		
+		/// <summary>
+		/// Called when first measurement completed when opening Window.
+		/// </summary>
+		/// <param name="measuredSize">Measured size.</param>
+		protected virtual void OnFirstMeasurementCompleted(Size measuredSize)
+		{ }
 
 
 		// Called when initial height of window changed.
@@ -298,71 +390,26 @@ namespace CarinaStudio.Controls
 			base.OnOpened(e);
 
 			// [Workaround] move to actual center of owner/screen on Linux.
-			if (Platform.IsLinux)
-			{
-				var titleBarHeightInPixels = WindowExtensions.GetTitleBarHeightInPixels();
-				switch (this.WindowStartupLocation)
-				{
-					case WindowStartupLocation.CenterOwner:
-					{
-						this.owner?.Let(owner =>
-						{
-							var screenScale = owner.Screens.ScreenFromVisual(owner)?.Scaling ?? 1.0;
-							var titleBarHeight = titleBarHeightInPixels / screenScale;
-							var width = this.Width;
-							var height = this.Height;
-							if (double.IsFinite(width) && double.IsFinite(height))
-							{
-								PixelPoint ownerPosition;
-								Size ownerSize;
-								if (owner is Window csWindow)
-								{
-									ownerPosition = csWindow.expectedInitPosition?.Let(it => new PixelPoint(it.X, (int)(it.Y + titleBarHeight * screenScale + 0.5))) ?? csWindow.Position;
-									ownerSize = csWindow.expectedInitSize ?? new(csWindow.Width, csWindow.Height);
-								}
-								else
-								{
-									ownerPosition = owner.Position;
-									ownerSize = new(owner.Width, owner.Height);
-								}
-								var offsetX = (int)((ownerSize.Width - width) / 2 * screenScale + 0.5);
-								var offsetY = (int)((ownerSize.Height - height) / 2 * screenScale + 0.5);
-								var position = new PixelPoint(ownerPosition.X + offsetX, ownerPosition.Y + offsetY);
-								this.expectedInitPosition = position;
-								this.expectedInitSize = new(width, height);
-								this.WindowStartupLocation = WindowStartupLocation.Manual;
-							}
-						});
-						break;
-					}
-
-					case WindowStartupLocation.CenterScreen:
-					{
-						var screen = this.Screens.ScreenFromWindow(this) ?? this.Screens.Primary;
-						if (screen is null)
-							break;
-						var screenScale = screen.Scaling;
-						var workingArea = screen.WorkingArea;
-						var titleBarHeight = titleBarHeightInPixels / screenScale;
-						var width = this.Width;
-						var height = this.Height;
-						if (double.IsFinite(width) && double.IsFinite(height))
-						{
-							var heightWithTitleBar = height + titleBarHeight;
-							var offsetX = (int)((workingArea.Width - (width * screenScale)) / 2 + 0.5);
-							var offsetY = (int)((workingArea.Height - (heightWithTitleBar * screenScale)) / 2 + 0.5);
-							var position = new PixelPoint(workingArea.TopLeft.X + offsetX, workingArea.TopLeft.Y + offsetY);
-							this.expectedInitPosition = position;
-							this.expectedInitSize = new(width, height);
-							this.WindowStartupLocation = WindowStartupLocation.Manual;
-						}
-						break;
-					}
-				}
-			}
-			else
+			if (Platform.IsNotLinux)
 				this.clearInitSizeObserversAction.Execute();
 		}
+
+
+		/// <summary>
+		/// Called to raise <see cref="Opening"/> event.
+		/// </summary>
+		/// <param name="e">Event data.</param>
+		protected virtual void OnOpening(EventArgs e)
+		{
+			// raise event
+			this.Opening?.Invoke(this, e);
+		}
+
+
+		/// <summary>
+		/// Raised when opening window and before it can be seen by user.
+		/// </summary>
+		public event EventHandler? Opening;
 		
 		
 		/// <summary>
