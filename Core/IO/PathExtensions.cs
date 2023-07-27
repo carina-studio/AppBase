@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
 namespace CarinaStudio.IO
@@ -19,7 +20,7 @@ namespace CarinaStudio.IO
         /// </summary>
         /// <param name="s">String.</param>
         /// <returns>True if the given string can represent a valid file name.</returns>
-        public static bool IsValidFileName(this string? s) =>
+        public static bool IsValidFileName([NotNullWhen(true)] this string? s) =>
             IsValidFileName(s.AsSpan());
         
         
@@ -57,7 +58,7 @@ namespace CarinaStudio.IO
         /// </summary>
         /// <param name="s">String.</param>
         /// <returns>True if the given string can represent a valid file path.</returns>
-        public static bool IsValidFilePath(this string? s) =>
+        public static bool IsValidFilePath([NotNullWhen(true)] this string? s) =>
             IsValidFilePath(s.AsSpan());
 
 
