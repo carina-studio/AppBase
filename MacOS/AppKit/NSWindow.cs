@@ -23,6 +23,20 @@ public class NSWindow : NSResponder
 
 
     /// <summary>
+    /// Standard title bar buttons.
+    /// </summary>
+    public enum ButtonType : uint
+    {
+        CloseButton = 0,
+        MiniaturizeButton = 1,
+        ZoomButton = 2,
+        ToolbarButton = 3,
+        DocumentIconButton = 4,
+        DocumentVersionsButton = 6,
+    }
+
+
+    /// <summary>
     /// OrderingMode.
     /// </summary>
     public enum OrderingMode : int
@@ -70,6 +84,7 @@ public class NSWindow : NSResponder
     static Selector? OrderOutSelector;
     static Selector? OrderRelativeToSelector;
     static Property? SubtitleProperty;
+    static Selector? StandardWindowButtonSelector;
     static Property? TitleProperty;
 
 
@@ -276,6 +291,18 @@ public class NSWindow : NSResponder
     {
         OrderOutSelector ??= Selector.FromName("orderOut:");
         this.SendMessage(OrderOutSelector!, sender);
+    }
+
+
+    /// <summary>
+    /// Get standard button of window.
+    /// </summary>
+    /// <param name="button">Type of button.</param>
+    /// <returns><see cref="NSControl"/> of button.</returns>
+    public NSControl? StandardWindowButton(ButtonType button)
+    {
+        StandardWindowButtonSelector ??= Selector.FromName("standardWindowButton:");
+        return this.SendMessage<NSControl?>(StandardWindowButtonSelector, button);
     }
     
 
