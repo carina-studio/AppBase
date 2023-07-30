@@ -1,6 +1,10 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sys="using:System"
              x:Class="CarinaStudio.App">
+    <Application.Resources>
+        <sys:String x:Key="StringResource">Test resource string</sys:String>
+    </Application.Resources>
     <Application.Styles>
         <FluentTheme/>
     </Application.Styles>

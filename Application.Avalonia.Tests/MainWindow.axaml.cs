@@ -4,6 +4,7 @@ using AvnWindow = Avalonia.Controls.Window;
 using Avalonia.Controls.Shapes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
+using Avalonia.Styling;
 using System;
 using System.Runtime.InteropServices;
 using CarinaStudio.Animation;
@@ -21,6 +22,8 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using CarinaStudio.Windows.Input;
+using System.Threading;
+using Selector = CarinaStudio.MacOS.ObjectiveC.Selector;
 
 namespace CarinaStudio
 {

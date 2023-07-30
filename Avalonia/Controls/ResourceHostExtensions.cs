@@ -31,7 +31,8 @@ namespace CarinaStudio.Controls
 	    /// <param name="resourceHost"><see cref="IResourceHost"/>.</param>
 	    /// <param name="key">Resource key.</param>
 	    /// <param name="defaultValue">Default value.</param>
-	    /// <returns></returns>
+	    /// <returns>Resource with given key and type, or default value.</returns>
+	    /// <remarks>This is a thread-safe method.</remarks>
 	    public static T FindResourceOrDefault<T>(this IResourceHost resourceHost, object key, T defaultValue = default) =>
 		    FindResourceOrDefault(resourceHost, key, ResourceNodeExtensions.GetActualThemeVariant(resourceHost), defaultValue);
 
@@ -44,7 +45,8 @@ namespace CarinaStudio.Controls
 	    /// <param name="key">Resource key.</param>
 	    /// <param name="theme">Theme.</param>
 	    /// <param name="defaultValue">Default value.</param>
-	    /// <returns></returns>
+	    /// <returns>Resource with given key and type, or default value.</returns>
+	    /// <remarks>This is a thread-safe method.</remarks>
 	    public static T FindResourceOrDefault<T>(this IResourceHost resourceHost, object key, ThemeVariant? theme, T defaultValue = default)
 	    {
 		    if (resourceHost.FindResource(theme, key) is T targetRes)
@@ -62,6 +64,7 @@ namespace CarinaStudio.Controls
 	    /// <param name="key">Resource key.</param>
 	    /// <param name="res">Found resource.</param>
 	    /// <returns>True if resource found.</returns>
+	    /// <remarks>This is a thread-safe method.</remarks>
 	    public static bool TryFindResource<T>(this IResourceHost resourceHost, object key, [NotNullWhen(true)] out T? res) where T : class =>
 		    TryFindResource(resourceHost, key, ResourceNodeExtensions.GetActualThemeVariant(resourceHost), out res);
 
@@ -75,6 +78,7 @@ namespace CarinaStudio.Controls
 	    /// <param name="theme">Theme.</param>
 	    /// <param name="res">Found resource.</param>
 	    /// <returns>True if resource found.</returns>
+	    /// <remarks>This is a thread-safe method.</remarks>
 	    public static bool TryFindResource<T>(this IResourceHost resourceHost, object key, ThemeVariant? theme, [NotNullWhen(true)] out T? res) where T : class
 	    {
 		    if (resourceHost.FindResource(theme, key) is T targetRes)
@@ -95,6 +99,7 @@ namespace CarinaStudio.Controls
 	    /// <param name="key">Resource key.</param>
 	    /// <param name="res">Found resource.</param>
 	    /// <returns>True if resource found.</returns>
+	    /// <remarks>This is a thread-safe method.</remarks>
 	    public static bool TryFindResource<T>(this IResourceHost resourceHost, object key, [NotNullWhen(true)] out T? res) where T : struct =>
 		    TryFindResource(resourceHost, key, ResourceNodeExtensions.GetActualThemeVariant(resourceHost), out res);
 	    
@@ -108,6 +113,7 @@ namespace CarinaStudio.Controls
 	    /// <param name="theme">Theme.</param>
 	    /// <param name="res">Found resource.</param>
 	    /// <returns>True if resource found.</returns>
+	    /// <remarks>This is a thread-safe method.</remarks>
 	    public static bool TryFindResource<T>(this IResourceHost resourceHost, object key, ThemeVariant? theme, [NotNullWhen(true)] out T? res) where T : struct
 	    {
 		    if (resourceHost.FindResource(theme, key) is T targetRes)
