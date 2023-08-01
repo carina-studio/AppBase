@@ -1,4 +1,6 @@
-﻿using Avalonia.Styling;
+﻿using Avalonia;
+using Avalonia.Styling;
+using Avalonia.Threading;
 using System;
 using System.Diagnostics.CodeAnalysis;
 
@@ -27,6 +29,7 @@ public interface IAvaloniaApplication : IApplication
 	/// <param name="key">Key.</param>
 	/// <param name="converter">Value converter.</param>
 	/// <returns>Observable value of resource.</returns>
+	/// <remarks>This should be a thread-safe method.</remarks>
 	IObservable<object?> GetResourceObservable(object key, Func<object?, object?>? converter = null);
 
 
@@ -39,6 +42,7 @@ public interface IAvaloniaApplication : IApplication
     /// <returns>
     /// True if the resource found.
     /// </returns>
+    /// <remarks>This should be a thread-safe method.</remarks>
     bool TryFindResource(object key, ThemeVariant? theme, [NotNullWhen(true)] out object? value);
 }
 
@@ -49,11 +53,18 @@ public interface IAvaloniaApplication : IApplication
 public static class AvaloniaApplicationExtensions
 {
 	// Get actual theme of given object.
-	internal static ThemeVariant? GetActualThemeVariant(IAvaloniaApplication app) => app switch
+	static ThemeVariant? GetActualThemeVariant(IAvaloniaApplication app)
 	{
-		IThemeVariantHost host => host.ActualThemeVariant,
-		_ => null,
-	};
+		if (app is not AvaloniaObject avaloniaObject || avaloniaObject.CheckAccess())
+			return GetActualThemeVariantInternal(app);
+		return Dispatcher.UIThread.Invoke(() => GetActualThemeVariantInternal(app));
+	}
+	static ThemeVariant? GetActualThemeVariantInternal(IAvaloniaApplication app) =>
+		app switch
+		{
+			IThemeVariantHost host => host.ActualThemeVariant,
+			_ => null,
+		};
 
 
 #pragma warning disable CS8601
@@ -64,7 +75,8 @@ public static class AvaloniaApplicationExtensions
 	/// <param name="app"><see cref="IAvaloniaApplication"/>.</param>
 	/// <param name="key">Resource key.</param>
 	/// <param name="defaultValue">Default value.</param>
-	/// <returns></returns>
+	/// <returns>Resource with given key and type, or default value.</returns>
+	/// <remarks>This is a thread-safe method.</remarks>
 	public static T FindResourceOrDefault<T>(this IAvaloniaApplication app, object key, T defaultValue = default) =>
 		FindResourceOrDefault(app, key, GetActualThemeVariant(app), defaultValue);
 
@@ -77,7 +89,8 @@ public static class AvaloniaApplicationExtensions
 	/// <param name="key">Resource key.</param>
 	/// <param name="theme">Theme.</param>
 	/// <param name="defaultValue">Default value.</param>
-	/// <returns></returns>
+	/// <returns>Resource with given key and type, or default value.</returns>
+	/// <remarks>This is a thread-safe method.</remarks>
 	public static T FindResourceOrDefault<T>(this IAvaloniaApplication app, object key, ThemeVariant? theme, T defaultValue = default)
 	{
 		if (app.TryFindResource(key, theme, out var value) && value is T valueT)
@@ -95,6 +108,7 @@ public static class AvaloniaApplicationExtensions
 	/// <param name="key">Resource key.</param>
 	/// <param name="res">Found resource.</param>
 	/// <returns>True if resource found.</returns>
+	/// <remarks>This is a thread-safe method.</remarks>
 	public static bool TryFindResource<T>(this IAvaloniaApplication app, object key, [NotNullWhen(true)] out T? res) where T : class =>
 		TryFindResource(app, key, GetActualThemeVariant(app), out res);
 
@@ -108,6 +122,7 @@ public static class AvaloniaApplicationExtensions
 	/// <param name="theme">Theme.</param>
 	/// <param name="res">Found resource.</param>
 	/// <returns>True if resource found.</returns>
+	/// <remarks>This is a thread-safe method.</remarks>
 	public static bool TryFindResource<T>(this IAvaloniaApplication app, object key, ThemeVariant? theme, [NotNullWhen(true)] out T? res) where T : class
 	{
 		if (app.TryFindResource(key, theme, out var value) && value is T valueT)
@@ -128,6 +143,7 @@ public static class AvaloniaApplicationExtensions
 	/// <param name="key">Resource key.</param>
 	/// <param name="res">Found resource.</param>
 	/// <returns>True if resource found.</returns>
+	/// <remarks>This is a thread-safe method.</remarks>
 	public static bool TryFindResource<T>(this IAvaloniaApplication app, object key, [NotNullWhen(true)] out T? res) where T : struct =>
 		TryFindResource(app, key, GetActualThemeVariant(app), out res);
 
@@ -141,6 +157,7 @@ public static class AvaloniaApplicationExtensions
 	/// <param name="theme">Theme.</param>
 	/// <param name="res">Found resource.</param>
 	/// <returns>True if resource found.</returns>
+	/// <remarks>This is a thread-safe method.</remarks>
 	public static bool TryFindResource<T>(this IAvaloniaApplication app, object key, ThemeVariant? theme, [NotNullWhen(true)] out T? res) where T : struct
 	{
 		if (app.TryFindResource(key, theme, out var value) && value is T valueT)
