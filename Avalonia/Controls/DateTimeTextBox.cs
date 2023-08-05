@@ -34,6 +34,7 @@ namespace CarinaStudio.Controls
         /// </summary>
         public DateTimeTextBox()
         {
+            this.AcceptsWhiteSpaces = true;
             this.MaxLength = 128;
             this.PseudoClasses.Set(":dateTimeTextBox", true);
         }

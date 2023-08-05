@@ -33,6 +33,7 @@ namespace CarinaStudio.Controls
 		/// </summary>
 		public UriTextBox()
 		{
+			this.AcceptsWhiteSpaces = true;
 			this.MaxLength = 65536;
 			this.PseudoClasses.Set(":uriTextBox", true);
 		}

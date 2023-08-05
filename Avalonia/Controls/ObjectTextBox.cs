@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using CarinaStudio.Threading;
 using System;
+using System.Text;
 
 namespace CarinaStudio.Controls;
 
@@ -11,6 +12,10 @@ namespace CarinaStudio.Controls;
 /// </summary>
 public abstract class ObjectTextBox : TextBox
 {
+	/// <summary>
+	/// Property of <see cref="AcceptsWhiteSpaces"/>.
+	/// </summary>
+	public static readonly StyledProperty<bool> AcceptsWhiteSpacesProperty = AvaloniaProperty.Register<ObjectTextBox, bool>(nameof(AcceptsWhiteSpaces), false);
 	/// <summary>
 	/// Property of <see cref="IsTextValid"/>.
 	/// </summary>
@@ -36,6 +41,16 @@ public abstract class ObjectTextBox : TextBox
 	internal ObjectTextBox()
 	{
 		this.validateAction = new ScheduledAction(() => this.Validate());
+	}
+	
+	
+	/// <summary>
+	/// Get or set whether white space characters can be accepted or not.
+	/// </summary>
+	public bool AcceptsWhiteSpaces
+	{
+		get => this.GetValue(AcceptsWhiteSpacesProperty);
+		set => this.SetValue(AcceptsWhiteSpacesProperty, value);
 	}
 	
 	
@@ -122,11 +137,11 @@ public abstract class ObjectTextBox : TextBox
 	/// <inheritdoc/>
 	protected override void OnTextInput(TextInputEventArgs e)
 	{
-		if (string.IsNullOrEmpty(this.Text))
+		if (!string.IsNullOrEmpty(e.Text) 
+		    && string.IsNullOrWhiteSpace(e.Text) 
+		    && !this.GetValue(AcceptsWhiteSpacesProperty))
 		{
-			var text = e.Text;
-			if (!string.IsNullOrEmpty(text) && char.IsWhiteSpace(text[0]))
-				e.Handled = true;
+			e.Handled = true;
 		}
 		base.OnTextInput(e);
 	}
@@ -154,7 +169,7 @@ public abstract class ObjectTextBox : TextBox
 
 
 	// Validate text.
-	bool Validate(bool updateObjectAndText, out object? obj)
+	unsafe bool Validate(bool updateObjectAndText, out object? obj)
 	{
 		// check state
 		this.VerifyAccess();
@@ -163,16 +178,41 @@ public abstract class ObjectTextBox : TextBox
 		if (updateObjectAndText)
 			this.validateAction.Cancel();
 
-		// trim spaces
+		// remove white spaces
 		var text = this.Text ?? "";
-		var trimmedText = text.Trim();
-		if (text != trimmedText)
+		var textLength = text.Length;
+		if (text.Length > 0 && !this.GetValue(AcceptsWhiteSpacesProperty))
 		{
-			text = trimmedText;
-			if (updateObjectAndText)
+			fixed (char* p = text.AsSpan())
 			{
-				this.Text = trimmedText;
-				this.validateAction.Cancel();
+				var charPtr = p;
+				var i = 0;
+				while (i < textLength)
+				{
+					if (char.IsWhiteSpace(*charPtr++))
+						break;
+					++i;
+				}
+				if (i < textLength)
+				{
+					var trimmedTextBuffer = new StringBuilder();
+					if (i > 0)
+						trimmedTextBuffer.Append(text[..i]);
+					++i;
+					while (i < textLength)
+					{
+						var c = *charPtr++;
+						if (!char.IsWhiteSpace(c))
+							trimmedTextBuffer.Append(c);
+						++i;
+					}
+					text = trimmedTextBuffer.ToString();
+					if (updateObjectAndText)
+					{
+						this.Text = text;
+						this.validateAction.Cancel();
+					}
+				}
 			}
 		}
 

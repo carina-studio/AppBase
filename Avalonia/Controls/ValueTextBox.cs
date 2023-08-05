@@ -4,6 +4,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using CarinaStudio.Threading;
 using System;
+using System.Text;
 
 namespace CarinaStudio.Controls;
 
@@ -12,6 +13,10 @@ namespace CarinaStudio.Controls;
 /// </summary>
 public abstract class ValueTextBox : TextBox
 {
+	/// <summary>
+	/// Property of <see cref="AcceptsWhiteSpaces"/>.
+	/// </summary>
+	public static readonly StyledProperty<bool> AcceptsWhiteSpacesProperty = AvaloniaProperty.Register<ValueTextBox, bool>(nameof(AcceptsWhiteSpaces), false);
 	/// <summary>
 	/// Property of <see cref="CoerceValueWhenLostFocus"/>.
 	/// </summary>
@@ -65,6 +70,16 @@ public abstract class ValueTextBox : TextBox
 		if (!IsNullValueAllowedProperty.GetDefaultValue(this.GetType()))
 			this.lastValidValue = this.GetValue(DefaultValueProperty);
 		this.validateAction = new ScheduledAction(() => this.Validate());
+	}
+
+
+	/// <summary>
+	/// Get or set whether white space characters can be accepted or not.
+	/// </summary>
+	public bool AcceptsWhiteSpaces
+	{
+		get => this.GetValue(AcceptsWhiteSpacesProperty);
+		set => this.SetValue(AcceptsWhiteSpacesProperty, value);
 	}
 
 
@@ -152,6 +167,11 @@ public abstract class ValueTextBox : TextBox
 	{
 		base.OnPropertyChanged(change);
 		var property = change.Property;
+		if (property == AcceptsWhiteSpacesProperty
+		    || property == DefaultValueProperty)
+		{
+			this.Validate();
+		}
 		if (property == CoerceValueWhenLostFocusProperty)
 		{
 			if ((bool)change.NewValue! && !this.IsFocused)
@@ -166,8 +186,6 @@ public abstract class ValueTextBox : TextBox
 				}
 			}
 		}
-		else if (property == DefaultValueProperty)
-			this.Validate();
 		else if (property == IsNullValueAllowedProperty)
 		{
 			if (!(bool)change.NewValue.AsNonNull())
@@ -201,11 +219,11 @@ public abstract class ValueTextBox : TextBox
 	/// <inheritdoc/>
 	protected override void OnTextInput(TextInputEventArgs e)
 	{
-		if (string.IsNullOrEmpty(this.Text))
+		if (!string.IsNullOrEmpty(e.Text) 
+		    && string.IsNullOrWhiteSpace(e.Text) 
+		    && !this.GetValue(AcceptsWhiteSpacesProperty))
 		{
-			var text = e.Text;
-			if (!string.IsNullOrEmpty(text) && char.IsWhiteSpace(text[0]))
-				e.Handled = true;
+			e.Handled = true;
 		}
 		base.OnTextInput(e);
 	}
@@ -272,7 +290,7 @@ public abstract class ValueTextBox : TextBox
 
 
 	// Validate text.
-	bool Validate(bool updateValueAndText, out object? value)
+	unsafe bool Validate(bool updateValueAndText, out object? value)
 	{
 		// check state
 		this.VerifyAccess();
@@ -281,16 +299,41 @@ public abstract class ValueTextBox : TextBox
 		if (updateValueAndText)
 			this.validateAction.Cancel();
 
-		// trim spaces
+		// remove white spaces
 		var text = this.Text ?? "";
-		var trimmedText = text.Trim();
-		if (text != trimmedText)
+		var textLength = text.Length;
+		if (text.Length > 0 && !this.GetValue(AcceptsWhiteSpacesProperty))
 		{
-			text = trimmedText;
-			if (updateValueAndText)
+			fixed (char* p = text.AsSpan())
 			{
-				this.Text = trimmedText;
-				this.validateAction.Cancel();
+				var charPtr = p;
+				var i = 0;
+				while (i < textLength)
+				{
+					if (char.IsWhiteSpace(*charPtr++))
+						break;
+					++i;
+				}
+				if (i < textLength)
+				{
+					var trimmedTextBuffer = new StringBuilder();
+					if (i > 0)
+						trimmedTextBuffer.Append(text[..i]);
+					++i;
+					while (i < textLength)
+					{
+						var c = *charPtr++;
+						if (!char.IsWhiteSpace(c))
+							trimmedTextBuffer.Append(c);
+						++i;
+					}
+					text = trimmedTextBuffer.ToString();
+					if (updateValueAndText)
+					{
+						this.Text = text;
+						this.validateAction.Cancel();
+					}
+				}
 			}
 		}
 
