@@ -2,6 +2,7 @@
 using Avalonia.Controls;
 using System;
 using System.Text.RegularExpressions;
+using Avalonia.Input;
 
 namespace CarinaStudio.Controls
 {
@@ -64,6 +65,15 @@ namespace CarinaStudio.Controls
 			var property = change.Property;
 			if (property == DefaultUriSchemeProperty || property == UriKindProperty)
 				this.Validate();
+		}
+
+
+		/// <inheritdoc/>
+		protected override void OnTextInput(TextInputEventArgs e)
+		{
+			if (string.IsNullOrWhiteSpace(e.Text) && Math.Min(this.SelectionStart, this.SelectionEnd) == 0)
+				e.Handled = true;
+			base.OnTextInput(e);
 		}
 
 
