@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -99,6 +98,12 @@ namespace CarinaStudio
 
 
 		/// <summary>
+		/// Check whether current operating system is Android of not.
+		/// </summary>
+		public static bool IsAndroid { get; } = OperatingSystem.IsAndroid();
+
+
+		/// <summary>
 		/// Check whether the desktop environment is GNOME or not if current operating system is Linux.
 		/// </summary>
 		[Obsolete("Use LinuxDesktop instead.")]
@@ -106,33 +111,52 @@ namespace CarinaStudio
 
 
 		/// <summary>
+		/// Check whether current operating system is iOS of not.
+		/// </summary>
+		public static bool IsIOS { get; } = OperatingSystem.IsIOS();
+
+
+		/// <summary>
 		/// Check whether current operating system is Linux of not.
 		/// </summary>
-		public static bool IsLinux { get; } = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+		/// <remarks>Please noted that the value is also True on Android platform.</remarks>
+		public static bool IsLinux { get; } = OperatingSystem.IsLinux() || IsAndroid;
 
 
 		/// <summary>
 		/// Check whether current operating system is macOS of not.
 		/// </summary>
-		public static bool IsMacOS { get; } = RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
+		public static bool IsMacOS { get; } = OperatingSystem.IsMacOS();
+		
+		
+		/// <summary>
+		/// Check whether current operating system is not Android of not.
+		/// </summary>
+		public static bool IsNotAndroid => !IsAndroid;
+		
+		
+		/// <summary>
+		/// Check whether current operating system is not iOS of not.
+		/// </summary>
+		public static bool IsNotIOS => !IsIOS;
 
 
 		/// <summary>
 		/// Check whether current operating system is not Linux of not.
 		/// </summary>
-		public static bool IsNotLinux { get; } = !IsLinux;
+		public static bool IsNotLinux => !IsLinux;
 
 
 		/// <summary>
 		/// Check whether current operating system is not macOS of not.
 		/// </summary>
-		public static bool IsNotMacOS { get; } = !IsMacOS;
+		public static bool IsNotMacOS => !IsMacOS;
 
 
 		/// <summary>
 		/// Check whether current operating system is not Windows of not.
 		/// </summary>
-		public static bool IsNotWindows { get; } = !RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+		public static bool IsNotWindows => !IsWindows;
 
 
 		/// <summary>
@@ -148,7 +172,7 @@ namespace CarinaStudio
 				{
 					if (isOpeningFileManagerSupported.HasValue)
 						return isOpeningFileManagerSupported.Value;
-					if (IsWindows || IsMacOS || IsLinux)
+					if (IsWindows || IsMacOS || (IsLinux && IsNotAndroid))
 						isOpeningFileManagerSupported = true;
 					else
 						isOpeningFileManagerSupported = false;
@@ -161,7 +185,7 @@ namespace CarinaStudio
 		/// <summary>
 		/// Check whether current operating system is Windows of not.
 		/// </summary>
-		public static bool IsWindows { get; } = !IsNotWindows;
+		public static bool IsWindows { get; } = OperatingSystem.IsWindows();
 
 
 		/// <summary>
@@ -228,7 +252,7 @@ namespace CarinaStudio
 				{
 					if (linuxDistribution.HasValue)
 						return linuxDistribution.Value;
-					if (IsLinux)
+					if (IsLinux && IsNotAndroid)
 					{
 						try
 						{
@@ -327,7 +351,7 @@ namespace CarinaStudio
 					it.Arguments = $"--browser \"{path}\"";
 				});
 			}
-			else if (IsLinux)
+			else if (IsLinux && IsNotAndroid)
 			{
 				process.StartInfo.Let(it =>
 				{
@@ -387,7 +411,7 @@ namespace CarinaStudio
 						CreateNoWindow = true
 					});
 				}
-				else if (IsLinux)
+				else if (IsLinux && IsNotAndroid)
 					Process.Start("xdg-open", uri.AbsoluteUri);
 				else if (IsMacOS)
 					Process.Start("open", uri.AbsoluteUri);
