@@ -18,7 +18,7 @@ namespace CarinaStudio
 		static bool? isOpeningFileManagerSupported;
 		static LinuxDesktop? linuxDesktop;
 		static LinuxDistribution? linuxDistribution;
-		static readonly Regex runtimeVersionRegex = new Regex("^(?<Runtime>[^\\s]+)[\\s]+(?<Version>[\\d]+(\\.[\\d]+)*)(?<VersionPostfix>\\-.+)?");
+		static Regex? runtimeVersionRegex;
 		static WindowsVersion? windowsVersion;
 
 
@@ -31,7 +31,7 @@ namespace CarinaStudio
         {
 			try
 			{
-				using var process = Process.Start(new ProcessStartInfo()
+				using var process = Process.Start(new ProcessStartInfo
 				{
 					Arguments = "--list-runtimes",
 					CreateNoWindow = true,
@@ -44,6 +44,7 @@ namespace CarinaStudio
 					var latestVersion = (Version?)null;
 					var targetRuntime = IsWindows ? "Microsoft.WindowsDesktop.App" : "Microsoft.NETCore.App";
 					var line = process.StandardOutput.ReadLine();
+					runtimeVersionRegex ??= new Regex("^(?<Runtime>[^\\s]+)[\\s]+(?<Version>[\\d]+(\\.[\\d]+)*)(?<VersionPostfix>\\-.+)?");
 					while (line != null)
 					{
 						try
@@ -238,6 +239,7 @@ namespace CarinaStudio
 									return LinuxDistribution.Alpine;
 								if (data.Contains("(Debian"))
 									return LinuxDistribution.Debian;
+								// ReSharper disable once StringLiteralTypo
 								if (data.Contains("(Fedora") || data.Contains(".fedoraproject.org") || Regex.IsMatch(data, "\\.fc\\d+\\."))
 									return LinuxDistribution.Fedora;
 								if (data.Contains("(Red Hat") || data.Contains(".redhat.com"))
