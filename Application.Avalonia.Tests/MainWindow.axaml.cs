@@ -221,6 +221,8 @@ namespace CarinaStudio
 
             return;
             */
+            
+            /*
             if (Platform.IsMacOS)
             {
                 var app = NSApplication.Current.AsNonNull();
@@ -278,7 +280,9 @@ namespace CarinaStudio
                     this.animateDockTileProgressAction?.Execute();
                 }
             }
+            */
             
+            /*
             if (this.testDialog == null)
             {
                 this.testDialog = new TestDialog().Also(it =>
@@ -289,24 +293,22 @@ namespace CarinaStudio
             }
             else
                 _ = new TestDialog().ShowDialog(this);
+            */
             
-            
-            /*
             var transform = this.Find<Rectangle>("rect")?.RenderTransform as TranslateTransform;
             if (transform == null)
                 return;
 
             animator?.Cancel();
-            animator = new DoubleAnimator(transform.X, transform.X >= 50 ? 0 : 100).Also(it =>
+            animator = new DoubleAnimator(transform.X, transform.X >= 150 ? 0 : 300).Also(it =>
             {
                 it.Completed += (_, e) => transform.X = it.EndValue;
-                it.Delay = TimeSpan.FromMilliseconds(500);
+                it.Delay = TimeSpan.FromMilliseconds(1000);
                 it.Duration = TimeSpan.FromSeconds(1);
-                it.Interpolator = Interpolators.Deceleration;
+                it.Interpolator = Interpolators.CreateQuadraticBezierInterpolator(0, 0.75);
                 it.ProgressChanged += (_, e) => transform.X = it.Value;
                 it.Start();
             });
-            */
         }
         
         

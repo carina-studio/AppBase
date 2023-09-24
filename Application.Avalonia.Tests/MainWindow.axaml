@@ -21,8 +21,8 @@
 		</StackPanel>
 		<controls:LinkTextBlock Command="{Binding $parent[Window].Test}" Margin="5" Text="Test"/>
 
-		<Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Left" Margin="5" Width="150">
-			<Rectangle Name="rect" Fill="Blue" Height="25" HorizontalAlignment="Left" Width="50">
+		<Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Left" Margin="5" Width="300">
+			<Rectangle Name="rect" Fill="Blue" Height="25" HorizontalAlignment="Left" Width="30">
 				<Rectangle.RenderTransform>
 					<TranslateTransform/>
 				</Rectangle.RenderTransform>
