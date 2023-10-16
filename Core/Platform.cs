@@ -15,6 +15,7 @@ namespace CarinaStudio
     {
 		// Fields.
 		static bool? isOpeningFileManagerSupported;
+		static bool? isOpeningLinkSupported;
 		static LinuxDesktop? linuxDesktop;
 		static LinuxDistribution? linuxDistribution;
 		static Regex? runtimeVersionRegex;
@@ -180,6 +181,22 @@ namespace CarinaStudio
 				return isOpeningFileManagerSupported.Value;
 			}
         }
+
+
+		/// <summary>
+		/// Check whether opening URI by default browser is supported on current platform or not.
+		/// </summary>
+		public static bool IsOpeningLinkSupported
+		{
+			get
+			{
+				if (isOpeningLinkSupported.HasValue)
+					return isOpeningLinkSupported.Value;
+				lock (typeof(Platform))
+					isOpeningLinkSupported = (IsWindows || IsMacOS || (IsLinux && IsNotAndroid));
+				return isOpeningLinkSupported.Value;
+			}
+		}
 
 
 		/// <summary>
