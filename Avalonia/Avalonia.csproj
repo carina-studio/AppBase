@@ -26,14 +26,4 @@
 		<ProjectReference Include="..\MacOS\MacOS.csproj" />
 	</ItemGroup>
 
-	<ItemGroup Condition="'$(AvaloniaVersion)'!='11.0.0-preview4'">
-		<AvaloniaResource Remove="Theme/Base.axaml" />
-		<AvaloniaResource Remove="Theme/Dark.axaml" />
-		<AvaloniaResource Remove="Theme/Light.axaml" />
-	</ItemGroup>
-
-	<ItemGroup Condition="'$(AvaloniaVersion)'=='11.0.0-preview4'">
-		<AvaloniaResource Remove="Theme/Default.axaml" />
-	</ItemGroup>
-
 </Project>
