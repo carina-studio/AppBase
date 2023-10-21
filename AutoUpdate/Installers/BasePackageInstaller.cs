@@ -13,7 +13,6 @@ namespace CarinaStudio.AutoUpdate.Installers
 	public abstract class BasePackageInstaller : BaseUpdaterComponent, IPackageInstaller
 	{
 		// Fields.
-		bool deleteOldApplicationIcons = true;
 		readonly HashSet<string> installedFilePaths = new(PathEqualityComparer.Default);
 		string? packageFileName;
 		string? targetDirectoryPath;
@@ -29,23 +28,6 @@ namespace CarinaStudio.AutoUpdate.Installers
 		}
 
 
-		/// <inheritdoc/>
-		public bool DeleteOldApplicationIcons
-		{
-			get => this.deleteOldApplicationIcons;
-			set
-			{
-				this.VerifyAccess();
-				this.VerifyDisposed();
-				this.VerifyInitializing();
-				if (this.deleteOldApplicationIcons == value)
-					return;
-				this.deleteOldApplicationIcons = value;
-				this.OnPropertyChanged(nameof(DeleteOldApplicationIcons));
-			}
-		}
-
-
 		/// <summary>
 		/// Get set of path of installed files.
 		/// </summary>
@@ -54,6 +36,10 @@ namespace CarinaStudio.AutoUpdate.Installers
 
 		/// <inheritdoc/>
 		public event Func<IPackageInstaller, string, bool>? InstallingFile;
+
+
+		/// <inheritdoc/>
+		public virtual bool IsApplicationIconUpdated => false;
 
 
 		/// <summary>

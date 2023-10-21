@@ -17,6 +17,10 @@ namespace CarinaStudio.AutoUpdate.Installers
 	/// </summary>
 	public class ZipPackageInstaller : BasePackageInstaller
 	{
+		// Fields.
+		bool isAppIconUpdated;
+		
+		
 		/// <summary>
 		/// Initialize new <see cref="ZipPackageInstaller"/> instance.
 		/// </summary>
@@ -25,106 +29,91 @@ namespace CarinaStudio.AutoUpdate.Installers
 		{ }
 
 
-		// Delete old application icons on macOS.
-		void DeleteOldApplicationIconsOnMacOS(CancellationToken cancellationToken)
+		// Get path of application icon file.
+		async Task<string?> GetMacOSApplicationIconAsync(CancellationToken cancellationToken)
 		{
 			// check state
-			if (cancellationToken.IsCancellationRequested)
-			{
-				this.Logger.LogWarning("Installation has been cancelled");
-				throw new TaskCanceledException();
-			}
 			var targetRootDirectory = this.TargetDirectoryPath.AsNonNull();
-			if (!targetRootDirectory.EndsWith(".app") && !targetRootDirectory.EndsWith(".app/"))
-			{
-				this.Logger.LogInformation("No need to delete old application icons because root directory is not an application bundle");
-				return;
-			}
+			if (!targetRootDirectory.EndsWith(".app") && !targetRootDirectory.EndsWith(".app/")) 
+				return null;
 			
 			// check resource directory
 			var resDirectory = Path.Combine(targetRootDirectory, "Contents", "Resources");
-			if (!Global.RunOrDefault(() => Directory.Exists(resDirectory)))
+			var isResDirectoryExists = await Task.Run(() =>
+			{
+				try
+				{
+					return Directory.Exists(resDirectory);
+				}
+				catch
+				{
+					return false;
+				}
+			}, cancellationToken);
+			if (!isResDirectoryExists)
 			{
 				this.Logger.LogWarning("No resource folder in application bundle");
-				return;
+				return null;
 			}
 			
 			// get application icon
 			// ReSharper disable AccessToDisposedClosure
-			var appIconName = Global.RunOrDefault(() =>
+			var iconName = await Task.Run(() =>
 			{
-				using var reader = new StreamReader(Path.Combine(targetRootDirectory, "Contents", "Info.plist"), Encoding.UTF8);
-				var xmlDocument = new XmlDocument().Also(it => it.Load(reader));
-				var plistNode = xmlDocument.FirstChild;
-				while (plistNode is not null)
+				try
 				{
-					if (plistNode is XmlElement && plistNode.Name == "plist")
+					// load XML
+					using var reader = new StreamReader(Path.Combine(targetRootDirectory, "Contents", "Info.plist"), Encoding.UTF8);
+					var xmlDocument = new XmlDocument().Also(it => it.Load(reader));
+					if (cancellationToken.IsCancellationRequested)
+						throw new TaskCanceledException();
+
+					// parse
+					var plistNode = xmlDocument.FirstChild;
+					while (plistNode is not null)
 					{
-						var dictNode = plistNode.FirstChild;
-						while (dictNode is not null)
+						if (plistNode is XmlElement && plistNode.Name == "plist")
 						{
-							if (dictNode is XmlElement && dictNode.Name == "dict")
+							var dictNode = plistNode.FirstChild;
+							while (dictNode is not null)
 							{
-								var keyNode = dictNode.FirstChild;
-								while (keyNode is not null)
+								if (dictNode is XmlElement && dictNode.Name == "dict")
 								{
-									if (keyNode is XmlElement && keyNode.Name == "key" && keyNode.InnerText == "CFBundleIconFile")
+									var keyNode = dictNode.FirstChild;
+									while (keyNode is not null)
 									{
-										if (keyNode.NextSibling is XmlElement valueNode && valueNode.Name == "string")
-											return valueNode.InnerText;
-										break;
+										if (keyNode is XmlElement && keyNode.Name == "key" && keyNode.InnerText == "CFBundleIconFile")
+										{
+											if (keyNode.NextSibling is XmlElement valueNode && valueNode.Name == "string")
+												return valueNode.InnerText;
+											break;
+										}
+										keyNode = keyNode.NextSibling;
 									}
-									keyNode = keyNode.NextSibling;
+									break;
 								}
-								break;
+								dictNode = dictNode.NextSibling;
 							}
-							dictNode = dictNode.NextSibling;
+							break;
 						}
-						break;
+						plistNode = plistNode.NextSibling;
 					}
-					plistNode = plistNode.NextSibling;
+				}
+				// ReSharper disable once EmptyGeneralCatchClause
+				catch (Exception ex)
+				{
+					if (ex is TaskCanceledException)
+						throw;
 				}
 				return null;
-			});
+			}, cancellationToken);
 			// ReSharper restore AccessToDisposedClosure
-			if (string.IsNullOrWhiteSpace(appIconName))
-			{
-				this.Logger.LogWarning("Application icon is undefined in application bundle");
-				return;
-			}
-			
-			// cancellation check
-			if (cancellationToken.IsCancellationRequested)
-			{
-				this.Logger.LogWarning("Installation has been cancelled");
-				throw new TaskCanceledException();
-			}
-			
-			// delete application icons
-			try
-			{
-				this.Logger.LogDebug("Application icon is '{name}'", appIconName);
-				var appIconFilePath = Path.Combine(resDirectory, appIconName);
-				foreach (var iconFilePath in Directory.EnumerateFiles(resDirectory, "*.icns"))
-				{
-					if (PathEqualityComparer.Default.Equals(iconFilePath, appIconFilePath))
-						continue;
-					try
-					{
-						this.Logger.LogTrace("Delete old application icon '{name}'", Path.GetFileName(iconFilePath));
-						File.Delete(iconFilePath);
-					}
-					catch (Exception ex)
-					{
-						this.Logger.LogError(ex, "Unable to delete application icon '{name}'", Path.GetFileName(iconFilePath));
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				this.Logger.LogError(ex, "Error occurred while deleting old application icons");
-			}
+			return string.IsNullOrEmpty(iconName) ? null : Path.Combine(resDirectory, iconName);
 		}
+
+
+		/// <inheritdoc/>
+		public override bool IsApplicationIconUpdated => this.isAppIconUpdated;
 
 
 		/// <summary>
@@ -132,7 +121,7 @@ namespace CarinaStudio.AutoUpdate.Installers
 		/// </summary>
 		/// <param name="cancellationToken">Cancellation token.</param>
 		/// <returns>Task of performing operation.</returns>
-		protected override Task PerformOperationAsync(CancellationToken cancellationToken) => Task.Run(() =>
+		protected override Task PerformOperationAsync(CancellationToken cancellationToken) => Task.Run(async () =>
 		{
 			// load zip archive
 			this.Logger.LogTrace("Open ZIP file '{packageFileName}'", this.PackageFileName);
@@ -155,6 +144,13 @@ namespace CarinaStudio.AutoUpdate.Installers
 				this.Logger.LogDebug("Create {targetRootDirectory}", targetRootDirectory);
 				Directory.CreateDirectory(targetRootDirectory);
 			}
+			
+			// get original application icon on macOS
+			var originalAppIconPath = Platform.IsMacOS
+				? await GetMacOSApplicationIconAsync(cancellationToken)
+				: null;
+			if (!string.IsNullOrEmpty(originalAppIconPath))
+				this.Logger.LogDebug("Original application icon: '{path}'", originalAppIconPath);
 
 			// cancellation check
 			if (cancellationToken.IsCancellationRequested)
@@ -248,9 +244,13 @@ namespace CarinaStudio.AutoUpdate.Installers
 				}
 			}
 			
-			// delete old application icons
-			if (this.DeleteOldApplicationIcons && Platform.IsMacOS)
-				this.DeleteOldApplicationIconsOnMacOS(cancellationToken);
+			// check whether application icon has been updated or not
+			if (Platform.IsMacOS)
+			{
+				var newAppIconPath = await GetMacOSApplicationIconAsync(cancellationToken);
+				this.Logger.LogDebug("New application icon: '{path}'", newAppIconPath);
+				this.isAppIconUpdated = !PathEqualityComparer.Default.Equals(originalAppIconPath, newAppIconPath);
+			}
 		}, cancellationToken);
 	}
 }
