@@ -11,6 +11,17 @@ public unsafe class NSApplication : NSResponder
 {
 #pragma warning disable CS1591
     /// <summary>
+    /// Activation policies.
+    /// </summary>
+    public enum ActivationPolicy
+    {
+        Regular = 0,
+        Accessory = 1,
+        Prohibited = 2,
+    }
+    
+    
+    /// <summary>
     /// TerminateReply.
     /// </summary>
     public enum TerminateReply : uint
@@ -33,18 +44,25 @@ public unsafe class NSApplication : NSResponder
     static Selector? DeactivateSelector;
     static Property? DelegateProperty;
     static Selector? DockTileSelector;
+    static Property? EffectiveAppearanceProperty;
+    static Selector? GetActivationPolicySelector;
+    static Selector? HideOtherApplicationsSelector;
     static Property? IconImageProperty;
+    static Selector? IsActiveSelector;
     static Selector? IsRunningSelector;
+    static Selector? KeyWindowSelector;
     static Selector? MainWindowSelector;
     static readonly Class? NSApplicationClass;
     static Selector? RunSelector;
+    static Selector? SetActivationPolicySelector;
     static Selector? WindowsSelector;
 
 
     // Fields.
-    NSImage? appIconImage;
+    WeakReference<NSImage>? appIconImageRef;
     NSDockTile? dockTile;
-    NSObject? mainWindow;
+    WeakReference<NSWindow>? keyWindowRef;
+    WeakReference<NSWindow>? mainWindowRef;
 
 
     // Static initializer.
@@ -108,23 +126,32 @@ public unsafe class NSApplication : NSResponder
             this.VerifyReleased();
             IconImageProperty ??= NSApplicationClass!.GetProperty("applicationIconImage").AsNonNull();
             var handle = this.GetProperty<IntPtr>(IconImageProperty);
-            if (this.appIconImage is null)
+            var image = default(NSImage);
+            var prevImage = default(NSImage);
+            if (handle != default)
             {
-                if (handle == IntPtr.Zero)
-                    return null;
-                this.appIconImage = NSObject.Retain<NSImage>(handle);
+                if (this.appIconImageRef?.TryGetTarget(out prevImage) == true && prevImage.Handle == handle)
+                    image = prevImage;
+                else
+                {
+                    prevImage?.Release();
+                    image = Retain<NSImage>(handle).AsNonNull();
+                    this.appIconImageRef = new(image);
+                }
             }
-            else if (handle != this.appIconImage.Handle)
-                this.appIconImage = handle != IntPtr.Zero ? NSObject.Retain<NSImage>(handle) : null;
-            return this.appIconImage;
+            else
+                this.appIconImageRef = null;
+            return image;
         }
         set
         {
             this.VerifyReleased();
-            if (this.appIconImage == value)
+            var prevImage = default(NSImage);
+            if (this.appIconImageRef?.TryGetTarget(out prevImage) == true && prevImage == value)
                 return;
+            prevImage?.Release();
             IconImageProperty ??= NSApplicationClass!.GetProperty("applicationIconImage").AsNonNull();
-            this.appIconImage = value;
+            this.appIconImageRef = value is not null ? new(value) : null;
             this.SetProperty<NSObject>(IconImageProperty, value);
         }
     }
@@ -198,10 +225,58 @@ public unsafe class NSApplication : NSResponder
             });
         }
     }
+    
+    
+    /// <summary>
+    /// Get the appearance that AppKit uses to draw the app’s interface.
+    /// </summary>
+    public NSAppearance EffectiveAppearance
+    {
+        get 
+        {
+            EffectiveAppearanceProperty ??= NSApplicationClass!.GetProperty("effectiveAppearance").AsNonNull();
+            return this.GetProperty<NSAppearance>(EffectiveAppearanceProperty);
+        }
+    }
 
 
     /// <summary>
-    /// Check whether the main event loop is runnig or not.
+    /// Get activation policy of application.
+    /// </summary>
+    /// <returns>Activation policy.</returns>
+    public ActivationPolicy GetActivationPolicy()
+    {
+        GetActivationPolicySelector ??= Selector.FromName("activationPolicy");
+        return this.SendMessage<ActivationPolicy>(GetActivationPolicySelector);
+    }
+
+
+    /// <summary>
+    /// Hides all apps except the current application.
+    /// </summary>
+    /// <param name="sender">The object that sent this message.</param>
+    public void HideOtherApplications(NSObject? sender)
+    {
+        HideOtherApplicationsSelector ??= Selector.FromName("hideOtherApplications:");
+        this.SendMessage(HideOtherApplicationsSelector, sender);
+    }
+    
+    
+    /// <summary>
+    /// Check whether the main event loop is running or not.
+    /// </summary>
+    public bool IsActive 
+    { 
+        get
+        {
+            IsActiveSelector ??= Selector.FromName("isActive");
+            return this.SendMessage<bool>(IsActiveSelector);
+        }
+    }
+
+
+    /// <summary>
+    /// Check whether the main event loop is running or not.
     /// </summary>
     public bool IsRunning 
     { 
@@ -211,26 +286,64 @@ public unsafe class NSApplication : NSResponder
             return this.SendMessage<bool>(IsRunningSelector); 
         }
     }
+    
+    
+    /// <summary>
+    /// Get the window that currently receives keyboard events.
+    /// </summary>
+    public NSWindow? KeyWindow
+    {
+        get
+        {
+            this.VerifyReleased();
+            KeyWindowSelector ??= Selector.FromName("keyWindow");
+            var handle = this.SendMessage<IntPtr>(KeyWindowSelector);
+            var window = default(NSWindow);
+            var prevWindow = default(NSWindow);
+            if (handle != IntPtr.Zero)
+            {
+                if (this.keyWindowRef?.TryGetTarget(out prevWindow) == true && prevWindow.Handle == handle)
+                    window = prevWindow;
+                else
+                {
+                    prevWindow?.Release();
+                    window = Retain<NSWindow>(handle).AsNonNull();
+                    this.keyWindowRef = new(window);
+                }
+            }
+            else
+                this.keyWindowRef = null;
+            return window;
+        }
+    }
 
 
     /// <summary>
     /// Get main window of application.
     /// </summary>
-    public NSObject? MainWindow
+    public NSWindow? MainWindow
     {
         get
         {
             this.VerifyReleased();
             MainWindowSelector ??= Selector.FromName("mainWindow");
             var handle = this.SendMessage<IntPtr>(MainWindowSelector);
+            var window = default(NSWindow);
+            var prevWindow = default(NSWindow);
             if (handle != IntPtr.Zero)
             {
-                if (this.mainWindow == null || this.mainWindow.Handle != handle)
-                    this.mainWindow = NSObject.Retain<NSWindow>(handle);
+                if (this.mainWindowRef?.TryGetTarget(out prevWindow) == true && prevWindow.Handle == handle)
+                    window = prevWindow;
+                else
+                {
+                    prevWindow?.Release();
+                    window = Retain<NSWindow>(handle).AsNonNull();
+                    this.mainWindowRef = new(window);
+                }
             }
-            else if (this.mainWindow != null)
-                this.mainWindow = null;
-            return this.mainWindow;
+            else
+                this.mainWindowRef = null;
+            return window;
         }
     }
 
@@ -243,10 +356,21 @@ public unsafe class NSApplication : NSResponder
         RunSelector ??= Selector.FromName("run");
         this.SendMessage(RunSelector);
     }
+    
+    
+    /// <summary>
+    /// Set activation policy of application.
+    /// </summary>
+    /// <param name="policy">Activation policy.</param>
+    public void SetActivationPolicy(ActivationPolicy policy)
+    {
+        SetActivationPolicySelector ??= Selector.FromName("setActivationPolicy:");
+        this.SendMessage(SetActivationPolicySelector, policy);
+    }
 
 
     /// <summary>
-    /// Get the <see cref="NSApplication"/> instance or create one if it doesn’t exist yet.
+    /// Get the <see cref="NSApplication"/> instance or create one if it does not exist yet.
     /// </summary>
     public static NSApplication Shared
     {
