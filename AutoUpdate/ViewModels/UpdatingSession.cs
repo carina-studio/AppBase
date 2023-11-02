@@ -532,6 +532,9 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 						this.Logger.LogDebug("Refresh application icon of application bundle: '{path}'", appBundlePath);
 						if (appBundlePath.EndsWith("/"))
 							appBundlePath = appBundlePath[..^1];
+						var title = this.GetValue(RefreshApplicationIconMessageProperty);
+						if (string.IsNullOrEmpty(title))
+							title = "Refresh application icon";
 						await Task.Run(() =>
 						{
 							var tempScriptFile = default(string);
@@ -539,9 +542,6 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 							{
 								// generate apple script file
 								tempScriptFile = Path.GetTempFileName();
-								var title = this.GetValue(RefreshApplicationIconMessageProperty);
-								if (string.IsNullOrEmpty(title))
-									title = "Refresh application icon";
 								using (var stream = new FileStream(tempScriptFile, FileMode.Create, FileAccess.ReadWrite))
 								{
 									using var writer = new StreamWriter(stream, Encoding.UTF8);
@@ -555,7 +555,7 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 									throw new TaskCanceledException();
 
 								// run apple script
-								using var process = Process.Start(new ProcessStartInfo()
+								using var process = Process.Start(new ProcessStartInfo
 								{
 									Arguments = tempScriptFile,
 									CreateNoWindow = true,
