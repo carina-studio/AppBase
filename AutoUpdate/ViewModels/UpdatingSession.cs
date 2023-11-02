@@ -6,7 +6,11 @@ using CarinaStudio.ViewModels;
 using CarinaStudio.Windows.Input;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Diagnostics;
 using System.IO;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace CarinaStudio.AutoUpdate.ViewModels
@@ -40,6 +44,10 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 		/// Property of <see cref="IsProgressAvailable"/>
 		/// </summary>
 		public static readonly ObservableProperty<bool> IsProgressAvailableProperty = ObservableProperty.Register<UpdatingSession, bool>(nameof(IsProgressAvailable));
+		/// <summary>
+		/// Property of <see cref="IsRefreshingApplicationIcon"/>
+		/// </summary>
+		public static readonly ObservableProperty<bool> IsRefreshingApplicationIconProperty = ObservableProperty.Register<UpdatingSession, bool>(nameof(IsRefreshingApplicationIcon));
 		/// <summary>
 		/// Property of <see cref="IsResolvingPackage"/>
 		/// </summary>
@@ -88,7 +96,7 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 		/// Property of <see cref="ProgressPercentage"/>
 		/// </summary>
 		public static readonly ObservableProperty<double> ProgressPercentageProperty = ObservableProperty.Register<UpdatingSession, double>(nameof(ProgressPercentage), double.NaN, 
-			coerce: (o, value) =>
+			coerce: (_, value) =>
 			{
 				if (double.IsNaN(value))
 					return value;
@@ -98,14 +106,35 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 					return 100;
 				return value;
 			});
+		/// <summary>
+		/// Property of <see cref="RefreshApplicationIconAutomatically"/>
+		/// </summary>
+		public static readonly ObservableProperty<bool> RefreshApplicationIconAutomaticallyProperty = ObservableProperty.Register<UpdatingSession, bool>(nameof(RefreshApplicationIconAutomatically),
+			coerce: (session, update) =>
+			{
+				if (session.GetValue(IsUpdatingProperty))
+					throw new InvalidOperationException();
+				return update;
+			});
+		/// <summary>
+		/// Property of <see cref="RefreshApplicationIconMessage"/>
+		/// </summary>
+		public static readonly ObservableProperty<string?> RefreshApplicationIconMessageProperty = ObservableProperty.Register<UpdatingSession, string?>(nameof(RefreshApplicationIconMessage),
+			coerce: (session, message) =>
+			{
+				if (session.GetValue(IsUpdatingProperty))
+					throw new InvalidOperationException();
+				return message;
+			});
 
 
 		// Fields.
 		Version? applicationBaseVersion;
 		string? applicationDirectoryPath;
-		readonly MutableObservableBoolean canCancelUpdating = new MutableObservableBoolean();
-		readonly MutableObservableBoolean canStartUpdating = new MutableObservableBoolean(true);
+		readonly MutableObservableBoolean canCancelUpdating = new();
+		readonly MutableObservableBoolean canStartUpdating = new(true);
 		IStreamProvider? packageManifestSource;
+		CancellationTokenSource? refreshAppIconCancellationTokenSource;
 		bool selfContainedPackageOnly;
 		readonly Updater updater;
 
@@ -121,7 +150,13 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 			this.updater.PropertyChanged += (_, e) => this.OnUpdaterPropertyChanged(e.PropertyName ?? "");
 
 			// create commands
-			this.CancelUpdatingCommand = new Command(() => this.updater.Cancel(), this.canCancelUpdating);
+			this.CancelUpdatingCommand = new Command(() =>
+			{
+				if (this.refreshAppIconCancellationTokenSource is not null)
+					this.refreshAppIconCancellationTokenSource.Cancel();
+				else
+					this.updater.Cancel();
+			}, this.canCancelUpdating);
 			this.StartUpdatingCommand = new Command(this.StartUpdating, this.canStartUpdating);
 		}
 
@@ -190,6 +225,33 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 			else
 				this.SetValue(IsProgressAvailableProperty, double.IsFinite(this.ProgressPercentage));
 		}
+		
+		
+		// Complete updating progress.
+		void CompleteUpdating(bool isSucceeded, bool isCancelled)
+		{
+			if (this.IsDisposed || !this.GetValue(IsUpdatingProperty))
+				return;
+			this.Logger.LogTrace("Complete updating, succeeded: {s}, cancelled: {c}", isSucceeded, isCancelled);
+			if (isCancelled)
+			{
+				this.SetValue(IsUpdatingProperty, false);
+				this.SetValue(IsUpdatingCancelledProperty, true);
+				this.SetValue(IsUpdatingCompletedProperty, true);
+			}
+			else if (isSucceeded)
+			{
+				this.SetValue(IsUpdatingProperty, false);
+				this.SetValue(IsUpdatingSucceededProperty, true);
+				this.SetValue(IsUpdatingCompletedProperty, true);
+			}
+			else
+			{
+				this.SetValue(IsUpdatingProperty, false);
+				this.SetValue(IsUpdatingFailedProperty, true);
+				this.SetValue(IsUpdatingCompletedProperty, true);
+			}
+		}
 
 
 		/// <summary>
@@ -229,91 +291,97 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 		/// <summary>
 		/// Get size of downloaded package in bytes.
 		/// </summary>
-		public long DownloadedPackageSize { get => this.GetValue(DownloadedPackageSizeProperty); }
+		public long DownloadedPackageSize => this.GetValue(DownloadedPackageSizeProperty);
 
 
 		/// <summary>
 		/// Check whether application is being backed-up or not.
 		/// </summary>
-		public bool IsBackingUpApplication { get => this.GetValue(IsBackingUpApplicationProperty); }
+		public bool IsBackingUpApplication => this.GetValue(IsBackingUpApplicationProperty);
 
 
 		/// <summary>
 		/// Check whether update package is being downloaded or not.
 		/// </summary>
-		public bool IsDownloadingPackage { get => this.GetValue(IsDownloadingPackageProperty); }
+		public bool IsDownloadingPackage => this.GetValue(IsDownloadingPackageProperty);
 
 
 		/// <summary>
 		/// Check whether update package is being installed or not.
 		/// </summary>
-		public bool IsInstallingPackage { get => this.GetValue(IsInstallingPackageProperty); }
+		public bool IsInstallingPackage => this.GetValue(IsInstallingPackageProperty);
 
 
 		/// <summary>
 		/// Check whether progress of updating is available or not.
 		/// </summary>
-		public bool IsProgressAvailable { get => this.GetValue(IsProgressAvailableProperty); }
+		public bool IsProgressAvailable => this.GetValue(IsProgressAvailableProperty);
+		
+		
+		/// <summary>
+		/// Check whether application icon refreshing is being performed or not.
+		/// </summary>
+		public bool IsRefreshingApplicationIcon => this.GetValue(IsRefreshingApplicationIconProperty);
 
 
 		/// <summary>
 		/// Check whether update package is being resolved or not.
 		/// </summary>
-		public bool IsResolvingPackage { get => this.GetValue(IsResolvingPackageProperty); }
+		public bool IsResolvingPackage => this.GetValue(IsResolvingPackageProperty);
 
 
 		/// <summary>
 		/// Check whether application is being restored or not.
 		/// </summary>
-		public bool IsRestoringApplication { get => this.GetValue(IsRestoringApplicationProperty); }
+		public bool IsRestoringApplication => this.GetValue(IsRestoringApplicationProperty);
 
 
 		/// <summary>
 		/// Check whether updating processing is on-going or not.
 		/// </summary>
-		public bool IsUpdating { get => this.GetValue(IsUpdatingProperty); }
+		public bool IsUpdating => this.GetValue(IsUpdatingProperty);
 
 
 		/// <summary>
 		/// Check whether updating processing is cancelled or not.
 		/// </summary>
-		public bool IsUpdatingCancelled { get => this.GetValue(IsUpdatingCancelledProperty); }
+		public bool IsUpdatingCancelled => this.GetValue(IsUpdatingCancelledProperty);
 
 
 		/// <summary>
 		/// Check whether updating processing is being cancelled or not.
 		/// </summary>
-		public bool IsUpdatingCancelling { get => this.GetValue(IsUpdatingCancellingProperty); }
+		public bool IsUpdatingCancelling => this.GetValue(IsUpdatingCancellingProperty);
 
 
 		/// <summary>
 		/// Check whether updating processing is completed either successfully or unsuccessfully.
 		/// </summary>
-		public bool IsUpdatingCompleted { get => this.GetValue(IsUpdatingCompletedProperty); }
+		public bool IsUpdatingCompleted => this.GetValue(IsUpdatingCompletedProperty);
 
 
 		/// <summary>
 		/// Check whether updating processing is completed unsuccessfully or not.
 		/// </summary>
-		public bool IsUpdatingFailed { get => this.GetValue(IsUpdatingFailedProperty); }
+		public bool IsUpdatingFailed => this.GetValue(IsUpdatingFailedProperty);
 
 
 		/// <summary>
 		/// Check whether updating processing is completed successfully or not.
 		/// </summary>
-		public bool IsUpdatingSucceeded { get => this.GetValue(IsUpdatingSucceededProperty); }
+		public bool IsUpdatingSucceeded => this.GetValue(IsUpdatingSucceededProperty);
 
 
 		/// <summary>
 		/// Check whether downloaded update package is being verified or not.
 		/// </summary>
-		public bool IsVerifyingPackage { get => this.GetValue(IsVerifyingPackageProperty); }
+		public bool IsVerifyingPackage => this.GetValue(IsVerifyingPackageProperty);
 
 
 		/// <summary>
 		/// Get message which describes status of updating.
 		/// </summary>
-		public string? Message { get => this.GetValue(MessageProperty); }
+		public string? Message => this.GetValue(MessageProperty);
 
 
 		/// <summary>
@@ -348,11 +416,12 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 					this.SetValue(DownloadedPackageSizeProperty, this.updater.DownloadedPackageSize);
 					break;
 				case nameof(Updater.IsCancellable):
-					this.canCancelUpdating.Update(this.updater.IsCancellable && !this.updater.IsCancelling);
+					this.UpdateCanCancelUpdating();
 					break;
 				case nameof(Updater.IsCancelling):
 					this.SetValue(IsUpdatingCancellingProperty, this.updater.IsCancelling);
-					goto case nameof(Updater.IsCancellable);
+					this.UpdateCanCancelUpdating();
+					break;
 				case nameof(Updater.PackageSize):
 					this.SetValue(PackageSizeProperty, this.updater.PackageSize);
 					break;
@@ -360,7 +429,7 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 					this.OnUpdaterProgressChanged();
 					break;
 				case nameof(Updater.State):
-					this.Logger.LogDebug($"Updater state changed: {this.updater.State}");
+					this.Logger.LogDebug("Updater state changed: {state}", this.updater.State);
 					this.OnUpdaterStateChanged();
 					break;
 			}
@@ -383,22 +452,19 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 			switch (this.updater.State)
 			{
 				case UpdaterState.Cancelled:
-					this.SetValue(IsUpdatingProperty, false);
-					this.SetValue(IsUpdatingCancelledProperty, true);
-					this.SetValue(IsUpdatingCompletedProperty, true);
+					this.CompleteUpdating(false, true);
 					break;
 				case UpdaterState.Failed:
-					this.SetValue(IsUpdatingProperty, false);
-					this.SetValue(IsUpdatingFailedProperty, true);
-					this.SetValue(IsUpdatingCompletedProperty, true);
+					this.CompleteUpdating(false, false);
 					break;
 				case UpdaterState.Starting:
 					this.SetValue(IsUpdatingProperty, true);
 					break;
 				case UpdaterState.Succeeded:
-					this.SetValue(IsUpdatingProperty, false);
-					this.SetValue(IsUpdatingSucceededProperty, true);
-					this.SetValue(IsUpdatingCompletedProperty, true);
+					if (this.GetValue(RefreshApplicationIconAutomaticallyProperty))
+						this.RefreshApplicationIcon();
+					else
+						this.CompleteUpdating(true, false);
 					break;
 			}
 		}
@@ -427,13 +493,133 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 		/// <summary>
 		/// Get size of package in bytes.
 		/// </summary>
-		public long? PackageSize { get => this.GetValue(PackageSizeProperty); }
+		public long? PackageSize => this.GetValue(PackageSizeProperty);
 
 
 		/// <summary>
-		/// Get current proress of updating in percentage. <see cref="double.NaN"/> if progress is unavailable.
+		/// Get current progress of updating in percentage. <see cref="double.NaN"/> if progress is unavailable.
 		/// </summary>
-		public double ProgressPercentage { get => this.GetValue(ProgressPercentageProperty); }
+		public double ProgressPercentage => this.GetValue(ProgressPercentageProperty);
+
+
+		// Refresh application icon.
+		async void RefreshApplicationIcon()
+		{
+			// check state
+			if (this.IsDisposed || this.UpdaterState != UpdaterState.Succeeded || this.GetValue(IsRefreshingApplicationIconProperty))
+				return;
+			if (this.updater.PackageInstaller?.IsApplicationIconUpdated != true)
+			{
+				this.Logger.LogTrace("No need to refresh application icon");
+				this.CompleteUpdating(true, false);
+				return;
+			}
+			
+			// refresh
+			var cancellationTokenSource = new CancellationTokenSource();
+			this.refreshAppIconCancellationTokenSource = cancellationTokenSource;
+			this.UpdateCanCancelUpdating();
+			this.SetValue(IsRefreshingApplicationIconProperty, true);
+			try
+			{
+				if (Platform.IsMacOS)
+				{
+					var appBundlePath = this.applicationDirectoryPath;
+					if (string.IsNullOrEmpty(appBundlePath) || (!appBundlePath.EndsWith(".app") && !appBundlePath.EndsWith(".app/")))
+						this.Logger.LogWarning("Unable to refresh application icon because application directory is not an application bundle: '{path}'", appBundlePath);
+					else
+					{
+						this.Logger.LogDebug("Refresh application icon of application bundle: '{path}'", appBundlePath);
+						if (appBundlePath.EndsWith("/"))
+							appBundlePath = appBundlePath[..^1];
+						await Task.Run(() =>
+						{
+							var tempScriptFile = default(string);
+							try
+							{
+								// generate apple script file
+								tempScriptFile = Path.GetTempFileName();
+								var title = this.GetValue(RefreshApplicationIconMessageProperty);
+								if (string.IsNullOrEmpty(title))
+									title = "Refresh application icon";
+								using (var stream = new FileStream(tempScriptFile, FileMode.Create, FileAccess.ReadWrite))
+								{
+									using var writer = new StreamWriter(stream, Encoding.UTF8);
+									writer.Write($"do shell script \"touch '{appBundlePath}'; sleep 1s; killall Finder; killall Dock\"");
+									writer.Write($" with prompt \"{title}\"");
+									writer.Write(" with administrator privileges");
+								}
+								
+								// cancellation check
+								if (cancellationTokenSource.IsCancellationRequested)
+									throw new TaskCanceledException();
+
+								// run apple script
+								using var process = Process.Start(new ProcessStartInfo()
+								{
+									Arguments = tempScriptFile,
+									CreateNoWindow = true,
+									FileName = "osascript",
+									RedirectStandardError = true,
+									RedirectStandardOutput = true,
+									UseShellExecute = false,
+								});
+								if (process is not null)
+								{
+									process.WaitForExit();
+									if (process.ExitCode != 0)
+										this.Logger.LogWarning("Result of osascript to refresh application icon is {code}", process.ExitCode);
+								}
+								else
+									this.Logger.LogError("Unable to start osascript to refresh application icon");
+							}
+							finally
+							{
+								if (tempScriptFile is not null)
+									Global.RunWithoutError(() => System.IO.File.Delete(tempScriptFile));
+							}
+						}, this.refreshAppIconCancellationTokenSource.Token);
+					}
+				}
+				else
+					this.Logger.LogWarning("Application icon refreshing is unsupported on current platform");
+			}
+			catch (Exception ex)
+			{
+				if (ex is TaskCanceledException)
+					this.Logger.LogWarning("Application icon refreshing has been cancelled");
+				else
+					this.Logger.LogError(ex, "Error occurred while refreshing application icon");
+			}
+			finally
+			{
+				cancellationTokenSource.Dispose();
+				this.refreshAppIconCancellationTokenSource = null;
+				this.UpdateCanCancelUpdating();
+				this.ResetValue(IsRefreshingApplicationIconProperty);
+			}
+			this.CompleteUpdating(true, false);
+		}
+
+
+		/// <summary>
+		/// Get or set whether refreshing application should be performed when needed or not.
+		/// </summary>
+		public bool RefreshApplicationIconAutomatically
+		{
+			get => this.GetValue(RefreshApplicationIconAutomaticallyProperty);
+			set => this.SetValue(RefreshApplicationIconAutomaticallyProperty, value);
+		}
+		
+		
+		/// <summary>
+		/// Get or set message for refreshing application icon.
+		/// </summary>
+		public string? RefreshApplicationIconMessage
+		{
+			get => this.GetValue(RefreshApplicationIconMessageProperty);
+			set => this.SetValue(RefreshApplicationIconMessageProperty, value);
+		}
 
 
 		/// <summary>
@@ -502,21 +688,33 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 		public ICommand StartUpdatingCommand { get; }
 
 
+		// Report whether cancellation of updating can be performed or not.
+		void UpdateCanCancelUpdating()
+		{
+			if (this.IsDisposed)
+				return;
+			if (this.refreshAppIconCancellationTokenSource is not null)
+				this.canCancelUpdating.Update(!this.refreshAppIconCancellationTokenSource.IsCancellationRequested);
+			else
+				this.canCancelUpdating.Update(this.updater.IsCancellable && !this.updater.IsCancelling);
+		}
+
+
 		/// <summary>
 		/// Get progress reported by internal <see cref="Updater"/>.
 		/// </summary>
-		protected double UpdaterProgress { get => this.updater.Progress; }
+		protected double UpdaterProgress => this.updater.Progress;
 
 
 		/// <summary>
 		/// Get state of internal <see cref="Updater"/>.
 		/// </summary>
-		protected UpdaterState UpdaterState { get => this.updater.State; }
+		protected UpdaterState UpdaterState => this.updater.State;
 
 
 		/// <summary>
 		/// Get version of application which is updating to.
 		/// </summary>
-		protected Version? UpdatingVersion { get => this.updater.PackageResolver?.PackageVersion; }
+		protected Version? UpdatingVersion => this.updater.PackageResolver?.PackageVersion;
 	}
 }
