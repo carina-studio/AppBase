@@ -131,6 +131,56 @@ namespace CarinaStudio.Controls
 
 
         /// <inheritdoc/>
+        protected override unsafe void OnPastingFromClipboard(string? text)
+        {
+            if (text is null)
+                return;
+            var length = text.Length;
+            if (length == 0)
+            {
+                base.OnPastingFromClipboard(text);
+                return;
+            }
+            var newText = new StringBuilder();
+            fixed (char* p = text)
+            {
+                if (p is not null)
+                {
+                    var cPtr = p;
+                    for (var i = 0; i < length; ++i, ++cPtr)
+                    {
+                        var c = *cPtr;
+                        if (c >= '0' && c <= '9')
+                            newText.Append(c);
+                        else if (c == '+')
+                        {
+                            if (this.AcceptsPositiveSign
+                                && this.Maximum >= 0
+                                && this.SelectionStart == 0 
+                                && newText.Length == 0)
+                            {
+                                newText.Append(c);
+                            }
+                        }
+                        else if (c == '-')
+                        {
+                            if (this.SelectionStart == 0 
+                                && this.Minimum <= 0
+                                && newText.Length == 0)
+                            {
+                                newText.Append(c);
+                            }
+                        }
+                        if (this.MaxLength > 0 && newText.Length >= this.MaxLength)
+                            break;
+                    }
+                }
+            }
+            base.OnPastingFromClipboard(newText.ToString());
+        }
+
+
+        /// <inheritdoc/>
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
         {
             base.OnPropertyChanged(change);

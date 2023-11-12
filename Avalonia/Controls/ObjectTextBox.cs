@@ -41,6 +41,14 @@ public abstract class ObjectTextBox : TextBox
 	internal ObjectTextBox()
 	{
 		this.validateAction = new ScheduledAction(() => this.Validate());
+		this.PastingFromClipboard += (_, e) =>
+		{
+			TopLevel.GetTopLevel(this)?.Clipboard?.LetAsync(async clipboard =>
+			{
+				this.OnPastingFromClipboard(await clipboard.GetTextAsync());
+			});
+			e.Handled = true;
+		};
 	}
 	
 	
@@ -94,6 +102,21 @@ public abstract class ObjectTextBox : TextBox
 			this.validateAction.ExecuteIfScheduled();
 			this.SetValue(ObjectProperty, value);
 		}
+	}
+	
+	
+	/// <summary>
+	/// Called when pasting text from clipboard
+	/// </summary>
+	/// <param name="text">The text from clipboard.</param>
+	protected virtual void OnPastingFromClipboard(string? text)
+	{
+		if (text is null)
+			return;
+		if (this.AcceptsReturn)
+			this.SelectedText = text;
+		else
+			this.SelectedText = text.RemoveLineBreaks();
 	}
 
 

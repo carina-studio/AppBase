@@ -70,6 +70,14 @@ public abstract class ValueTextBox : TextBox
 		if (!IsNullValueAllowedProperty.GetDefaultValue(this.GetType()))
 			this.lastValidValue = this.GetValue(DefaultValueProperty);
 		this.validateAction = new ScheduledAction(() => this.Validate());
+		this.PastingFromClipboard += (_, e) =>
+		{
+			TopLevel.GetTopLevel(this)?.Clipboard?.LetAsync(async clipboard =>
+			{
+				this.OnPastingFromClipboard(await clipboard.GetTextAsync());
+			});
+			e.Handled = true;
+		};
 	}
 
 
@@ -159,6 +167,21 @@ public abstract class ValueTextBox : TextBox
 			}
 		}
 		base.OnLostFocus(e);
+	}
+	
+	
+	/// <summary>
+	/// Called when pasting text from clipboard
+	/// </summary>
+	/// <param name="text">The text from clipboard.</param>
+	protected virtual void OnPastingFromClipboard(string? text)
+	{
+		if (text is null)
+			return;
+		if (this.AcceptsReturn)
+			this.SelectedText = text;
+		else
+			this.SelectedText = text.RemoveLineBreaks();
 	}
 
 
