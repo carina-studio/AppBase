@@ -3,15 +3,15 @@
   <PropertyGroup>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <Version>1.0.0.0</Version>
-		<TargetFrameworks>net6.0;net7.0</TargetFrameworks>
-		<IsPackable>false</IsPackable>
-		<RootNamespace>CarinaStudio.AutoUpdate</RootNamespace>
+    <TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>CarinaStudio.AutoUpdate</RootNamespace>
     <StartupObject>CarinaStudio.AutoUpdate.Program</StartupObject>
-		<Nullable>enable</Nullable>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-		<PackageReference Include="NUnit" Version="3.13.3" />
+    <PackageReference Include="NUnit" Version="3.13.3" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.3.0-alpha-net7.4" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0-preview-20221003-04" />
     <PackageReference Include="coverlet.collector" Version="3.0.2" />
