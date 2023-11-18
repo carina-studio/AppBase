@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
 using System.IO.Compression;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,6 +18,10 @@ namespace CarinaStudio.AutoUpdate.Installers
 	/// </summary>
 	public class ZipPackageInstaller : BasePackageInstaller
 	{
+		// Information of application icon
+		record AppIconInfo(string FilePath, string? FileHashCode);
+		
+		
 		// Fields.
 		bool isAppIconUpdated;
 		
@@ -30,7 +35,7 @@ namespace CarinaStudio.AutoUpdate.Installers
 
 
 		// Get path of application icon file.
-		async Task<string?> GetMacOSApplicationIconAsync(CancellationToken cancellationToken)
+		async Task<AppIconInfo?> GetMacOSApplicationIconAsync(CancellationToken cancellationToken)
 		{
 			// check state
 			var targetRootDirectory = this.TargetDirectoryPath.AsNonNull();
@@ -108,7 +113,29 @@ namespace CarinaStudio.AutoUpdate.Installers
 				return null;
 			}, cancellationToken);
 			// ReSharper restore AccessToDisposedClosure
-			return string.IsNullOrEmpty(iconName) ? null : Path.Combine(resDirectory, iconName);
+			
+			// calculate hash code of icon file
+			var iconFilePath = string.IsNullOrEmpty(iconName) ? null : Path.Combine(resDirectory, iconName);
+			var iconHashCode = string.IsNullOrEmpty(iconFilePath)
+				? null
+				: await Task.Run(() =>
+				{
+					try
+					{
+						this.Logger.LogTrace("Compute hash code of application icon '{path}'", iconFilePath);
+						using var md5 = MD5.Create();
+						using var stream = new FileStream(iconFilePath, FileMode.Open, FileAccess.Read);
+						return Convert.ToBase64String(md5.ComputeHash(stream));
+					}
+					catch (Exception ex)
+					{
+						this.Logger.LogError(ex, "Error occurred while computing hash code of application icon '{path}'", iconFilePath);
+						return null;
+					}
+				}, cancellationToken);
+			
+			// complete
+			return string.IsNullOrEmpty(iconFilePath) ? null : new AppIconInfo(iconFilePath, iconHashCode);
 		}
 
 
@@ -146,11 +173,11 @@ namespace CarinaStudio.AutoUpdate.Installers
 			}
 			
 			// get original application icon on macOS
-			var originalAppIconPath = Platform.IsMacOS
+			var originalAppIconInfo = Platform.IsMacOS
 				? await GetMacOSApplicationIconAsync(cancellationToken)
 				: null;
-			if (!string.IsNullOrEmpty(originalAppIconPath))
-				this.Logger.LogDebug("Original application icon: '{path}'", originalAppIconPath);
+			if (originalAppIconInfo is not null)
+				this.Logger.LogDebug("Original application icon: '{path}'", originalAppIconInfo.FilePath);
 
 			// cancellation check
 			if (cancellationToken.IsCancellationRequested)
@@ -247,9 +274,20 @@ namespace CarinaStudio.AutoUpdate.Installers
 			// check whether application icon has been updated or not
 			if (Platform.IsMacOS)
 			{
-				var newAppIconPath = await GetMacOSApplicationIconAsync(cancellationToken);
-				this.Logger.LogDebug("New application icon: '{path}'", newAppIconPath);
-				this.isAppIconUpdated = !PathEqualityComparer.Default.Equals(originalAppIconPath, newAppIconPath);
+				var newAppIconInfo = await GetMacOSApplicationIconAsync(cancellationToken);
+				this.Logger.LogDebug("New application icon: '{path}'", newAppIconInfo?.FilePath);
+				if (newAppIconInfo is not null)
+				{
+					if (originalAppIconInfo is not null)
+					{
+						this.isAppIconUpdated = !PathEqualityComparer.Default.Equals(originalAppIconInfo.FilePath, newAppIconInfo.FilePath)
+						                        || originalAppIconInfo.FileHashCode != newAppIconInfo.FileHashCode;
+					}
+					else
+						this.isAppIconUpdated = true;
+				}
+				else if (originalAppIconInfo is not null)
+					this.isAppIconUpdated = true;
 			}
 		}, cancellationToken);
 	}
