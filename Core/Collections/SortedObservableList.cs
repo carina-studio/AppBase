@@ -8,7 +8,7 @@ using System.Linq;
 namespace CarinaStudio.Collections
 {
 	/// <summary>
-	/// List which makes elements sorted automatically. Implmentations of <see cref="IList{T}"/> are also optimized for sorted case.
+	/// List which makes elements sorted automatically. Implementation of <see cref="IList{T}"/> are also optimized for sorted case.
 	/// </summary>
 	/// <typeparam name="T">Type of element.</typeparam>
 	public class SortedObservableList<T> : IList, IList<T>, INotifyCollectionChanged, INotifyPropertyChanged, IReadOnlyList<T>
@@ -169,7 +169,7 @@ namespace CarinaStudio.Collections
 			// insert by blocks
 			var seStartIndex = 0;
 			var seIndex = 0;
-			var insertionCount = 0;
+			int insertionCount;
 			while (seIndex < elementCount && insertStartIndex < count)
 			{
 				var seElement = sortedElements[seIndex];
@@ -221,7 +221,7 @@ namespace CarinaStudio.Collections
 		/// <summary>
 		/// Get capacity of the list.
 		/// </summary>
-		public int Capacity { get => this.list.Capacity; }
+		public int Capacity => this.list.Capacity;
 
 
 		/// <summary>
@@ -246,7 +246,7 @@ namespace CarinaStudio.Collections
 		/// <summary>
 		/// Get <see cref="IComparer{T}"/> used to compare elements by this list.
 		/// </summary>
-		public IComparer<T> Comparer { get => this.comparer; }
+		public IComparer<T> Comparer => this.comparer;
 
 
 		/// <summary>
@@ -278,7 +278,7 @@ namespace CarinaStudio.Collections
 		/// <summary>
 		/// Get number of elements.
 		/// </summary>
-		public int Count { get => this.list.Count; }
+		public int Count => this.list.Count;
 
 
 		/// <summary>
@@ -406,7 +406,7 @@ namespace CarinaStudio.Collections
 		public int RemoveAll(Predicate<T> predicate)
 		{
 			var list = this.list;
-			var reslut = 0;
+			var result = 0;
 			var removingEndIndex = -1;
 			var removingStartIndex = -1;
 			var collectionChangedHandlers = this.CollectionChanged;
@@ -428,7 +428,7 @@ namespace CarinaStudio.Collections
 					list.RemoveRange(removingStartIndex, count);
 					propertyChangedHandlers?.Invoke(this, new PropertyChangedEventArgs(nameof(Count)));
 					collectionChangedHandlers?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removedElements, removingStartIndex));
-					reslut += count;
+					result += count;
 					removingStartIndex = -1;
 					removingEndIndex = -1;
 				}
@@ -442,9 +442,9 @@ namespace CarinaStudio.Collections
 				list.RemoveRange(removingStartIndex, count);
 				propertyChangedHandlers?.Invoke(this, new PropertyChangedEventArgs(nameof(Count)));
 				collectionChangedHandlers?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removedElements, removingStartIndex));
-				reslut += count;
+				result += count;
 			}
-			return reslut;
+			return result;
 		}
 
 
@@ -569,7 +569,7 @@ namespace CarinaStudio.Collections
 		/// </summary>
 		/// <param name="index">Index of element.</param>
 		/// <returns>Element.</returns>
-		public T this[int index] { get => this.list[index]; }
+		public T this[int index] => this.list[index];
 
 
 		/// <summary>

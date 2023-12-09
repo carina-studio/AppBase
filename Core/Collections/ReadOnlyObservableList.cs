@@ -58,7 +58,7 @@ namespace CarinaStudio.Collections
 		/// <summary>
 		/// Get number of elements.
 		/// </summary>
-		public int Count { get => this.sourceList.Count; }
+		public int Count => this.sourceList.Count;
 
 
 		/// <summary>
@@ -87,7 +87,7 @@ namespace CarinaStudio.Collections
 		/// </summary>
 		/// <param name="index">Index of element.</param>
 		/// <returns>Element.</returns>
-		public T this[int index] { get => this.sourceList[index]; }
+		public T this[int index] => this.sourceList[index];
 
 
 		// Interface implementations.

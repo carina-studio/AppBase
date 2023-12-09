@@ -71,7 +71,7 @@ namespace CarinaStudio.Collections
 		/// <summary>
 		/// Get capacity of the list.
 		/// </summary>
-		public int Capacity { get => this.list.Capacity; }
+		public int Capacity => this.list.Capacity;
 
 
 		/// <summary>
@@ -122,7 +122,7 @@ namespace CarinaStudio.Collections
 		/// <summary>
 		/// Get number of elements.
 		/// </summary>
-		public int Count { get => this.list.Count; }
+		public int Count => this.list.Count;
 
 
 		/// <summary>
@@ -238,7 +238,7 @@ namespace CarinaStudio.Collections
 		public int RemoveAll(Predicate<T> predicate)
 		{
 			var list = this.list;
-			var reslut = 0;
+			var result = 0;
 			var removingEndIndex = -1;
 			var removingStartIndex = -1;
 			var collectionChangedHandlers = this.CollectionChanged;
@@ -260,7 +260,7 @@ namespace CarinaStudio.Collections
 					list.RemoveRange(removingStartIndex, count);
 					propertyChangedHandlers?.Invoke(this, new PropertyChangedEventArgs(nameof(Count)));
 					collectionChangedHandlers?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removedElements, removingStartIndex));
-					reslut += count;
+					result += count;
 					removingStartIndex = -1;
 					removingEndIndex = -1;
 				}
@@ -274,9 +274,9 @@ namespace CarinaStudio.Collections
 				list.RemoveRange(removingStartIndex, count);
 				propertyChangedHandlers?.Invoke(this, new PropertyChangedEventArgs(nameof(Count)));
 				collectionChangedHandlers?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removedElements, removingStartIndex));
-				reslut += count;
+				result += count;
 			}
-			return reslut;
+			return result;
 		}
 
 
@@ -340,7 +340,7 @@ namespace CarinaStudio.Collections
 				{
 					var oldValue = this.list[index];
 					this.list[index] = value;
-					if (!(oldValue?.Equals(value) ?? object.ReferenceEquals(value, null)))
+					if (!(oldValue?.Equals(value) ?? ReferenceEquals(value, null)))
 						collectionChangedHandlers(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, value, oldValue, index));
 				}
 				else

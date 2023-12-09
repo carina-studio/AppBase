@@ -38,13 +38,13 @@ namespace CarinaStudio.Collections
 				if (element is string || element is StringBuilder)
 				{
 					stringBuilder.Append('"');
-					stringBuilder.Append(element.ToString());
+					stringBuilder.Append(element);
 					stringBuilder.Append('"');
 				}
 				else if (element is IEnumerable innerEnumerable)
 					stringBuilder.Append(innerEnumerable.ContentToString());
 				else if (element != null)
-					stringBuilder.Append(element.ToString());
+					stringBuilder.Append(element);
 				else
 					stringBuilder.Append("Null");
 				if (stringBuilder.Length >= maxLength)

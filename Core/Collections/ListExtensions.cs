@@ -262,8 +262,7 @@ namespace CarinaStudio.Collections
 		{
 			if (list.IsEmpty())
 				throw new ArgumentException("Cannot select random element from empty list.");
-			if (random == null)
-				random = new Random();
+			random ??= new Random();
 			return list[random.Next(0, list.Count)];
 		}
 
@@ -291,8 +290,7 @@ namespace CarinaStudio.Collections
 				throw new ArgumentOutOfRangeException(nameof(index));
 			if (index + count > list.Count)
 				throw new ArgumentOutOfRangeException(nameof(count));
-			if (random == null)
-				random = new Random();
+			random ??= new Random();
 			var remaining = count;
 			while (remaining > 0)
 			{
@@ -300,9 +298,7 @@ namespace CarinaStudio.Collections
 				var j = random.Next(index, index + count);
 				while (i == j)
 					j = random.Next(index, index + count);
-				var temp = list[i];
-				list[i] = list[j];
-				list[j] = temp;
+				(list[i], list[j]) = (list[j], list[i]);
 				--remaining;
 			}
 		}
@@ -328,11 +324,11 @@ namespace CarinaStudio.Collections
 		{
 			// Fields.
 			int currentIndex = -1;
-			int initCount;
+			readonly int initCount;
 			bool isEnded;
 			readonly ListRangeView<T> view;
 
-			// Constuctor.
+			// Constructor.
 			public Enumerator(ListRangeView<T> view)
 			{
 				this.initCount = view.Count;
@@ -373,7 +369,8 @@ namespace CarinaStudio.Collections
 			}
 
 			// Interface implementations.
-			object? IEnumerator.Current { get => this.Current; }
+			object? IEnumerator.Current => this.Current;
+
 			void IEnumerator.Reset()
 			{ }
 		}
@@ -415,7 +412,7 @@ namespace CarinaStudio.Collections
 		}
 
 
-		/// <inheritdoc/>.
+		/// <inheritdoc cref="ICollection{T}.Count"/>
 		public int Count
 		{
 			get
@@ -446,7 +443,7 @@ namespace CarinaStudio.Collections
 			{
 				for (var i = this.start; i < endIndex; ++i)
 				{
-					if (object.Equals(item, this.list[i]))
+					if (Equals(item, this.list[i]))
 						return (i - this.start);
 				}
 			}
@@ -454,8 +451,8 @@ namespace CarinaStudio.Collections
 		}
 
 
-		/// <inheritdoc/>
-    	public bool IsReadOnly { get => true; }
+		/// <inheritdoc cref="ICollection{T}.IsReadOnly"/>
+    	public bool IsReadOnly => true;
 
 
 		// Get element.
@@ -496,8 +493,8 @@ namespace CarinaStudio.Collections
 			throw new InvalidOperationException();
 		void IList<T>.Insert(int index, T item) =>
 			throw new InvalidOperationException();
-		bool IList.IsFixedSize { get => false; }
-		bool ICollection.IsSynchronized { get => false; }
+		bool IList.IsFixedSize => false;
+		bool ICollection.IsSynchronized => false;
 		void IList.Remove(object? item) =>
 			throw new InvalidOperationException();
 		bool ICollection<T>.Remove(T item) =>
@@ -506,7 +503,7 @@ namespace CarinaStudio.Collections
 			throw new InvalidOperationException();
 		void IList<T>.RemoveAt(int index) =>
 			throw new InvalidOperationException();
-		object ICollection.SyncRoot { get => this; }
+		object ICollection.SyncRoot => this;
 		object? IList.this[int index]
 		{
 			get => this[index];

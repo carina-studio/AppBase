@@ -33,7 +33,7 @@ namespace CarinaStudio.Collections
 		/// <summary>
 		/// Get number of element.
 		/// </summary>
-		public int Count { get => this.set.Count; }
+		public int Count => this.set.Count;
 
 
 		/// <summary>

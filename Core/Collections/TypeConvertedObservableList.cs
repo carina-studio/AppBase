@@ -14,7 +14,7 @@ namespace CarinaStudio.Collections
 	public abstract class TypeConvertedObservableList<TSrc, TDest> : BaseDisposable, IList, IList<TDest>, INotifyCollectionChanged, INotifyPropertyChanged, IReadOnlyList<TDest>
 	{
 		// Fields.
-		readonly List<TDest> list = new List<TDest>();
+		readonly List<TDest> list = new();
 		readonly IList<TSrc> sourceList;
 
 
@@ -64,7 +64,7 @@ namespace CarinaStudio.Collections
 		/// <summary>
 		/// Get number of elements.
 		/// </summary>
-		public int Count { get => this.list.Count; }
+		public int Count => this.list.Count;
 
 
 		/// <summary>
@@ -231,7 +231,7 @@ namespace CarinaStudio.Collections
 		/// </summary>
 		/// <param name="index">Index of element.</param>
 		/// <returns>Element.</returns>
-		public TDest this[int index] { get => this.list[index]; }
+		public TDest this[int index] => this.list[index];
 
 
 		/// <summary>

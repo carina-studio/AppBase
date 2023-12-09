@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -63,8 +62,8 @@ namespace CarinaStudio.Collections
             this.list.CopyTo(array, arrayIndex);
         
 
-        /// <inheritdoc/>
-        public int Count { get => this.list.Count; }
+        /// <inheritdoc cref="ICollection{T}.Count"/>
+        public int Count => this.list.Count;
 
 
         /// <inheritdoc/>
@@ -78,7 +77,7 @@ namespace CarinaStudio.Collections
         
 
         /// <inheritdoc/>
-        public bool IsReadOnly { get => this.list.IsReadOnly; }
+        public bool IsReadOnly => this.list.IsReadOnly;
 
 
         /// <inheritdoc/>
@@ -110,7 +109,7 @@ namespace CarinaStudio.Collections
 
 #pragma warning disable CS8600
 #pragma warning disable CS8603
-        /// <inheritdoc/>
+        /// <inheritdoc cref="IList{T}.this"/>
         public T this[int index]
         {
             get => (T)this.list[index];

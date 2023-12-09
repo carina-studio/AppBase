@@ -63,8 +63,8 @@ namespace CarinaStudio.Collections
         }
 
 
-        /// <inheritdoc/>
-        public int Count { get => this.items.Count; }
+        /// <inheritdoc cref="ICollection{T}.Count"/>
+        public int Count => this.items.Count;
 
 
         /// <summary>
@@ -93,13 +93,13 @@ namespace CarinaStudio.Collections
         {
             var index = this.source.IndexOf(item);
             if (index >= 0)
-                return this.items.BinarySearch<(T, int), int>(index, it => it.Item2);
+                return this.items.BinarySearch(index, it => it.Item2);
             return -1;
         }
 
 
-        /// <inheritdoc/>
-        public bool IsReadOnly { get => true; }
+        /// <inheritdoc cref="ICollection{T}.IsReadOnly"/>
+        public bool IsReadOnly => true;
 
 
         // Called when source collection changed.
@@ -116,7 +116,7 @@ namespace CarinaStudio.Collections
                         var count = e.NewItems!.Count;
                         if (filter != null)
                         {
-                            var insertionIndex = items.BinarySearch<(T, int), int>(startIndex, it => it.Item2);
+                            var insertionIndex = items.BinarySearch(startIndex, it => it.Item2);
                             if (insertionIndex < 0)
                                 insertionIndex = ~insertionIndex;
                             var collectionChangedHandler = this.CollectionChanged;
@@ -162,8 +162,8 @@ namespace CarinaStudio.Collections
                         var count = e.OldItems!.Count;
                         if (filter != null)
                         {
-                            var removingStartIndex = items.BinarySearch<(T, int), int>(startIndex, it => it.Item2);
-                            var removingEndIndex = items.BinarySearch<(T, int), int>(startIndex + count, it => it.Item2);
+                            var removingStartIndex = items.BinarySearch(startIndex, it => it.Item2);
+                            var removingEndIndex = items.BinarySearch(startIndex + count, it => it.Item2);
                             if (removingStartIndex < 0)
                                 removingStartIndex = ~removingStartIndex;
                             if (removingEndIndex < 0)
@@ -202,7 +202,7 @@ namespace CarinaStudio.Collections
                     {
                         var sourceIndex = e.NewStartingIndex;
                         var sourceItem = source[sourceIndex];
-                        var itemIndex = items.BinarySearch<(T, int), int>(sourceIndex, it => it.Item2);
+                        var itemIndex = items.BinarySearch(sourceIndex, it => it.Item2);
                         if (filter?.Invoke(sourceItem) != false)
                         {
                             if (itemIndex >= 0)
@@ -258,7 +258,7 @@ namespace CarinaStudio.Collections
                         }
                         else if (filter(sourceItem))
                         {
-                            var oldItemIndex = items.BinarySearch<(T, int), int>(oldSourceIndex, it => it.Item2);
+                            var oldItemIndex = items.BinarySearch(oldSourceIndex, it => it.Item2);
                             if (oldItemIndex < 0)
                                 break;
                             items.RemoveAt(oldItemIndex);
@@ -267,7 +267,7 @@ namespace CarinaStudio.Collections
                                 var (item, index) = items[i];
                                 items[i] = (item, index - 1);
                             }
-                            var newItemIndex = items.BinarySearch<(T, int), int>(newSourceIndex, it => it.Item2);
+                            var newItemIndex = items.BinarySearch(newSourceIndex, it => it.Item2);
                             if (newItemIndex < 0)
                                 newItemIndex = ~newItemIndex;
                             items.Insert(newItemIndex, (sourceItem, newSourceIndex));
@@ -330,7 +330,7 @@ namespace CarinaStudio.Collections
 
 
         /// <inheritdoc/>
-        public T this[int index] { get => this.items[index].Item1; }
+        public T this[int index] => this.items[index].Item1;
 
 
         // Interface implementations.
@@ -339,7 +339,7 @@ namespace CarinaStudio.Collections
         void IList.Clear() => throw new InvalidOperationException();
         void ICollection<T>.Clear() => throw new InvalidOperationException();
         bool IList.Contains(object? value) => value is T item && this.Contains(item);
-        void ICollection.CopyTo(System.Array array, int index)
+        void ICollection.CopyTo(Array array, int index)
         {
             if (array is T[] targetArray)
 				this.CopyTo(targetArray, index);
