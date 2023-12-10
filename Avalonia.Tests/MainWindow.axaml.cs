@@ -18,13 +18,17 @@ namespace CarinaStudio
         static readonly DirectProperty<MainWindow, IPAddress?> IPAddressObjectProperty = AvaloniaProperty.RegisterDirect<MainWindow, IPAddress?>(nameof(IPAddressObject), 
             w => w.ipAddressObject, 
             (w, o) => w.IPAddressObject = o);
+        static readonly DirectProperty<MainWindow, string> LongTextProperty = AvaloniaProperty.RegisterDirect<MainWindow, string>(nameof(LongText), 
+            w => w.longText);
 
 
         DateTime? dateTimeValue = DateTime.Now;
         IPAddress? ipAddressObject = IPAddress.Loopback;
+        string longText = "";
         
         public MainWindow()
         {
+            this.RefreshLongText();
             AvaloniaXamlLoader.Load(this);
         }
 
@@ -59,22 +63,31 @@ namespace CarinaStudio
             get => this.ipAddressObject;
             set => this.SetAndRaise(IPAddressObjectProperty, ref this.ipAddressObject, value);
         }
-        
 
-        string LongText { get; } = new string(new char[65536 * 10].Also(it =>
+
+        string LongText => this.GetValue(LongTextProperty);
+
+
+        public void RefreshLongText()
         {
-            var r = new Random();
-            for (var i = it.Length - 1; i >= 0; --i)
+            var s = new string(new char[65536 * 10].Also(it =>
             {
-                if ((i % 1024) == 0 && i > 0 && false)
-                    it[i] = '\n';
-                else
+                var r = new Random();
+                for (var i = it.Length - 1; i >= 0; --i)
                 {
-                    var n = r.Next(36);
-                    it[i] = n < 10 ? (char)('0' + n) : (char)('A' + (n - 10));
+                    if (r.NextDouble() < 0.1)
+                        it[i] = ' ';
+                    else if ((i % 1024) == 0 && i > 0 && false)
+                        it[i] = '\n';
+                    else
+                    {
+                        var n = r.Next(36);
+                        it[i] = n < 10 ? (char)('0' + n) : (char)('A' + (n - 10));
+                    }
                 }
-            }
-        }));
+            }));
+            this.SetAndRaise(LongTextProperty, ref this.longText, s);
+        }
 
 
         public void SetDateTimeToDateTimeValue() =>

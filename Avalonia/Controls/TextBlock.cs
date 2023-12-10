@@ -1,9 +1,10 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
-using Avalonia.LogicalTree;
+using Avalonia.Data;
 using Avalonia.Media;
 using CarinaStudio.Collections;
+using CarinaStudio.Media.TextFormatting;
 using CarinaStudio.Threading;
 using Microsoft.Extensions.Logging;
 using System;
@@ -41,9 +42,10 @@ namespace CarinaStudio.Controls
         IDisposable? isWindowActiveObserverToken;
         bool isMultiLineText;
         bool isTextTrimmed;
+        IDisposable? toolTipBindingToken;
         readonly ScheduledAction updateToolTipAction;
         int updateToolTipFailureCount;
-        Window? window;
+        Avalonia.Controls.Window? window;
 
 
         /// <summary>
@@ -58,30 +60,25 @@ namespace CarinaStudio.Controls
             this.TextTrimming = TextTrimming.CharacterEllipsis;
             this.updateToolTipAction = new ScheduledAction(() =>
             {
+                this.toolTipBindingToken = this.toolTipBindingToken.DisposeAndReturnNull();
                 try
                 {
-                    if (!this.isTextTrimmed
-                        || !this.GetValue(ShowToolTipWhenTextTrimmedProperty)
-                        || (Platform.IsMacOS && this.window?.IsActive == false))
-                    {
-                        this.ClearValue(ToolTip.TipProperty);
-                    }
-                    else
+                    if (this.isTextTrimmed
+                        && this.GetValue(ShowToolTipWhenTextTrimmedProperty)
+                        && (Platform.IsNotMacOS || this.window?.IsActive == true))
                     {
                         var inlines = this.Inlines;
                         var text = inlines.IsNotEmpty() ? inlines.Text : this.Text;
-                        if (string.IsNullOrEmpty(text))
-                            this.ClearValue(ToolTip.TipProperty);
-                        else
+                        if (!string.IsNullOrEmpty(text))
                         {
                             var toolTipText = text.Length <= MaxToolTipLength
                                 ? text
-                                : $"{text[0..MaxToolTipLength]}…";
+                                : $"{text[..MaxToolTipLength]}…";
                             var toolTip = this.GetValue(ToolTipTemplateProperty)?.Build(toolTipText)?.Also(control =>
                             {
                                 control.DataContext = toolTipText;
                             }) ?? (object)toolTipText;
-                            this.SetValue(ToolTip.TipProperty, toolTip);
+                            this.toolTipBindingToken = this.Bind(ToolTip.TipProperty, new Binding { Source = toolTip, Priority = BindingPriority.Template });
                         }
                     }
                     this.updateToolTipFailureCount = 0;
@@ -131,40 +128,32 @@ namespace CarinaStudio.Controls
                 this.SetAndRaise(IsMultiLineTextProperty, ref this.isMultiLineText, lineCount > 1);
 
                 // check trimming
-                var isTextTrimmed = false;
-                for (var i = lineCount - 1; i >= 0; --i)
-                {
-                    if (textLayout.TextLines[i].HasCollapsed)
-                    {
-                        isTextTrimmed = true;
-                        break;
-                    }
-                }
-                this.IsTextTrimmed = isTextTrimmed;
+                this.IsTextTrimmed = textLayout.IsTextTrimmed();
             }
             return measuredSize;
         }
 
 
         /// <inheritdoc/>
-        protected override void OnAttachedToLogicalTree(LogicalTreeAttachmentEventArgs e)
+        protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
         {
-            base.OnAttachedToLogicalTree(e);
-            this.window = this.FindLogicalAncestorOfType<Window>();
+            base.OnAttachedToVisualTree(e);
+            this.window = TopLevel.GetTopLevel(this) as Avalonia.Controls.Window;
             if (Platform.IsMacOS)
             {
                 this.isWindowActiveObserverToken = this.window?.GetObservable(Window.IsActiveProperty).Subscribe(_ => 
                     this.updateToolTipAction.Schedule());
+                this.updateToolTipAction.Schedule();
             }
         }
 
 
         /// <inheritdoc/>
-        protected override void OnDetachedFromLogicalTree(LogicalTreeAttachmentEventArgs e)
+        protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
         {
             this.isWindowActiveObserverToken = this.isWindowActiveObserverToken.DisposeAndReturnNull();
             this.window = null;
-            base.OnDetachedFromLogicalTree(e);
+            base.OnDetachedFromVisualTree(e);
         }
 
 

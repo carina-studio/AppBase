@@ -214,6 +214,7 @@
 			<!-- TextBlock -->
 			<TextBlock Classes="Header1" Text="TextBlock"/>
 			<abControls:TextBlock HorizontalAlignment="Left" Text="TextBlock with loooooooog text"/>
+			<abControls:TextBlock HorizontalAlignment="Left" Margin="0,5,0,5" Text="TextBlock with long long long text" TextWrapping="Wrap" Width="150"/>
 			<abControls:TextBlock HorizontalAlignment="Left" Text="TextBlock with loooooooog text" Width="180">
 				<abControls:TextBlock.ToolTipTemplate>
 					<DataTemplate>
@@ -224,12 +225,14 @@
 					</DataTemplate>
 				</abControls:TextBlock.ToolTipTemplate>
 			</abControls:TextBlock>
+			<abControls:TextBlock HorizontalAlignment="Left" Margin="0,5,0,5" MaxLines="3" Text="{Binding $parent[Window].LongText}" TextWrapping="Wrap" Width="180"/>
 			<abControls:TextBlock HorizontalAlignment="Left" Text="{Binding $parent[Window].LongText}" Width="180"/>
 			<abControls:TextBlock HorizontalAlignment="Left" Text="(Without ToolTip) TextBlock with loooooooog text" ShowToolTipWhenTextTrimmed="False" Width="180"/>
 			<Panel HorizontalAlignment="Left">
 				<Border BorderBrush="Red" BorderThickness="1" IsVisible="{Binding #multiLineTextBlock.IsMultiLineText}"/>
 				<abControls:TextBlock Name="multiLineTextBlock" Margin="1" Text="The border will be visible if text inside the TextBlock is multi-line" TextWrapping="Wrap" Width="100"/>
 			</Panel>
+			<Button Content="Refresh long text" Command="{Binding $parent[Window].RefreshLongText}" Margin="0,5,0,5"/>
 			<Separator Classes="Small"/>
 
 			<!-- TimeSpanTextBox -->
