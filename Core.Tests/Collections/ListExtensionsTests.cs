@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 
 namespace CarinaStudio.Collections
@@ -264,6 +265,156 @@ namespace CarinaStudio.Collections
 			Assert.AreEqual(4, view[0]);
 			sourceList[4] = 0;
 			Assert.AreEqual(0, view[0]);
+		}
+
+
+		/// <summary>
+		/// Test for <see cref="ListExtensions.Reverse{T}(IList{T})"/>.
+		/// </summary>
+		[Test]
+		public void ReversingTest()
+		{
+			// empty list
+			var sourceList = new List<int>();
+			var reversedList = ListExtensions.Reverse(sourceList);
+			Assert.AreEqual(0, reversedList.Count);
+			Assert.IsFalse(reversedList.IsReadOnly);
+			foreach (var _ in reversedList)
+				throw new AssertionException("Should not allow enumerating items in empty list.");
+			
+			// read from list
+			sourceList.AddRange(new[]{ 0, 1, 2, 3, 4 });
+			Assert.AreEqual(sourceList.Count, reversedList.Count);
+			Assert.AreEqual(0, reversedList[^1]);
+			Assert.AreEqual(4, reversedList[0]);
+			Assert.AreEqual(2, reversedList[2]);
+			Assert.IsTrue(reversedList.SequenceEqual(new[]{ 4, 3, 2, 1, 0 }));
+			
+			// write to list
+			sourceList.Add(5);
+			Assert.AreEqual(sourceList.Count, reversedList.Count);
+			Assert.AreEqual(5, reversedList[0]);
+			sourceList.Insert(0, -1);
+			Assert.AreEqual(sourceList.Count, reversedList.Count);
+			Assert.AreEqual(-1, reversedList[^1]);
+			reversedList.Add(-2);
+			Assert.AreEqual(sourceList.Count, reversedList.Count);
+			Assert.AreEqual(-2, sourceList[0]);
+			reversedList.Insert(0, 6);
+			Assert.AreEqual(sourceList.Count, reversedList.Count);
+			Assert.AreEqual(6, sourceList[^1]);
+			reversedList.Insert(6, 0);
+			Assert.AreEqual(0, sourceList[2]);
+			Assert.AreEqual(0, sourceList[3]);
+			sourceList.Clear();
+			Assert.AreEqual(0, reversedList.Count);
+			
+			// setup observable list
+			var collectionChangedEventArgs = default(NotifyCollectionChangedEventArgs);
+			var observableSourceList = new ObservableList<int>();
+			reversedList = observableSourceList.Reverse();
+			((INotifyCollectionChanged)reversedList).CollectionChanged += (_, e) =>
+			{
+				collectionChangedEventArgs = e;
+			};
+			
+			// add items
+			observableSourceList.Add(0); // 0
+			Assert.AreEqual(observableSourceList.Count, reversedList.Count);
+			Assert.IsNotNull(collectionChangedEventArgs);
+			Assert.AreEqual(NotifyCollectionChangedAction.Add, collectionChangedEventArgs!.Action);
+			Assert.AreEqual(0, collectionChangedEventArgs.NewStartingIndex);
+			Assert.IsTrue(collectionChangedEventArgs.NewItems!.Cast<int>().SequenceEqual(new[]{ 0 }));
+			collectionChangedEventArgs = null;
+			
+			observableSourceList.Add(2); // 0, 2
+			Assert.AreEqual(observableSourceList.Count, reversedList.Count);
+			Assert.IsNotNull(collectionChangedEventArgs);
+			Assert.AreEqual(NotifyCollectionChangedAction.Add, collectionChangedEventArgs!.Action);
+			Assert.AreEqual(0, collectionChangedEventArgs.NewStartingIndex);
+			Assert.IsTrue(collectionChangedEventArgs.NewItems!.Cast<int>().SequenceEqual(new[]{ 2 }));
+			collectionChangedEventArgs = null;
+			
+			observableSourceList.Insert(0, -2); // -2, 0, 2
+			Assert.AreEqual(observableSourceList.Count, reversedList.Count);
+			Assert.IsNotNull(collectionChangedEventArgs);
+			Assert.AreEqual(NotifyCollectionChangedAction.Add, collectionChangedEventArgs!.Action);
+			Assert.AreEqual(2, collectionChangedEventArgs.NewStartingIndex);
+			Assert.IsTrue(collectionChangedEventArgs.NewItems!.Cast<int>().SequenceEqual(new[]{ -2 }));
+			collectionChangedEventArgs = null;
+			
+			observableSourceList.InsertRange(2, new[]{ 1, 1 }); // -2, 0, 1, 1, 2
+			Assert.AreEqual(observableSourceList.Count, reversedList.Count);
+			Assert.IsNotNull(collectionChangedEventArgs);
+			Assert.AreEqual(NotifyCollectionChangedAction.Add, collectionChangedEventArgs!.Action);
+			Assert.AreEqual(1, collectionChangedEventArgs.NewStartingIndex);
+			Assert.IsTrue(collectionChangedEventArgs.NewItems!.Cast<int>().SequenceEqual(new[]{ 1, 1 }));
+			collectionChangedEventArgs = null;
+			
+			observableSourceList.AddRange(new[]{ 4, 6 }); // -2, 0, 1, 1, 2, 4, 6
+			Assert.AreEqual(observableSourceList.Count, reversedList.Count);
+			Assert.IsNotNull(collectionChangedEventArgs);
+			Assert.AreEqual(NotifyCollectionChangedAction.Add, collectionChangedEventArgs!.Action);
+			Assert.AreEqual(0, collectionChangedEventArgs.NewStartingIndex);
+			Assert.IsTrue(collectionChangedEventArgs.NewItems!.Cast<int>().SequenceEqual(new[]{ 6, 4 }));
+			collectionChangedEventArgs = null;
+			
+			// replace items
+			observableSourceList[0] = -4; // -4, 0, 1, 1, 2, 4, 6
+			Assert.IsNotNull(collectionChangedEventArgs);
+			Assert.AreEqual(NotifyCollectionChangedAction.Replace, collectionChangedEventArgs!.Action);
+			Assert.AreEqual(6, collectionChangedEventArgs.NewStartingIndex);
+			Assert.IsTrue(collectionChangedEventArgs.OldItems!.Cast<int>().SequenceEqual(new[]{ -2 }));
+			Assert.IsTrue(collectionChangedEventArgs.NewItems!.Cast<int>().SequenceEqual(new[]{ -4 }));
+			collectionChangedEventArgs = null;
+			
+			observableSourceList[4] = 3; // -4, 0, 1, 1, 3, 4, 6
+			Assert.IsNotNull(collectionChangedEventArgs);
+			Assert.AreEqual(NotifyCollectionChangedAction.Replace, collectionChangedEventArgs!.Action);
+			Assert.AreEqual(2, collectionChangedEventArgs.NewStartingIndex);
+			Assert.IsTrue(collectionChangedEventArgs.OldItems!.Cast<int>().SequenceEqual(new[]{ 2 }));
+			Assert.IsTrue(collectionChangedEventArgs.NewItems!.Cast<int>().SequenceEqual(new[]{ 3 }));
+			collectionChangedEventArgs = null;
+			
+			// move items
+			observableSourceList.Move(1, 3); // -4, 1, 1, 0, 3, 4, 6
+			Assert.IsNotNull(collectionChangedEventArgs);
+			Assert.AreEqual(NotifyCollectionChangedAction.Move, collectionChangedEventArgs!.Action);
+			Assert.AreEqual(5, collectionChangedEventArgs.OldStartingIndex);
+			Assert.AreEqual(3, collectionChangedEventArgs.NewStartingIndex);
+			Assert.IsTrue(collectionChangedEventArgs.OldItems!.Cast<int>().SequenceEqual(new[]{ 0 }));
+			collectionChangedEventArgs = null;
+			
+			observableSourceList.MoveRange(4, 0, 3); // 3, 4, 6, -4, 1, 1, 0
+			Assert.IsNotNull(collectionChangedEventArgs);
+			Assert.AreEqual(NotifyCollectionChangedAction.Move, collectionChangedEventArgs!.Action);
+			Assert.AreEqual(2, collectionChangedEventArgs.OldStartingIndex);
+			Assert.AreEqual(6, collectionChangedEventArgs.NewStartingIndex);
+			Assert.IsTrue(collectionChangedEventArgs.OldItems!.Cast<int>().SequenceEqual(new[]{ 6, 4, 3 }));
+			collectionChangedEventArgs = null;
+			Assert.IsTrue(reversedList.SequenceEqual(new[] { 0, 1, 1, -4, 6, 4, 3 }));
+			
+			// remove items
+			observableSourceList.RemoveAt(1); // 3, 6, -4, 1, 1, 0
+			Assert.IsNotNull(collectionChangedEventArgs);
+			Assert.AreEqual(NotifyCollectionChangedAction.Remove, collectionChangedEventArgs!.Action);
+			Assert.AreEqual(5, collectionChangedEventArgs.OldStartingIndex);
+			Assert.IsTrue(collectionChangedEventArgs.OldItems!.Cast<int>().SequenceEqual(new[]{ 4 }));
+			collectionChangedEventArgs = null;
+			
+			observableSourceList.RemoveRange(2, 3); // 3, 6, 0
+			Assert.IsNotNull(collectionChangedEventArgs);
+			Assert.AreEqual(NotifyCollectionChangedAction.Remove, collectionChangedEventArgs!.Action);
+			Assert.AreEqual(3, collectionChangedEventArgs.OldStartingIndex);
+			Assert.IsTrue(collectionChangedEventArgs.OldItems!.Cast<int>().SequenceEqual(new[]{ 1, 1, -4 }));
+			collectionChangedEventArgs = null;
+			Assert.IsTrue(reversedList.SequenceEqual(new[] { 0, 6, 3 }));
+			
+			// clear items
+			observableSourceList.Clear();
+			Assert.IsNotNull(collectionChangedEventArgs);
+			Assert.AreEqual(NotifyCollectionChangedAction.Reset, collectionChangedEventArgs!.Action);
+			collectionChangedEventArgs = null;
 		}
 	}
 }

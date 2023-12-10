@@ -253,6 +253,36 @@ namespace CarinaStudio.Collections
 
 
 		/// <summary>
+		/// Make given <see cref="IList{T}"/> as reversed <see cref="IList{T}"/>.
+		/// </summary>
+		/// <remarks>If <paramref name="list"/> implements <see cref="INotifyCollectionChanged"/> then returned <see cref="IList{T}"/> will also implements <see cref="INotifyCollectionChanged"/>.</remarks>
+		/// <typeparam name="T">Type of element.</typeparam>
+		/// <param name="list"><see cref="IList{T}"/> to be reversed.</param>
+		/// <returns>Reversed <see cref="IList{T}"/>.</returns>
+		public static IList<T> Reverse<T>(this IList<T> list)
+		{
+			return list is INotifyCollectionChanged 
+				? new ReversedObservableList<T>(list, false) 
+				: new ReversedList<T>(list, false);
+		}
+		
+		
+		/// <summary>
+		/// Make given <see cref="IList{T}"/> as read-only <see cref="IList{T}"/> which reversed its items.
+		/// </summary>
+		/// <remarks>If <paramref name="list"/> implements <see cref="INotifyCollectionChanged"/> then returned <see cref="IList{T}"/> will also implements <see cref="INotifyCollectionChanged"/>.</remarks>
+		/// <typeparam name="T">Type of element.</typeparam>
+		/// <param name="list"><see cref="IList{T}"/> to be reversed.</param>
+		/// <returns>Read-only <see cref="IList{T}"/> which reversed its items.</returns>
+		public static IList<T> ReverseAsReadOnly<T>(this IList<T> list)
+		{
+			return list is INotifyCollectionChanged 
+				? new ReversedObservableList<T>(list, true) 
+				: new ReversedList<T>(list, true);
+		}
+
+
+		/// <summary>
 		/// Select an element from given <see cref="IList{T}"/> randomly.
 		/// </summary>
 		/// <typeparam name="T">Type of element.</typeparam>
