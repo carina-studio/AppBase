@@ -20,6 +20,20 @@ namespace CarinaStudio
 			disposable?.Dispose();
 			return null;
 		}
+		
+		
+		/// <summary>
+		/// Call <see cref="IDisposable.Dispose"/> and return null.
+		/// </summary>
+		/// <typeparam name="T">Type which implements <see cref="IDisposable"/>.</typeparam>
+		/// <param name="disposable"><see cref="IDisposable.Dispose"/>.</param>
+		/// <returns>Null.</returns>
+		public static async Task<T?> DisposeAndReturnNullAsync<T>(this T? disposable) where T : class, IAsyncDisposable
+		{
+			if (disposable is not null)
+				await disposable.DisposeAsync();
+			return null;
+		}
 
 
 #pragma warning disable CS8600
@@ -131,6 +145,98 @@ namespace CarinaStudio
 				}
 			}
 			return result;
+		}
+
+
+		/// <summary>
+		/// Setup given instance of <see cref="IDisposable"/> and make sure that <see cref="IDisposable.Dispose"/> will be called if exception occurs during setup.
+		/// </summary>
+		/// <param name="obj"><see cref="IDisposable"/> to setup.</param>
+		/// <param name="action">Action to setup.</param>
+		/// <typeparam name="T">Type of <see cref="IDisposable"/> to setup.</typeparam>
+		/// <returns>The instance of <see cref="IDisposable"/>.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static T Setup<T>(this T obj, Action action) where T : IDisposable
+		{
+			try
+			{
+				action();
+				return obj;
+			}
+			catch
+			{
+				obj.Dispose();
+				throw;
+			}
+		}
+		
+		
+		/// <summary>
+		/// Setup given instance of <see cref="IDisposable"/> and make sure that <see cref="IDisposable.Dispose"/> will be called if exception occurs during setup.
+		/// </summary>
+		/// <param name="obj"><see cref="IDisposable"/> to setup.</param>
+		/// <param name="action">Action to setup.</param>
+		/// <typeparam name="T">Type of <see cref="IDisposable"/> to setup.</typeparam>
+		/// <returns>The instance of <see cref="IDisposable"/>.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static T Setup<T>(this T obj, Action<T> action) where T : IDisposable
+		{
+			try
+			{
+				action(obj);
+				return obj;
+			}
+			catch
+			{
+				obj.Dispose();
+				throw;
+			}
+		}
+		
+		
+		/// <summary>
+		/// Setup given instance of <see cref="IDisposable"/> asynchronously and make sure that <see cref="IDisposable.Dispose"/> will be called if exception occurs during setup.
+		/// </summary>
+		/// <param name="obj"><see cref="IDisposable"/> to setup.</param>
+		/// <param name="action">Action to setup.</param>
+		/// <typeparam name="T">Type of <see cref="IDisposable"/> to setup.</typeparam>
+		/// <returns>Task of setup. The result is instance of <see cref="IDisposable"/>.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static async Task<T> SetupAsync<T>(this T obj, Func<Task> action) where T : IDisposable
+		{
+			try
+			{
+				await action();
+				return obj;
+			}
+			catch
+			{
+				obj.Dispose();
+				throw;
+			}
+		}
+		
+		
+		/// <summary>
+		/// Setup given instance of <see cref="IDisposable"/> asynchronously and make sure that <see cref="IDisposable.Dispose"/> will be called if exception occurs during setup.
+		/// </summary>
+		/// <param name="obj"><see cref="IDisposable"/> to setup.</param>
+		/// <param name="action">Action to setup.</param>
+		/// <typeparam name="T">Type of <see cref="IDisposable"/> to setup.</typeparam>
+		/// <returns>Task of setup. The result is instance of <see cref="IDisposable"/>.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static async Task<T> SetupAsync<T>(this T obj, Func<T, Task> action) where T : IDisposable
+		{
+			try
+			{
+				await action(obj);
+				return obj;
+			}
+			catch
+			{
+				obj.Dispose();
+				throw;
+			}
 		}
 
 
