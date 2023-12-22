@@ -4,7 +4,7 @@
     <TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
     <IsPackable>false</IsPackable>
     <RootNamespace>CarinaStudio</RootNamespace>
-    <AssemblyName>CarinaStudio.Core.Tests</AssemblyName>
+    <AssemblyName>CarinaStudio.AppBase.Core.Tests</AssemblyName>
     <Nullable>enable</Nullable>
     <StartupObject>CarinaStudio.Program</StartupObject>
   </PropertyGroup>

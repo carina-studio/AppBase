@@ -1,7 +1,6 @@
 ﻿using NUnit.Framework;
 using CarinaStudio.IO;
 using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Text;
 using System.Threading;
@@ -15,7 +14,7 @@ namespace CarinaStudio.Net
 	class WebRequestStreamProviderTests : BaseStreamProviderTests
 	{
 		// Fields.
-		readonly HttpListener httpListener = new HttpListener();
+		readonly HttpListener httpListener = new();
 		volatile byte[]? preparedResponseData;
 		volatile byte[]? receivedRequestData;
 
@@ -53,7 +52,7 @@ namespace CarinaStudio.Net
 				while (true)
 				{
 					// wait for connection
-					var context = (HttpListenerContext?)null;
+					HttpListenerContext? context;
 					try
 					{
 						context = this.httpListener.GetContext();
@@ -69,7 +68,7 @@ namespace CarinaStudio.Net
 					this.receivedRequestData = context.Request.InputStream.Use(it => it.ReadAllBytes());
 
 					// response
-					var responseBuffer = this.preparedResponseData ?? new byte[0];
+					var responseBuffer = this.preparedResponseData ?? Array.Empty<byte>();
 					context.Response.Let(response =>
 					{
 						response.ContentLength64 = responseBuffer.Length;

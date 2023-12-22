@@ -83,7 +83,7 @@ namespace CarinaStudio.Net
 		/// </summary>
 		/// <param name="requestUri">Request URI.</param>
 		/// <param name="method">Protocol method.</param>
-		/// <param name="credentials">Crdentials.</param>
+		/// <param name="credentials">Credentials.</param>
 		/// <param name="cachePolicy">Cache policy.</param>
 		public WebRequestStreamProvider(Uri requestUri, string? method = null, ICredentials? credentials = null, RequestCachePolicy? cachePolicy = null)
 		{
@@ -197,7 +197,7 @@ namespace CarinaStudio.Net
 				throw new TaskCanceledException();
 
 			// get response
-			var response = (WebResponse?)null;
+			WebResponse? response;
 			try
 			{
 				response = request.GetResponse();
@@ -223,7 +223,7 @@ namespace CarinaStudio.Net
 				response.Dispose();
 				throw;
 			}
-		});
+		}, token);
 
 
 		/// <summary>
