@@ -40,6 +40,23 @@ namespace CarinaStudio
 
 
 		/// <summary>
+		/// Test for <see cref="ObservableExtensions.Invert"/>
+		/// </summary>
+		[Test]
+		public void InversionTest()
+		{
+			var notifiedValue = default(bool?);
+			var source = new MutableObservableBoolean(false);
+			var inverted = source.Invert();
+			inverted.Subscribe(value => notifiedValue = value);
+			Assert.IsTrue(notifiedValue!.Value);
+			notifiedValue = default;
+			source.Update(true);
+			Assert.IsFalse(notifiedValue!.Value);
+		}
+
+
+		/// <summary>
 		/// Test for observer subscription.
 		/// </summary>
 		[Test]

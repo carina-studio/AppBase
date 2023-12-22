@@ -16,6 +16,15 @@ namespace CarinaStudio
         /// <returns><see cref="IObservable{T}"/>.</returns>
         public static IObservable<TOut> Cast<TIn, TOut>(this IObservable<TIn> observable) =>
             new TypeConvertedObservable<TIn, TOut>(observable);
+
+
+        /// <summary>
+        /// Create <see cref="IObservable{T}"/> which inverts the source <see cref="IObservable{T}"/>.
+        /// </summary>
+        /// <param name="observable">Source <see cref="IObservable{T}"/>.</param>
+        /// <returns><see cref="IObservable{T}"/> with inverted value.</returns>
+        public static IObservable<bool> Invert(this IObservable<bool> observable) =>
+            new InvertedObservableBoolean(observable);
         
 
         /// <summary>
