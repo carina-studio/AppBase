@@ -20,6 +20,20 @@ namespace CarinaStudio
             fixed (T* ptr = span)
                 action((IntPtr)ptr);
         }
+        
+        
+        /// <summary>
+        /// Get address of value referenced by <see cref="Span{T}"/> and perform an action.
+        /// </summary>
+        /// <param name="span"><see cref="Span{T}"/>.</param>
+        /// <param name="action">Action to perform.</param>
+        /// <typeparam name="T">Type of value.</typeparam>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void PinAs<T>(this Span<T> span, PointerAction<T> action) where T : unmanaged
+        {
+            fixed (T* ptr = span)
+                action(ptr);
+        }
 
 
         /// <summary>
@@ -33,6 +47,20 @@ namespace CarinaStudio
         {
             fixed (T* ptr = span)
                 action((IntPtr)ptr);
+        }
+        
+        
+        /// <summary>
+        /// Get address of value referenced by <see cref="ReadOnlySpan{T}"/> and perform an action.
+        /// </summary>
+        /// <param name="span"><see cref="ReadOnlySpan{T}"/>.</param>
+        /// <param name="action">Action to perform.</param>
+        /// <typeparam name="T">Type of value.</typeparam>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Pin<T>(this ReadOnlySpan<T> span, PointerAction<T> action) where T : unmanaged
+        {
+            fixed (T* ptr = span)
+                action(ptr);
         }
 
 
@@ -78,6 +106,22 @@ namespace CarinaStudio
             fixed (T* ptr = span)
                 return func((IntPtr)ptr);
         }
+        
+        
+        /// <summary>
+        /// Get address of value referenced by <see cref="Span{T}"/> and generate value.
+        /// </summary>
+        /// <param name="span"><see cref="Span{T}"/>.</param>
+        /// <param name="func">Function to generate value.</param>
+        /// <typeparam name="T">Type of value.</typeparam>
+        /// <typeparam name="R">Type of generated value.</typeparam>
+        /// <returns>Generated value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static R Pin<T, R>(this Span<T> span, PointerInFunc<T, R> func) where T : unmanaged
+        {
+            fixed (T* ptr = span)
+                return func(ptr);
+        }
 
 
         /// <summary>
@@ -93,6 +137,22 @@ namespace CarinaStudio
         {
             fixed (T* ptr = span)
                 return func((IntPtr)ptr);
+        }
+        
+        
+        /// <summary>
+        /// Get address of value referenced by <see cref="ReadOnlySpan{T}"/> and generate value.
+        /// </summary>
+        /// <param name="span"><see cref="ReadOnlySpan{T}"/>.</param>
+        /// <param name="func">Function to generate value.</param>
+        /// <typeparam name="T">Type of value.</typeparam>
+        /// <typeparam name="R">Type of generated value.</typeparam>
+        /// <returns>Generated value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static R Pin<T, R>(this ReadOnlySpan<T> span, PointerInFunc<T, R> func) where T : unmanaged
+        {
+            fixed (T* ptr = span)
+                return func(ptr);
         }
 
 

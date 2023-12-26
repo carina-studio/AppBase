@@ -6,7 +6,7 @@ namespace CarinaStudio
 	/// <summary>
 	/// Extensions for <see cref="Memory{T}"/>.
 	/// </summary>
-	public static class MemoryExtensions
+	public static unsafe class MemoryExtensions
 	{
 		/// <summary>
 		/// Pin given <see cref="Memory{T}"/>, get address of memory and perform action.
@@ -18,10 +18,7 @@ namespace CarinaStudio
 		public static void Pin<T>(this Memory<T> memory, Action<IntPtr> action)
 		{
 			using var handle = memory.Pin();
-			unsafe
-			{
-				action(new IntPtr(handle.Pointer));
-			}
+			action(new IntPtr(handle.Pointer));
 		}
 
 
@@ -37,10 +34,7 @@ namespace CarinaStudio
 		{
 			using var handle1 = memoryList.Item1.Pin();
 			using var handle2 = memoryList.Item2.Pin();
-			unsafe
-			{
-				action(new IntPtr(handle1.Pointer), new IntPtr(handle2.Pointer));
-			}
+			action(new IntPtr(handle1.Pointer), new IntPtr(handle2.Pointer));
 		}
 
 
@@ -56,10 +50,7 @@ namespace CarinaStudio
 		public static R Pin<T, R>(this Memory<T> memory, Func<IntPtr, R> func)
 		{
 			using var handle = memory.Pin();
-			unsafe
-			{
-				return func(new IntPtr(handle.Pointer));
-			}
+			return func(new IntPtr(handle.Pointer));
 		}
 
 
@@ -77,10 +68,7 @@ namespace CarinaStudio
 		{
 			using var handle1 = memoryList.Item1.Pin();
 			using var handle2 = memoryList.Item2.Pin();
-			unsafe
-			{
-				return func(new IntPtr(handle1.Pointer), new IntPtr(handle2.Pointer));
-			}
+			return func(new IntPtr(handle1.Pointer), new IntPtr(handle2.Pointer));
 		}
 
 
@@ -94,10 +82,7 @@ namespace CarinaStudio
 		public static void Pin<T>(this ReadOnlyMemory<T> memory, Action<IntPtr> action)
 		{
 			using var handle = memory.Pin();
-			unsafe
-			{
-				action(new IntPtr(handle.Pointer));
-			}
+			action(new IntPtr(handle.Pointer));
 		}
 
 
@@ -113,10 +98,7 @@ namespace CarinaStudio
 		{
 			using var handle1 = memoryList.Item1.Pin();
 			using var handle2 = memoryList.Item2.Pin();
-			unsafe
-			{
-				action(new IntPtr(handle1.Pointer), new IntPtr(handle2.Pointer));
-			}
+			action(new IntPtr(handle1.Pointer), new IntPtr(handle2.Pointer));
 		}
 
 
@@ -132,10 +114,7 @@ namespace CarinaStudio
 		public static R Pin<T, R>(this ReadOnlyMemory<T> memory, Func<IntPtr, R> func)
 		{
 			using var handle = memory.Pin();
-			unsafe
-			{
-				return func(new IntPtr(handle.Pointer));
-			}
+			return func(new IntPtr(handle.Pointer));
 		}
 
 
@@ -153,10 +132,7 @@ namespace CarinaStudio
 		{
 			using var handle1 = memoryList.Item1.Pin();
 			using var handle2 = memoryList.Item2.Pin();
-			unsafe
-			{
-				return func(new IntPtr(handle1.Pointer), new IntPtr(handle2.Pointer));
-			}
+			return func(new IntPtr(handle1.Pointer), new IntPtr(handle2.Pointer));
 		}
 
 
@@ -168,7 +144,7 @@ namespace CarinaStudio
 		/// <param name="memory"><see cref="Memory{T}"/>.</param>
 		/// <param name="action">Method to receive address of memory and perform action.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe void PinAs<T, TPtr>(this Memory<T> memory, PointerAction<TPtr> action) where TPtr : unmanaged
+		public static void PinAs<T, TPtr>(this Memory<T> memory, PointerAction<TPtr> action) where TPtr : unmanaged
 		{
 			using var handle = memory.Pin();
 			action((TPtr*)handle.Pointer);
@@ -185,7 +161,7 @@ namespace CarinaStudio
 		/// <param name="memoryList">List of <see cref="Memory{T}"/>.</param>
 		/// <param name="action">Method to receive addresses of memory and perform action.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe void PinAs<T1, T2, TPtr1, TPtr2>(this (Memory<T1>, Memory<T2>) memoryList, PointerAction<TPtr1, TPtr2> action) where TPtr1 : unmanaged where TPtr2 : unmanaged
+		public static void PinAs<T1, T2, TPtr1, TPtr2>(this (Memory<T1>, Memory<T2>) memoryList, PointerAction<TPtr1, TPtr2> action) where TPtr1 : unmanaged where TPtr2 : unmanaged
 		{
 			using var handle1 = memoryList.Item1.Pin();
 			using var handle2 = memoryList.Item2.Pin();
@@ -203,7 +179,7 @@ namespace CarinaStudio
 		/// <param name="func">Function to receive address of memory and generate value.</param>
 		/// <returns>Generated value.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe R PinAs<T, TPtr, R>(this Memory<T> memory, PointerInFunc<TPtr, R> func) where TPtr : unmanaged
+		public static R PinAs<T, TPtr, R>(this Memory<T> memory, PointerInFunc<TPtr, R> func) where TPtr : unmanaged
 		{
 			using var handle = memory.Pin();
 			return func((TPtr*)handle.Pointer);
@@ -222,7 +198,7 @@ namespace CarinaStudio
 		/// <param name="func">Function to receive addresses of memory and generate value.</param>
 		/// <returns>Generated value.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe R PinAs<T1, T2, TPtr1, TPtr2, R>(this (Memory<T1>, Memory<T2>) memoryList, PointerInFunc<TPtr1, TPtr2, R> func) where TPtr1 : unmanaged where TPtr2 : unmanaged
+		public static R PinAs<T1, T2, TPtr1, TPtr2, R>(this (Memory<T1>, Memory<T2>) memoryList, PointerInFunc<TPtr1, TPtr2, R> func) where TPtr1 : unmanaged where TPtr2 : unmanaged
 		{
 			using var handle1 = memoryList.Item1.Pin();
 			using var handle2 = memoryList.Item2.Pin();
@@ -238,7 +214,7 @@ namespace CarinaStudio
 		/// <param name="memory"><see cref="ReadOnlyMemory{T}"/>.</param>
 		/// <param name="action">Method to receive address of memory and perform action.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe void PinAs<T, TPtr>(this ReadOnlyMemory<T> memory, PointerAction<TPtr> action) where TPtr : unmanaged
+		public static void PinAs<T, TPtr>(this ReadOnlyMemory<T> memory, PointerAction<TPtr> action) where TPtr : unmanaged
 		{
 			using var handle = memory.Pin();
 			action((TPtr*)handle.Pointer);
@@ -255,7 +231,7 @@ namespace CarinaStudio
 		/// <param name="memoryList">List of <see cref="ReadOnlyMemory{T}"/>.</param>
 		/// <param name="action">Method to receive addresses of memory and perform action.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe void PinAs<T1, T2, TPtr1, TPtr2>(this (ReadOnlyMemory<T1>, ReadOnlyMemory<T2>) memoryList, PointerAction<TPtr1, TPtr2> action) where TPtr1 : unmanaged where TPtr2 : unmanaged
+		public static void PinAs<T1, T2, TPtr1, TPtr2>(this (ReadOnlyMemory<T1>, ReadOnlyMemory<T2>) memoryList, PointerAction<TPtr1, TPtr2> action) where TPtr1 : unmanaged where TPtr2 : unmanaged
 		{
 			using var handle1 = memoryList.Item1.Pin();
 			using var handle2 = memoryList.Item2.Pin();
@@ -273,7 +249,7 @@ namespace CarinaStudio
 		/// <param name="func">Function to receive address of memory and generate value.</param>
 		/// <returns>Generated value.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe R PinAs<T, TPtr, R>(this ReadOnlyMemory<T> memory, PointerInFunc<TPtr, R> func) where TPtr : unmanaged
+		public static R PinAs<T, TPtr, R>(this ReadOnlyMemory<T> memory, PointerInFunc<TPtr, R> func) where TPtr : unmanaged
 		{
 			using var handle = memory.Pin();
 			return func((TPtr*)handle.Pointer);
@@ -292,7 +268,7 @@ namespace CarinaStudio
 		/// <param name="func">Function to receive addresses of memory and generate value.</param>
 		/// <returns>Generated value.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe R PinAs<T1, T2, TPtr1, TPtr2, R>(this (ReadOnlyMemory<T1>, ReadOnlyMemory<T2>) memoryList, PointerInFunc<TPtr1, TPtr2, R> func) where TPtr1 : unmanaged where TPtr2 : unmanaged
+		public static R PinAs<T1, T2, TPtr1, TPtr2, R>(this (ReadOnlyMemory<T1>, ReadOnlyMemory<T2>) memoryList, PointerInFunc<TPtr1, TPtr2, R> func) where TPtr1 : unmanaged where TPtr2 : unmanaged
 		{
 			using var handle1 = memoryList.Item1.Pin();
 			using var handle2 = memoryList.Item2.Pin();
