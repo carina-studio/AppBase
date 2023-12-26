@@ -1,3 +1,5 @@
+using System;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace CarinaStudio
@@ -151,6 +153,62 @@ namespace CarinaStudio
                 } while (length > 0);
             }
             return count;
+        }
+        
+        
+        /// <summary>
+        /// Get address of characters in given <see cref="String"/> and perform action.
+        /// </summary>
+        /// <param name="s"><see cref="String"/>.</param>
+        /// <param name="action">Action to perform.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Pin(this string s, Action<IntPtr> action)
+        {
+            fixed (char* p = s)
+                action(new(p));
+        }
+
+
+        /// <summary>
+        /// Get address of characters in given <see cref="String"/> and generate value.
+        /// </summary>
+        /// <param name="s"><see cref="String"/>.</param>
+        /// <param name="func">Function to generate value.</param>
+        /// <typeparam name="R">Type of generated value.</typeparam>
+        /// <returns>Generated value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static R Pin<R>(this string s, Func<IntPtr, R> func)
+        {
+            fixed (char* p = s)
+                return func(new(p));
+        }
+        
+        
+        /// <summary>
+        /// Get address of characters in given <see cref="String"/> and perform action.
+        /// </summary>
+        /// <param name="s"><see cref="String"/>.</param>
+        /// <param name="action">Action to perform.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Pin(this string s, PointerAction<char> action)
+        {
+            fixed (char* p = s)
+                action(p);
+        }
+
+
+        /// <summary>
+        /// Get address of characters in given <see cref="String"/> and generate value.
+        /// </summary>
+        /// <param name="s"><see cref="String"/>.</param>
+        /// <param name="func">Function to generate value.</param>
+        /// <typeparam name="R">Type of generated value.</typeparam>
+        /// <returns>Generated value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static R Pin<R>(this string s, PointerInFunc<char, R> func)
+        {
+            fixed (char* p = s)
+                return func(p);
         }
 
 
