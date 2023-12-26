@@ -200,7 +200,7 @@ namespace CarinaStudio.Controls
 	                };
 	                it.Duration = duration;
 	                it.Interpolator = interpolator ?? Interpolators.Default;
-	                it.ProgressChanged += (_, _) => { scrollViewer.Offset = new(offset.X + diffX * it.Progress, offset.Y + diffY * it.Progress); };
+	                it.ProgressChanged += (_, _) => { scrollViewer.Offset = new(currentOffset.X + diffX * it.Progress, currentOffset.Y + diffY * it.Progress); };
 	            });
 	            scrollViewer.AddHandler(ScrollViewer.PointerPressedEvent, OnPointerPressed, RoutingStrategies.Tunnel);
 	            scrollViewer.AddHandler(ScrollViewer.PointerWheelChangedEvent, OnPointerWheelChanged, RoutingStrategies.Tunnel);
