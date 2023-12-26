@@ -50,7 +50,7 @@ namespace CarinaStudio.Controls
 			ScrollIntoView(scrollViewer, visual, TimeSpan.Zero, null, scrollToCenter);
 		
 		
-		// Scroll given visual into viewport ofScrollViewer.
+		// Scroll given visual into viewport of ScrollViewer.
 	    static bool ScrollIntoView(ScrollViewer scrollViewer, Visual visual, TimeSpan duration, Func<double, double>? interpolator, bool scrollToCenter)
 	    {
 	        // check parameter
@@ -78,7 +78,6 @@ namespace CarinaStudio.Controls
 	        var bottomInScrollViewer = topInScrollViewer + contentBounds.Height;
 
 	        // check whether scrolling is needed or not
-	        var extent = scrollViewer.Extent;
 	        var viewportSize = scrollViewer.Viewport;
 	        var viewportCenter = new Point(offset.X + viewportSize.Width / 2, offset.Y + viewportSize.Height / 2);
 	        var scrollHorizontally = scrollViewer.HorizontalScrollBarVisibility != ScrollBarVisibility.Disabled && Global.Run(() =>
@@ -137,19 +136,32 @@ namespace CarinaStudio.Controls
 	                return topInScrollViewer;
 	            return bottomInScrollViewer - viewportSize.Height;
 	        });
-	        newOffsetX = Math.Max(0, Math.Min(newOffsetX, extent.Width - viewportSize.Width));
-	        newOffsetY = Math.Max(0, Math.Min(newOffsetY, extent.Height - viewportSize.Height));
-	        var diffX = (newOffsetX - offset.X);
-	        var diffY = (newOffsetY - offset.Y);
-	        if (Math.Abs(diffX) < Double.Epsilon * 2 && Math.Abs(diffY) < double.Epsilon * 2)
-	            return false;
-
-	        // cancel previous scrolling
+	        
+	        // scroll to content
+	        return ScrollTo(scrollViewer, new(newOffsetX, newOffsetY), duration, interpolator);
+	    }
+	    
+	    
+	    // Scroll to given offset.
+	    static bool ScrollTo(ScrollViewer scrollViewer, Vector offset, TimeSpan duration, Func<double, double>? interpolator)
+	    {
+		    // check offset
+		    var extent = scrollViewer.Extent;
+		    var viewportSize = scrollViewer.Viewport;
+		    var currentOffset = scrollViewer.Offset;
+		    var offsetX = Math.Max(0, Math.Min(offset.X, extent.Width - viewportSize.Width));
+		    var offsetY = Math.Max(0, Math.Min(offset.Y, extent.Height - viewportSize.Height));
+		    var diffX = (offsetX - currentOffset.X);
+		    var diffY = (offsetY - currentOffset.Y);
+		    if (Math.Abs(diffX) < Double.Epsilon * 2 && Math.Abs(diffY) < double.Epsilon * 2)
+			    return false;
+		    
+		    // cancel previous scrolling
 	        if (SmoothScrollingAnimators.TryGetValue(scrollViewer, out var prevAnimator))
 	            prevAnimator.Cancel();
 	        SmoothScrollingTargetOffsets.Remove(scrollViewer);
 
-	        // scroll to content
+	        // scroll to given offset
 	        if (duration.TotalMilliseconds > 0)
 	        {
 	            var animator = default(DoubleAnimator);
@@ -179,7 +191,7 @@ namespace CarinaStudio.Controls
 	                    {
 	                        SmoothScrollingAnimators.Remove(scrollViewer);
 	                        SmoothScrollingTargetOffsets.Remove(scrollViewer);
-	                        scrollViewer.Offset = new(newOffsetX, newOffsetY);
+	                        scrollViewer.Offset = new(offsetX, offsetY);
 	                    }
 	                    scrollViewer.RemoveHandler(ScrollViewer.PointerPressedEvent, OnPointerPressed);
 	                    scrollViewer.RemoveHandler(ScrollViewer.PointerWheelChangedEvent, OnPointerWheelChanged);
@@ -193,11 +205,11 @@ namespace CarinaStudio.Controls
 	            scrollViewer.AddHandler(ScrollViewer.PointerPressedEvent, OnPointerPressed, RoutingStrategies.Tunnel);
 	            scrollViewer.AddHandler(ScrollViewer.PointerWheelChangedEvent, OnPointerWheelChanged, RoutingStrategies.Tunnel);
 	            SmoothScrollingAnimators[scrollViewer] = animator;
-	            SmoothScrollingTargetOffsets[scrollViewer] = new(newOffsetX, newOffsetY);
+	            SmoothScrollingTargetOffsets[scrollViewer] = new(offsetX, offsetY);
 	            animator.Start();
 	        }
 	        else
-	            scrollViewer.Offset = new(newOffsetX, newOffsetY);
+	            scrollViewer.Offset = new(offsetX, offsetY);
 	        return true;
 	    }
 	    
@@ -213,6 +225,18 @@ namespace CarinaStudio.Controls
 	    /// <returns>True if smooth scrolling starts successfully.</returns>
 	    public static bool SmoothScrollIntoView(this ScrollViewer scrollViewer, Visual visual, TimeSpan duration, Func<double, double>? interpolator = null, bool scrollToCenter = true) =>
 		    ScrollIntoView(scrollViewer, visual, duration, interpolator, scrollToCenter);
+
+
+	    /// <summary>
+	    /// Scroll <see cref="ScrollViewer"/> to given offset smoothly.
+	    /// </summary>
+	    /// <param name="scrollViewer"><see cref="ScrollViewer"/>.</param>
+	    /// <param name="offset">Target offset.</param>
+	    /// <param name="duration">Duration of smooth scrolling.</param>
+	    /// <param name="interpolator">Interpolator of smooth scrolling.</param>
+	    /// <returns>True if smooth scrolling starts successfully.</returns>
+	    public static bool SmoothScrollTo(this ScrollViewer scrollViewer, Vector offset, TimeSpan duration, Func<double, double>? interpolator = null) =>
+		    ScrollTo(scrollViewer, offset, duration, interpolator);
 	    
 	    
 	    /// <summary>
