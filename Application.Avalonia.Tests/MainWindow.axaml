@@ -6,8 +6,10 @@
 		xmlns:sys="using:System"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="CarinaStudio.MainWindow"
+		Height="600"
 		Icon="/AppIcon.ico"
-        Title="Application.Avalonia.Tests">
+        Title="Application.Avalonia.Tests"
+		Width="800">
 	
 	<Window.Resources>
 		<sys:String x:Key="Title">Title in resources</sys:String>

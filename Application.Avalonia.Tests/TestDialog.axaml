@@ -5,13 +5,14 @@
         mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="300"
         x:Class="CarinaStudio.TestDialog"
 		CanResize="False"
-        SizeToContent="WidthAndHeight"
+        SizeToContent="Height"
         Title="TestDialog"
-		WindowStartupLocation="CenterScreen">
+        Width="300"
+		WindowStartupLocation="CenterOwner">
     
     <StackPanel>
         <Button Name="generateResultButton" Command="{Binding $parent[Window].GenerateResult}" Content="Generate result" HorizontalAlignment="Left" Margin="5"/>
-        <Border Height="300" Width="400"/>
+        <Border BorderBrush="Blue" BorderThickness="2" Height="200"/>
     </StackPanel>
 
 </Window>

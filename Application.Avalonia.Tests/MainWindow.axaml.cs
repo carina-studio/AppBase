@@ -282,7 +282,6 @@ namespace CarinaStudio
             }
             */
             
-            /*
             if (this.testDialog == null)
             {
                 this.testDialog = new TestDialog().Also(it =>
@@ -293,7 +292,6 @@ namespace CarinaStudio
             }
             else
                 _ = new TestDialog().ShowDialog(this);
-            */
             
             var transform = this.Find<Rectangle>("rect")?.RenderTransform as TranslateTransform;
             if (transform == null)
