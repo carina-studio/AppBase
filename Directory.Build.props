@@ -4,15 +4,15 @@
     <PropertyGroup>
 
         <!-- Version -->
-        <AssemblyVersion>2.1.25.1226</AssemblyVersion>
-        <PackageVersion>2.1.25.1226-preview</PackageVersion>
-        <Version>2.1.25.1226</Version>
+        <AssemblyVersion>2.1.26.101</AssemblyVersion>
+        <PackageVersion>2.1.26.101-preview</PackageVersion>
+        <Version>2.1.26.101</Version>
 
         <!-- Other information -->
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <Authors>Carina Studio</Authors>
         <Company>Carina Studio</Company>
-        <Copyright>©2021-2023 Carina Studio</Copyright>
+        <Copyright>©2021-2024 Carina Studio</Copyright>
         <Nullable>enable</Nullable>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageProjectUrl>https://carina-studio.github.io/AppBase/</PackageProjectUrl>
