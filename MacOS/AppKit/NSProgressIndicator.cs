@@ -145,7 +145,7 @@ public class NSProgressIndicator : NSView
         set 
         {
             IsIndeterminateProperty ??= NSProgressIndicatorClass!.GetProperty("indeterminate").AsNonNull();
-            this.SetProperty<bool>(IsIndeterminateProperty, value);
+            this.SetProperty(IsIndeterminateProperty, value);
         }
     }
 
@@ -163,7 +163,7 @@ public class NSProgressIndicator : NSView
         set 
         {
             MaxValueProperty ??= NSProgressIndicatorClass!.GetProperty("maxValue").AsNonNull();
-            this.SetProperty<double>(MaxValueProperty, value);
+            this.SetProperty(MaxValueProperty, value);
         }
     }
 
@@ -181,7 +181,7 @@ public class NSProgressIndicator : NSView
         set 
         {
             MinValueProperty ??= NSProgressIndicatorClass!.GetProperty("minValue").AsNonNull();
-            this.SetProperty<double>(MinValueProperty, value);
+            this.SetProperty(MinValueProperty, value);
         }
     }
 

@@ -44,10 +44,11 @@ namespace CarinaStudio.MacOS
 
         static void Main(string[] args)
         {
-            var app = NSApplication.Shared;
-            app.Delegate = new AppDelegate();
+            Console.WriteLine("Start");
+            //var app = NSApplication.Shared;
+            //app.Delegate = new AppDelegate();
 
-            app.Run();
+            //app.Run();
         }
     }
 }

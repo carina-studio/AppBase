@@ -84,8 +84,10 @@ namespace CarinaStudio.MacOS.ObjectiveC
 
 
         /// <inheritdoc/>
+#pragma warning disable CS0659
         public override bool Equals(object? obj) =>
             obj is NSString s && this.Equals(s);
+#pragma warning restore CS0659
 
 
         // Initialize.
@@ -101,7 +103,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <summary>
         /// Get number of characters.
         /// </summary>
-        public int Length { get => this.GetProperty<int>(LengthProperty!); }
+        public int Length => this.GetProperty<int>(LengthProperty!);
 
 
         /// <summary>
@@ -115,7 +117,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// Inequality operator.
         /// </summary>
         public static bool operator !=(NSString? l, NSString? r) =>
-            l?.Equals(r) == true ? false : ((l is null) != (r is null));
+            l?.Equals(r) != true && ((l is null) != (r is null));
 
 
         /// <inheritdoc/>

@@ -108,7 +108,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
             var instance = NSObject.Initialize(cls.Allocate());
             foreach (var varInfo in varInfoList)
             {
-                var ivar = cls.GetInstanceVriable(varInfo.Item1);
+                var ivar = cls.GetInstanceVariable(varInfo.Item1);
                 Assert.IsNotNull(ivar);
                 
                 // check name

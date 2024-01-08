@@ -31,9 +31,9 @@ public class NSEnumerator: NSObject
     
 
     /// <summary>
-    /// Get array of unenumerated objects.
+    /// Get array of enumerated objects.
     /// </summary>
-    public NSArray<NSObject> AllObjects { get => this.GetProperty<NSArray<NSObject>>(AllObjsProperty!); }
+    public NSArray<NSObject> AllObjects => this.GetProperty<NSArray<NSObject>>(AllObjsProperty!);
 
 
     /// <summary>
@@ -41,5 +41,5 @@ public class NSEnumerator: NSObject
     /// </summary>
     /// <returns>Object from collection, or Null if no more object to enumerate.</returns>
     public NSObject? NextObject() =>
-        this.SendMessage<NSObject>(NextObjSelector!);
+        this.SendMessage<NSObject?>(NextObjSelector!);
 }

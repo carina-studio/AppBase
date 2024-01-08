@@ -219,7 +219,7 @@ public class NSWindow : NSResponder
     protected static IntPtr Initialize(IntPtr obj, NSRect contentRect, StyleMask style, BackingStoreType backingStoreType, bool defer)
     {
         InitWithRectSelector ??= Selector.FromName("initWithContentRect:styleMask:backing:defer:");
-        return NSObject.SendMessage<IntPtr>(obj, InitWithRectSelector, contentRect, style, backingStoreType, defer);
+        return SendMessage<IntPtr>(obj, InitWithRectSelector, contentRect, style, backingStoreType, defer);
     }
     
 
@@ -230,7 +230,7 @@ public class NSWindow : NSResponder
     protected static IntPtr Initialize(IntPtr obj, NSRect contentRect, StyleMask style, BackingStoreType backingStoreType, bool defer, NSObject? screen)
     {
         InitWithRectAndScreenSelector ??= Selector.FromName("initWithContentRect:styleMask:backing:defer:screen:");
-        return NSObject.SendMessage<IntPtr>(obj, InitWithRectAndScreenSelector, contentRect, style, backingStoreType, defer, screen);
+        return SendMessage<IntPtr>(obj, InitWithRectAndScreenSelector, contentRect, style, backingStoreType, defer, screen);
     }
     
 
@@ -318,7 +318,7 @@ public class NSWindow : NSResponder
             var handle = this.GetProperty<IntPtr>(SubtitleProperty);
             if (handle == default)
                 return "";
-            return NSObject.FromHandle<NSString>(handle, false)!.ToString();
+            return FromHandle<NSString>(handle, false)!.ToString();
         }
         set
         {
@@ -342,7 +342,7 @@ public class NSWindow : NSResponder
             var handle = this.GetProperty<IntPtr>(TitleProperty!);
             if (handle == default)
                 return "";
-            return NSObject.FromHandle<NSString>(handle, false)!.ToString();
+            return FromHandle<NSString>(handle, false)!.ToString();
         }
         set
         {

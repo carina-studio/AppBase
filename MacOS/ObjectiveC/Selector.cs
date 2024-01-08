@@ -142,7 +142,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// Inequality operator.
         /// </summary>
         public static bool operator !=(Selector? l, Selector? r) =>
-            l?.Equals(r) == false ? true : (l is null) != (r is null);
+            l?.Equals(r) == false || (l is null) != (r is null);
 
 
         /// <inheritdoc/>

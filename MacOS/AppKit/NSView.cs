@@ -77,8 +77,8 @@ public class NSView : NSResponder
 #if DEBUG
         var properties = NSViewClass.GetProperties();
         var methods = NSViewClass.GetMethods();
-        Array.Sort(properties, (l, r) => l.Name.CompareTo(r.Name));
-        Array.Sort(methods, (l, r) => l.Name.CompareTo(r.Name));
+        Array.Sort(properties, (l, r) => string.CompareOrdinal(l.Name, r.Name));
+        Array.Sort(methods, (l, r) => string.CompareOrdinal(l.Name, r.Name));
 #endif
     }
 
@@ -398,7 +398,7 @@ public class NSView : NSResponder
     protected static IntPtr Initialize(IntPtr view, NSRect frame)
     {
         InitWithFrameSelector ??= Selector.FromName("initWithFrame:");
-        return NSObject.SendMessage<IntPtr>(view, InitWithFrameSelector, frame);
+        return SendMessage<IntPtr>(view, InitWithFrameSelector, frame);
     }
     
 

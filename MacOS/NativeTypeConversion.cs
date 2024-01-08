@@ -1,8 +1,6 @@
 using CarinaStudio.MacOS.CoreFoundation;
 using CarinaStudio.MacOS.ObjectiveC;
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -14,10 +12,6 @@ namespace CarinaStudio.MacOS;
 /// </summary>
 static class NativeTypeConversion
 {
-    // Fields.
-    static readonly IDictionary<Type, bool> CachedFloatingPointStructures = new ConcurrentDictionary<Type, bool>();
-
-
     // Convert from native parameter to CLR parameter.
     public static object? FromNativeParameter(object nativeValue, Type targetType)
     {
@@ -54,7 +48,7 @@ static class NativeTypeConversion
             var gcHandle = GCHandle.FromIntPtr(nintValue);
             var clrObj = gcHandle.Target;
             gcHandle.Free();
-            if (clrObj == null || targetType.IsAssignableFrom(clrObj.GetType()))
+            if (clrObj is null || targetType.IsInstanceOfType(clrObj))
                 return clrObj;
         }
         throw new NotSupportedException($"Cannot convert native value to {targetType.Name}.");
@@ -93,7 +87,7 @@ static class NativeTypeConversion
             if (targetType == typeof(byte))
             {
                 consumedBytes = sizeof(byte);
-                return *(byte*)valuePtr;
+                return *valuePtr;
             }
             if (targetType == typeof(sbyte))
             {
@@ -152,7 +146,7 @@ static class NativeTypeConversion
                 throw new NotSupportedException($"Cannot convert native value to {targetType.Name}.", ex);
             }
         }
-        else if (targetType.IsClass)
+        if (targetType.IsClass)
         {
             consumedBytes = IntPtr.Size;
             var handle = *(IntPtr*)valuePtr;
@@ -167,7 +161,7 @@ static class NativeTypeConversion
             GCHandle gcHandle = GCHandle.FromIntPtr(handle);
             return gcHandle.IsAllocated ? gcHandle.Target : null;
         }
-        else if (targetType == typeof(string))
+        if (targetType == typeof(string))
         {
             var s = new string((sbyte*)valuePtr);
             consumedBytes = s.Length + 1;
@@ -246,7 +240,7 @@ static class NativeTypeConversion
                     }
                     if (elementCount < 0)
                         goto default;
-                    var elementType = FromTypeEncoding(typeEncoding.Slice(subIndex, typeEncodingLength - subIndex), out var subElementCount, out consumedChars);
+                    var elementType = FromTypeEncoding(typeEncoding.Slice(subIndex, typeEncodingLength - subIndex), out _, out consumedChars);
                     if (subIndex + consumedChars > typeEncodingLength || typeEncoding[subIndex + consumedChars] != ']')
                         goto default;
                     consumedChars += subIndex + 1;
@@ -352,6 +346,7 @@ static class NativeTypeConversion
                             bitCount = int.Parse(typeEncoding.Slice(1, subIndex - 1));
                             break;
                         }
+                        ++subIndex;
                     }
                     if (bitCount < 0)
                         goto default;
@@ -431,7 +426,7 @@ static class NativeTypeConversion
     // Convert from CLR parameter to native parameter.
     public static object ToNativeParameter(object? value)
     {
-        if (value == null)
+        if (value is null)
             return default(nint);
         if (IsNativeType(value.GetType()))
             return value;
@@ -441,15 +436,15 @@ static class NativeTypeConversion
             return (nint)nuintValue;
         if (value is GCHandle gcHandle)
             return GCHandle.ToIntPtr(gcHandle);
-        else if (value.GetType().IsClass)
+        if (value.GetType().IsClass)
         {
             if (value is CFObject cfObject)
                 return cfObject.Handle;
-            else if (value is NSObject nsObject)
+            if (value is NSObject nsObject)
                 return nsObject.Handle;
-            else if (value is Class cls)
+            if (value is Class cls)
                 return cls.Handle;
-            else if (value is Selector sel)
+            if (value is Selector sel)
                 return sel.Handle;
             return GCHandle.ToIntPtr(GCHandle.Alloc(value));
         }
@@ -460,7 +455,7 @@ static class NativeTypeConversion
     // Convert from CLR object to native value.
     public static unsafe int ToNativeValue(object? obj, byte* valuePtr)
     {
-        obj?.GetType()?.Let(t =>
+        obj?.GetType().Let(t =>
         {
             if (t.IsEnum)
             {
@@ -477,82 +472,82 @@ static class NativeTypeConversion
                     throw new NotSupportedException($"Cannot convert {obj.GetType().Name} to native type.");
             }
         });
-        if (obj == null)
+        if (obj is null)
         {
             *(nint*)valuePtr = 0;
             return IntPtr.Size;
         }
-        else if (obj is bool boolValue)
+        if (obj is bool boolValue)
         {
             *(bool*)valuePtr = boolValue;
             return sizeof(bool);
         }
-        else if (obj is IntPtr intPtrValue)
+        if (obj is IntPtr intPtrValue)
         {
             *(IntPtr*)valuePtr = intPtrValue;
             return IntPtr.Size;
         }
-        else if (obj is UIntPtr uintPtrValue)
+        if (obj is UIntPtr uintPtrValue)
         {
             *(UIntPtr*)valuePtr = uintPtrValue;
             return UIntPtr.Size;
         }
-        else if (obj is byte byteValue)
+        if (obj is byte byteValue)
         {
-            *(byte*)valuePtr = byteValue;
+            *valuePtr = byteValue;
             return sizeof(byte);
         }
-        else if (obj is sbyte sbyteValue)
+        if (obj is sbyte sbyteValue)
         {
             *(sbyte*)valuePtr = sbyteValue;
             return sizeof(sbyte);
         }
-        else if (obj is short shortValue)
+        if (obj is short shortValue)
         {
             *(short*)valuePtr = shortValue;
             return sizeof(short);
         }
-        else if (obj is ushort ushortValue)
+        if (obj is ushort ushortValue)
         {
             *(ushort*)valuePtr = ushortValue;
             return sizeof(ushort);
         }
-        else if (obj is char charValue)
+        if (obj is char charValue)
         {
-            *(ushort*)valuePtr = (ushort)charValue;
+            *(ushort*)valuePtr = charValue;
             return sizeof(ushort);
         }
-        else if (obj is int intValue)
+        if (obj is int intValue)
         {
             *(int*)valuePtr = intValue;
             return sizeof(int);
         }
-        else if (obj is uint uintValue)
+        if (obj is uint uintValue)
         {
             *(uint*)valuePtr = uintValue;
             return sizeof(uint);
         }
-        else if (obj is long longValue)
+        if (obj is long longValue)
         {
             *(long*)valuePtr = longValue;
             return sizeof(long);
         }
-        else if (obj is ulong ulongValue)
+        if (obj is ulong ulongValue)
         {
             *(ulong*)valuePtr = ulongValue;
             return sizeof(ulong);
         }
-        else if (obj is float floatValue)
+        if (obj is float floatValue)
         {
             *(float*)valuePtr = floatValue;
             return sizeof(float);
         }
-        else if (obj is double doubleValue)
+        if (obj is double doubleValue)
         {
             *(double*)valuePtr = doubleValue;
             return sizeof(double);
         }
-        else if (obj is ValueType)
+        if (obj is ValueType)
         {
             try
             {
@@ -565,23 +560,22 @@ static class NativeTypeConversion
                 throw new NotSupportedException($"Cannot convert {obj.GetType().Name} to native type.", ex);
             }
         }
-        else if (obj is NSObject nsObj)
+        if (obj is NSObject nsObj)
         {
             *(IntPtr*)valuePtr = nsObj.Handle;
             return IntPtr.Size;
         }
-        else if (obj is Class cls)
+        if (obj is Class cls)
         {
             *(IntPtr*)valuePtr = cls.Handle;
             return IntPtr.Size;
         }
-        else if (obj is Selector selector)
+        if (obj is Selector selector)
         {
             *(IntPtr*)valuePtr = selector.Handle;
             return IntPtr.Size;
         }
-        else
-            throw new NotSupportedException($"Cannot convert {obj.GetType().Name} to native type.");
+        throw new NotSupportedException($"Cannot convert {obj.GetType().Name} to native type.");
     }
 
 
@@ -590,11 +584,11 @@ static class NativeTypeConversion
     {
         if (IsNativeType(type))
             return type;
-        else if (type == typeof(char)) // To prevent marshalling as sbyte
+        if (type == typeof(char)) // To prevent marshalling as sbyte
             return typeof(ushort);
-        else if (type == typeof(nuint)) // No difference in native layer
+        if (type == typeof(nuint)) // No difference in native layer
             return typeof(nint);
-        else if (type == typeof(GCHandle) || type.IsClass)
+        if (type == typeof(GCHandle) || type.IsClass)
             return typeof(nint); // CLR object through GCHandle
         throw new NotSupportedException($"Cannot convert from {type.Name} to native type.");
     }
@@ -661,7 +655,7 @@ static class NativeTypeConversion
                 if (fieldType.IsArray)
                 {
                     var marshalAsAttr = fieldInfo.GetCustomAttribute<MarshalAsAttribute>();
-                    if (marshalAsAttr == null)
+                    if (marshalAsAttr is null)
                         throw new ArgumentException($"Array field without MarshalAs attribute: {type.Name}.{fieldInfo.Name}.");
                     if (marshalAsAttr.Value == UnmanagedType.ByValArray)
                     {
@@ -677,13 +671,13 @@ static class NativeTypeConversion
             teBuffer.Append('}');
             return isArray ? $"[{arrayLengthPrefix}{teBuffer}]" : teBuffer.ToString();
         }
-        else if (type == typeof(Class))
+        if (type == typeof(Class))
             return isArray ? $"[{arrayLengthPrefix}#]" : "#";
-        else if (type == typeof(Selector))
+        if (type == typeof(Selector))
             return isArray ? $"[{arrayLengthPrefix}:]" : ":";
-        else if (typeof(NSObject).IsAssignableFrom(type))
+        if (typeof(NSObject).IsAssignableFrom(type))
             return isArray ? $"[{arrayLengthPrefix}@]" : "@";
-        else if (type == typeof(string))
+        if (type == typeof(string))
             return isArray ? $"[{arrayLengthPrefix}*]" : "*";
         throw new NotSupportedException($"Unsupported type for Objective-C: {type.Name}.");
     }

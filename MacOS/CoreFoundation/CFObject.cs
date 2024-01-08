@@ -69,9 +69,11 @@ namespace CarinaStudio.MacOS.CoreFoundation
             obj is CFObject cfo && this.handle == cfo.handle;
 
 
+        // ReSharper disable NonReadonlyMemberInGetHashCode
         /// <inheritdoc/>
         public override int GetHashCode() =>
             (int)(this.handle.ToInt64() & 0x7fffffff);
+        // ReSharper restore NonReadonlyMemberInGetHashCode
         
 
         // Get static method to wrap native instance.
@@ -102,7 +104,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
                                 break;
                         }
                     }
-                    if (CtorWith1Arg != null)
+                    if (CtorWith1Arg is not null)
                     {
                         WrappingConstructors.TryAdd(type, CtorWith1Arg);
                         return CtorWith1Arg;
@@ -114,7 +116,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// <summary>
         /// Get native handle of instance.
         /// </summary>
-        public IntPtr Handle { get => this.handle; }
+        public IntPtr Handle => this.handle;
 
 
         /// <inheritdoc/>
@@ -128,7 +130,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// <param name="ownsInstance">True to owns the native object.</param>
         /// <returns>Wrapped object.</returns>
         public static CFObject FromHandle(IntPtr cf, bool ownsInstance = false) =>
-            new CFObject(cf, ownsInstance);
+            new(cf, ownsInstance);
         
 
         /// <summary>
@@ -175,7 +177,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// <summary>
         /// Check whether instance has been released or not.
         /// </summary>
-        public bool IsReleased { get => this.handle == IntPtr.Zero; }
+        public bool IsReleased => this.handle == IntPtr.Zero;
 
 
         /// <summary>
@@ -193,13 +195,13 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// </summary>
         public static bool operator ==(CFObject? l, CFObject? r)
         {
-            if (!object.ReferenceEquals(l, null))
+            if (!ReferenceEquals(l, null))
             {
-                if (!object.ReferenceEquals(r, null))
+                if (!ReferenceEquals(r, null))
                     return l.handle == r.handle;
                 return l.handle == IntPtr.Zero;
             }
-            if (!object.ReferenceEquals(r, null))
+            if (!ReferenceEquals(r, null))
                 return r.handle == IntPtr.Zero;
             return true;
         }
@@ -210,13 +212,13 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// </summary>
         public static bool operator !=(CFObject? l, CFObject? r)
         {
-            if (!object.ReferenceEquals(l, null))
+            if (!ReferenceEquals(l, null))
             {
-                if (!object.ReferenceEquals(r, null))
+                if (!ReferenceEquals(r, null))
                     return l.handle != r.handle;
                 return l.handle != IntPtr.Zero;
             }
-            if (!object.ReferenceEquals(r, null))
+            if (!ReferenceEquals(r, null))
                 return r.handle != IntPtr.Zero;
             return false;
         }
@@ -248,7 +250,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// <summary>
         /// Retain the object.
         /// </summary>
-        /// <returns>New instanec of retained object.</returns>
+        /// <returns>New instance of retained object.</returns>
         public virtual CFObject Retain()
         {
             this.VerifyReleased();
@@ -260,7 +262,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// Retain the object with specific type.
         /// </summary>
         /// <typeparam name="T">Specific type.</typeparam>
-        /// <returns>New instanec of retained object.</returns>
+        /// <returns>New instance of retained object.</returns>
         public T Retain<T>() where T : CFObject
         {
             this.VerifyReleased();
@@ -279,13 +281,13 @@ namespace CarinaStudio.MacOS.CoreFoundation
 
         /// <inheritdoc/>
         public override string? ToString() =>
-            string.Format("0x{0:x16}", this.handle.ToInt64());
+            $"0x{this.handle.ToInt64():x16}";
         
 
         /// <summary>
         /// Get description of type.
         /// </summary>
-        public unsafe string TypeDescription
+        public string TypeDescription
         {
             get
             {

@@ -109,7 +109,7 @@ namespace CarinaStudio
                 var value = (object)this.GetVariable<IntPtr>(IntPtrVariableVar!);
 
                 var nsObjects = new NSObject?[] { null, this };
-                var variable = this.Class.GetInstanceVriable("nsObjectsVar");
+                var variable = this.Class.GetInstanceVariable("nsObjectsVar");
                 this.SetVariable(variable!, nsObjects);
 
                 value = this.GetVariable<NSObject?[]>(variable!);

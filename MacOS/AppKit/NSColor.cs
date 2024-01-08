@@ -94,19 +94,19 @@ public class NSColor : NSObject
     /// <summary>
     /// Similar to SelectedControlColor.
     /// </summary>
-    public static NSColor AlternateSelectedControl { get => GetNamedColor("alternateSelectedControlColor"); }
+    public static NSColor AlternateSelectedControl => GetNamedColor("alternateSelectedControlColor");
 
 
     /// <summary>
     /// Similar to SelectedControlTextColor.
     /// </summary>
-    public static NSColor AlternateSelectedControlText { get => GetNamedColor("alternateSelectedControlTextColor"); }
+    public static NSColor AlternateSelectedControlText => GetNamedColor("alternateSelectedControlTextColor");
 
 
     /// <summary>
     /// Black.
     /// </summary>
-    public static NSColor Black { get => GetNamedColor("blackColor"); }
+    public static NSColor Black => GetNamedColor("blackColor");
 
 
     /// <summary>
@@ -125,7 +125,7 @@ public class NSColor : NSObject
     /// <summary>
     /// Blue.
     /// </summary>
-    public static NSColor Blue { get => GetNamedColor("blueColor"); }
+    public static NSColor Blue => GetNamedColor("blueColor");
 
 
     /// <summary>
@@ -148,13 +148,13 @@ public class NSColor : NSObject
     /// <summary>
     /// Brown.
     /// </summary>
-    public static NSColor Brown { get => GetNamedColor("brownColor"); }
+    public static NSColor Brown => GetNamedColor("brownColor");
 
 
     /// <summary>
     /// Transparent.
     /// </summary>
-    public static NSColor Clear { get => GetNamedColor("clearColor"); }
+    public static NSColor Clear => GetNamedColor("clearColor");
 
 
     /// <summary>
@@ -194,43 +194,43 @@ public class NSColor : NSObject
     /// <summary>
     /// Control face and old window background color.
     /// </summary>
-    public static NSColor Control { get => GetNamedColor("controlColor"); }
+    public static NSColor Control => GetNamedColor("controlColor");
 
 
     /// <summary>
     /// Background of large controls.
     /// </summary>
-    public static NSColor ControlBackground { get => GetNamedColor("controlBackgroundColor"); }
+    public static NSColor ControlBackground => GetNamedColor("controlBackgroundColor");
 
 
     /// <summary>
     /// Darker border for controls.
     /// </summary>
-    public static NSColor ControlDarkShadow { get => GetNamedColor("controlDarkShadowColor"); }
+    public static NSColor ControlDarkShadow => GetNamedColor("controlDarkShadowColor");
 
 
     /// <summary>
     /// Light border for controls.
     /// </summary>
-    public static NSColor ControlHighlight { get => GetNamedColor("controlHighlightColor"); }
+    public static NSColor ControlHighlight => GetNamedColor("controlHighlightColor");
 
 
     /// <summary>
     /// Lighter border for controls.
     /// </summary>
-    public static NSColor ControlLightHighlight { get => GetNamedColor("controlLightHighlightColor"); }
+    public static NSColor ControlLightHighlight => GetNamedColor("controlLightHighlightColor");
 
 
     /// <summary>
     /// Dark border for controls.
     /// </summary>
-    public static NSColor ControlShadow { get => GetNamedColor("controlShadowColor"); }
+    public static NSColor ControlShadow => GetNamedColor("controlShadowColor");
 
 
     /// <summary>
     /// Text on controls.
     /// </summary>
-    public static NSColor ControlText { get => GetNamedColor("controlTextColor"); }
+    public static NSColor ControlText => GetNamedColor("controlTextColor");
 
 
     /// <summary>
@@ -277,7 +277,7 @@ public class NSColor : NSObject
     /// <param name="i">Intensity (Brightness).</param>
     /// <param name="a">Alpha.</param>
     /// <returns>Color.</returns>
-    public unsafe static NSColor CreateHSI(NSColorSpace colorSpace, double h, double s, double i, double a = 1.0)
+    public static NSColor CreateHSI(NSColorSpace colorSpace, double h, double s, double i, double a = 1.0)
     {
         if (colorSpace.ColorSpaceModel != NSColorSpace.Model.RGB)
             throw new ArgumentException($"Color model of '{colorSpace.LocalizedName}' is not RGB.");
@@ -340,19 +340,19 @@ public class NSColor : NSObject
     /// <summary>
     /// Cyan.
     /// </summary>
-    public static NSColor Cyan { get => GetNamedColor("cyanColor"); }
-    
+    public static NSColor Cyan => GetNamedColor("cyanColor");
+
 
     /// <summary>
     /// Dark gray.
     /// </summary>
-    public static NSColor DarkGray { get => GetNamedColor("darkGrayColor"); }
+    public static NSColor DarkGray => GetNamedColor("darkGrayColor");
 
 
     /// <summary>
     /// Text on disabled controls.
     /// </summary>
-    public static NSColor DisabledControlText { get => GetNamedColor("disabledControlTextColor"); }
+    public static NSColor DisabledControlText => GetNamedColor("disabledControlTextColor");
 
 
     // Get color with given name.
@@ -372,7 +372,7 @@ public class NSColor : NSObject
     /// <summary>
     /// Gray.
     /// </summary>
-    public static NSColor Gray { get => GetNamedColor("grayColor"); }
+    public static NSColor Gray => GetNamedColor("grayColor");
 
 
     /// <summary>
@@ -397,7 +397,7 @@ public class NSColor : NSObject
     /// <summary>
     /// Green.
     /// </summary>
-    public static NSColor Green { get => GetNamedColor("greenColor"); }
+    public static NSColor Green => GetNamedColor("greenColor");
 
 
     /// <summary>
@@ -420,25 +420,25 @@ public class NSColor : NSObject
     /// <summary>
     /// Grids in controls.
     /// </summary>
-    public static NSColor Grid { get => GetNamedColor("gridColor"); }
+    public static NSColor Grid => GetNamedColor("gridColor");
 
 
     /// <summary>
     /// Background color for header cells in Table/OutlineView.
     /// </summary>
-    public static NSColor Header { get => GetNamedColor("headerColor"); }
+    public static NSColor Header => GetNamedColor("headerColor");
 
 
     /// <summary>
     /// Text color for header cells in Table/OutlineView.
     /// </summary>
-    public static NSColor HeaderText { get => GetNamedColor("headerTextColor"); }
+    public static NSColor HeaderText => GetNamedColor("headerTextColor");
 
 
     /// <summary>
     /// Highlight color for UI elements.
     /// </summary>
-    public static NSColor Highlight { get => GetNamedColor("highlightColor"); }
+    public static NSColor Highlight => GetNamedColor("highlightColor");
 
 
     /// <summary>
@@ -449,7 +449,7 @@ public class NSColor : NSObject
     public NSColor? HighlightWith(double level)
     {
         HighlightSelector ??= Selector.FromName("highlightWithLevel:");
-        return this.SendMessage<NSColor>(HighlightSelector, level);
+        return this.SendMessage<NSColor?>(HighlightSelector, level);
     }
 
 
@@ -475,91 +475,91 @@ public class NSColor : NSObject
     /// <summary>
     /// Check whether the color model is <see cref="NSColorSpace.Model.CMYK"/> or not.
     /// </summary>
-    public bool IsCMYK { get => this.ColorSpace?.ColorSpaceModel == NSColorSpace.Model.CMYK; }
+    public bool IsCMYK => this.ColorSpace?.ColorSpaceModel == NSColorSpace.Model.CMYK;
 
 
     /// <summary>
     /// Check whether the color object represents a dynamic color or not.
     /// </summary>
-    public bool IsDynamic { get => this.isDynamic; }
-    
+    public bool IsDynamic => this.isDynamic;
+
 
     /// <summary>
     /// Check whether the color model is <see cref="NSColorSpace.Model.Gray"/> or not.
     /// </summary>
-    public bool IsGrayscale { get => this.ColorSpace?.ColorSpaceModel == NSColorSpace.Model.Gray; }
+    public bool IsGrayscale => this.ColorSpace?.ColorSpaceModel == NSColorSpace.Model.Gray;
 
 
     /// <summary>
     /// Check whether the color model is <see cref="NSColorSpace.Model.Indexed"/> or not.
     /// </summary>
-    public bool IsIndexed { get => this.ColorSpace?.ColorSpaceModel == NSColorSpace.Model.Indexed; }
+    public bool IsIndexed => this.ColorSpace?.ColorSpaceModel == NSColorSpace.Model.Indexed;
 
 
     /// <summary>
     /// Check whether the color patterned color or not.
     /// </summary>
-    public bool IsPatterned { get => this.isPatterned; }
+    public bool IsPatterned => this.isPatterned;
 
 
     /// <summary>
     /// Check whether the color model is <see cref="NSColorSpace.Model.RGB"/> or not.
     /// </summary>
-    public bool IsRGB { get => this.ColorSpace?.ColorSpaceModel == NSColorSpace.Model.RGB; }
+    public bool IsRGB => this.ColorSpace?.ColorSpaceModel == NSColorSpace.Model.RGB;
 
 
     /// <summary>
     /// Keyboard focus ring around controls.
     /// </summary>
-    public static NSColor KeyboardFocusIndicator { get => GetNamedColor("keyboardFocusIndicatorColor"); }
+    public static NSColor KeyboardFocusIndicator => GetNamedColor("keyboardFocusIndicatorColor");
 
 
     /// <summary>
     /// Knob face color for controls.
     /// </summary>
-    public static NSColor Knob { get => GetNamedColor("knobColor"); }
+    public static NSColor Knob => GetNamedColor("knobColor");
 
 
     /// <summary>
     /// Text color for static text and related elements.
     /// </summary>
-    public static NSColor Label { get => GetNamedColor("labelColor"); }
+    public static NSColor Label => GetNamedColor("labelColor");
 
 
     /// <summary>
     /// Light gray.
     /// </summary>
-    public static NSColor LightGray { get => GetNamedColor("lightGrayColor"); }
+    public static NSColor LightGray => GetNamedColor("lightGrayColor");
 
 
     /// <summary>
     /// Magenta.
     /// </summary>
-    public static NSColor Magenta { get => GetNamedColor("magentaColor"); }
+    public static NSColor Magenta => GetNamedColor("magentaColor");
 
 
     /// <summary>
     /// Orange.
     /// </summary>
-    public static NSColor Orange { get => GetNamedColor("orangeColor"); }
+    public static NSColor Orange => GetNamedColor("orangeColor");
 
 
     /// <summary>
     /// Purple.
     /// </summary>
-    public static NSColor Purple { get => GetNamedColor("purpleColor"); }
+    public static NSColor Purple => GetNamedColor("purpleColor");
 
 
     /// <summary>
     /// Text color for large secondary or disabled static text, separators, large glyphs/icons, etc
     /// </summary>
-    public static NSColor QuaternaryLabel { get => GetNamedColor("quaternaryLabelColor"); }
+    public static NSColor QuaternaryLabel => GetNamedColor("quaternaryLabelColor");
 
 
     /// <summary>
     /// Red.
     /// </summary>
-    public static NSColor Red { get => GetNamedColor("redColor"); }
+    public static NSColor Red => GetNamedColor("redColor");
 
 
     /// <summary>
@@ -601,73 +601,73 @@ public class NSColor : NSObject
     /// <summary>
     /// Scroll bar slot color.
     /// </summary>
-    public static NSColor ScrollBar { get => GetNamedColor("scrollBarColor"); }
+    public static NSColor ScrollBar => GetNamedColor("scrollBarColor");
 
 
     /// <summary>
     /// Similar to SelectedControlColor.
     /// </summary>
-    public static NSColor ScrubberTexturedBackground { get => GetNamedColor("scrubberTexturedBackgroundColor"); }
+    public static NSColor ScrubberTexturedBackground => GetNamedColor("scrubberTexturedBackgroundColor");
 
 
     /// <summary>
     /// Patterned background color for use in NSScrubber.
     /// </summary>
-    public static NSColor SecondaryLabel { get => GetNamedColor("secondaryLabelColor"); }
+    public static NSColor SecondaryLabel => GetNamedColor("secondaryLabelColor");
 
 
     /// <summary>
     /// Color for selected controls when control is not active.
     /// </summary>
-    public static NSColor SecondarySelectedControl { get => GetNamedColor("secondarySelectedControlColor"); }
+    public static NSColor SecondarySelectedControl => GetNamedColor("secondarySelectedControlColor");
 
 
     /// <summary>
     /// Control face for selected controls.
     /// </summary>
-    public static NSColor SelectedControl { get => GetNamedColor("selectedControlColor"); }
+    public static NSColor SelectedControl => GetNamedColor("selectedControlColor");
 
 
     /// <summary>
     /// Text on selected controls.
     /// </summary>
-    public static NSColor SelectedControlText { get => GetNamedColor("selectedControlTextColor"); }
+    public static NSColor SelectedControlText => GetNamedColor("selectedControlTextColor");
 
 
     /// <summary>
     /// Knob face color for selected controls.
     /// </summary>
-    public static NSColor SelectedKnob { get => GetNamedColor("selectedKnobColor"); }
+    public static NSColor SelectedKnob => GetNamedColor("selectedKnobColor");
 
 
     /// <summary>
     /// Highlight color for menus.
     /// </summary>
-    public static NSColor SelectedMenuItem { get => GetNamedColor("selectedMenuItemColor"); }
+    public static NSColor SelectedMenuItem => GetNamedColor("selectedMenuItemColor");
 
 
     /// <summary>
     /// Highlight color for menu text.
     /// </summary>
-    public static NSColor SelectedMenuItemText { get => GetNamedColor("selectedMenuItemTextColor"); }
+    public static NSColor SelectedMenuItemText => GetNamedColor("selectedMenuItemTextColor");
 
 
     /// <summary>
     /// Selected document text.
     /// </summary>
-    public static NSColor SelectedText { get => GetNamedColor("selectedTextColor"); }
+    public static NSColor SelectedText => GetNamedColor("selectedTextColor");
 
 
     /// <summary>
     /// Selected document text background.
     /// </summary>
-    public static NSColor SelectedTextBackground { get => GetNamedColor("selectedTextBackgroundColor"); }
+    public static NSColor SelectedTextBackground => GetNamedColor("selectedTextBackgroundColor");
 
 
     /// <summary>
     /// Shadow color for UI elements.
     /// </summary>
-    public static NSColor Shadow { get => GetNamedColor("shadowColor"); }
+    public static NSColor Shadow => GetNamedColor("shadowColor");
 
 
     /// <summary>
@@ -678,26 +678,26 @@ public class NSColor : NSObject
     public NSColor? ShadowWith(double level)
     {
         ShadowSelector ??= Selector.FromName("shadowWithLevel:");
-        return this.SendMessage<NSColor>(ShadowSelector, level);
+        return this.SendMessage<NSColor?>(ShadowSelector, level);
     }
 
 
     /// <summary>
     /// Text color for disabled static text and related elements.
     /// </summary>
-    public static NSColor TertiaryLabel { get => GetNamedColor("tertiaryLabelColor"); }
+    public static NSColor TertiaryLabel => GetNamedColor("tertiaryLabelColor");
 
 
     /// <summary>
     /// Document text background.
     /// </summary>
-    public static NSColor TextBackground { get => GetNamedColor("textBackgroundColor"); }
+    public static NSColor TextBackground => GetNamedColor("textBackgroundColor");
 
 
     /// <summary>
     /// Document text.
     /// </summary>
-    public static NSColor Text { get => GetNamedColor("textColor"); }
+    public static NSColor Text => GetNamedColor("textColor");
 
 
     /// <inheritdoc/>
@@ -738,7 +738,7 @@ public class NSColor : NSObject
     /// <summary>
     /// Background areas revealed behind views.
     /// </summary>
-    public static NSColor UnderPageBackground { get => GetNamedColor("underPageBackgroundColor"); }
+    public static NSColor UnderPageBackground => GetNamedColor("underPageBackgroundColor");
 
 
     /// <summary>
@@ -749,7 +749,7 @@ public class NSColor : NSObject
     public NSColor? UseColorSpace(NSColorSpace colorSpace)
     {
         UsingColorSpaceSelector ??= Selector.FromName("colorUsingColorSpace:");
-        return this.SendMessage<NSColor>(UsingColorSpaceSelector, colorSpace);
+        return this.SendMessage<NSColor?>(UsingColorSpaceSelector, colorSpace);
     }
 
 
@@ -761,32 +761,32 @@ public class NSColor : NSObject
     public NSColor? UseType(ColorType type)
     {
         UsingTypeSelector ??= Selector.FromName("colorUsingType:");
-        return this.SendMessage<NSColor>(UsingTypeSelector, type);
+        return this.SendMessage<NSColor?>(UsingTypeSelector, type);
     }
     
 
     /// <summary>
     /// White.
     /// </summary>
-    public static NSColor White { get => GetNamedColor("whiteColor"); }
+    public static NSColor White => GetNamedColor("whiteColor");
 
 
     /// <summary>
     /// Background fill for window contents.
     /// </summary>
-    public static NSColor WindowBackground { get => GetNamedColor("windowBackgroundColor"); }
+    public static NSColor WindowBackground => GetNamedColor("windowBackgroundColor");
 
 
     /// <summary>
     /// Window frames.
     /// </summary>
-    public static NSColor WindowFrame { get => GetNamedColor("windowFrameColor"); }
+    public static NSColor WindowFrame => GetNamedColor("windowFrameColor");
 
 
     /// <summary>
     /// Text on window frames.
     /// </summary>
-    public static NSColor WindowFrameText { get => GetNamedColor("windowFrameTextColor"); }
+    public static NSColor WindowFrameText => GetNamedColor("windowFrameTextColor");
 
 
     /// <summary>
@@ -804,5 +804,5 @@ public class NSColor : NSObject
     /// <summary>
     /// Yellow.
     /// </summary>
-    public static NSColor Yellow { get => GetNamedColor("yellowColor"); }
+    public static NSColor Yellow => GetNamedColor("yellowColor");
 }

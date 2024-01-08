@@ -44,7 +44,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
     /// <summary>
     /// Represent method of class.
     /// </summary>
-    public unsafe class Method : Member
+    public class Method : Member
     {
         // Constructor.
         internal Method(Class cls, IntPtr handle, Selector selector) : base(cls, handle, selector.Name)

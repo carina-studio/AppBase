@@ -90,8 +90,6 @@ namespace CarinaStudio.MacOS.ObjectiveC
         static readonly IDictionary<string, Class> CachedClassesByName = new ConcurrentDictionary<string, Class>();
         static readonly IDictionary<IntPtr, Class> CachedProtocolsByHandle = new ConcurrentDictionary<IntPtr, Class>();
         static readonly IDictionary<string, Class> CachedProtocolsByName = new ConcurrentDictionary<string, Class>();
-        static readonly nint[] EmptyNativeValues = new nint[0];
-        static volatile AssemblyBuilder? NativeBridgeAssembly;
         static volatile ModuleBuilder? NativeBridgeModule;
 
 
@@ -125,7 +123,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
             this.Handle = handle;
             this.IsProtocol = isProtocol;
             this.Name = name;
-            this.nativeBridgeMethods = isCustomDefined ? new List<Delegate>() : new Delegate[0];
+            this.nativeBridgeMethods = isCustomDefined ? new List<Delegate>() : Array.Empty<Delegate>();
         }
 
 
@@ -204,10 +202,10 @@ namespace CarinaStudio.MacOS.ObjectiveC
             {
                 for (var i = 1; i <= 10; ++i)
                 {
-                    var candName = $"{clrObjHandleVarName}_{i}";
-                    if (!cls.cachedIVars.ContainsKey(candName))
+                    var candidateName = $"{clrObjHandleVarName}_{i}";
+                    if (!cls.cachedIVars.ContainsKey(candidateName))
                     {
-                        cls.clrObjectHandleVar = cls.DefineInstanceVariable<IntPtr>(candName);
+                        cls.clrObjectHandleVar = cls.DefineInstanceVariable<IntPtr>(candidateName);
                         break;
                     }
                 }
@@ -280,7 +278,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
                 4 => 2,
                 8 => 3,
                 16 => 4,
-                _ => throw new NotSupportedException($"Unsupported size of poiter: {IntPtr.Size}."),
+                _ => throw new NotSupportedException($"Unsupported size of pointer: {IntPtr.Size}."),
             };
             if (!class_addIvar(this.Handle, name, (nuint)dataSize, alignment, typeEncoding))
                 throw new Exception($"Failed to add instance variable '{name}' to '{this.Name}'.");
@@ -555,7 +553,6 @@ namespace CarinaStudio.MacOS.ObjectiveC
                 {
                     return NativeBridgeModule ?? AssemblyBuilder.DefineDynamicAssembly(new AssemblyName("CarinaStudio.AppBase.MacOS.NativeBridge"), AssemblyBuilderAccess.RunAndCollect).Let(it =>
                     {
-                        NativeBridgeAssembly = it;
                         NativeBridgeModule = it.DefineDynamicModule("Class");
                         return NativeBridgeModule;
                     });
@@ -649,7 +646,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
             var bridgeMethodDelegate = bridgeMethod.CreateDelegate(bridgeDelegateType, bridgeObject);
             if (!class_addMethod(this.Handle, name.Handle, bridgeMethodDelegate, ""))
                 throw new Exception($"Failed to add method '{name}' to '{this.Name}'.");
-            this.nativeBridgeMethods.Add(bridgeMethodDelegate); // keep delegate to prevent brige object collecting by GC
+            this.nativeBridgeMethods.Add(bridgeMethodDelegate); // keep delegate to prevent bridge object collecting by GC
         }
 
 
@@ -680,16 +677,16 @@ namespace CarinaStudio.MacOS.ObjectiveC
             
             // add property
             if (!class_addProperty(this.Handle, name, attrs, (uint)attrs.Length))
-                throw new ArgumentException($"Unagle to add property '{name}' to '{this.Name}'.");
+                throw new ArgumentException($"Unable to add property '{name}' to '{this.Name}'.");
             var property = this.GetProperty(name) 
-                ?? throw new ArgumentException($"Unagle to add property '{name}' to '{this.Name}'.");
+                ?? throw new ArgumentException($"Unable to add property '{name}' to '{this.Name}'.");
 
             // register getter and setter methods
             try
             {
-                this.DefineMethod<T>(Selector.FromName(getterName), getter);
+                this.DefineMethod(Selector.FromName(getterName), getter);
                 if (setter != null)
-                    this.DefineMethod<T>(Selector.FromName(setterName), setter);
+                    this.DefineMethod(Selector.FromName(setterName), setter);
             }
             catch
             {
@@ -707,7 +704,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         {
             if (cls == null)
                 return false;
-            if (object.ReferenceEquals(cls, this))
+            if (ReferenceEquals(cls, this))
                 return true;
             if (this.IsProtocol)
                 return cls.IsProtocol && protocol_isEqual(this.Handle, cls.Handle);
@@ -725,7 +722,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="handle">Handle of instance.</param>
         /// <returns><see cref="Class"/>.</returns>
-        public static unsafe Class FromHandle(IntPtr handle)
+        public static Class FromHandle(IntPtr handle)
         {
             if (handle == IntPtr.Zero)
                 throw new ArgumentException("Handle of instance cannot be null.");
@@ -789,7 +786,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name.</param>
         /// <returns>Descriptor of class variable.</returns>
-        public unsafe Variable? GetClassVriable(string name)
+        public Variable? GetClassVariable(string name)
         {
             if (this.IsProtocol)
                 return null;
@@ -814,7 +811,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name.</param>
         /// <returns>Descriptor of instance variable.</returns>
-        public unsafe Variable? GetInstanceVriable(string name)
+        public Variable? GetInstanceVariable(string name)
         {
             if (this.IsProtocol)
                 return null;
@@ -862,7 +859,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="selector">Selector.</param>
         /// <returns>Method with specific selector, or Null if method cannot be found.</returns>
-        public unsafe Method? GetMethod(Selector selector)
+        public Method? GetMethod(Selector selector)
         {
             if (this.cachedMethods.TryGetValue(selector, out var method))
                 return method;
@@ -882,7 +879,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// Get all methods of this class.
         /// </summary>
         /// <returns>Descriptors of methods.</returns>
-        public unsafe Method[] GetMethods()
+        public Method[] GetMethods()
         {
             if (this.areAllMethodsCached)
                 return this.cachedMethods.Values.ToArray();
@@ -915,13 +912,12 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// Get all properties of the class. Properties defined by super classes are excluded.
         /// </summary>
         /// <returns>Descriptors of properties.</returns>
-        public unsafe Property[] GetProperties()
+        public Property[] GetProperties()
         {
             if (areAllPropertiesCached)
                 return this.cachedProperties.Values.ToArray();
-            var count = 0u;
             var propertiesPtr = this.IsProtocol
-                ? protocol_copyPropertyList(this.Handle, out count)
+                ? protocol_copyPropertyList(this.Handle, out var count)
                 : class_copyPropertyList(this.Handle, out count);
             try
             {
@@ -945,7 +941,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name.</param>
         /// <returns>Descriptor of found property.</returns>
-        public unsafe Property? GetProperty(string name)
+        public Property? GetProperty(string name)
         {
             if (this.IsProtocol)
                 this.GetProperties();
@@ -1143,7 +1139,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         }
 
 
-        // Throw exception if class has been regisgered.
+        // Throw exception if class has been registered.
         void VerifyRegistered()
         {
             if (this.isRegistered)

@@ -6,7 +6,7 @@ namespace CarinaStudio.MacOS.CoreGraphics;
 /// <summary>
 /// Represent size in pixels.
 /// </summary>
-public struct PixelSize : IEquatable<PixelSize>
+public readonly struct PixelSize : IEquatable<PixelSize>
 {
     /// <summary>
     /// Initialize <see cref="PixelSize"/> structure.

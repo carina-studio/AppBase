@@ -84,6 +84,6 @@ namespace CarinaStudio.MacOS.AppKit
         /// <summary>
         /// Get size of tile.
         /// </summary>
-        public NSSize Size { get => this.GetProperty<NSSize>(SizeProperty!); }
+        public NSSize Size => this.GetProperty<NSSize>(SizeProperty!);
     }
 }

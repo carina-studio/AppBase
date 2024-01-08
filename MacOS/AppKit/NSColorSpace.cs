@@ -62,7 +62,7 @@ public class NSColorSpace : NSObject
     /// <summary>
     /// Get predefined color space: Adobe RGB 1998.
     /// </summary>
-    public static NSColorSpace AdobeRGB1998 { get => GetNamedColorSpace("adobeRGB1998ColorSpace"); }
+    public static NSColorSpace AdobeRGB1998 => GetNamedColorSpace("adobeRGB1998ColorSpace");
 
 
     /// <summary>
@@ -94,37 +94,37 @@ public class NSColorSpace : NSObject
     /// <summary>
     /// Get predefined color space: Device RGB.
     /// </summary>
-    public static NSColorSpace DeviceRGB { get => GetNamedColorSpace("deviceRGBColorSpace"); }
+    public static NSColorSpace DeviceRGB => GetNamedColorSpace("deviceRGBColorSpace");
 
 
     /// <summary>
     /// Get predefined color space: Device gray.
     /// </summary>
-    public static NSColorSpace DeviceGray { get => GetNamedColorSpace("deviceGrayColorSpace"); }
+    public static NSColorSpace DeviceGray => GetNamedColorSpace("deviceGrayColorSpace");
 
 
     /// <summary>
     /// Get predefined color space: Device CMYK.
     /// </summary>
-    public static NSColorSpace DeviceCMYK { get => GetNamedColorSpace("deviceCMYKColorSpace"); }
+    public static NSColorSpace DeviceCMYK => GetNamedColorSpace("deviceCMYKColorSpace");
 
 
     /// <summary>
     /// Get predefined color space: Display-P3.
     /// </summary>
-    public static NSColorSpace DisplayP3 { get => GetNamedColorSpace("displayP3ColorSpace"); }
+    public static NSColorSpace DisplayP3 => GetNamedColorSpace("displayP3ColorSpace");
 
 
     /// <summary>
     /// Get predefined color space: Extended generic gray with gamma 2.2.
     /// </summary>
-    public static NSColorSpace ExtendedGenericGamma22Gray { get => GetNamedColorSpace("extendedGenericGamma22GrayColorSpace"); }
+    public static NSColorSpace ExtendedGenericGamma22Gray => GetNamedColorSpace("extendedGenericGamma22GrayColorSpace");
 
 
     /// <summary>
     /// Get predefined color space: Extended sRGB.
     /// </summary>
-    public static NSColorSpace ExtendedSRGB { get => GetNamedColorSpace("extendedSRGBColorSpace"); }
+    public static NSColorSpace ExtendedSRGB => GetNamedColorSpace("extendedSRGBColorSpace");
 
 
     /// <summary>
@@ -160,25 +160,25 @@ public class NSColorSpace : NSObject
     /// <summary>
     /// Get predefined color space: Generic CMYK.
     /// </summary>
-    public static NSColorSpace GenericCMYK { get => GetNamedColorSpace("genericCMYKColorSpace"); }
+    public static NSColorSpace GenericCMYK => GetNamedColorSpace("genericCMYKColorSpace");
 
 
     /// <summary>
     /// Get predefined color space: Generic gray with gamma 2.2.
     /// </summary>
-    public static NSColorSpace GenericGamma22Gray { get => GetNamedColorSpace("genericGamma22GrayColorSpace"); }
+    public static NSColorSpace GenericGamma22Gray => GetNamedColorSpace("genericGamma22GrayColorSpace");
 
 
     /// <summary>
     /// Get predefined color space: Generic gray.
     /// </summary>
-    public static NSColorSpace GenericGray { get => GetNamedColorSpace("genericGrayColorSpace"); }
+    public static NSColorSpace GenericGray => GetNamedColorSpace("genericGrayColorSpace");
 
 
     /// <summary>
     /// Get predefined color space: Generic RGB.
     /// </summary>
-    public static NSColorSpace GenericRGB { get => GetNamedColorSpace("genericRGBColorSpace"); }
+    public static NSColorSpace GenericRGB => GetNamedColorSpace("genericRGBColorSpace");
 
 
     /// <summary>
@@ -189,8 +189,8 @@ public class NSColorSpace : NSObject
     public static NSColorSpace[] GetAvailableColorSpaces(Model model)
     {
         AvailableColorSpacesSelector ??= Selector.FromName("availableColorSpacesWithModel:");
-        using var array = NSObject.SendMessage<NSArray<NSColorSpace>>(NSColorSpaceClass!.Handle, AvailableColorSpacesSelector, model);
-        if (array == null)
+        using var array = NSObject.SendMessage<NSArray<NSColorSpace>?>(NSColorSpaceClass!.Handle, AvailableColorSpacesSelector, model);
+        if (array is null)
             return Array.Empty<NSColorSpace>();
         return new NSColorSpace[array.Count].Also(it =>
         {
@@ -257,7 +257,7 @@ public class NSColorSpace : NSObject
     /// <summary>
     /// Get predefined color space: sRGB.
     /// </summary>
-    public static NSColorSpace SRGB { get => GetNamedColorSpace("sRGBColorSpace"); }
+    public static NSColorSpace SRGB => GetNamedColorSpace("sRGBColorSpace");
 
 
     /// <inheritdoc/>

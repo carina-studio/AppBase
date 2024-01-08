@@ -46,8 +46,6 @@ namespace CarinaStudio.MacOS.ObjectiveC
 
 
         // Static fields.
-        static readonly nint[] EmptyNativeArgs = new nint[0];
-        static readonly double[] EmptyNativeFpArgs = new double[0];
         static readonly Selector? InitSelector;
         static readonly Selector? ReleaseSelector;
         static readonly Selector? RetainSelector;
@@ -75,9 +73,9 @@ namespace CarinaStudio.MacOS.ObjectiveC
                 objc_msgSendSuper = (void*)NativeLibrary.GetExport(libHandle, nameof(objc_msgSendSuper));
                 //object_getIvar = (void*)NativeLibrary.GetExport(libHandle, nameof(object_getIvar));
                 //object_setIvar = (void*)NativeLibrary.GetExport(libHandle, nameof(object_setIvar));
-                if (objc_msgSend == null)
+                if (objc_msgSend is null)
                     throw new NotSupportedException("Cannot find 'objc_msgSend' in Objective-C runtime.");
-                if (objc_msgSendSuper == null)
+                if (objc_msgSendSuper is null)
                     throw new NotSupportedException("Cannot find 'objc_msgSendSuper' in Objective-C runtime.");
             }
             else
@@ -129,12 +127,12 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <summary>
         /// Get class of instance.
         /// </summary>
-        public Class Class { get => this.@class; }
+        public Class Class => this.@class;
 
 
         /// <inheritdoc/>
         public bool Equals(NSObject? obj) =>
-            obj != null && obj.handle == this.handle;
+            obj is not null && obj.handle == this.handle;
 
 
         /// <inheritdoc/>
@@ -203,15 +201,17 @@ namespace CarinaStudio.MacOS.ObjectiveC
         }
 
 
+        // ReSharper disable NonReadonlyMemberInGetHashCode
         /// <inheritdoc/>
         public override int GetHashCode()
         {
             var property = this.hashProperty 
-                ?? this.Class.GetProperty("hash").Also(it => this.hashProperty = it);
-            return property != null
+                           ?? this.Class.GetProperty("hash").Also(it => this.hashProperty = it);
+            return property is not null
                 ? this.GetProperty<int>(property)
                 : this.handle.GetHashCode();
         }
+        // ReSharper restore NonReadonlyMemberInGetHashCode
 
 
         /// <summary>
@@ -252,10 +252,9 @@ namespace CarinaStudio.MacOS.ObjectiveC
         public static object? GetVariable(IntPtr obj, Variable ivar, Type targetType)
         {
             VerifyHandle(obj);
-            var type = ivar.Type;
             var size = ivar.Size;
-            var ivarHandle = object_getInstanceVariable(obj, ivar.Name, out var outValue);
-            if (outValue == null)
+            object_getInstanceVariable(obj, ivar.Name, out var outValue);
+            if (outValue is null)
                 return targetType.IsValueType ? Activator.CreateInstance(targetType) : default;
             if (targetType.IsArray)
             {
@@ -310,7 +309,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
                                 break;
                         }
                     }
-                    if (CtorWith2Args != null)
+                    if (CtorWith2Args is not null)
                     {
                         WrappingConstructors.TryAdd(type, CtorWith2Args);
                         return CtorWith2Args;
@@ -322,7 +321,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <summary>
         /// Get handle of instance.
         /// </summary>
-        public IntPtr Handle { get => this.handle; }
+        public IntPtr Handle => this.handle;
 
 
         /// <inheritdoc/>
@@ -350,7 +349,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <summary>
         /// Check whether instance has been released or not.
         /// </summary>
-        public bool IsReleased { get => this.isReleased != 0; }
+        public bool IsReleased => this.isReleased != 0;
 
 
         /// <summary>
@@ -644,9 +643,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         {
             VerifyHandle(obj);
             var nativeArg = NativeTypeConversion.ToNativeParameter(arg);
-            if (nativeArg == null)
-                ((delegate*unmanaged<IntPtr, IntPtr, IntPtr, void>)msgSendFunc)(obj, sel.Handle, IntPtr.Zero);
-            else if (nativeArg is IntPtr intPtrValue)
+            if (nativeArg is IntPtr intPtrValue)
                 ((delegate*unmanaged<IntPtr, IntPtr, IntPtr, void>)msgSendFunc)(obj, sel.Handle, intPtrValue);
             else if (nativeArg is bool boolValue)
                 ((delegate*unmanaged<IntPtr, IntPtr, bool, void>)msgSendFunc)(obj, sel.Handle, boolValue);
@@ -672,7 +669,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
                 return NativeTypeConversion.FromNativeParameter(((delegate*unmanaged<IntPtr, IntPtr, float>)msgSendFunc)(obj, sel.Handle), returnType);
             if (nativeReturnType == typeof(double))
                 return NativeTypeConversion.FromNativeParameter(((delegate*unmanaged<IntPtr, IntPtr, double>)msgSendFunc)(obj, sel.Handle), returnType);
-            return SendMessageCore(msgSendFunc, obj, sel, returnType, new object?[0]);
+            return SendMessageCore(msgSendFunc, obj, sel, returnType, Array.Empty<object?>());
         }
         static object? SendMessageCore(void* msgSendFunc, IntPtr obj, Selector sel, Type? returnType, params object?[] args)
         {
@@ -680,7 +677,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
             VerifyHandle(obj);
 
             // convert to native types
-            var nativeReturnType = returnType != null ? NativeTypeConversion.ToNativeType(returnType) : null;
+            var nativeReturnType = returnType is not null ? NativeTypeConversion.ToNativeType(returnType) : null;
             var argCount = args.Length;
             var nativeArgs = new object[argCount];
             var nativeArgTypes = new Type[argCount].Also(it =>
@@ -697,23 +694,22 @@ namespace CarinaStudio.MacOS.ObjectiveC
             {
                 // find existing stub
                 var argCount = args.Length;
-                var stubInfoList = (List<SendMessageStubInfo>?)null;
-                if (stubs.TryGetValue(argCount, out stubInfoList))
+                if (stubs.TryGetValue(argCount, out List<SendMessageStubInfo>? stubInfoList))
                 {
                     for (var i = stubInfoList.Count - 1; i >= 0; --i)
                     {
-                        var candStubInfo = (SendMessageStubInfo?)stubInfoList[i];
-                        var candArgTypes = candStubInfo!.ParameterTypes;
+                        var candidateStubInfo = (SendMessageStubInfo?)stubInfoList[i];
+                        var candidateArgTypes = candidateStubInfo!.ParameterTypes;
                         for (var j = argCount - 1; j >= 0; --j)
                         {
-                            if (candArgTypes[j] != nativeArgTypes[j])
+                            if (candidateArgTypes[j] != nativeArgTypes[j])
                             {
-                                candStubInfo = null;
+                                candidateStubInfo = null;
                                 break;
                             }
                         }
-                        if (candStubInfo != null && candStubInfo.RetuenType == nativeReturnType)
-                            return candStubInfo;
+                        if (candidateStubInfo is not null && candidateStubInfo.ReturnType == nativeReturnType)
+                            return candidateStubInfo;
                     }
                 }
 
@@ -754,7 +750,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
                     ilGen.Emit(OpCodes.Ret);
                 });
                 var stubInfo = new SendMessageStubInfo(stubMethod, nativeArgTypes, nativeReturnType);
-                if (stubInfoList == null)
+                if (stubInfoList is null)
                 {
                     stubInfoList = new();
                     SendMessageStubs.Add(argCount, stubInfoList);
@@ -767,9 +763,9 @@ namespace CarinaStudio.MacOS.ObjectiveC
             try
             {
                 var nativeReturnValue = stubInfo.Stub.Invoke(null, new object[]{ (IntPtr)msgSendFunc, obj, sel.Handle, nativeArgs });
-                if (returnType == null)
+                if (returnType is null)
                     return null;
-                if (nativeReturnValue == null)
+                if (nativeReturnValue is null)
                 {
                     if (returnType.IsValueType)
                         throw new InvalidOperationException("No value returned from sending message.");
@@ -803,7 +799,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         {
             this.VerifyReleased();
             var superClass = this.Class.SuperClass;
-            if (superClass == null)
+            if (superClass is null)
                 return;
             var superInfo = new objc_super() { receiver = this.Handle, super_class = superClass.Handle };
             SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector);
@@ -819,7 +815,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         {
             this.VerifyReleased();
             var superClass = this.Class.SuperClass;
-            if (superClass == null)
+            if (superClass is null)
                 return;
             var superInfo = new objc_super() { receiver = this.Handle, super_class = superClass.Handle };
             SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector, arg);
@@ -835,7 +831,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         {
             this.VerifyReleased();
             var superClass = this.Class.SuperClass;
-            if (superClass == null)
+            if (superClass is null)
                 return;
             var superInfo = new objc_super() { receiver = this.Handle, super_class = superClass.Handle };
             switch (args.Length)
@@ -865,7 +861,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         {
             this.VerifyReleased();
             var superClass = this.Class.SuperClass;
-            if (superClass == null)
+            if (superClass is null)
                 throw new InvalidOperationException("No super class found.");
             var superInfo = new objc_super() { receiver = this.Handle, super_class = superClass.Handle };
             return (T)SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector, typeof(T));
@@ -887,7 +883,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         {
             this.VerifyReleased();
             var superClass = this.Class.SuperClass;
-            if (superClass == null)
+            if (superClass is null)
                 throw new InvalidOperationException("No super class found.");
             var superInfo = new objc_super() { receiver = this.Handle, super_class = superClass.Handle };
             if (args.Length == 0)
@@ -906,7 +902,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         public static void SendMessageToSuper(IntPtr obj, Selector selector)
         {
             var superClass = Class.GetClass(obj).SuperClass;
-            if (superClass == null)
+            if (superClass is null)
                 return;
             var superInfo = new objc_super() { receiver = obj, super_class = superClass.Handle };
             SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector);
@@ -922,7 +918,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         public static void SendMessageToSuper(IntPtr obj, Selector selector, object? arg)
         {
             var superClass = Class.GetClass(obj).SuperClass;
-            if (superClass == null)
+            if (superClass is null)
                 return;
             var superInfo = new objc_super() { receiver = obj, super_class = superClass.Handle };
             SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector, arg);
@@ -938,7 +934,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         public static void SendMessageToSuper(IntPtr obj, Selector selector, params object?[] args)
         {
             var superClass = Class.GetClass(obj).SuperClass;
-            if (superClass == null)
+            if (superClass is null)
                 return;
             var superInfo = new objc_super() { receiver = obj, super_class = superClass.Handle };
             SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector, null, args);
@@ -957,7 +953,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         public static T SendMessageToSuper<T>(IntPtr obj, Selector selector)
         {
             var superClass = Class.GetClass(obj).SuperClass;
-            if (superClass == null)
+            if (superClass is null)
                 throw new InvalidOperationException("No super class found.");
             var superInfo = new objc_super() { receiver = obj, super_class = superClass.Handle };
             return (T)SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector, typeof(T));
@@ -979,7 +975,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         public static T SendMessageToSuper<T>(IntPtr obj, Selector selector, params object?[] args)
         {
             var superClass = Class.GetClass(obj).SuperClass;
-            if (superClass == null)
+            if (superClass is null)
                 throw new InvalidOperationException("No super class found.");
             var superInfo = new objc_super() { receiver = obj, super_class = superClass.Handle };
             return (T)SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector, typeof(T), args);
@@ -1028,7 +1024,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
             var type = ivar.Type;
             var size = ivar.Size;
             var valueType = value?.GetType();
-            if (valueType == null)
+            if (valueType is null)
             {
                 if (type.IsArray)
                     throw new ArgumentException("Cannot set Null to variable with array type.");
@@ -1076,7 +1072,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
 
         /// <inheritdoc/>
         public override string ToString() =>
-            string.Format("0x{0:x16}", this.Handle);
+            $"0x{this.Handle:x16}";
         
 
         /// <summary>

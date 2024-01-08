@@ -12,7 +12,7 @@ class NativeMethodInfo
     public NativeMethodInfo(Type[] paramTypes, Type? returnType)
     {
         this.ParameterTypes = paramTypes;
-        this.RetuenType = returnType;
+        this.ReturnType = returnType;
     }
 
 
@@ -23,7 +23,7 @@ class NativeMethodInfo
             return false;
         var paramTypes = this.ParameterTypes;
         var otherParamTypes = info.ParameterTypes;
-        if (paramTypes.Length != otherParamTypes.Length || this.RetuenType != info.RetuenType)
+        if (paramTypes.Length != otherParamTypes.Length || this.ReturnType != info.ReturnType)
             return false;
         for (var i = paramTypes.Length - 1; i >= 0; --i)
         {
@@ -34,13 +34,15 @@ class NativeMethodInfo
     }
 
 
+    // ReSharper disable NonReadonlyMemberInGetHashCode
     /// <inheritdoc/>
     public override int GetHashCode()
     {
+        
         if (this.hashCode != 0)
             return this.hashCode;
         var paramTypes = this.ParameterTypes;
-        var returnType = this.RetuenType;
+        var returnType = this.ReturnType;
         var chars = new char[returnType != null ? paramTypes.Length + 2 : paramTypes.Length];
         for (var i = paramTypes.Length - 1; i >= 0; --i)
         {
@@ -54,17 +56,18 @@ class NativeMethodInfo
         }
         if (returnType != null)
         {
-            chars[chars.Length - 2] = '-';
+            chars[^2] = '-';
             if (returnType == typeof(nint))
-                chars[chars.Length - 1] = 'I';
+                chars[^1] = 'I';
             else if (returnType == typeof(double))
-                chars[chars.Length - 1] = 'D';
+                chars[^1] = 'D';
             else
-                chars[chars.Length - 1] = 'S';
+                chars[^1] = 'S';
         }
         this.hashCode = new string(chars).GetHashCode();
         return this.hashCode;
     }
+    // ReSharper restore NonReadonlyMemberInGetHashCode
 
 
     // Types of parameters.
@@ -72,5 +75,5 @@ class NativeMethodInfo
 
 
     // Type of return value.
-    public Type? RetuenType { get; }
+    public Type? ReturnType { get; }
 }

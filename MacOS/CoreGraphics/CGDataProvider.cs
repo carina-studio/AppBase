@@ -8,7 +8,7 @@ namespace CarinaStudio.MacOS.CoreGraphics;
 /// <summary>
 /// CGDataProvider.
 /// </summary>
-public unsafe class CGDataProvider : CFObject
+public class CGDataProvider : CFObject
 {
     // Native symbols.
     [DllImport(NativeLibraryNames.CoreGraphics)]
@@ -44,17 +44,16 @@ public unsafe class CGDataProvider : CFObject
     {
         public readonly byte[] Data;
         public readonly GCHandle DataHandle;
-        public readonly int Offset;
 
-        public DirectAccessInfo(byte[] data, int offset)
+        public DirectAccessInfo(byte[] data)
         {
             this.Data = data;
             this.DataHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
-            this.Offset = offset;
         }
 
         public void Release()
         {
+            // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable
             this.DataHandle.Free();
         }
     }
@@ -94,9 +93,9 @@ public unsafe class CGDataProvider : CFObject
             throw new ArgumentOutOfRangeException(nameof(offset));
         if (size < 0 || offset + size > data.Length)
             throw new ArgumentOutOfRangeException(nameof(size));
-        var info = new DirectAccessInfo(data, offset);
+        var info = new DirectAccessInfo(data);
         var gcHandle = GCHandle.Alloc(info);
-        return CGDataProviderCreateDirect(GCHandle.ToIntPtr(gcHandle), (nint)size, ref DataProviderDirectCallbacks);
+        return CGDataProviderCreateDirect(GCHandle.ToIntPtr(gcHandle), size, ref DataProviderDirectCallbacks);
     }), false, true)
     { }
     
@@ -142,6 +141,7 @@ public unsafe class CGDataProvider : CFObject
         var directAccessInfo = GCHandle.FromIntPtr(info).Target as DirectAccessInfo;
         if (directAccessInfo == null)
             return default;
+        // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable
         return directAccessInfo.DataHandle.AddrOfPinnedObject();
     }
 
@@ -157,8 +157,8 @@ public unsafe class CGDataProvider : CFObject
         if (directAccessInfo.Data.IsEmpty() || position >= directAccessInfo.Data.Length || position >= int.MaxValue || position < 0)
             return 0;
         var maxCopyCount = Math.Min((ulong)int.MaxValue, (ulong)directAccessInfo.Data.Length - (ulong)position);
-        var copyCount = (int)Math.Min(maxCopyCount, (ulong)size);
-        Marshal.Copy(directAccessInfo.Data, (int)position, (IntPtr)buffer, copyCount);
+        var copyCount = (int)Math.Min(maxCopyCount, size);
+        Marshal.Copy(directAccessInfo.Data, (int)position, buffer, copyCount);
         return (nuint)copyCount;
     }
 

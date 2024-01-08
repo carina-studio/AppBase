@@ -5,6 +5,36 @@ using System.Linq;
 
 namespace CarinaStudio.MacOS.ObjectiveC;
 
+// NSArray.
+static class NSArray
+{
+    // Static fields.
+    public static readonly Selector? ContainsSelector;
+    public static readonly Selector? CountSelector;
+    public static readonly Selector? IndexOfSelector;
+    public static readonly Selector? InitWithArraySelector;
+    public static readonly Selector? InitWithObjectsSelector;
+    public static readonly Class? NSArrayClass;
+    public static readonly Selector? ObjectAtSelector;
+    public static readonly Selector? ObjectEnumeratorSelector;
+    
+    
+    // Static initializer.
+    static NSArray()
+    {
+        if (Platform.IsNotMacOS)
+            return;
+        NSArrayClass = Class.GetClass("NSArray").AsNonNull();
+        ContainsSelector = Selector.FromName("contains:");
+        CountSelector = Selector.FromName("count");
+        IndexOfSelector = Selector.FromName("indexOf:");
+        InitWithArraySelector = Selector.FromName("initWithArray:");
+        InitWithObjectsSelector = Selector.FromName("initWithObjects:count:");
+        ObjectAtSelector = Selector.FromName("objectAtIndex:");
+        ObjectEnumeratorSelector = Selector.FromName("objectEnumerator");
+    }
+}
+
 /// <summary>
 /// NSArray.
 /// </summary>
@@ -22,7 +52,8 @@ public class NSArray<T> : NSObject, IList<T> where T : NSObject
             this.baseEnumerator = baseEnumerator;
         
         // Current.
-        public T Current { get => this.current ?? throw new InvalidOperationException(); }
+        public T Current => this.current ?? throw new InvalidOperationException();
+
         object IEnumerator.Current =>
             this.Current;
         
@@ -35,45 +66,16 @@ public class NSArray<T> : NSObject, IList<T> where T : NSObject
         {
             this.current = this.baseEnumerator.NextObject()?.Exchange(it => 
             {
-                if (it == null)
-                    return null;
                 if (typeof(T) == typeof(NSObject))
                     return (T)it;
-                return it?.Retain<T>();
+                return it.Retain<T>();
             });
-            return this.current != null;
+            return this.current is not null;
         }
 
         // Reset.
         void IEnumerator.Reset() =>
             throw new InvalidOperationException();
-    }
-
-
-    // Static fields.
-    static readonly Selector? ContainsSelector;
-    static readonly Selector? CountSelector;
-    static readonly Selector? IndexOfSelector;
-    static readonly Selector? InitWithArraySelector;
-    static readonly Selector? InitWithObjectsSelector;
-    static readonly Class? NSArrayClass;
-    static readonly Selector? ObjectAtSelector;
-    static readonly Selector? ObjectEnumeratorSelector;
-
-
-    // Static initializer.
-    static NSArray()
-    {
-        if (Platform.IsNotMacOS)
-            return;
-        NSArrayClass = Class.GetClass("NSArray").AsNonNull();
-        ContainsSelector = Selector.FromName("contains:");
-        CountSelector = Selector.FromName("count");
-        IndexOfSelector = Selector.FromName("indexOf:");
-        InitWithArraySelector = Selector.FromName("initWithArray:");
-        InitWithObjectsSelector = Selector.FromName("initWithObjects:count:");
-        ObjectAtSelector = Selector.FromName("objectAtIndex:");
-        ObjectEnumeratorSelector = Selector.FromName("objectEnumerator");
     }
 
 
@@ -92,15 +94,15 @@ public class NSArray<T> : NSObject, IList<T> where T : NSObject
     public NSArray(IEnumerable<T> objects) : base(Global.Run(() =>
     {
         if (objects is NSArray<T> nsArray)
-            return Initialize(NSArrayClass!.Allocate(), nsArray);
-        return Initialize(NSArrayClass!.Allocate(), objects);
+            return Initialize(NSArray.NSArrayClass!.Allocate(), nsArray);
+        return Initialize(NSArray.NSArrayClass!.Allocate(), objects);
     }), true)
     { }
 
 
     // Constructor.
     NSArray(IntPtr handle, bool ownsInstance) : base(handle, ownsInstance) =>
-        this.VerifyClass(NSArrayClass!);
+        this.VerifyClass(NSArray.NSArrayClass!);
     NSArray(Class cls, IntPtr handle, bool ownsInstance) : base(cls, handle, ownsInstance)
     { }
 
@@ -121,7 +123,7 @@ public class NSArray<T> : NSObject, IList<T> where T : NSObject
     /// <param name="obj">Object to check.</param>
     /// <returns>True if given object is contained in array.</returns>
     public bool Contains(T? obj) =>
-        this.SendMessage<bool>(ContainsSelector!, obj);
+        this.SendMessage<bool>(NSArray.ContainsSelector!, obj);
     
 
     /// <summary>
@@ -148,7 +150,7 @@ public class NSArray<T> : NSObject, IList<T> where T : NSObject
     /// <summary>
     /// Get number of element in array.
     /// </summary>
-    public int Count { get => this.SendMessage<int>(CountSelector!); }
+    public int Count => this.SendMessage<int>(NSArray.CountSelector!);
 
 
     /// <summary>
@@ -156,7 +158,7 @@ public class NSArray<T> : NSObject, IList<T> where T : NSObject
     /// </summary>
     /// <returns>Enumerator.</returns>
     public IEnumerator<T> GetEnumerator() =>
-        new Enumerator(this.SendMessage<NSEnumerator>(ObjectEnumeratorSelector!));
+        new Enumerator(this.SendMessage<NSEnumerator>(NSArray.ObjectEnumeratorSelector!));
     
 
     /// <inheritdoc/>
@@ -171,7 +173,7 @@ public class NSArray<T> : NSObject, IList<T> where T : NSObject
     /// <param name="array">Array.</param>
     /// <returns>Handle of initialized instance.</returns>
     protected static IntPtr Initialize(IntPtr obj, NSArray<T> array) =>
-        NSObject.SendMessage<IntPtr>(obj, InitWithArraySelector!, array);
+        NSObject.SendMessage<IntPtr>(obj, NSArray.InitWithArraySelector!, array);
     
 
     /// <summary>
@@ -197,7 +199,7 @@ public class NSArray<T> : NSObject, IList<T> where T : NSObject
                 handleList[i] = array[i].Handle;
         }
         fixed (IntPtr* handleListPtr = handleList)
-            return NSObject.SendMessage<IntPtr>(obj, InitWithObjectsSelector!, (IntPtr)handleListPtr, handleList.Length);
+            return NSObject.SendMessage<IntPtr>(obj, NSArray.InitWithObjectsSelector!, (IntPtr)handleListPtr, handleList.Length);
     }
 
 
@@ -212,7 +214,7 @@ public class NSArray<T> : NSObject, IList<T> where T : NSObject
     /// <param name="obj">Object to check.</param>
     /// <returns>Index of position of object.</returns>
     public int IndexOf(T obj) =>
-        this.SendMessage<int>(IndexOfSelector!, obj);
+        this.SendMessage<int>(NSArray.IndexOfSelector!, obj);
     
 
     /// <inheritdoc/>
@@ -232,7 +234,7 @@ public class NSArray<T> : NSObject, IList<T> where T : NSObject
     /// <summary>
     /// Get element at given position.
     /// </summary>
-    public T this[int index] { get => this.SendMessage<T>(ObjectAtSelector!, index); }
+    public T this[int index] => this.SendMessage<T>(NSArray.ObjectAtSelector!, index);
 
 
     /// <inheritdoc/>
