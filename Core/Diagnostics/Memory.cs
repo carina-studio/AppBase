@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace CarinaStudio.Diagnostics
@@ -23,7 +24,7 @@ namespace CarinaStudio.Diagnostics
         /// <param name="elementCount">Number of element.</param>
         /// <typeparam name="T">Type of element.</typeparam>
         /// <returns>Size of array instance.</returns>
-        public static long EstimateArrayInstanceSize<T>(long elementCount) =>
+        public static long EstimateArrayInstanceSize<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.NonPublicFields)] T>(long elementCount) =>
             EstimateArrayInstanceSize(typeof(T), elementCount);
 
 
@@ -33,7 +34,7 @@ namespace CarinaStudio.Diagnostics
         /// <param name="elementType">Type of element.</param>
         /// <param name="elementCount">Number of element.</param>
         /// <returns>Size of array instance.</returns>
-        public static long EstimateArrayInstanceSize(Type elementType, long elementCount)
+        public static long EstimateArrayInstanceSize([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.NonPublicFields)] Type elementType, long elementCount)
         {
             if (elementCount < 0)
                 throw new ArgumentOutOfRangeException(nameof(elementCount));
@@ -71,7 +72,7 @@ namespace CarinaStudio.Diagnostics
         /// <param name="elementCount">Number of element.</param>
         /// <typeparam name="T">Type of element.</typeparam>
         /// <returns>Size of collection instance.</returns>
-        public static long EstimateCollectionInstanceSize<T>(long elementCount) =>
+        public static long EstimateCollectionInstanceSize<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.NonPublicFields)] T>(long elementCount) =>
             EstimateCollectionInstanceSize(typeof(T), elementCount);
         
 
@@ -81,7 +82,7 @@ namespace CarinaStudio.Diagnostics
         /// <param name="elementType">Type of element.</param>
         /// <param name="elementCount">Number of element.</param>
         /// <returns>Size of collection instance.</returns>
-        public static long EstimateCollectionInstanceSize(Type elementType, long elementCount)
+        public static long EstimateCollectionInstanceSize([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.NonPublicFields)] Type elementType, long elementCount)
         {
             if (elementCount < 0)
                 throw new ArgumentOutOfRangeException(nameof(elementCount));
@@ -153,7 +154,7 @@ namespace CarinaStudio.Diagnostics
         /// <param name="length">Length of data if type is array or string.</param>
         /// <typeparam name="T">Type of instance.</typeparam>
         /// <returns>Size of instance.</returns>
-        public static long EstimateInstanceSize<T>(long length = 0) =>
+        public static long EstimateInstanceSize<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.NonPublicFields)] T>(long length = 0) =>
             EstimateInstanceSize(typeof(T), length);
         
 
@@ -163,7 +164,7 @@ namespace CarinaStudio.Diagnostics
         /// <param name="type">Type.</param>
         /// <param name="length">Length of data if type is array or string.</param>
         /// <returns>Size of instance.</returns>
-        public static long EstimateInstanceSize(Type type, long length = 0)
+        public static long EstimateInstanceSize([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.NonPublicFields)] Type type, long length = 0)
         {
             if (type.IsValueType)
                 return EstimateStructureSizeInternal(type, true);
@@ -178,7 +179,7 @@ namespace CarinaStudio.Diagnostics
 
 
         // Estimate size of object.
-        static long EstimateObjectSizeInternal(Type type, long length = 0)
+        static long EstimateObjectSizeInternal([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.NonPublicFields)] Type type, long length = 0)
         {
             // use cached size
             var size = 0L;
@@ -210,7 +211,7 @@ namespace CarinaStudio.Diagnostics
 
 
         // Estimate size of structure.
-        static long EstimateStructureSizeInternal(Type type, bool boxed = false)
+        static long EstimateStructureSizeInternal([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.NonPublicFields)] Type type, bool boxed = false)
         {
             // get cached size
             var size = 0L;

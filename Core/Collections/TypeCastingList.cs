@@ -51,9 +51,10 @@ namespace CarinaStudio.Collections
                 list.CopyTo(array, arrayIndex);
             else if (elementType != null)
             {
-                var tempArray = Array.CreateInstance(elementType, count);
-                list.CopyTo(tempArray, 0);
-                Array.Copy(tempArray, 0, array, arrayIndex, count);
+                if (arrayIndex < 0 || arrayIndex + count > array.Length)
+                    throw new ArgumentOutOfRangeException(nameof(arrayIndex));
+                for (var i = 0; i < count; ++i, ++arrayIndex)
+                    array[arrayIndex] = (T)list[i]!;
             }
         }
         
