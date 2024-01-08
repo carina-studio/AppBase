@@ -1,4 +1,6 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
+
 namespace CarinaStudio.MacOS.ObjectiveC;
 
 /// <summary>
@@ -33,13 +35,19 @@ public class NSEnumerator: NSObject
     /// <summary>
     /// Get array of enumerated objects.
     /// </summary>
-    public NSArray<NSObject> AllObjects => this.GetProperty<NSArray<NSObject>>(AllObjsProperty!);
+    public NSArray<NSObject> AllObjects
+    {
+        [RequiresDynamicCode(GetPropertyRdcMessage)]
+        get => this.GetProperty<NSArray<NSObject>>(AllObjsProperty!);
+    }
 
 
+#pragma warning disable IL3050
     /// <summary>
     /// Get next object from collection.
     /// </summary>
     /// <returns>Object from collection, or Null if no more object to enumerate.</returns>
     public NSObject? NextObject() =>
         this.SendMessage<NSObject?>(NextObjSelector!);
+#pragma warning restore IL3050
 }

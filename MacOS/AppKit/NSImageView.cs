@@ -1,5 +1,6 @@
 using CarinaStudio.MacOS.ObjectiveC;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CarinaStudio.MacOS.AppKit;
 
@@ -28,6 +29,7 @@ public class NSImageView : NSControl
     /// Initialize new <see cref="NSImageView"/> instance.
     /// </summary>
     /// <param name="frame">Frame.</param>
+    [RequiresDynamicCode(CallConstructorRdcMessage)]
     public NSImageView(NSRect frame) : base(NSImageViewClass!.Allocate(), frame)
     { }
 
@@ -68,12 +70,12 @@ public class NSImageView : NSControl
         get 
         {
             ImageProperty ??= NSImageViewClass!.GetProperty("image").AsNonNull();
-            return this.GetProperty<NSImage>(ImageProperty);
+            return this.GetNSObjectProperty<NSImage>(ImageProperty);
         }
         set 
         {
             ImageProperty ??= NSImageViewClass!.GetProperty("image").AsNonNull();
-            this.SetProperty(ImageProperty, value);
+            this.SetProperty(ImageProperty, (NSObject?)value);
         }
     }
 
@@ -86,12 +88,12 @@ public class NSImageView : NSControl
         get 
         {
             ImageAlignmentProperty ??= NSImageViewClass!.GetProperty("imageAlignment").AsNonNull();
-            return this.GetProperty<NSImageAlignment>(ImageAlignmentProperty);
+            return (NSImageAlignment)this.GetUInt32Property(ImageAlignmentProperty);
         }
         set 
         {
             ImageAlignmentProperty ??= NSImageViewClass!.GetProperty("imageAlignment").AsNonNull();
-            this.SetProperty(ImageAlignmentProperty, value);
+            this.SetProperty(ImageAlignmentProperty, (uint)value);
         }
     }
 
@@ -104,12 +106,12 @@ public class NSImageView : NSControl
         get 
         {
             ImageScalingProperty ??= NSImageViewClass!.GetProperty("imageScaling").AsNonNull();
-            return this.GetProperty<NSImageScaling>(ImageScalingProperty);
+            return (NSImageScaling)this.GetUInt32Property(ImageScalingProperty);
         }
         set 
         {
             ImageScalingProperty ??= NSImageViewClass!.GetProperty("imageScaling").AsNonNull();
-            this.SetProperty(ImageScalingProperty, value);
+            this.SetProperty(ImageScalingProperty, (uint)value);
         }
     }
 }

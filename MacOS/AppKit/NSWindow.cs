@@ -1,11 +1,13 @@
 using CarinaStudio.MacOS.ObjectiveC;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CarinaStudio.MacOS.AppKit;
 
 /// <summary>
 /// NSWindow.
 /// </summary>
+[RequiresDynamicCode("Dynamic code generation is required for accessing NSObject.")]
 public class NSWindow : NSResponder
 {
 #pragma warning disable CS1591

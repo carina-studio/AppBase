@@ -1,5 +1,6 @@
 using CarinaStudio.MacOS.ObjectiveC;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CarinaStudio.MacOS.AppKit;
 
@@ -60,6 +61,7 @@ public class NSLayoutAnchor<TAnchor> : NSObject where TAnchor : NSLayoutAnchor<T
     /// Define constraint.
     /// </summary>
     /// <returns>Constraint.</returns>
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     public NSLayoutConstraint ConstraintEqualTo(NSLayoutAnchor<TAnchor> another)
     {
         NSLayoutAnchor.ConstEqToSelector ??= Selector.FromName("constraintEqualToAnchor:");
@@ -71,6 +73,7 @@ public class NSLayoutAnchor<TAnchor> : NSObject where TAnchor : NSLayoutAnchor<T
     /// Define constraint.
     /// </summary>
     /// <returns>Constraint.</returns>
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     public NSLayoutConstraint ConstraintEqualToWithConstant(NSLayoutAnchor<TAnchor> another, float offset)
     {
         NSLayoutAnchor.ConstEqToConstantSelector ??= Selector.FromName("constraintEqualToAnchor:constant:");
@@ -82,6 +85,7 @@ public class NSLayoutAnchor<TAnchor> : NSObject where TAnchor : NSLayoutAnchor<T
     /// Define constraint.
     /// </summary>
     /// <returns>Constraint.</returns>
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     public NSLayoutConstraint ConstraintGreaterThanOrEqualTo(NSLayoutAnchor<TAnchor> another)
     {
         NSLayoutAnchor.ConstGtOrEqToSelector ??= Selector.FromName("constraintGreaterThanOrEqualToAnchor:");
@@ -93,6 +97,7 @@ public class NSLayoutAnchor<TAnchor> : NSObject where TAnchor : NSLayoutAnchor<T
     /// Define constraint.
     /// </summary>
     /// <returns>Constraint.</returns>
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     public NSLayoutConstraint ConstraintGreaterThanOrEqualToWithConstant(NSLayoutAnchor<TAnchor> another, float offset)
     {
         NSLayoutAnchor.ConstGtOrEqToConstantSelector ??= Selector.FromName("constraintGreaterThanOrEqualToAnchor:constant:");
@@ -104,6 +109,7 @@ public class NSLayoutAnchor<TAnchor> : NSObject where TAnchor : NSLayoutAnchor<T
     /// Define constraint.
     /// </summary>
     /// <returns>Constraint.</returns>
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     public NSLayoutConstraint ConstraintLessThanOrEqualTo(NSLayoutAnchor<TAnchor> another)
     {
         NSLayoutAnchor.ConstLtOrEqToSelector ??= Selector.FromName("constraintLessThanOrEqualToAnchor:");
@@ -115,6 +121,7 @@ public class NSLayoutAnchor<TAnchor> : NSObject where TAnchor : NSLayoutAnchor<T
     /// Define constraint.
     /// </summary>
     /// <returns>Constraint.</returns>
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     public NSLayoutConstraint ConstraintLessThanOrEqualToWithConstant(NSLayoutAnchor<TAnchor> another, float offset)
     {
         NSLayoutAnchor.ConstLtOrEqToConstantSelector ??= Selector.FromName("constraintLessThanOrEqualToAnchor:constant:");
@@ -130,7 +137,9 @@ public class NSLayoutAnchor<TAnchor> : NSObject where TAnchor : NSLayoutAnchor<T
         get 
         {
             NSLayoutAnchor.ItemSelector ??= Selector.FromName("item");
-            return this.SendMessage<NSObject?>(NSLayoutAnchor.ItemSelector); 
+#pragma warning disable IL3050
+            return this.SendMessage<NSObject?>(NSLayoutAnchor.ItemSelector);
+#pragma warning restore IL3050
         }
     }
 
@@ -143,7 +152,9 @@ public class NSLayoutAnchor<TAnchor> : NSObject where TAnchor : NSLayoutAnchor<T
         get
         {
             NSLayoutAnchor.NameSelector ??= Selector.FromName("name");
+#pragma warning disable IL3050
             using var name = this.SendMessage<NSString?>(NSLayoutAnchor.NameSelector);
+#pragma warning restore IL3050
             return name?.ToString() ?? "";
         }
     }

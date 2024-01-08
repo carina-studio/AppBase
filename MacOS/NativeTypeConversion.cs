@@ -1,6 +1,7 @@
 using CarinaStudio.MacOS.CoreFoundation;
 using CarinaStudio.MacOS.ObjectiveC;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -13,7 +14,8 @@ namespace CarinaStudio.MacOS;
 static class NativeTypeConversion
 {
     // Convert from native parameter to CLR parameter.
-    public static object? FromNativeParameter(object nativeValue, Type targetType)
+    [RequiresDynamicCode("Dynamic code generation is required for checking native type.")]
+    public static object? FromNativeParameter(object nativeValue, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] Type targetType)
     {
         if (IsNativeType(targetType))
             return nativeValue;
@@ -56,7 +58,8 @@ static class NativeTypeConversion
 
 
     // Convert from native value to CLR value.
-    public static unsafe object? FromNativeValue(byte* valuePtr, int valueCount, Type targetType, out int consumedBytes)
+    [RequiresDynamicCode("Dynamic code generation is required for converting to CLR value type.")]
+    public static unsafe object? FromNativeValue(byte* valuePtr, int valueCount, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] Type targetType, out int consumedBytes)
     {
         if (valueCount < 1)
             throw new ArgumentException("Insufficient native values for conversion.");
@@ -172,8 +175,10 @@ static class NativeTypeConversion
 
 
     // Convert from Objective-C type encoding.
+    [RequiresDynamicCode("Dynamic code generation is required for creating Objective-C type encoding.")]
     public static Type FromTypeEncoding(string typeEncoding, out int elementCount) =>
         FromTypeEncoding(typeEncoding.AsSpan(), out elementCount, out var _);
+    [RequiresDynamicCode("Dynamic code generation is required for creating Objective-C type encoding.")]
     static Type FromTypeEncoding(ReadOnlySpan<char> typeEncoding, out int elementCount, out int consumedChars)
     {
         elementCount = 1;
@@ -367,6 +372,7 @@ static class NativeTypeConversion
 
 
     // Get size of native value in bytes.
+    [RequiresDynamicCode("Dynamic code generation is required for checking native type.")]
     public static int GetNativeValueSize(Type type)
     {
         type = ToNativeType(type);
@@ -393,6 +399,7 @@ static class NativeTypeConversion
 
 
     // Check whether given type is the native type or not.
+    [RequiresDynamicCode("Dynamic code generation is required for checking native type.")]
     public static bool IsNativeType(Type type)
     {
         if (!type.IsValueType)
@@ -424,6 +431,7 @@ static class NativeTypeConversion
 
 
     // Convert from CLR parameter to native parameter.
+    [RequiresDynamicCode("Dynamic code generation is required for checking native type.")]
     public static object ToNativeParameter(object? value)
     {
         if (value is null)
@@ -453,6 +461,7 @@ static class NativeTypeConversion
 
 
     // Convert from CLR object to native value.
+    [RequiresDynamicCode("Dynamic code generation is required for converting from CLR value type.")]
     public static unsafe int ToNativeValue(object? obj, byte* valuePtr)
     {
         obj?.GetType().Let(t =>
@@ -580,6 +589,7 @@ static class NativeTypeConversion
 
 
     // Convert to corresponding native type.
+    [RequiresDynamicCode("Dynamic code generation is required for checking native type.")]
     public static Type ToNativeType(Type type)
     {
         if (IsNativeType(type))
@@ -595,7 +605,7 @@ static class NativeTypeConversion
 
 
     // Convert to Objective-C type encoding.
-    public static string ToTypeEncoding<T>(int elementCount = 1) =>
+    public static string ToTypeEncoding<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.NonPublicFields)] T>(int elementCount = 1) =>
         ToTypeEncoding(typeof(T), elementCount);
     public static string ToTypeEncoding(object obj)
     {
@@ -605,7 +615,7 @@ static class NativeTypeConversion
             return ToTypeEncoding(obj.GetType(), array.GetLength(0));
         return ToTypeEncoding(obj.GetType());
     }
-    public static string ToTypeEncoding(Type type, int elementCount = 1)
+    public static string ToTypeEncoding([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.NonPublicFields)] Type type, int elementCount = 1)
     {
         var isArray = type.IsArray;
         var arrayLengthPrefix = "";

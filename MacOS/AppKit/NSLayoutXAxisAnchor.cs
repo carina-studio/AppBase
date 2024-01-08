@@ -1,5 +1,6 @@
 using CarinaStudio.MacOS.ObjectiveC;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CarinaStudio.MacOS.AppKit;
 
@@ -37,6 +38,7 @@ public class NSLayoutXAxisAnchor : NSLayoutAnchor<NSLayoutXAxisAnchor>
     /// </summary>
     /// <param name="otherAnchor">Other anchor.</param>
     /// <returns>Layout dimension.</returns>
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     public NSLayoutDimension AnchorWithOffset(NSLayoutXAxisAnchor otherAnchor)
     {
         AnchorWithOffsetSelector ??= Selector.FromName("anchorWithOffsetTo:");
@@ -48,6 +50,7 @@ public class NSLayoutXAxisAnchor : NSLayoutAnchor<NSLayoutXAxisAnchor>
     /// Define constraint.
     /// </summary>
     /// <returns>Constraint.</returns>
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     public NSLayoutConstraint ConstraintEqualToSystemSpacingAfter(NSLayoutXAxisAnchor anchor, float multiplier)
     {
         ConstEqToSysSpacingAfterMultipierSelector ??= Selector.FromName("constraintEqualToAnchorSystemSpacingAfter:multiplier:");
@@ -59,6 +62,7 @@ public class NSLayoutXAxisAnchor : NSLayoutAnchor<NSLayoutXAxisAnchor>
     /// Define constraint.
     /// </summary>
     /// <returns>Constraint.</returns>
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     public NSLayoutConstraint ConstraintGreaterThanOrEqualToSystemSpacingAfter(NSLayoutXAxisAnchor anchor, float multiplier)
     {
         ConstGtOrEqToSysSpacingAfterMultipierSelector ??= Selector.FromName("constraintGreaterThanOrEqualToAnchorSystemSpacingAfter:multiplier:");
@@ -70,6 +74,7 @@ public class NSLayoutXAxisAnchor : NSLayoutAnchor<NSLayoutXAxisAnchor>
     /// Define constraint.
     /// </summary>
     /// <returns>Constraint.</returns>
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     public NSLayoutConstraint ConstraintLessThanOrEqualToSystemSpacingAfter(NSLayoutXAxisAnchor anchor, float multiplier)
     {
         ConstLtOrEqToSysSpacingAfterMultipierSelector ??= Selector.FromName("constraintLessThanOrEqualToAnchorSystemSpacingAfter:multiplier:");

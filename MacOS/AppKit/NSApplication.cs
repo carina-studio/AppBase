@@ -1,5 +1,6 @@
 using CarinaStudio.MacOS.ObjectiveC;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace CarinaStudio.MacOS.AppKit;
@@ -90,6 +91,7 @@ public unsafe class NSApplication : NSResponder
     /// Activate the application.
     /// </summary>
     /// <param name="ignoreOtherApps">True to active application regardless.</param>
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     public void Activate(bool ignoreOtherApps)
     {
         ActivateSelector ??= Selector.FromName("activateIgnoringOtherApps:");
@@ -105,12 +107,12 @@ public unsafe class NSApplication : NSResponder
         get 
         {
             AppearanceProperty ??= NSApplicationClass!.GetProperty("appearance").AsNonNull();
-            return this.GetProperty<NSAppearance>(AppearanceProperty);
+            return this.GetNSObjectProperty<NSAppearance>(AppearanceProperty);
         }
         set 
         {
             AppearanceProperty ??= NSApplicationClass!.GetProperty("appearance").AsNonNull();
-            this.SetProperty(AppearanceProperty, value);
+            this.SetProperty(AppearanceProperty, (NSObject?)value);
         }
     }
     
@@ -125,7 +127,7 @@ public unsafe class NSApplication : NSResponder
         {
             this.VerifyReleased();
             IconImageProperty ??= NSApplicationClass!.GetProperty("applicationIconImage").AsNonNull();
-            var handle = this.GetProperty<IntPtr>(IconImageProperty);
+            var handle = this.GetIntPtrProperty(IconImageProperty);
             var image = default(NSImage);
             var prevImage = default(NSImage);
             if (handle != default)
@@ -152,7 +154,7 @@ public unsafe class NSApplication : NSResponder
             prevImage?.Release();
             IconImageProperty ??= NSApplicationClass!.GetProperty("applicationIconImage").AsNonNull();
             this.appIconImageRef = value is not null ? new(value) : null;
-            this.SetProperty<NSObject>(IconImageProperty, value);
+            this.SetProperty(IconImageProperty, (NSObject?)value);
         }
     }
 
@@ -199,7 +201,7 @@ public unsafe class NSApplication : NSResponder
         get 
         {
             DelegateProperty ??= NSApplicationClass!.GetProperty("delegate").AsNonNull();
-            return this.GetProperty<NSObject>(DelegateProperty);
+            return this.GetNSObjectProperty<NSObject>(DelegateProperty);
         }
         set 
         {
@@ -218,11 +220,13 @@ public unsafe class NSApplication : NSResponder
         {
             this.VerifyReleased();
             DockTileSelector ??= Selector.FromName("dockTile");
+#pragma warning disable IL3050
             return this.dockTile ?? this.SendMessage<IntPtr>(DockTileSelector).Let(it =>
             {
                 this.dockTile = new(it);
                 return this.dockTile;
             });
+#pragma warning restore IL3050
         }
     }
     
@@ -235,7 +239,7 @@ public unsafe class NSApplication : NSResponder
         get 
         {
             EffectiveAppearanceProperty ??= NSApplicationClass!.GetProperty("effectiveAppearance").AsNonNull();
-            return this.GetProperty<NSAppearance>(EffectiveAppearanceProperty);
+            return this.GetNSObjectProperty<NSAppearance>(EffectiveAppearanceProperty).AsNonNull();
         }
     }
 
@@ -247,7 +251,9 @@ public unsafe class NSApplication : NSResponder
     public ActivationPolicy GetActivationPolicy()
     {
         GetActivationPolicySelector ??= Selector.FromName("activationPolicy");
+#pragma warning disable IL3050
         return this.SendMessage<ActivationPolicy>(GetActivationPolicySelector);
+#pragma warning restore IL3050
     }
 
 
@@ -255,6 +261,7 @@ public unsafe class NSApplication : NSResponder
     /// Hides all apps except the current application.
     /// </summary>
     /// <param name="sender">The object that sent this message.</param>
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     public void HideOtherApplications(NSObject? sender)
     {
         HideOtherApplicationsSelector ??= Selector.FromName("hideOtherApplications:");
@@ -270,7 +277,9 @@ public unsafe class NSApplication : NSResponder
         get
         {
             IsActiveSelector ??= Selector.FromName("isActive");
+#pragma warning disable IL3050
             return this.SendMessage<bool>(IsActiveSelector);
+#pragma warning restore IL3050
         }
     }
 
@@ -283,7 +292,9 @@ public unsafe class NSApplication : NSResponder
         get 
         {
             IsRunningSelector ??= Selector.FromName("isRunning");
-            return this.SendMessage<bool>(IsRunningSelector); 
+#pragma warning disable IL3050
+            return this.SendMessage<bool>(IsRunningSelector);
+#pragma warning restore IL3050
         }
     }
     
@@ -297,7 +308,9 @@ public unsafe class NSApplication : NSResponder
         {
             this.VerifyReleased();
             KeyWindowSelector ??= Selector.FromName("keyWindow");
+#pragma warning disable IL3050
             var handle = this.SendMessage<IntPtr>(KeyWindowSelector);
+#pragma warning restore IL3050
             var window = default(NSWindow);
             var prevWindow = default(NSWindow);
             if (handle != IntPtr.Zero)
@@ -327,7 +340,9 @@ public unsafe class NSApplication : NSResponder
         {
             this.VerifyReleased();
             MainWindowSelector ??= Selector.FromName("mainWindow");
+#pragma warning disable IL3050
             var handle = this.SendMessage<IntPtr>(MainWindowSelector);
+#pragma warning restore IL3050
             var window = default(NSWindow);
             var prevWindow = default(NSWindow);
             if (handle != IntPtr.Zero)
@@ -362,10 +377,13 @@ public unsafe class NSApplication : NSResponder
     /// Set activation policy of application.
     /// </summary>
     /// <param name="policy">Activation policy.</param>
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     public void SetActivationPolicy(ActivationPolicy policy)
     {
         SetActivationPolicySelector ??= Selector.FromName("setActivationPolicy:");
+#pragma warning disable IL3050
         this.SendMessage(SetActivationPolicySelector, policy);
+#pragma warning restore IL3050
     }
 
 
@@ -381,7 +399,9 @@ public unsafe class NSApplication : NSResponder
                 if (_Current != null)
                     return _Current;
                 var selector = Selector.FromName("sharedApplication");
-                var handle = NSObject.SendMessage<IntPtr>(NSApplicationClass!.Handle, selector);
+#pragma warning disable IL3050
+                var handle = SendMessage<IntPtr>(NSApplicationClass!.Handle, selector);
+#pragma warning restore IL3050
                 if (handle == default)
                     throw new Exception("Unable to create NSApplication instance.");
                 _Current = new(handle, true)
@@ -399,6 +419,7 @@ public unsafe class NSApplication : NSResponder
     /// </summary>
     public NSArray<NSWindow> Windows 
     { 
+        [RequiresDynamicCode(GetPropertyRdcMessage)]
         get 
         {
             WindowsSelector ??= Selector.FromName("windows");

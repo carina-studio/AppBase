@@ -4,6 +4,7 @@ using CarinaStudio.MacOS.ObjectiveC;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CarinaStudio.MacOS.AppKit;
 
@@ -16,7 +17,7 @@ public class NSColorSpace : NSObject
     /// <summary>
     /// Model.
     /// </summary>
-    public enum Model : int
+    public enum Model
     {
         Unknown = -1,
         Gray = 0,
@@ -62,7 +63,11 @@ public class NSColorSpace : NSObject
     /// <summary>
     /// Get predefined color space: Adobe RGB 1998.
     /// </summary>
-    public static NSColorSpace AdobeRGB1998 => GetNamedColorSpace("adobeRGB1998ColorSpace");
+    public static NSColorSpace AdobeRGB1998
+    {
+        [RequiresDynamicCode(GetPropertyRdcMessage)]
+        get => GetNamedColorSpace("adobeRGB1998ColorSpace");
+    }
 
 
     /// <summary>
@@ -73,7 +78,9 @@ public class NSColorSpace : NSObject
         get 
         {
             CGColorSpaceSelector ??= Selector.FromName("CGColorSpace");
-            return this.SendMessage<CGColorSpace>(CGColorSpaceSelector); 
+#pragma warning disable IL3050
+            return this.SendMessage<CGColorSpace?>(CGColorSpaceSelector);
+#pragma warning restore IL3050
         }
     }
 
@@ -86,7 +93,9 @@ public class NSColorSpace : NSObject
         get 
         {
             ColorSpaceModelSelector ??= Selector.FromName("colorSpaceModel");
-            return this.SendMessage<Model>(ColorSpaceModelSelector); 
+#pragma warning disable IL3050
+            return this.SendMessage<Model>(ColorSpaceModelSelector);
+#pragma warning restore IL3050
         }
     }
 
@@ -94,37 +103,61 @@ public class NSColorSpace : NSObject
     /// <summary>
     /// Get predefined color space: Device RGB.
     /// </summary>
-    public static NSColorSpace DeviceRGB => GetNamedColorSpace("deviceRGBColorSpace");
+    public static NSColorSpace DeviceRGB
+    {
+        [RequiresDynamicCode(GetPropertyRdcMessage)]
+        get => GetNamedColorSpace("deviceRGBColorSpace");
+    }
 
 
     /// <summary>
     /// Get predefined color space: Device gray.
     /// </summary>
-    public static NSColorSpace DeviceGray => GetNamedColorSpace("deviceGrayColorSpace");
+    public static NSColorSpace DeviceGray
+    {
+        [RequiresDynamicCode(GetPropertyRdcMessage)]
+        get => GetNamedColorSpace("deviceGrayColorSpace");
+    }
 
 
     /// <summary>
     /// Get predefined color space: Device CMYK.
     /// </summary>
-    public static NSColorSpace DeviceCMYK => GetNamedColorSpace("deviceCMYKColorSpace");
+    public static NSColorSpace DeviceCMYK
+    {
+        [RequiresDynamicCode(GetPropertyRdcMessage)]
+        get => GetNamedColorSpace("deviceCMYKColorSpace");
+    }
 
 
     /// <summary>
     /// Get predefined color space: Display-P3.
     /// </summary>
-    public static NSColorSpace DisplayP3 => GetNamedColorSpace("displayP3ColorSpace");
+    public static NSColorSpace DisplayP3
+    {
+        [RequiresDynamicCode(GetPropertyRdcMessage)]
+        get => GetNamedColorSpace("displayP3ColorSpace");
+    }
 
 
     /// <summary>
     /// Get predefined color space: Extended generic gray with gamma 2.2.
     /// </summary>
-    public static NSColorSpace ExtendedGenericGamma22Gray => GetNamedColorSpace("extendedGenericGamma22GrayColorSpace");
+    public static NSColorSpace ExtendedGenericGamma22Gray
+    {
+        [RequiresDynamicCode(GetPropertyRdcMessage)]
+        get => GetNamedColorSpace("extendedGenericGamma22GrayColorSpace");
+    }
 
 
     /// <summary>
     /// Get predefined color space: Extended sRGB.
     /// </summary>
-    public static NSColorSpace ExtendedSRGB => GetNamedColorSpace("extendedSRGBColorSpace");
+    public static NSColorSpace ExtendedSRGB
+    {
+        [RequiresDynamicCode(GetPropertyRdcMessage)]
+        get => GetNamedColorSpace("extendedSRGBColorSpace");
+    }
 
 
     /// <summary>
@@ -132,12 +165,13 @@ public class NSColorSpace : NSObject
     /// </summary>
     /// <param name="colorSpace"><see cref="CGColorSpace"/>.</param>
     /// <returns>Color space.</returns>
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     public static NSColorSpace FromCGColorSpace(CGColorSpace colorSpace)
     {
         if (colorSpace.IsReleased)
             throw new ObjectDisposedException(nameof(CGColorSpace));
         InitWithCGColorSpaceSelector ??= Selector.FromName("initWithCGColorSpace:");
-        var handle = NSObject.SendMessage<IntPtr>(NSColorSpaceClass!.Allocate(), InitWithCGColorSpaceSelector, colorSpace);
+        var handle = SendMessage<IntPtr>(NSColorSpaceClass!.Allocate(), InitWithCGColorSpaceSelector, colorSpace);
         return new(NSColorSpaceClass, handle, true);
     }
 
@@ -147,12 +181,13 @@ public class NSColorSpace : NSObject
     /// </summary>
     /// <param name="iccProfile">Data contains ICC profile.</param>
     /// <returns>Color space.</returns>
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     public static NSColorSpace FromIccProfile(CFData iccProfile)
     {
         if (iccProfile.IsReleased)
             throw new ObjectDisposedException(nameof(CFData));
         InitWithIccDataSelector ??= Selector.FromName("initWithIccProfileData:");
-        var handle = NSObject.SendMessage<IntPtr>(NSColorSpaceClass!.Allocate(), InitWithIccDataSelector, iccProfile);
+        var handle = SendMessage<IntPtr>(NSColorSpaceClass!.Allocate(), InitWithIccDataSelector, iccProfile);
         return new(NSColorSpaceClass, handle, true);
     }
 
@@ -160,25 +195,41 @@ public class NSColorSpace : NSObject
     /// <summary>
     /// Get predefined color space: Generic CMYK.
     /// </summary>
-    public static NSColorSpace GenericCMYK => GetNamedColorSpace("genericCMYKColorSpace");
+    public static NSColorSpace GenericCMYK
+    {
+        [RequiresDynamicCode(GetPropertyRdcMessage)]
+        get => GetNamedColorSpace("genericCMYKColorSpace");
+    }
 
 
     /// <summary>
     /// Get predefined color space: Generic gray with gamma 2.2.
     /// </summary>
-    public static NSColorSpace GenericGamma22Gray => GetNamedColorSpace("genericGamma22GrayColorSpace");
+    public static NSColorSpace GenericGamma22Gray
+    {
+        [RequiresDynamicCode(GetPropertyRdcMessage)]
+        get => GetNamedColorSpace("genericGamma22GrayColorSpace");
+    }
 
 
     /// <summary>
     /// Get predefined color space: Generic gray.
     /// </summary>
-    public static NSColorSpace GenericGray => GetNamedColorSpace("genericGrayColorSpace");
+    public static NSColorSpace GenericGray
+    {
+        [RequiresDynamicCode(GetPropertyRdcMessage)]
+        get => GetNamedColorSpace("genericGrayColorSpace");
+    }
 
 
     /// <summary>
     /// Get predefined color space: Generic RGB.
     /// </summary>
-    public static NSColorSpace GenericRGB => GetNamedColorSpace("genericRGBColorSpace");
+    public static NSColorSpace GenericRGB
+    {
+        [RequiresDynamicCode(GetPropertyRdcMessage)]
+        get => GetNamedColorSpace("genericRGBColorSpace");
+    }
 
 
     /// <summary>
@@ -186,10 +237,11 @@ public class NSColorSpace : NSObject
     /// </summary>
     /// <param name="model">Color model.</param>
     /// <returns>Available color spaces.</returns>
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     public static NSColorSpace[] GetAvailableColorSpaces(Model model)
     {
         AvailableColorSpacesSelector ??= Selector.FromName("availableColorSpacesWithModel:");
-        using var array = NSObject.SendMessage<NSArray<NSColorSpace>?>(NSColorSpaceClass!.Handle, AvailableColorSpacesSelector, model);
+        using var array = SendMessage<NSArray<NSColorSpace>?>(NSColorSpaceClass!.Handle, AvailableColorSpacesSelector, model);
         if (array is null)
             return Array.Empty<NSColorSpace>();
         return new NSColorSpace[array.Count].Also(it =>
@@ -201,11 +253,12 @@ public class NSColorSpace : NSObject
 
 
     // Get color space with given name.
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     static NSColorSpace GetNamedColorSpace(string name)
     {
         if (NamedColorSpaces.TryGetValue(name, out var colorSpace))
             return colorSpace;
-        var handle = NSObject.SendMessage<IntPtr>(NSColorSpaceClass!.Handle, Selector.FromName(name));
+        var handle = SendMessage<IntPtr>(NSColorSpaceClass!.Handle, Selector.FromName(name));
         return new NSColorSpace(NSColorSpaceClass, handle, false).Also(it =>
         {
             it.IsDefaultInstance = true;
@@ -222,7 +275,9 @@ public class NSColorSpace : NSObject
         get 
         {
             IccProfileDataSelector ??= Selector.FromName("ICCProfileData");
-            return this.SendMessage<CFData>(IccProfileDataSelector); 
+#pragma warning disable IL3050
+            return this.SendMessage<CFData?>(IccProfileDataSelector);
+#pragma warning restore IL3050
         }
     }
 
@@ -235,7 +290,9 @@ public class NSColorSpace : NSObject
         get
         {
             LocalizedNameSelector ??= Selector.FromName("localizedName");
-            using var s = this.SendMessage<NSString>(LocalizedNameSelector);
+#pragma warning disable IL3050
+            using var s = this.SendMessage<NSString?>(LocalizedNameSelector);
+#pragma warning restore IL3050
             return s?.ToString();
         }
     }
@@ -249,7 +306,9 @@ public class NSColorSpace : NSObject
         get 
         {
             NumOfColorComponentsSelector ??= Selector.FromName("numberOfColorComponents");
-            return this.SendMessage<int>(NumOfColorComponentsSelector); 
+#pragma warning disable IL3050
+            return this.SendMessage<int>(NumOfColorComponentsSelector);
+#pragma warning restore IL3050
         }
     }
 
@@ -257,7 +316,11 @@ public class NSColorSpace : NSObject
     /// <summary>
     /// Get predefined color space: sRGB.
     /// </summary>
-    public static NSColorSpace SRGB => GetNamedColorSpace("sRGBColorSpace");
+    public static NSColorSpace SRGB
+    {
+        [RequiresDynamicCode(GetPropertyRdcMessage)]
+        get => GetNamedColorSpace("sRGBColorSpace");
+    }
 
 
     /// <inheritdoc/>

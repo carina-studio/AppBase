@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
@@ -77,9 +78,9 @@ namespace CarinaStudio.MacOS.CoreFoundation
         
 
         // Get static method to wrap native instance.
-        static ConstructorInfo GetWrappingConstructor<T>() where T : CFObject =>
+        static ConstructorInfo GetWrappingConstructor<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>() where T : CFObject =>
             GetWrappingConstructor(typeof(T));
-        static ConstructorInfo GetWrappingConstructor(Type type) =>
+        static ConstructorInfo GetWrappingConstructor([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] Type type) =>
             WrappingConstructors.TryGetValue(type, out var method)
                 ? method
                 : type.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).Let(it =>
@@ -140,7 +141,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// <param name="ownsInstance">True to owns the native object.</param>
         /// <typeparam name="T">Target type.</typeparam>
         /// <returns>Wrapped object.</returns>
-        public static T FromHandle<T>(IntPtr cf, bool ownsInstance = false) where T : CFObject =>
+        public static T FromHandle<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(IntPtr cf, bool ownsInstance = false) where T : CFObject =>
             (T)FromHandle(typeof(T), cf, ownsInstance);
 
 
@@ -151,7 +152,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// <param name="cf">Handle of instance.</param>
         /// <param name="ownsInstance">True to owns the native object.</param>
         /// <returns>Wrapped object.</returns>
-        public static CFObject FromHandle(Type type, IntPtr cf, bool ownsInstance = false)
+        public static CFObject FromHandle([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] Type type, IntPtr cf, bool ownsInstance = false)
         {
             if (type == typeof(CFObject))
                 return new CFObject(cf, ownsInstance);
@@ -263,7 +264,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// </summary>
         /// <typeparam name="T">Specific type.</typeparam>
         /// <returns>New instance of retained object.</returns>
-        public T Retain<T>() where T : CFObject
+        public T Retain<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>() where T : CFObject
         {
             this.VerifyReleased();
             return FromHandle<T>(Retain(this.handle), true);

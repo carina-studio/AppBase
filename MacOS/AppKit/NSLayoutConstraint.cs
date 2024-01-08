@@ -79,7 +79,7 @@ public class NSLayoutConstraint : NSObject
         get 
         {
             IsActiveProperty ??= NSLayoutConstraintClass!.GetProperty("active").AsNonNull();
-            return this.GetProperty<bool>(IsActiveProperty);
+            return this.GetBooleanProperty(IsActiveProperty);
         }
         set 
         {

@@ -1,5 +1,6 @@
 using CarinaStudio.MacOS.ObjectiveC;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CarinaStudio.MacOS.AppKit;
 
@@ -55,6 +56,7 @@ public class NSAppearance : NSObject
     /// </summary>
     public static NSAppearance AccessibilityHighContrastAqua
     {
+        [RequiresDynamicCode(GetPropertyRdcMessage)]
         get
         {
             NSAppearanceAccessibilityHighContrastAqua ??= GetNamed(NSAppearanceNameAccessibilityHighContrastAqua);
@@ -68,6 +70,7 @@ public class NSAppearance : NSObject
     /// </summary>
     public static NSAppearance AccessibilityHighContrastDarkAqua
     {
+        [RequiresDynamicCode(GetPropertyRdcMessage)]
         get
         {
             NSAppearanceAccessibilityHighContrastDarkAqua ??= GetNamed(NSAppearanceNameAccessibilityHighContrastDarkAqua);
@@ -81,6 +84,7 @@ public class NSAppearance : NSObject
     /// </summary>
     public static NSAppearance AccessibilityHighContrastVibrantDark
     {
+        [RequiresDynamicCode(GetPropertyRdcMessage)]
         get
         {
             NSAppearanceAccessibilityHighContrastVibrantDark ??= GetNamed(NSAppearanceNameAccessibilityHighContrastVibrantDark);
@@ -94,6 +98,7 @@ public class NSAppearance : NSObject
     /// </summary>
     public static NSAppearance AccessibilityHighContrastVibrantLight
     {
+        [RequiresDynamicCode(GetPropertyRdcMessage)]
         get
         {
             NSAppearanceAccessibilityHighContrastVibrantLight ??= GetNamed(NSAppearanceNameAccessibilityHighContrastVibrantLight);
@@ -107,6 +112,7 @@ public class NSAppearance : NSObject
     /// </summary>
     public static NSAppearance Aqua
     {
+        [RequiresDynamicCode(GetPropertyRdcMessage)]
         get
         {
             NSAppearanceAqua ??= GetNamed(NSAppearanceNameAqua);
@@ -120,6 +126,7 @@ public class NSAppearance : NSObject
     /// </summary>
     public static NSAppearance DarkAqua
     {
+        [RequiresDynamicCode(GetPropertyRdcMessage)]
         get
         {
             NSAppearanceDarkAqua ??= GetNamed(NSAppearanceNameDarkAqua);
@@ -133,11 +140,12 @@ public class NSAppearance : NSObject
     /// </summary>
     /// <param name="name">Name.</param>
     /// <returns><see cref="NSAppearance"/> with specific name, or Null if appearance cannot be found.</returns>
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     public static NSAppearance? GetNamed(string name)
     {
         AppearanceNamedSelector ??= Selector.FromName("appearanceNamed:");
         using var nsName = new NSString(name);
-        var handle = NSObject.SendMessage<IntPtr>(NSAppearanceClass!.Handle, AppearanceNamedSelector, nsName);
+        var handle = SendMessage<IntPtr>(NSAppearanceClass!.Handle, AppearanceNamedSelector, nsName);
         return handle != default ? new(NSAppearanceClass!, handle, false) : null;
     }
 
@@ -147,6 +155,7 @@ public class NSAppearance : NSObject
     /// </summary>
     public static NSAppearance VibrantDark
     {
+        [RequiresDynamicCode(GetPropertyRdcMessage)]
         get
         {
             NSAppearanceVibrantDark ??= GetNamed(NSAppearanceNameVibrantDark);
@@ -160,6 +169,7 @@ public class NSAppearance : NSObject
     /// </summary>
     public static NSAppearance VibrantLight
     {
+        [RequiresDynamicCode(GetPropertyRdcMessage)]
         get
         {
             NSAppearanceVibrantLight ??= GetNamed(NSAppearanceNameVibrantLight);

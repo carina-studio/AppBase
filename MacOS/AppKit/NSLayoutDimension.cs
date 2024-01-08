@@ -1,5 +1,6 @@
 using CarinaStudio.MacOS.ObjectiveC;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CarinaStudio.MacOS.AppKit;
 
@@ -41,6 +42,7 @@ public class NSLayoutDimension : NSLayoutAnchor<NSLayoutDimension>
     /// Define constraint.
     /// </summary>
     /// <returns>Constraint.</returns>
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     public NSLayoutConstraint ConstraintEqualTo(float value)
     {
         ConstEqToConstantSelector ??= Selector.FromName("constraintEqualToConstant:");
@@ -52,6 +54,7 @@ public class NSLayoutDimension : NSLayoutAnchor<NSLayoutDimension>
     /// Define constraint.
     /// </summary>
     /// <returns>Constraint.</returns>
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     public NSLayoutConstraint ConstraintEqualToWithMultiplier(NSLayoutDimension anchor, float multiplier)
     {
         ConstEqToAnchorMultiplierSelector ??= Selector.FromName("constraintEqualToAnchor:multiplier:");
@@ -63,6 +66,7 @@ public class NSLayoutDimension : NSLayoutAnchor<NSLayoutDimension>
     /// Define constraint.
     /// </summary>
     /// <returns>Constraint.</returns>
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     public NSLayoutConstraint ConstraintEqualToWithMultiplier(NSLayoutDimension anchor, float multiplier, float constant)
     {
         ConstEqToAnchorMultiplierConstSelector ??= Selector.FromName("constraintEqualToAnchor:multiplier:constant:");
@@ -74,6 +78,7 @@ public class NSLayoutDimension : NSLayoutAnchor<NSLayoutDimension>
     /// Define constraint.
     /// </summary>
     /// <returns>Constraint.</returns>
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     public NSLayoutConstraint ConstraintGreaterThanOrEqualTo(float value)
     {
         ConstGtOrEqToConstantSelector ??= Selector.FromName("constraintGreaterThanOrEqualToConstant:");
@@ -85,6 +90,7 @@ public class NSLayoutDimension : NSLayoutAnchor<NSLayoutDimension>
     /// Define constraint.
     /// </summary>
     /// <returns>Constraint.</returns>
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     public NSLayoutConstraint ConstraintGreaterThanOrEqualToWithMultiplier(NSLayoutDimension anchor, float multiplier)
     {
         ConstGtOrEqToAnchorMultiplierSelector ??= Selector.FromName("constraintGreaterThanOrEqualToAnchor:multiplier:");
@@ -96,6 +102,7 @@ public class NSLayoutDimension : NSLayoutAnchor<NSLayoutDimension>
     /// Define constraint.
     /// </summary>
     /// <returns>Constraint.</returns>
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     public NSLayoutConstraint ConstraintGreaterThanOrEqualToWithMultiplier(NSLayoutDimension anchor, float multiplier, float constant)
     {
         ConstGtOrEqToAnchorMultiplierConstSelector ??= Selector.FromName("constraintGreaterThanOrEqualToAnchor:multiplier:constant:");
@@ -107,6 +114,7 @@ public class NSLayoutDimension : NSLayoutAnchor<NSLayoutDimension>
     /// Define constraint.
     /// </summary>
     /// <returns>Constraint.</returns>
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     public NSLayoutConstraint ConstraintLessThanOrEqualTo(float value)
     {
         ConstLtOrEqToConstantSelector ??= Selector.FromName("constraintLessThanOrEqualToConstant:");
@@ -118,6 +126,7 @@ public class NSLayoutDimension : NSLayoutAnchor<NSLayoutDimension>
     /// Define constraint.
     /// </summary>
     /// <returns>Constraint.</returns>
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     public NSLayoutConstraint ConstraintLessThanOrEqualToWithMultiplier(NSLayoutDimension anchor, float multiplier)
     {
         ConstLtOrEqToAnchorMultiplierSelector ??= Selector.FromName("constraintLessThanOrEqualToAnchor:multiplier:");
@@ -129,6 +138,7 @@ public class NSLayoutDimension : NSLayoutAnchor<NSLayoutDimension>
     /// Define constraint.
     /// </summary>
     /// <returns>Constraint.</returns>
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     public NSLayoutConstraint ConstraintLessThanOrEqualToWithMultiplier(NSLayoutDimension anchor, float multiplier, float constant)
     {
         ConstLtOrEqToAnchorMultiplierConstSelector ??= Selector.FromName("constraintLessThanOrEqualToAnchor:multiplier:constant:");

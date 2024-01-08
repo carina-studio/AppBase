@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace CarinaStudio.MacOS.ObjectiveC;
@@ -38,7 +39,7 @@ static class NSArray
 /// <summary>
 /// NSArray.
 /// </summary>
-public class NSArray<T> : NSObject, IList<T> where T : NSObject
+public class NSArray<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T> : NSObject, IList<T> where T : NSObject
 {
     // Enumerator.
     class Enumerator : IEnumerator<T>
@@ -83,6 +84,7 @@ public class NSArray<T> : NSObject, IList<T> where T : NSObject
     /// Initialize new <see cref="NSArray{T}"/> instance.
     /// </summary>
     /// <param name="objects">Elements.</param>
+    [RequiresDynamicCode(CallConstructorRdcMessage)]
     public NSArray(params T[] objects) : this((IEnumerable<T>)objects)
     { }
 
@@ -91,6 +93,7 @@ public class NSArray<T> : NSObject, IList<T> where T : NSObject
     /// Initialize new <see cref="NSArray{T}"/> instance.
     /// </summary>
     /// <param name="objects">Elements.</param>
+    [RequiresDynamicCode(CallConstructorRdcMessage)]
     public NSArray(IEnumerable<T> objects) : base(Global.Run(() =>
     {
         if (objects is NSArray<T> nsArray)
@@ -122,6 +125,7 @@ public class NSArray<T> : NSObject, IList<T> where T : NSObject
     /// </summary>
     /// <param name="obj">Object to check.</param>
     /// <returns>True if given object is contained in array.</returns>
+    [RequiresDynamicCode(CallConstructorRdcMessage)]
     public bool Contains(T? obj) =>
         this.SendMessage<bool>(NSArray.ContainsSelector!, obj);
     
@@ -150,15 +154,19 @@ public class NSArray<T> : NSObject, IList<T> where T : NSObject
     /// <summary>
     /// Get number of element in array.
     /// </summary>
+#pragma warning disable IL3050
     public int Count => this.SendMessage<int>(NSArray.CountSelector!);
+#pragma warning restore IL3050
 
 
     /// <summary>
     /// Get enumerator.
     /// </summary>
     /// <returns>Enumerator.</returns>
+#pragma warning disable IL3050
     public IEnumerator<T> GetEnumerator() =>
         new Enumerator(this.SendMessage<NSEnumerator>(NSArray.ObjectEnumeratorSelector!));
+#pragma warning restore IL3050
     
 
     /// <inheritdoc/>
@@ -172,8 +180,9 @@ public class NSArray<T> : NSObject, IList<T> where T : NSObject
     /// <param name="obj">Handle of allocated instance.</param>
     /// <param name="array">Array.</param>
     /// <returns>Handle of initialized instance.</returns>
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     protected static IntPtr Initialize(IntPtr obj, NSArray<T> array) =>
-        NSObject.SendMessage<IntPtr>(obj, NSArray.InitWithArraySelector!, array);
+        SendMessage<IntPtr>(obj, NSArray.InitWithArraySelector!, array);
     
 
     /// <summary>
@@ -182,6 +191,7 @@ public class NSArray<T> : NSObject, IList<T> where T : NSObject
     /// <param name="obj">Handle of allocated instance.</param>
     /// <param name="objects">Objects.</param>
     /// <returns>Handle of initialized instance.</returns>
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     protected static unsafe IntPtr Initialize(IntPtr obj, IEnumerable<T> objects)
     {
         IntPtr[] handleList;
@@ -199,7 +209,7 @@ public class NSArray<T> : NSObject, IList<T> where T : NSObject
                 handleList[i] = array[i].Handle;
         }
         fixed (IntPtr* handleListPtr = handleList)
-            return NSObject.SendMessage<IntPtr>(obj, NSArray.InitWithObjectsSelector!, (IntPtr)handleListPtr, handleList.Length);
+            return SendMessage<IntPtr>(obj, NSArray.InitWithObjectsSelector!, (IntPtr)handleListPtr, handleList.Length);
     }
 
 
@@ -213,6 +223,7 @@ public class NSArray<T> : NSObject, IList<T> where T : NSObject
     /// </summary>
     /// <param name="obj">Object to check.</param>
     /// <returns>Index of position of object.</returns>
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     public int IndexOf(T obj) =>
         this.SendMessage<int>(NSArray.IndexOfSelector!, obj);
     
@@ -234,7 +245,11 @@ public class NSArray<T> : NSObject, IList<T> where T : NSObject
     /// <summary>
     /// Get element at given position.
     /// </summary>
-    public T this[int index] => this.SendMessage<T>(NSArray.ObjectAtSelector!, index);
+    public T this[int index]
+    {
+        [RequiresDynamicCode(GetPropertyRdcMessage)]
+        get => this.SendMessage<T>(NSArray.ObjectAtSelector!, index);
+    }
 
 
     /// <inheritdoc/>

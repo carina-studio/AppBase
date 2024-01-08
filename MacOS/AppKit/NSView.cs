@@ -1,5 +1,6 @@
 using System;
 using CarinaStudio.MacOS.ObjectiveC;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CarinaStudio.MacOS.AppKit;
 
@@ -102,6 +103,7 @@ public class NSView : NSResponder
     /// Initialize new <see cref="NSView"/> instance.
     /// </summary>
     /// <param name="frame">Frame.</param>
+    [RequiresDynamicCode(CallConstructorRdcMessage)]
     public NSView(NSRect frame) : this(Initialize(Initialize(NSViewClass!.Allocate(), frame), frame), false, true)
     { }
 
@@ -111,6 +113,7 @@ public class NSView : NSResponder
     /// </summary>
     /// <param name="handle">Handle of allocated instance.</param>
     /// <param name="frame">Frame.</param>
+    [RequiresDynamicCode(CallConstructorRdcMessage)]
     protected NSView(IntPtr handle, NSRect frame) : this(Initialize(handle, frame), false, true)
     { }
 
@@ -149,6 +152,7 @@ public class NSView : NSResponder
     /// Add constraint on the layout of view.
     /// </summary>
     /// <param name="constraint">Constraint.</param>
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     public void AddConstraint(NSLayoutConstraint constraint)
     {
         AddConstraintSelector ??= Selector.FromName("addConstraint:");
@@ -160,6 +164,7 @@ public class NSView : NSResponder
     /// Add multiple constraints on the layout of view.
     /// </summary>
     /// <param name="constraints">Constraint.</param>
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     public void AddConstraints(params NSLayoutConstraint[] constraints)
     {
         AddConstraintsSelector ??= Selector.FromName("addConstraints:");
@@ -172,6 +177,7 @@ public class NSView : NSResponder
     /// Add multiple constraints on the layout of view.
     /// </summary>
     /// <param name="constraints">Constraint.</param>
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     public void AddConstraints(NSArray<NSLayoutConstraint> constraints)
     {
         AddConstraintsSelector ??= Selector.FromName("addConstraints:");
@@ -183,6 +189,7 @@ public class NSView : NSResponder
     /// Add given view as sub-view.
     /// </summary>
     /// <param name="view">View.</param>
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     public void AddSubView(NSView view)
     {
         AddSubViewSelector ??= Selector.FromName("addSubview:");
@@ -196,6 +203,7 @@ public class NSView : NSResponder
     /// <param name="view">View.</param>
     /// <param name="place">Relation to other view.</param>
     /// <param name="otherView">Other view which the sub-view relative to.</param>
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     public void AddSubView(NSView view, NSWindow.OrderingMode place, NSView? otherView)
     {
         AddSubViewSelector ??= Selector.FromName("addSubview:");
@@ -211,12 +219,12 @@ public class NSView : NSResponder
         get 
         {
             AppearanceProperty ??= NSViewClass!.GetProperty("appearance").AsNonNull();
-            return this.GetProperty<NSAppearance>(AppearanceProperty!);
+            return this.GetNSObjectProperty<NSAppearance>(AppearanceProperty!);
         }
         set 
         {
             AppearanceProperty ??= NSViewClass!.GetProperty("appearance").AsNonNull();
-            this.SetProperty(AppearanceProperty, value);
+            this.SetProperty(AppearanceProperty, (NSObject?)value);
         }
     }
     
@@ -229,8 +237,10 @@ public class NSView : NSResponder
         get 
         {
             BottomAnchorSelector ??= Selector.FromName("bottomAnchor");
+#pragma warning disable IL3050
             return this.bottomAnchor ?? this.SendMessage<NSLayoutYAxisAnchor>(BottomAnchorSelector).AsNonNull().Also(it =>
                 this.bottomAnchor = it);
+#pragma warning restore IL3050
         }
     }
     
@@ -240,11 +250,13 @@ public class NSView : NSResponder
     /// </summary>
     public NSRect Bounds
     {
+        [RequiresDynamicCode(GetPropertyRdcMessage)]
         get 
         {
             BoundsProperty ??= NSViewClass!.GetProperty("bounds").AsNonNull();
             return this.GetProperty<NSRect>(BoundsProperty);
         }
+        [RequiresDynamicCode(SetPropertyRdcMessage)]
         set 
         {
             BoundsProperty ??= NSViewClass!.GetProperty("bounds").AsNonNull();
@@ -261,7 +273,7 @@ public class NSView : NSResponder
         get 
         {
             BoundsRotationProperty ??= NSViewClass!.GetProperty("boundsRotation").AsNonNull();
-            return this.GetProperty<double>(BoundsRotationProperty);
+            return this.GetDoubleProperty(BoundsRotationProperty);
         }
         set 
         {
@@ -279,8 +291,10 @@ public class NSView : NSResponder
         get 
         {
             CenterXAnchorSelector ??= Selector.FromName("centerXAnchor");
+#pragma warning disable IL3050
             return this.centerXAnchor ?? this.SendMessage<NSLayoutXAxisAnchor>(CenterXAnchorSelector).AsNonNull().Also(it =>
                 this.centerXAnchor = it);
+#pragma warning restore IL3050
         }
     }
 
@@ -293,8 +307,10 @@ public class NSView : NSResponder
         get 
         {
             CenterYAnchorSelector ??= Selector.FromName("centerYAnchor");
+#pragma warning disable IL3050
             return this.centerYAnchor ?? this.SendMessage<NSLayoutYAxisAnchor>(CenterYAnchorSelector).AsNonNull().Also(it =>
                 this.centerYAnchor = it);
+#pragma warning restore IL3050
         }
     }
 
@@ -304,6 +320,7 @@ public class NSView : NSResponder
     /// </summary>
     public NSArray<NSLayoutConstraint> Constraints 
     { 
+        [RequiresDynamicCode(GetPropertyRdcMessage)]
         get 
         {
             ConstraintsSelector ??= Selector.FromName("constraints");
@@ -320,8 +337,10 @@ public class NSView : NSResponder
         get 
         {
             FirstBaselineAnchorSelector ??= Selector.FromName("firstBaselineAnchor");
+#pragma warning disable IL3050
             return this.firstBaselineAnchor ?? this.SendMessage<NSLayoutYAxisAnchor>(FirstBaselineAnchorSelector).AsNonNull().Also(it =>
                 this.firstBaselineAnchor = it);
+#pragma warning restore IL3050
         }
     }
 
@@ -331,6 +350,7 @@ public class NSView : NSResponder
     /// </summary>
     public NSSize FittingSize 
     { 
+        [RequiresDynamicCode(GetPropertyRdcMessage)]
         get 
         {
             FittingSizeSelector ??= Selector.FromName("fittingSize");
@@ -344,11 +364,13 @@ public class NSView : NSResponder
     /// </summary>
     public NSRect Frame
     {
+        [RequiresDynamicCode(GetPropertyRdcMessage)]
         get 
         {
             FrameProperty ??= NSViewClass!.GetProperty("frame").AsNonNull();
             return this.GetProperty<NSRect>(FrameProperty);
         }
+        [RequiresDynamicCode(SetPropertyRdcMessage)]
         set 
         {
             FrameProperty ??= NSViewClass!.GetProperty("frame").AsNonNull();
@@ -365,7 +387,7 @@ public class NSView : NSResponder
         get 
         {
             FrameRotationProperty ??= NSViewClass!.GetProperty("frameRotation").AsNonNull();
-            return this.GetProperty<double>(FrameRotationProperty);
+            return this.GetDoubleProperty(FrameRotationProperty);
         }
         set 
         {
@@ -383,8 +405,10 @@ public class NSView : NSResponder
         get 
         {
             HeightAnchorSelector ??= Selector.FromName("heightAnchor");
+#pragma warning disable IL3050
             return this.heightAnchor ?? this.SendMessage<NSLayoutDimension>(HeightAnchorSelector).AsNonNull().Also(it =>
                 this.heightAnchor = it);
+#pragma warning restore IL3050
         }
     }
 
@@ -395,6 +419,7 @@ public class NSView : NSResponder
     /// <param name="view">Handle of allocated <see cref="NSView"/>.</param>
     /// <param name="frame">Frame.</param>
     /// <returns>Handle of initialized <see cref="NSView"/>.</returns>
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     protected static IntPtr Initialize(IntPtr view, NSRect frame)
     {
         InitWithFrameSelector ??= Selector.FromName("initWithFrame:");
@@ -407,6 +432,7 @@ public class NSView : NSResponder
     /// </summary>
     public NSSize IntrinsicContentSize 
     { 
+        [RequiresDynamicCode(GetPropertyRdcMessage)]
         get 
         {
             IntrinsicContentSizeSelector ??= Selector.FromName("intrinsicContentSize");
@@ -433,7 +459,9 @@ public class NSView : NSResponder
         get 
         {
             IsFlippedSelector ??= Selector.FromName("isFlipped");
-            return this.SendMessage<bool>(IsFlippedSelector); 
+#pragma warning disable IL3050
+            return this.SendMessage<bool>(IsFlippedSelector);
+#pragma warning restore IL3050
         }
     }
     
@@ -446,7 +474,7 @@ public class NSView : NSResponder
         get 
         {
             IsHiddenOrHasHiddenAncestorProperty ??= NSViewClass!.GetProperty("hiddenOrHasHiddenAncestor").AsNonNull();
-            return this.GetProperty<bool>(IsHiddenOrHasHiddenAncestorProperty); 
+            return this.GetBooleanProperty(IsHiddenOrHasHiddenAncestorProperty); 
         }
     }
     
@@ -459,7 +487,7 @@ public class NSView : NSResponder
         get 
         {
             IsHiddenProperty ??= NSViewClass!.GetProperty("hidden").AsNonNull();
-            return this.GetProperty<bool>(IsHiddenProperty);
+            return this.GetBooleanProperty(IsHiddenProperty);
         }
         set 
         {
@@ -477,8 +505,10 @@ public class NSView : NSResponder
         get 
         {
             LastBaselineAnchorSelector ??= Selector.FromName("lastBaselineAnchor");
+#pragma warning disable IL3050
             return this.lastBaselineAnchor ?? this.SendMessage<NSLayoutYAxisAnchor>(LastBaselineAnchorSelector).AsNonNull().Also(it =>
                 this.lastBaselineAnchor = it);
+#pragma warning restore IL3050
         }
     }
     
@@ -501,8 +531,10 @@ public class NSView : NSResponder
         get 
         {
             LeadingAnchorSelector ??= Selector.FromName("leadingAnchor");
+#pragma warning disable IL3050
             return this.leadingAnchor ?? this.SendMessage<NSLayoutXAxisAnchor>(LeadingAnchorSelector).AsNonNull().Also(it =>
                 this.leadingAnchor = it);
+#pragma warning restore IL3050
         }
     }
     
@@ -515,8 +547,10 @@ public class NSView : NSResponder
         get 
         {
             LeftAnchorSelector ??= Selector.FromName("leftAnchor");
+#pragma warning disable IL3050
             return this.leftAnchor ?? this.SendMessage<NSLayoutXAxisAnchor>(LeftAnchorSelector).AsNonNull().Also(it =>
                 this.leftAnchor = it);
+#pragma warning restore IL3050
         }
     }
 
@@ -529,7 +563,7 @@ public class NSView : NSResponder
         get 
         {
             NeedsLayoutProperty ??= NSViewClass!.GetProperty("needsLayout").AsNonNull();
-            return this.GetProperty<bool>(NeedsLayoutProperty);
+            return this.GetBooleanProperty(NeedsLayoutProperty);
         }
         set 
         {
@@ -543,6 +577,7 @@ public class NSView : NSResponder
     /// Add constraint from view.
     /// </summary>
     /// <param name="constraint">Constraint.</param>
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     public void RemoveConstraint(NSLayoutConstraint constraint)
     {
         RemoveConstraintSelector ??= Selector.FromName("removeConstraint:");
@@ -554,6 +589,7 @@ public class NSView : NSResponder
     /// Add multiple constraints from view.
     /// </summary>
     /// <param name="constraints">Constraint.</param>
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     public void RemoveConstraints(params NSLayoutConstraint[] constraints)
     {
         RemoveConstraintsSelector ??= Selector.FromName("removeConstraints:");
@@ -566,6 +602,7 @@ public class NSView : NSResponder
     /// Add multiple constraints from view.
     /// </summary>
     /// <param name="constraints">Constraint.</param>
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     public void RemoveConstraints(NSArray<NSLayoutConstraint> constraints)
     {
         RemoveConstraintsSelector ??= Selector.FromName("removeConstraints:");
@@ -591,8 +628,10 @@ public class NSView : NSResponder
         get 
         {
             RightAnchorSelector ??= Selector.FromName("rightAnchor");
+#pragma warning disable IL3050
             return this.rightAnchor ?? this.SendMessage<NSLayoutXAxisAnchor>(RightAnchorSelector).AsNonNull().Also(it =>
                 this.rightAnchor = it);
+#pragma warning restore IL3050
         }
     }
     
@@ -602,6 +641,7 @@ public class NSView : NSResponder
     /// </summary>
     public NSEdgeInsets SafeAreaInsets 
     { 
+        [RequiresDynamicCode(GetPropertyRdcMessage)]
         get 
         {
             SafeAreaInsetsSelector ??= Selector.FromName("safeAreaInsets");
@@ -615,6 +655,7 @@ public class NSView : NSResponder
     /// </summary>
     public NSRect SafeAreaRect 
     { 
+        [RequiresDynamicCode(GetPropertyRdcMessage)]
         get
         {
             SafeAreaRectSelector ??= Selector.FromName("safeAreaRect");
@@ -628,6 +669,7 @@ public class NSView : NSResponder
     /// </summary>
     public NSArray<NSView> SubViews 
     { 
+        [RequiresDynamicCode(GetPropertyRdcMessage)]
         get 
         {
             SubViewsSelector ??= Selector.FromName("subviews");
@@ -644,7 +686,9 @@ public class NSView : NSResponder
         get  
         {
             SuperViewSelector ??= Selector.FromName("superview");
-            return this.SendMessage<NSView>(SuperViewSelector); 
+#pragma warning disable IL3050
+            return this.SendMessage<NSView>(SuperViewSelector);
+#pragma warning restore IL3050
         }
     }
 
@@ -657,7 +701,9 @@ public class NSView : NSResponder
         get 
         {
             TagSelector ??= Selector.FromName("tag");
-            return this.SendMessage<int>(TagSelector); 
+#pragma warning disable IL3050
+            return this.SendMessage<int>(TagSelector);
+#pragma warning restore IL3050
         }
     }
 
@@ -670,8 +716,10 @@ public class NSView : NSResponder
         get 
         {
             TopAnchorSelector ??= Selector.FromName("topAnchor");
+#pragma warning disable IL3050
             return this.topAnchor ?? this.SendMessage<NSLayoutYAxisAnchor>(TopAnchorSelector).AsNonNull().Also(it =>
                 this.topAnchor = it);
+#pragma warning restore IL3050
         }
     }
 
@@ -689,8 +737,10 @@ public class NSView : NSResponder
         get 
         {
             TrailingAnchorSelector ??= Selector.FromName("trailingAnchor");
+#pragma warning disable IL3050
             return this.trailingAnchor ?? this.SendMessage<NSLayoutXAxisAnchor>(TrailingAnchorSelector).AsNonNull().Also(it =>
                 this.trailingAnchor = it);
+#pragma warning restore IL3050
         }
     }
     
@@ -703,12 +753,16 @@ public class NSView : NSResponder
         get 
         {
             GetTranslatesAutoresizingMaskIntoConstraintsSelector ??= Selector.FromName("translatesAutoresizingMaskIntoConstraints");
+#pragma warning disable IL3050
             return this.SendMessage<bool>(GetTranslatesAutoresizingMaskIntoConstraintsSelector);
+#pragma warning restore IL3050
         }
         set
         {
             SetTranslatesAutoresizingMaskIntoConstraintsSelector ??= Selector.FromName("setTranslatesAutoresizingMaskIntoConstraints:");
+#pragma warning disable IL3050
             this.SendMessage(SetTranslatesAutoresizingMaskIntoConstraintsSelector, value);
+#pragma warning restore IL3050
         }
     }
 
@@ -718,6 +772,7 @@ public class NSView : NSResponder
     /// </summary>
     public NSRect VisibleRect 
     {
+        [RequiresDynamicCode(GetPropertyRdcMessage)]
         get 
         {
             VisibleRectSelector ??= Selector.FromName("visibleRect");
@@ -731,11 +786,14 @@ public class NSView : NSResponder
     /// </summary>
     public NSLayoutDimension WidthAnchor
     {
+        [RequiresDynamicCode(GetPropertyRdcMessage)]
         get
         {
             WidthAnchorSelector ??= Selector.FromName("widthAnchor");
+#pragma warning disable IL3050
             return this.widthAnchor ?? this.SendMessage<NSLayoutDimension>(WidthAnchorSelector).AsNonNull().Also(it =>
                 this.widthAnchor = it);
+#pragma warning restore IL3050
         }
     }
 
@@ -748,7 +806,9 @@ public class NSView : NSResponder
         get 
         {
             WindowSelector ??= Selector.FromName("window");
-            return this.SendMessage<NSWindow>(WindowSelector); 
+#pragma warning disable IL3050
+            return this.SendMessage<NSWindow>(WindowSelector);
+#pragma warning restore IL3050
         }
     }
 }

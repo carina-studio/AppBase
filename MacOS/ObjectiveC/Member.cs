@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace CarinaStudio.MacOS.ObjectiveC
@@ -153,6 +154,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         public int ElementCount
         {
+            [RequiresDynamicCode(NSObject.GetPropertyRdcMessage)]
             get
             {
                 if (this.type == null)
@@ -167,6 +169,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         public int Size
         {
+            [RequiresDynamicCode(NSObject.GetPropertyRdcMessage)]
             get
             {
                 if (this.size == 0)
@@ -187,6 +190,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         public Type Type
         {
+            [RequiresDynamicCode(NSObject.GetPropertyRdcMessage)]
             get
             {
                 return this.type ?? NativeTypeConversion.FromTypeEncoding(this.TypeEncoding, out this.elementCount).Also(it =>

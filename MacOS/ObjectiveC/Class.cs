@@ -82,6 +82,12 @@ namespace CarinaStudio.MacOS.ObjectiveC
             [MarshalAs(UnmanagedType.LPStr)]
             public string? Value;
         }
+        
+        
+        // Constants.
+        const string DefineMethodRdcMessage = "Dynamic code generation is required for defining method of NSObject.";
+        const string DefinePropertyRdcMessage = "Dynamic code generation is required for defining property of NSObject.";
+        const string DefineVariableRdcMessage = "Dynamic code generation is required for defining variable of NSObject.";
 
 
         // Static fields.
@@ -153,9 +159,13 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// Allocate memory for new instance with this class.
         /// </summary>
         /// <returns>Handle of allocated instance.</returns>
-        public IntPtr Allocate() =>
-            NSObject.SendMessage<IntPtr>(this.Handle, AllocSelector!);
-        
+        public IntPtr Allocate()
+        {
+#pragma warning disable IL3050
+            return NSObject.SendMessage<IntPtr>(this.Handle, AllocSelector!);
+#pragma warning restore IL3050
+        }
+
 
         /// <summary>
         /// Define a new class extends from <see cref="NSObject"/>.
@@ -174,6 +184,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="name">Name of class.</param>
         /// <param name="defining">Action to define members of class.</param>
         /// <returns>New defined class.</returns>
+        [RequiresDynamicCode("Dynamic code generation is required for defining class.")]
         public static Class DefineClass(Class? superClass, string name, Action<Class> defining)
         {
             // allocate class
@@ -233,7 +244,8 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="name">Name of variable.</param>
         /// <param name="elementCount">Number of element is value is an array.</param>
         /// <returns>Descriptor of instance variable.</returns>
-        public Variable DefineInstanceVariable<T>(string name, int elementCount = 1) =>
+        [RequiresDynamicCode(DefineVariableRdcMessage)]
+        public Variable DefineInstanceVariable<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.NonPublicFields)] T>(string name, int elementCount = 1) =>
             this.DefineInstanceVariable(name, typeof(T), elementCount);
 
 
@@ -244,7 +256,8 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="type">Type of variable.</param>
         /// <param name="elementCount">Number of element is value is an array.</param>
         /// <returns>Descriptor of instance variable.</returns>
-        public Variable DefineInstanceVariable(string name, Type type, int elementCount = 1)
+        [RequiresDynamicCode(DefineVariableRdcMessage)]
+        public Variable DefineInstanceVariable(string name, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.NonPublicFields)] Type type, int elementCount = 1)
         {
             this.VerifyRegistered();
             if (string.IsNullOrEmpty(name))
@@ -297,6 +310,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
+        [RequiresDynamicCode(DefineMethodRdcMessage)]
         public void DefineMethod(string name, Action<IntPtr, Selector> implementation) =>
             this.DefineMethodCore(Selector.FromName(name), implementation, false);
 
@@ -306,6 +320,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
+        [RequiresDynamicCode(DefineMethodRdcMessage)]
         public void DefineMethod(Selector name, Action<IntPtr, Selector> implementation) =>
             this.DefineMethodCore(name, implementation, false);
         
@@ -315,6 +330,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
+        [RequiresDynamicCode(DefineMethodRdcMessage)]
         public void DefineMethod<R>(string name, Func<IntPtr, Selector, R> implementation) =>
             this.DefineMethodCore(Selector.FromName(name), implementation, false);
 
@@ -324,6 +340,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
+        [RequiresDynamicCode(DefineMethodRdcMessage)]
         public void DefineMethod<R>(Selector name, Func<IntPtr, Selector, R> implementation) =>
             this.DefineMethodCore(name, implementation, false);
 
@@ -333,6 +350,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
+        [RequiresDynamicCode(DefineMethodRdcMessage)]
         public void DefineMethod<TArg1>(string name, Action<IntPtr, Selector, TArg1> implementation) =>
             this.DefineMethodCore(Selector.FromName(name), implementation, false);
 
@@ -342,6 +360,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
+        [RequiresDynamicCode(DefineMethodRdcMessage)]
         public void DefineMethod<TArg1>(Selector name, Action<IntPtr, Selector, TArg1> implementation) =>
             this.DefineMethodCore(name, implementation, false);
 
@@ -351,6 +370,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
+        [RequiresDynamicCode(DefineMethodRdcMessage)]
         public void DefineMethod<TArg1, R>(string name, Func<IntPtr, Selector, TArg1, R> implementation) =>
             this.DefineMethodCore(Selector.FromName(name), implementation, false);
 
@@ -360,6 +380,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
+        [RequiresDynamicCode(DefineMethodRdcMessage)]
         public void DefineMethod<TArg1, R>(Selector name, Func<IntPtr, Selector, TArg1, R> implementation) =>
             this.DefineMethodCore(name, implementation, false);
 
@@ -369,6 +390,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
+        [RequiresDynamicCode(DefineMethodRdcMessage)]
         public void DefineMethod<TArg1, TArg2>(string name, Action<IntPtr, Selector, TArg1, TArg2> implementation) =>
             this.DefineMethodCore(Selector.FromName(name), implementation, false);
 
@@ -378,6 +400,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
+        [RequiresDynamicCode(DefineMethodRdcMessage)]
         public void DefineMethod<TArg1, TArg2>(Selector name, Action<IntPtr, Selector, TArg1, TArg2> implementation) =>
             this.DefineMethodCore(name, implementation, false);
 
@@ -387,6 +410,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
+        [RequiresDynamicCode(DefineMethodRdcMessage)]
         public void DefineMethod<TArg1, TArg2, R>(string name, Func<IntPtr, Selector, TArg1, TArg2, R> implementation) =>
             this.DefineMethodCore(Selector.FromName(name), implementation, false);
 
@@ -396,6 +420,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
+        [RequiresDynamicCode(DefineMethodRdcMessage)]
         public void DefineMethod<TArg1, TArg2, R>(Selector name, Func<IntPtr, Selector, TArg1, TArg2, R> implementation) =>
             this.DefineMethodCore(name, implementation, false);
 
@@ -405,6 +430,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
+        [RequiresDynamicCode(DefineMethodRdcMessage)]
         public void DefineMethod<TArg1, TArg2, TArg3>(string name, Action<IntPtr, Selector, TArg1, TArg2, TArg3> implementation) =>
             this.DefineMethodCore(Selector.FromName(name), implementation, false);
 
@@ -414,6 +440,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
+        [RequiresDynamicCode(DefineMethodRdcMessage)]
         public void DefineMethod<TArg1, TArg2, TArg3>(Selector name, Action<IntPtr, Selector, TArg1, TArg2, TArg3> implementation) =>
             this.DefineMethodCore(name, implementation, false);
 
@@ -423,6 +450,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
+        [RequiresDynamicCode(DefineMethodRdcMessage)]
         public void DefineMethod<TArg1, TArg2, TArg3, R>(string name, Func<IntPtr, Selector, TArg1, TArg2, TArg3, R> implementation) =>
             this.DefineMethodCore(Selector.FromName(name), implementation, false);
 
@@ -432,6 +460,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
+        [RequiresDynamicCode(DefineMethodRdcMessage)]
         public void DefineMethod<TArg1, TArg2, TArg3, R>(Selector name, Func<IntPtr, Selector, TArg1, TArg2, TArg3, R> implementation) =>
             this.DefineMethodCore(name, implementation, false);
 
@@ -441,6 +470,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
+        [RequiresDynamicCode(DefineMethodRdcMessage)]
         public void DefineMethod<TArg1, TArg2, TArg3, TArg4>(string name, Action<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4> implementation) =>
             this.DefineMethodCore(Selector.FromName(name), implementation, false);
 
@@ -450,6 +480,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
+        [RequiresDynamicCode(DefineMethodRdcMessage)]
         public void DefineMethod<TArg1, TArg2, TArg3, TArg4>(Selector name, Action<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4> implementation) =>
             this.DefineMethodCore(name, implementation, false);
 
@@ -459,6 +490,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
+        [RequiresDynamicCode(DefineMethodRdcMessage)]
         public void DefineMethod<TArg1, TArg2, TArg3, TArg4, R>(string name, Func<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4, R> implementation) =>
             this.DefineMethodCore(Selector.FromName(name), implementation, false);
 
@@ -468,6 +500,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
+        [RequiresDynamicCode(DefineMethodRdcMessage)]
         public void DefineMethod<TArg1, TArg2, TArg3, TArg4, R>(Selector name, Func<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4, R> implementation) =>
             this.DefineMethodCore(name, implementation, false);
 
@@ -477,6 +510,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
+        [RequiresDynamicCode(DefineMethodRdcMessage)]
         public void DefineMethod<TArg1, TArg2, TArg3, TArg4, TArg5>(string name, Action<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4, TArg5> implementation) =>
             this.DefineMethodCore(Selector.FromName(name), implementation, false);
 
@@ -486,6 +520,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
+        [RequiresDynamicCode(DefineMethodRdcMessage)]
         public void DefineMethod<TArg1, TArg2, TArg3, TArg4, TArg5>(Selector name, Action<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4, TArg5> implementation) =>
             this.DefineMethodCore(name, implementation, false);
 
@@ -495,6 +530,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
+        [RequiresDynamicCode(DefineMethodRdcMessage)]
         public void DefineMethod<TArg1, TArg2, TArg3, TArg4, TArg5, R>(string name, Func<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4, TArg5, R> implementation) =>
             this.DefineMethodCore(Selector.FromName(name), implementation, false);
 
@@ -504,6 +540,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
+        [RequiresDynamicCode(DefineMethodRdcMessage)]
         public void DefineMethod<TArg1, TArg2, TArg3, TArg4, TArg5, R>(Selector name, Func<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4, TArg5, R> implementation) =>
             this.DefineMethodCore(name, implementation, false);
         
@@ -513,11 +550,13 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
+        [RequiresDynamicCode(DefineMethodRdcMessage)]
         public void DefineMethod(Selector name, Delegate implementation) =>
             this.DefineMethodCore(name, implementation, true);
 
 
         // Define method.
+        [RequiresDynamicCode(DefineMethodRdcMessage)]
         void DefineMethodCore(Selector name, Delegate impl, bool verifyImpl)
         {
             // verify implementation
@@ -632,17 +671,23 @@ namespace CarinaStudio.MacOS.ObjectiveC
             var bridgeType = bridgeTypeBuilder.CreateType().AsNonNull();
 
             // create delegate type for bridge
+#pragma warning disable IL2026
             var bridgeDelegateType = NativeBridgeModule.DefineType($"{bridgeTypeBuilder.Name}-Delegate", TypeAttributes.AnsiClass | TypeAttributes.AutoClass | TypeAttributes.Class | TypeAttributes.Public | TypeAttributes.Sealed, typeof(MulticastDelegate)).Also(delegateClass =>
             {
                 delegateClass.DefineConstructor(MethodAttributes.HideBySig | MethodAttributes.Public | MethodAttributes.RTSpecialName, CallingConventions.Standard, new Type[]{ typeof(object), typeof(IntPtr) }).SetImplementationFlags(MethodImplAttributes.Runtime | MethodImplAttributes.Managed);
                 delegateClass.DefineMethod("Invoke", MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Public | MethodAttributes.Virtual, CallingConventions.Standard, nativeReturnType, nativeParamTypes).SetImplementationFlags(MethodImplAttributes.Runtime | MethodImplAttributes.Managed);
             }).CreateTypeInfo().AsNonNull();
+#pragma warning restore IL2026
 
             // create bridge object
+#pragma warning disable IL2072
             var bridgeObject = Activator.CreateInstance(bridgeType, new object?[] { impl }).AsNonNull();
+#pragma warning restore IL2072
 
             // create delegate to bridge method
+#pragma warning disable IL2075
             var bridgeMethod = bridgeType.GetMethod("Invoke", BindingFlags.Instance | BindingFlags.Public).AsNonNull();
+#pragma warning restore IL2075
             var bridgeMethodDelegate = bridgeMethod.CreateDelegate(bridgeDelegateType, bridgeObject);
             if (!class_addMethod(this.Handle, name.Handle, bridgeMethodDelegate, ""))
                 throw new Exception($"Failed to add method '{name}' to '{this.Name}'.");
@@ -658,6 +703,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="setter">Implementation of setter.</param>
         /// <typeparam name="T">Type of property value.</typeparam>
         /// <returns>Descriptor of added property.</returns>
+        [RequiresDynamicCode(DefinePropertyRdcMessage)]
         public Property DefineProperty<T>(string name, Func<IntPtr, Selector, T> getter, Action<IntPtr, Selector, T>? setter = null) where T : struct
         {
             // check state
@@ -1079,7 +1125,8 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="obj">Handle of instance.</param>
         /// <param name="clrObj">Bound CLR object.</param>
         /// <returns>True if CLR object found.</returns>
-        public bool TryGetClrObject<T>(IntPtr obj, [NotNullWhen(true)] out T? clrObj)
+        [RequiresDynamicCode(NSObject.GetVariableRdcMessage)]
+        public bool TryGetClrObject<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(IntPtr obj, [NotNullWhen(true)] out T? clrObj)
         {
             clrObj = default;
             if (this.clrObjectHandleVar == null
@@ -1105,6 +1152,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="obj">Handle of instance.</param>
         /// <param name="clrObj">CLR object to bind.</param>
         /// <returns>True if CLR object has been bound successfully.</returns>
+        [RequiresDynamicCode(NSObject.GetVariableRdcMessage)]
         public bool TrySetClrObject(IntPtr obj, object? clrObj)
         {
             if (this.clrObjectHandleVar == null

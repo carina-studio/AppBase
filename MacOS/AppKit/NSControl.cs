@@ -1,5 +1,6 @@
 using CarinaStudio.MacOS.ObjectiveC;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CarinaStudio.MacOS.AppKit;
 
@@ -27,6 +28,7 @@ public class NSControl : NSView
     /// </summary>
     /// <param name="handle">Handle of allocated instance.</param>
     /// <param name="frame">Frame.</param>
+    [RequiresDynamicCode(CallConstructorRdcMessage)]
     protected NSControl(IntPtr handle, NSRect frame) : base(handle, frame)
     { }
 
@@ -62,7 +64,7 @@ public class NSControl : NSView
         get 
         {
             IsEnabledProperty ??= NSControlClass!.GetProperty("enabled").AsNonNull();
-            return this.GetProperty<bool>(IsEnabledProperty);
+            return this.GetBooleanProperty(IsEnabledProperty);
         }
         set 
         {
