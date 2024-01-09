@@ -25,12 +25,14 @@ namespace CarinaStudio.Controls.Presenters
         /// Property of <see cref="IsIndeterminate"/>.
         /// </summary>
         public static readonly StyledProperty<bool> IsIndeterminateProperty = AvaloniaProperty.Register<ProgressRingPresenter, bool>(nameof(IsIndeterminate), false);
+#pragma warning disable CS8604
         /// <summary>
         /// Property of <see cref="MaxProgress"/>.
         /// </summary>
         public static readonly StyledProperty<double> MaxProgressProperty = AvaloniaProperty.Register<ProgressRingPresenter, double>(nameof(MaxProgress), 100,
             coerce: (o, it) => Math.Max(o.GetValue(MinProgressProperty), it),
             validate: double.IsFinite);
+#pragma warning restore CS8604
         /// <summary>
         /// Property of <see cref="MinProgress"/>.
         /// </summary>

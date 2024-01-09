@@ -1,9 +1,6 @@
-using System;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using Avalonia.Markup.Xaml.Styling;
-using Avalonia.Styling;
 
 namespace CarinaStudio
 {
@@ -32,10 +29,6 @@ namespace CarinaStudio
         public override void OnFrameworkInitializationCompleted()
         {
             base.OnFrameworkInitializationCompleted();
-            this.Styles.Add(new StyleInclude(new Uri("avares://CarinaStudio.AppBase.Avalonia"))
-            {
-                Source = new("Theme/Default.axaml", UriKind.Relative),
-            });
             (this.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.Let(it =>
             {
                 it.MainWindow = new MainWindow();

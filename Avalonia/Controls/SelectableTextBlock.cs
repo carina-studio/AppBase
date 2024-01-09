@@ -42,7 +42,6 @@ namespace CarinaStudio.Controls
         IDisposable? isWindowActiveObserverToken;
         bool isMultiLineText;
         bool isTextTrimmed;
-        IDisposable? toolTipBindingToken;
         readonly ScheduledAction updateToolTipAction;
         int updateToolTipFailureCount;
         Avalonia.Controls.Window? window;
@@ -60,7 +59,7 @@ namespace CarinaStudio.Controls
             this.TextTrimming = TextTrimming.CharacterEllipsis;
             this.updateToolTipAction = new ScheduledAction(() =>
             {
-                this.toolTipBindingToken = this.toolTipBindingToken.DisposeAndReturnNull();
+                this.SetValue(ToolTip.TipProperty, null, BindingPriority.Template);
                 try
                 {
                     if (this.isTextTrimmed
@@ -78,7 +77,7 @@ namespace CarinaStudio.Controls
                             {
                                 control.DataContext = toolTipText;
                             }) ?? (object)toolTipText;
-                            this.toolTipBindingToken = this.Bind(ToolTip.TipProperty, new Binding { Source = toolTip, Priority = BindingPriority.Template });
+                            this.SetValue(ToolTip.TipProperty, toolTip, BindingPriority.Template);
                         }
                     }
                     this.updateToolTipFailureCount = 0;

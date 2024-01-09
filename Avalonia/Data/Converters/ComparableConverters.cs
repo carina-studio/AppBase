@@ -56,7 +56,7 @@ namespace CarinaStudio.Data.Converters
             {
                 if (targetType != typeof(object) && targetType != typeof(bool))
                     return null;
-                if (value == null || parameter == null)
+                if (value is null || parameter is null)
                     return null;
                 if (value is IComparable comparable)
                 {
@@ -77,8 +77,14 @@ namespace CarinaStudio.Data.Converters
                     {
                         if (interfaceType.GenericTypeArguments[0].IsAssignableFrom(paramType))
                         {
-                            var comparingResult = (int)interfaceType.GetMethod(nameof(IComparable.CompareTo))!.Invoke(value, new[] { parameter })!;
-                            return this.resultGenerator(comparingResult);
+#pragma warning disable IL2075
+                            var compareToMethod = interfaceType.GetMethod(nameof(IComparable.CompareTo));
+                            if (compareToMethod is not null)
+                            {
+                                var comparingResult = (int)compareToMethod.Invoke(value, new[] { parameter })!;
+                                return this.resultGenerator(comparingResult);
+                            }
+#pragma warning restore IL2075
                         }
                     }
                 }
@@ -104,33 +110,47 @@ namespace CarinaStudio.Data.Converters
             // Convert.
             public object? Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
             {
-                var compareToMethod = (System.Reflection.MethodInfo?)null;
+                var compareToMethod = default(System.Reflection.MethodInfo);
                 if (typeof(IComparable).IsAssignableFrom(targetType))
+                {
+#pragma warning disable IL2070
                     compareToMethod = targetType.GetMethod(nameof(IComparable.CompareTo), 0, new[] { typeof(object) }).AsNonNull();
+#pragma warning restore IL2070
+                }
                 else
                 {
                     if (targetType == typeof(object))
                     {
-                        if (values.IsEmpty() || values[0] == null)
+                        if (values.IsEmpty() || values[0] is null)
                             return null;
                         targetType = values[0]!.GetType();
                     }
                     if (targetType.IsGenericType && targetType.GetGenericTypeDefinition() == IComparableType)
+                    {
+#pragma warning disable IL2070
                         compareToMethod = targetType.GetMethod(nameof(IComparable.CompareTo)).AsNonNull();
+#pragma warning restore IL2070
+                    }
                     else
                     {
+#pragma warning disable IL2070
                         foreach (var interfaceType in targetType.GetInterfaces())
                         {
+#pragma warning restore IL2070
                             if (interfaceType.IsGenericType && interfaceType.GetGenericTypeDefinition() == IComparableType)
                             {
                                 if (interfaceType.GenericTypeArguments[0].IsAssignableFrom(targetType))
                                 {
+#pragma warning disable IL2070
+#pragma warning disable IL2075
                                     compareToMethod = interfaceType.GetMethod(nameof(IComparable.CompareTo)).AsNonNull();
+#pragma warning restore IL2070
+#pragma warning restore IL2075
                                     break;
                                 }
                             }
                         }
-                        if (compareToMethod == null)
+                        if (compareToMethod is null)
                             return null;
                     }
                 }
@@ -142,7 +162,7 @@ namespace CarinaStudio.Data.Converters
                         continue;
                     if (!targetType.IsInstanceOfType(value))
                         continue;
-                    if (result == null)
+                    if (result is null)
                         result = value;
                     else
                     {
