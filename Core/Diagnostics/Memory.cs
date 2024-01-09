@@ -128,8 +128,10 @@ namespace CarinaStudio.Diagnostics
                 return EstimateStructureSizeInternal(type, true);
             if (obj is string str)
                 return EstimateObjectSizeInternal(typeof(string), str.Length);
+#pragma warning disable IL2072
             if (obj is Array array)
                 return EstimateArrayInstanceSize(type.GetElementType()!, array.LongLength);
+#pragma warning restore IL2072
             var interfaces = type.GetInterfaces();
             for (var i = interfaces.Length - 1; i >= 0; --i)
             {
@@ -137,9 +139,13 @@ namespace CarinaStudio.Diagnostics
                 if (interfaceType.IsGenericType
                     && interfaceType.GetGenericTypeDefinition() == typeof(ICollection<>))
                 {
+#pragma warning disable IL2062
+#pragma warning disable IL2065
                     var elementType = interfaceType.GetGenericArguments()[0];
                     var elementCount = (int)interfaceType.GetProperty(nameof(ICollection.Count))!.GetValue(obj)!;
                     return EstimateCollectionInstanceSize(elementType, elementCount);
+#pragma warning restore IL2062
+#pragma warning restore IL2065
                 }
             }
             if (obj is ICollection collection)
@@ -170,8 +176,10 @@ namespace CarinaStudio.Diagnostics
                 return EstimateStructureSizeInternal(type, true);
             if (type.IsPointer)
                 return IntPtr.Size;
+#pragma warning disable IL2072
             if (type.IsArray)
                 return EstimateArrayInstanceSize(type.GetElementType()!, length);
+#pragma warning restore IL2072
             if (type.IsClass)
                 return EstimateObjectSizeInternal(type, length);
             throw new NotSupportedException($"Cannot estimate instance size of {type.Name}.");
@@ -195,11 +203,13 @@ namespace CarinaStudio.Diagnostics
                 {
                     if (field.IsStatic)
                         continue;
+#pragma warning disable IL2072
                     var fieldType = field.FieldType;
                     if (fieldType.IsValueType)
                         size += EstimateStructureSizeInternal(fieldType);
                     else
                         size += IntPtr.Size;
+#pragma warning restore IL2072
                 }
             }
             if ((size % IntPtr.Size) != 0)
@@ -237,11 +247,13 @@ namespace CarinaStudio.Diagnostics
             {
                 foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public))
                 {
+#pragma warning disable IL2072
                     var fieldType = field.FieldType;
                     if (fieldType.IsValueType)
                         size += EstimateStructureSizeInternal(fieldType);
                     else
                         size += IntPtr.Size;
+#pragma warning restore IL2072
                 }
                 StructureSizes.TryAdd(type, size);
             }
@@ -267,7 +279,7 @@ namespace CarinaStudio.Diagnostics
         /// <summary>
         /// Estimate size of value in bytes.
         /// </summary>
-        public static long EstimateValueSize<T>() where T : struct =>
+        public static long EstimateValueSize<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.NonPublicFields)] T>() where T : struct =>
             EstimateStructureSizeInternal(typeof(T));
     }
 }
