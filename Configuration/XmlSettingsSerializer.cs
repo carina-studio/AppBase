@@ -305,22 +305,26 @@ namespace CarinaStudio.Configuration
 						return new List<DateTime>().Also((list) => this.ReadXmlValueArray(xmlValue, typeName, list)).ToArray();
 					return DateTime.FromBinary(long.Parse(xmlValue.Value ?? ""));
 				default:
-					return Type.GetType(typeName)?.Let((type) =>
+#pragma warning disable IL2057
+					return Type.GetType(typeName)?.Let(type =>
 					{
+#pragma warning restore IL2057
 						if (!type.IsEnum)
 							return null;
 						try
 						{
 							if (this.IsXmlValueArray(xmlValue))
 							{
-								return new ArrayList().Let((list) =>
+								return new ArrayList().Let(list =>
 								{
 									this.ReadXmlValueArray(xmlValue, typeName, list);
-									return Array.CreateInstance(type, list.Count).Also((array) =>
+#pragma warning disable IL3050
+									return Array.CreateInstance(type, list.Count).Also(array =>
 									{
 										for (var i = array.Length - 1; i >= 0; --i)
 											array.SetValue(list[i], i);
 									});
+#pragma warning restore IL3050
 								});
 							}
 							return Enum.Parse(type, xmlValue.Value ?? "");
@@ -391,7 +395,7 @@ namespace CarinaStudio.Configuration
 			writer.WriteStartDocument();
 			writer.WriteStartElement("Settings");
 
-			// versin
+			// version
 			writer.WriteStartElement("Version");
 			writer.WriteValue(metadata.Version);
 			writer.WriteEndElement();
@@ -444,7 +448,7 @@ namespace CarinaStudio.Configuration
 			else if (value is Array array)
 			{
 				if (array.Rank != 1)
-					throw new ArgumentException("Only 1-dinemsional array is supported.");
+					throw new ArgumentException("Only 1-dimensional array is supported.");
 				writer.WriteStartElement("Array");
 				for (int i = 0, count = array.Length; i < count; ++i)
 				{

@@ -241,24 +241,29 @@ namespace CarinaStudio.Configuration
 					_ => DateTime.FromBinary(jsonValue.GetInt64()),
 				},
 				StringType => this.ReadJsonValueAsString(jsonValue),
-				_ => Type.GetType(typeName)?.Let((type) =>
+#pragma warning disable IL2057
+				_ => Type.GetType(typeName)?.Let(type =>
 				{
+#pragma warning restore IL2057
 					if (type.IsEnum)
 					{
 						try
 						{
 							if (jsonValue.ValueKind == JsonValueKind.Array)
 							{
-								return Array.CreateInstance(type, jsonValue.GetArrayLength()).Also((array) =>
+#pragma warning disable IL3050
+								return Array.CreateInstance(type, jsonValue.GetArrayLength()).Also(array =>
 								{
 									var index = 0;
 									foreach (var e in jsonValue.EnumerateArray())
 										array.SetValue(this.ReadJsonValue(e, typeName), index++);
 								});
+#pragma warning restore IL3050
 							}
-							else if (Enum.TryParse(type, jsonValue.GetString(), out var enumValue))
+							if (Enum.TryParse(type, jsonValue.GetString(), out var enumValue))
 								return enumValue;
 						}
+						// ReSharper disable once EmptyGeneralCatchClause
 						catch
 						{ }
 					}
@@ -366,10 +371,10 @@ namespace CarinaStudio.Configuration
 						writer.WriteNumberValue((short)value);
 					break;
 				case Int32Type:
-					if (value is int[] intArrar)
+					if (value is int[] intArray)
 					{
 						writer.WriteStartArray();
-						foreach (var i in intArrar)
+						foreach (var i in intArray)
 							this.WriteJsonValue(writer, typeName, i);
 						writer.WriteEndArray();
 					}

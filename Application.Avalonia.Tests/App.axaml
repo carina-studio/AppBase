@@ -7,5 +7,6 @@
     </Application.Resources>
     <Application.Styles>
         <FluentTheme/>
+        <StyleInclude Source="avares://CarinaStudio.AppBase.Avalonia/Theme/Default.axaml"/>
     </Application.Styles>
 </Application>

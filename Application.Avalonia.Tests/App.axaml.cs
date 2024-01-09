@@ -5,7 +5,6 @@ using CarinaStudio.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Globalization;
-using Avalonia.Markup.Xaml.Styling;
 
 namespace CarinaStudio
 {
@@ -31,16 +30,12 @@ namespace CarinaStudio
             //Environment.SetEnvironmentVariable("AVALONIA_GLOBAL_SCALE_FACTOR", "2");
             BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
         }
-
+        
 
         // Called when Avalonia initialized.
         public override void OnFrameworkInitializationCompleted()
         {
             base.OnFrameworkInitializationCompleted();
-            this.Styles.Add(new StyleInclude(new Uri("avares://CarinaStudio.AppBase.Avalonia"))
-            {
-                Source = new("Theme/Default.axaml", UriKind.Relative),
-            });
             (this.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.Let(it =>
             {
                 //it.ShutdownMode = Avalonia.Controls.ShutdownMode.OnExplicitShutdown;

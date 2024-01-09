@@ -1,6 +1,7 @@
 ﻿using CarinaStudio.Collections;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -18,8 +19,8 @@ namespace CarinaStudio.Configuration
 		readonly object eventLock = new object();
 		DateTime lastModifiedTime = DateTime.Now;
 		readonly ISettingsSerializer serializer;
-		volatile EventHandler<SettingChangedEventArgs>? settingChanged;
-		volatile EventHandler<SettingChangingEventArgs>? settingChanging;
+		EventHandler<SettingChangedEventArgs>? settingChanged;
+		EventHandler<SettingChangingEventArgs>? settingChanging;
 		readonly Dictionary<SettingKey, object> values = new Dictionary<SettingKey, object>();
 
 
@@ -70,7 +71,7 @@ namespace CarinaStudio.Configuration
 		/// <summary>
 		/// Get all setting keys.
 		/// </summary>
-		public IEnumerable<SettingKey> Keys { get => this.values.Lock((it) => it.Keys.ToArray()); }
+		public IEnumerable<SettingKey> Keys => this.values.Lock((it) => it.Keys.ToArray());
 
 
 		/// <summary>
@@ -223,6 +224,7 @@ namespace CarinaStudio.Configuration
 				if (File.Exists(fileName))
 					File.Copy(fileName, fileName + ".backup", true);
 			}
+			// ReSharper disable once EmptyGeneralCatchClause
 			catch
 			{ }
 
@@ -291,7 +293,7 @@ namespace CarinaStudio.Configuration
 			// check value
 			if (value == null)
 				throw new ArgumentNullException(nameof(value));
-			if (!key.ValueType.IsAssignableFrom(value.GetType()))
+			if (!key.ValueType.IsInstanceOfType(value))
 				throw new ArgumentException($"Value {value} is not {key.ValueType.Name}.");
 
 			// check previous value
@@ -426,7 +428,7 @@ namespace CarinaStudio.Configuration
 		{
 			if (defaultValue == null)
 				throw new ArgumentNullException(nameof(defaultValue));
-			if (!valueType.IsAssignableFrom(defaultValue.GetType()))
+			if (!valueType.IsInstanceOfType(defaultValue))
 				throw new ArgumentException($"Default value {defaultValue} is not {valueType.Name}.");
 			this.DefaultValue = defaultValue;
 			this.Name = name;
@@ -444,7 +446,7 @@ namespace CarinaStudio.Configuration
 		/// Get all public <see cref="SettingKey"/> defined by given type.
 		/// </summary>
 		/// <returns>List of public <see cref="SettingKey"/>.</returns>
-		public static IList<SettingKey> GetDefinedKeys<T>()
+		public static IList<SettingKey> GetDefinedKeys<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] T>()
         {
 			var keys = new List<SettingKey>();
 			foreach (var fieldInfo in typeof(T).GetFields(BindingFlags.Public | BindingFlags.Static))
