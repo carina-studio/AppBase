@@ -391,7 +391,9 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
             var elementPtr = (byte*)outValue;
             for (var i = 0; i < count; ++i)
             {
+#pragma warning disable IL2072
                 array.SetValue(NativeTypeConversion.FromNativeValue(elementPtr, size, elementType, out var consumedSize), i);
+#pragma warning restore IL2072
                 elementPtr += consumedSize;
                 size -= consumedSize;
             }

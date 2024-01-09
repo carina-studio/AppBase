@@ -173,6 +173,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="name">Name of class.</param>
         /// <param name="defining">Action to define members of class.</param>
         /// <returns>New defined class.</returns>
+        [RequiresDynamicCode("Dynamic code generation is required for defining class.")]
         public static Class DefineClass(string name, Action<Class> defining) =>
             DefineClass(GetClass("NSObject"), name, defining);
         
@@ -614,7 +615,9 @@ namespace CarinaStudio.MacOS.ObjectiveC
 
             // create bridge method
             var getTypeFromHandleMethod = typeof(Type).GetMethod(nameof(Type.GetTypeFromHandle), BindingFlags.Public | BindingFlags.Static).AsNonNull();
+#pragma warning disable IL2111
             var fromNativeParamMethod = typeof(NativeTypeConversion).GetMethod(nameof(NativeTypeConversion.FromNativeParameter), BindingFlags.Public | BindingFlags.Static, new Type[]{ typeof(object), typeof(Type) }).AsNonNull();
+#pragma warning restore IL2111
             var toNativeParamMethod = typeof(NativeTypeConversion).GetMethod(nameof(NativeTypeConversion.ToNativeParameter), BindingFlags.Public | BindingFlags.Static, new Type[]{ typeof(object) }).AsNonNull();
             bridgeTypeBuilder.DefineMethod("Invoke", MethodAttributes.Public, nativeReturnType, nativeParamTypes).Also(it =>
             {
@@ -672,12 +675,14 @@ namespace CarinaStudio.MacOS.ObjectiveC
 
             // create delegate type for bridge
 #pragma warning disable IL2026
+#pragma warning disable IL2111
             var bridgeDelegateType = NativeBridgeModule.DefineType($"{bridgeTypeBuilder.Name}-Delegate", TypeAttributes.AnsiClass | TypeAttributes.AutoClass | TypeAttributes.Class | TypeAttributes.Public | TypeAttributes.Sealed, typeof(MulticastDelegate)).Also(delegateClass =>
             {
                 delegateClass.DefineConstructor(MethodAttributes.HideBySig | MethodAttributes.Public | MethodAttributes.RTSpecialName, CallingConventions.Standard, new Type[]{ typeof(object), typeof(IntPtr) }).SetImplementationFlags(MethodImplAttributes.Runtime | MethodImplAttributes.Managed);
                 delegateClass.DefineMethod("Invoke", MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Public | MethodAttributes.Virtual, CallingConventions.Standard, nativeReturnType, nativeParamTypes).SetImplementationFlags(MethodImplAttributes.Runtime | MethodImplAttributes.Managed);
             }).CreateTypeInfo().AsNonNull();
 #pragma warning restore IL2026
+#pragma warning restore IL2111
 
             // create bridge object
 #pragma warning disable IL2072

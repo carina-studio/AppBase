@@ -65,8 +65,10 @@ static class NativeTypeConversion
             throw new ArgumentException("Insufficient native values for conversion.");
         if (targetType.IsValueType)
         {
+#pragma warning disable IL2072
             if (targetType.IsEnum)
                 targetType = targetType.GetEnumUnderlyingType();
+#pragma warning restore IL2072
             if (targetType == typeof(bool))
             {
                 consumedBytes = sizeof(bool);
@@ -625,7 +627,9 @@ static class NativeTypeConversion
                 throw new NotSupportedException($"Only 1-dimensional array is supported for Objective-C.");
             if (elementCount < 0)
                 throw new ArgumentOutOfRangeException(nameof(elementCount));
+#pragma warning disable IL2072
             type = type.GetElementType().AsNonNull();
+#pragma warning restore IL2072
             arrayLengthPrefix = elementCount > 0 ? elementCount.ToString() : "";
         }
         if (type.IsValueType)
@@ -676,7 +680,9 @@ static class NativeTypeConversion
                     else
                         throw new ArgumentException($"Array field with unsupported MarshalAs attribute: {type.Name}.{fieldInfo.Name}.");
                 }
+#pragma warning disable IL2072
                 teBuffer.Append(ToTypeEncoding(fieldType, subElementCount));
+#pragma warning restore IL2072
             }
             teBuffer.Append('}');
             return isArray ? $"[{arrayLengthPrefix}{teBuffer}]" : teBuffer.ToString();

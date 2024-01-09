@@ -135,6 +135,7 @@ public class NSArray<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.
     /// </summary>
     /// <param name="array">Array.</param>
     /// <param name="arrayIndex">Index of first position in <paramref name="array"/> to put copied elements.</param>
+    [RequiresDynamicCode(CallMethodRdcMessage)]
     public void CopyTo(T[] array, int arrayIndex)
     {
         if (arrayIndex < 0 || arrayIndex >= array.Length)
@@ -255,6 +256,7 @@ public class NSArray<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.
     /// <inheritdoc/>
     T IList<T>.this[int index]
     {
+        [RequiresDynamicCode(GetPropertyRdcMessage)]
         get => this[index];
         set => throw new InvalidOperationException();
     }
