@@ -154,7 +154,9 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         public int ElementCount
         {
+#if NET7_0_OR_GREATER
             [RequiresDynamicCode(NSObject.GetPropertyRdcMessage)]
+#endif
             get
             {
                 if (this.type == null)
@@ -169,7 +171,9 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         public int Size
         {
+#if NET7_0_OR_GREATER
             [RequiresDynamicCode(NSObject.GetPropertyRdcMessage)]
+#endif
             get
             {
                 if (this.size == 0)
@@ -190,7 +194,9 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         public Type Type
         {
+#if NET7_0_OR_GREATER
             [RequiresDynamicCode(NSObject.GetPropertyRdcMessage)]
+#endif
             get
             {
                 return this.type ?? NativeTypeConversion.FromTypeEncoding(this.TypeEncoding, out this.elementCount).Also(it =>

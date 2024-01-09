@@ -43,7 +43,9 @@ public class NSString : NSObject, IComparable<NSString>, IEquatable<NSString>
     /// <summary>
     /// Initialize new <see cref="NSString"/> instance.
     /// </summary>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(CallConstructorRdcMessage)]
+#endif
     public NSString() : base(Initialize(NSStringClass!.Allocate()), true)
     { }
 
@@ -52,7 +54,9 @@ public class NSString : NSObject, IComparable<NSString>, IEquatable<NSString>
     /// Initialize new <see cref="NSString"/> instance.
     /// </summary>
     /// <param name="s">Characters.</param>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(CallConstructorRdcMessage)]
+#endif
     public NSString(string s) : base(Initialize(NSStringClass!.Allocate(), s), true)
     { 
         this.stringRef = new WeakReference<string>(s);
@@ -94,7 +98,9 @@ public class NSString : NSObject, IComparable<NSString>, IEquatable<NSString>
 
 
     // Initialize.
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(CallMethodRdcMessage)]
+#endif
     static IntPtr Initialize(IntPtr obj, string s)
     {
         var pStr = Marshal.StringToHGlobalUni(s);

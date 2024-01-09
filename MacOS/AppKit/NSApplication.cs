@@ -91,7 +91,9 @@ public unsafe class NSApplication : NSResponder
     /// Activate the application.
     /// </summary>
     /// <param name="ignoreOtherApps">True to active application regardless.</param>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(CallMethodRdcMessage)]
+#endif
     public void Activate(bool ignoreOtherApps)
     {
         ActivateSelector ??= Selector.FromName("activateIgnoringOtherApps:");
@@ -261,7 +263,9 @@ public unsafe class NSApplication : NSResponder
     /// Hides all apps except the current application.
     /// </summary>
     /// <param name="sender">The object that sent this message.</param>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(CallMethodRdcMessage)]
+#endif
     public void HideOtherApplications(NSObject? sender)
     {
         HideOtherApplicationsSelector ??= Selector.FromName("hideOtherApplications:");
@@ -377,7 +381,9 @@ public unsafe class NSApplication : NSResponder
     /// Set activation policy of application.
     /// </summary>
     /// <param name="policy">Activation policy.</param>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(CallMethodRdcMessage)]
+#endif
     public void SetActivationPolicy(ActivationPolicy policy)
     {
         SetActivationPolicySelector ??= Selector.FromName("setActivationPolicy:");
@@ -419,7 +425,9 @@ public unsafe class NSApplication : NSResponder
     /// </summary>
     public NSArray<NSWindow> Windows 
     { 
+#if NET7_0_OR_GREATER
         [RequiresDynamicCode(GetPropertyRdcMessage)]
+#endif
         get 
         {
             WindowsSelector ??= Selector.FromName("windows");

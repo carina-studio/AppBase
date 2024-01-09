@@ -103,7 +103,9 @@ public class NSView : NSResponder
     /// Initialize new <see cref="NSView"/> instance.
     /// </summary>
     /// <param name="frame">Frame.</param>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(CallConstructorRdcMessage)]
+#endif
     public NSView(NSRect frame) : this(Initialize(Initialize(NSViewClass!.Allocate(), frame), frame), false, true)
     { }
 
@@ -113,7 +115,9 @@ public class NSView : NSResponder
     /// </summary>
     /// <param name="handle">Handle of allocated instance.</param>
     /// <param name="frame">Frame.</param>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(CallConstructorRdcMessage)]
+#endif
     protected NSView(IntPtr handle, NSRect frame) : this(Initialize(handle, frame), false, true)
     { }
 
@@ -152,7 +156,9 @@ public class NSView : NSResponder
     /// Add constraint on the layout of view.
     /// </summary>
     /// <param name="constraint">Constraint.</param>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(CallMethodRdcMessage)]
+#endif
     public void AddConstraint(NSLayoutConstraint constraint)
     {
         AddConstraintSelector ??= Selector.FromName("addConstraint:");
@@ -164,7 +170,9 @@ public class NSView : NSResponder
     /// Add multiple constraints on the layout of view.
     /// </summary>
     /// <param name="constraints">Constraint.</param>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(CallMethodRdcMessage)]
+#endif
     public void AddConstraints(params NSLayoutConstraint[] constraints)
     {
         AddConstraintsSelector ??= Selector.FromName("addConstraints:");
@@ -177,7 +185,9 @@ public class NSView : NSResponder
     /// Add multiple constraints on the layout of view.
     /// </summary>
     /// <param name="constraints">Constraint.</param>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(CallMethodRdcMessage)]
+#endif
     public void AddConstraints(NSArray<NSLayoutConstraint> constraints)
     {
         AddConstraintsSelector ??= Selector.FromName("addConstraints:");
@@ -189,7 +199,9 @@ public class NSView : NSResponder
     /// Add given view as sub-view.
     /// </summary>
     /// <param name="view">View.</param>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(CallMethodRdcMessage)]
+#endif
     public void AddSubView(NSView view)
     {
         AddSubViewSelector ??= Selector.FromName("addSubview:");
@@ -203,7 +215,9 @@ public class NSView : NSResponder
     /// <param name="view">View.</param>
     /// <param name="place">Relation to other view.</param>
     /// <param name="otherView">Other view which the sub-view relative to.</param>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(CallMethodRdcMessage)]
+#endif
     public void AddSubView(NSView view, NSWindow.OrderingMode place, NSView? otherView)
     {
         AddSubViewSelector ??= Selector.FromName("addSubview:");
@@ -250,13 +264,17 @@ public class NSView : NSResponder
     /// </summary>
     public NSRect Bounds
     {
+#if NET7_0_OR_GREATER
         [RequiresDynamicCode(GetPropertyRdcMessage)]
+#endif
         get 
         {
             BoundsProperty ??= NSViewClass!.GetProperty("bounds").AsNonNull();
             return this.GetProperty<NSRect>(BoundsProperty);
         }
+#if NET7_0_OR_GREATER
         [RequiresDynamicCode(SetPropertyRdcMessage)]
+#endif
         set 
         {
             BoundsProperty ??= NSViewClass!.GetProperty("bounds").AsNonNull();
@@ -320,7 +338,9 @@ public class NSView : NSResponder
     /// </summary>
     public NSArray<NSLayoutConstraint> Constraints 
     { 
+#if NET7_0_OR_GREATER
         [RequiresDynamicCode(GetPropertyRdcMessage)]
+#endif
         get 
         {
             ConstraintsSelector ??= Selector.FromName("constraints");
@@ -350,7 +370,9 @@ public class NSView : NSResponder
     /// </summary>
     public NSSize FittingSize 
     { 
+#if NET7_0_OR_GREATER
         [RequiresDynamicCode(GetPropertyRdcMessage)]
+#endif
         get 
         {
             FittingSizeSelector ??= Selector.FromName("fittingSize");
@@ -364,13 +386,17 @@ public class NSView : NSResponder
     /// </summary>
     public NSRect Frame
     {
+#if NET7_0_OR_GREATER
         [RequiresDynamicCode(GetPropertyRdcMessage)]
+#endif
         get 
         {
             FrameProperty ??= NSViewClass!.GetProperty("frame").AsNonNull();
             return this.GetProperty<NSRect>(FrameProperty);
         }
+#if NET7_0_OR_GREATER
         [RequiresDynamicCode(SetPropertyRdcMessage)]
+#endif
         set 
         {
             FrameProperty ??= NSViewClass!.GetProperty("frame").AsNonNull();
@@ -419,7 +445,9 @@ public class NSView : NSResponder
     /// <param name="view">Handle of allocated <see cref="NSView"/>.</param>
     /// <param name="frame">Frame.</param>
     /// <returns>Handle of initialized <see cref="NSView"/>.</returns>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(CallMethodRdcMessage)]
+#endif
     protected static IntPtr Initialize(IntPtr view, NSRect frame)
     {
         InitWithFrameSelector ??= Selector.FromName("initWithFrame:");
@@ -432,7 +460,9 @@ public class NSView : NSResponder
     /// </summary>
     public NSSize IntrinsicContentSize 
     { 
+#if NET7_0_OR_GREATER
         [RequiresDynamicCode(GetPropertyRdcMessage)]
+#endif
         get 
         {
             IntrinsicContentSizeSelector ??= Selector.FromName("intrinsicContentSize");
@@ -577,7 +607,9 @@ public class NSView : NSResponder
     /// Add constraint from view.
     /// </summary>
     /// <param name="constraint">Constraint.</param>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(CallMethodRdcMessage)]
+#endif
     public void RemoveConstraint(NSLayoutConstraint constraint)
     {
         RemoveConstraintSelector ??= Selector.FromName("removeConstraint:");
@@ -589,7 +621,9 @@ public class NSView : NSResponder
     /// Add multiple constraints from view.
     /// </summary>
     /// <param name="constraints">Constraint.</param>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(CallMethodRdcMessage)]
+#endif
     public void RemoveConstraints(params NSLayoutConstraint[] constraints)
     {
         RemoveConstraintsSelector ??= Selector.FromName("removeConstraints:");
@@ -602,7 +636,9 @@ public class NSView : NSResponder
     /// Add multiple constraints from view.
     /// </summary>
     /// <param name="constraints">Constraint.</param>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(CallMethodRdcMessage)]
+#endif
     public void RemoveConstraints(NSArray<NSLayoutConstraint> constraints)
     {
         RemoveConstraintsSelector ??= Selector.FromName("removeConstraints:");
@@ -641,7 +677,9 @@ public class NSView : NSResponder
     /// </summary>
     public NSEdgeInsets SafeAreaInsets 
     { 
+#if NET7_0_OR_GREATER
         [RequiresDynamicCode(GetPropertyRdcMessage)]
+#endif
         get 
         {
             SafeAreaInsetsSelector ??= Selector.FromName("safeAreaInsets");
@@ -655,7 +693,9 @@ public class NSView : NSResponder
     /// </summary>
     public NSRect SafeAreaRect 
     { 
+#if NET7_0_OR_GREATER
         [RequiresDynamicCode(GetPropertyRdcMessage)]
+#endif
         get
         {
             SafeAreaRectSelector ??= Selector.FromName("safeAreaRect");
@@ -669,7 +709,9 @@ public class NSView : NSResponder
     /// </summary>
     public NSArray<NSView> SubViews 
     { 
+#if NET7_0_OR_GREATER
         [RequiresDynamicCode(GetPropertyRdcMessage)]
+#endif
         get 
         {
             SubViewsSelector ??= Selector.FromName("subviews");
@@ -772,7 +814,9 @@ public class NSView : NSResponder
     /// </summary>
     public NSRect VisibleRect 
     {
+#if NET7_0_OR_GREATER
         [RequiresDynamicCode(GetPropertyRdcMessage)]
+#endif
         get 
         {
             VisibleRectSelector ??= Selector.FromName("visibleRect");
@@ -786,7 +830,9 @@ public class NSView : NSResponder
     /// </summary>
     public NSLayoutDimension WidthAnchor
     {
+#if NET7_0_OR_GREATER
         [RequiresDynamicCode(GetPropertyRdcMessage)]
+#endif
         get
         {
             WidthAnchorSelector ??= Selector.FromName("widthAnchor");

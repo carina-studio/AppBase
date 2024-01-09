@@ -52,7 +52,9 @@ public class NSDockTile : NSObject
             using var label = this.GetNSObjectProperty<NSString>(BadgeLabelProperty!);
             return label?.ToString();
         }
+#if NET7_0_OR_GREATER
         [RequiresDynamicCode(SetPropertyRdcMessage)]
+#endif
         set
         {
             if (value == null)
@@ -90,7 +92,9 @@ public class NSDockTile : NSObject
     /// </summary>
     public NSSize Size
     {
+#if NET7_0_OR_GREATER
         [RequiresDynamicCode(GetPropertyRdcMessage)]
+#endif
         get => this.GetProperty<NSSize>(SizeProperty!);
     }
 }

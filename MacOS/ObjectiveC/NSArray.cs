@@ -84,7 +84,9 @@ public class NSArray<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.
     /// Initialize new <see cref="NSArray{T}"/> instance.
     /// </summary>
     /// <param name="objects">Elements.</param>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(CallConstructorRdcMessage)]
+#endif
     public NSArray(params T[] objects) : this((IEnumerable<T>)objects)
     { }
 
@@ -93,7 +95,9 @@ public class NSArray<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.
     /// Initialize new <see cref="NSArray{T}"/> instance.
     /// </summary>
     /// <param name="objects">Elements.</param>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(CallConstructorRdcMessage)]
+#endif
     public NSArray(IEnumerable<T> objects) : base(Global.Run(() =>
     {
         if (objects is NSArray<T> nsArray)
@@ -125,7 +129,9 @@ public class NSArray<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.
     /// </summary>
     /// <param name="obj">Object to check.</param>
     /// <returns>True if given object is contained in array.</returns>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(CallConstructorRdcMessage)]
+#endif
     public bool Contains(T? obj) =>
         this.SendMessage<bool>(NSArray.ContainsSelector!, obj);
     
@@ -135,7 +141,9 @@ public class NSArray<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.
     /// </summary>
     /// <param name="array">Array.</param>
     /// <param name="arrayIndex">Index of first position in <paramref name="array"/> to put copied elements.</param>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(CallMethodRdcMessage)]
+#endif
     public void CopyTo(T[] array, int arrayIndex)
     {
         if (arrayIndex < 0 || arrayIndex >= array.Length)
@@ -181,7 +189,9 @@ public class NSArray<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.
     /// <param name="obj">Handle of allocated instance.</param>
     /// <param name="array">Array.</param>
     /// <returns>Handle of initialized instance.</returns>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(CallMethodRdcMessage)]
+#endif
     protected static IntPtr Initialize(IntPtr obj, NSArray<T> array) =>
         SendMessage<IntPtr>(obj, NSArray.InitWithArraySelector!, array);
     
@@ -192,7 +202,9 @@ public class NSArray<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.
     /// <param name="obj">Handle of allocated instance.</param>
     /// <param name="objects">Objects.</param>
     /// <returns>Handle of initialized instance.</returns>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(CallMethodRdcMessage)]
+#endif
     protected static unsafe IntPtr Initialize(IntPtr obj, IEnumerable<T> objects)
     {
         IntPtr[] handleList;
@@ -224,7 +236,9 @@ public class NSArray<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.
     /// </summary>
     /// <param name="obj">Object to check.</param>
     /// <returns>Index of position of object.</returns>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(CallMethodRdcMessage)]
+#endif
     public int IndexOf(T obj) =>
         this.SendMessage<int>(NSArray.IndexOfSelector!, obj);
     
@@ -248,7 +262,9 @@ public class NSArray<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.
     /// </summary>
     public T this[int index]
     {
+#if NET7_0_OR_GREATER
         [RequiresDynamicCode(GetPropertyRdcMessage)]
+#endif
         get => this.SendMessage<T>(NSArray.ObjectAtSelector!, index);
     }
 
@@ -256,7 +272,9 @@ public class NSArray<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.
     /// <inheritdoc/>
     T IList<T>.this[int index]
     {
+#if NET7_0_OR_GREATER
         [RequiresDynamicCode(GetPropertyRdcMessage)]
+#endif
         get => this[index];
         set => throw new InvalidOperationException();
     }

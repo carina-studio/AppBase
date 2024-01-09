@@ -311,7 +311,9 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// </summary>
     /// <param name="property">Property.</param>
     /// <returns>Value.</returns>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(GetPropertyRdcMessage)]
+#endif
     public T GetProperty<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(Property property)
     {
         if (!property.Class.IsAssignableFrom(this.Class))
@@ -341,7 +343,9 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <param name="ivar">Descriptor of instance variable.</param>
     /// <typeparam name="T">Type of variable.</typeparam>
     /// <returns>Value of variable.</returns>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(CreateArrayRdcMessage)]
+#endif
     public T GetVariable<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.NonPublicConstructors)]T>(Variable ivar)
     {
         this.VerifyReleased();
@@ -358,7 +362,9 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <param name="ivar">Descriptor of instance variable.</param>
     /// <typeparam name="T">Type of variable.</typeparam>
     /// <returns>Value of variable.</returns>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(CreateArrayRdcMessage)]
+#endif
     public static T GetVariable<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(IntPtr obj, Variable ivar) =>
         (T)GetVariable(obj, ivar, typeof(T));
 #pragma warning restore CS8600
@@ -372,7 +378,9 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <param name="ivar">Descriptor of instance variable.</param>
     /// <param name="targetType">Type of value of instance variable.</param>
     /// <returns>Value of variable.</returns>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(CreateArrayRdcMessage)]
+#endif
     public static object? GetVariable(IntPtr obj, Variable ivar, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.NonPublicConstructors)] Type targetType)
     {
         VerifyHandle(obj);
@@ -616,7 +624,9 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// </summary>
     /// <param name="selector">Selector.</param>
     /// <param name="arg">Argument.</param>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(SendMessageRdcMessage)]
+#endif
     public void SendMessage(Selector selector, object? arg) =>
         SendMessageCore(objc_msgSend, this.Handle, selector, arg);
 
@@ -626,7 +636,9 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// </summary>
     /// <param name="selector">Selector.</param>
     /// <param name="args">Arguments.</param>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(SendMessageRdcMessage)]
+#endif
     public void SendMessage(Selector selector, params object?[] args)
     {
         switch (args.Length)
@@ -659,7 +671,9 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <param name="obj">Handle of instance.</param>
     /// <param name="selector">Selector.</param>
     /// <param name="arg">Argument.</param>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(SendMessageRdcMessage)]
+#endif
     public static void SendMessage(IntPtr obj, Selector selector, object? arg) =>
         SendMessageCore(objc_msgSend, obj, selector, arg);
 
@@ -670,7 +684,9 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <param name="obj">Handle of instance.</param>
     /// <param name="selector">Selector.</param>
     /// <param name="args">Arguments.</param>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(SendMessageRdcMessage)]
+#endif
     public static void SendMessage(IntPtr obj, Selector selector, params object?[] args)
     {
         switch (args.Length)
@@ -696,7 +712,9 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <param name="selector">Selector.</param>
     /// <typeparam name="T">Type of returned value.</typeparam>
     /// <returns>Result.</returns>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(SendMessageRdcMessage)]
+#endif
     public T SendMessage<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(Selector selector) =>
         (T)SendMessageCore(objc_msgSend, this.Handle, selector, typeof(T));
 #pragma warning restore CS8600
@@ -712,7 +730,9 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <param name="args">Arguments.</param>
     /// <typeparam name="T">Type of returned value.</typeparam>
     /// <returns>Result.</returns>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(SendMessageRdcMessage)]
+#endif
     public T SendMessage<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(Selector selector, params object?[] args)
     {
         if (args.Length == 0)
@@ -732,7 +752,9 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <param name="selector">Selector.</param>
     /// <typeparam name="T">Type of returned value.</typeparam>
     /// <returns>Result.</returns>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(SendMessageRdcMessage)]
+#endif
     public static T SendMessage<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(IntPtr obj, Selector selector) =>
         (T)SendMessageCore(objc_msgSend, obj, selector, typeof(T));
 #pragma warning restore CS8600
@@ -749,7 +771,9 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <param name="args">Arguments.</param>
     /// <typeparam name="T">Type of returned value.</typeparam>
     /// <returns>Result.</returns>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(SendMessageRdcMessage)]
+#endif
     public static T SendMessage<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(IntPtr obj, Selector selector, params object?[] args)
     {
         if (args.Length == 0)
@@ -761,7 +785,9 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
 
 
     // Send message for testing purpose
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(SendMessageRdcMessage)]
+#endif
     internal static object? SendMessageCore(IntPtr obj, Selector sel, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] Type? returnType, params object?[] args) =>
         SendMessageCore(objc_msgSend, obj, sel, returnType, args);
 
@@ -774,7 +800,9 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
         VerifyHandle(obj);
         ((delegate*unmanaged<IntPtr, IntPtr, void>)msgSendFunc)(obj, sel.Handle);
     }
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(SendMessageRdcMessage)]
+#endif
     static void SendMessageCore(void* msgSendFunc, IntPtr obj, Selector sel, object? arg) // optimize for property setter
     {
         VerifyHandle(obj);
@@ -794,7 +822,9 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
         else
             SendMessageCore(msgSendFunc, obj, sel, null, new object?[] { arg });
     }
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(SendMessageRdcMessage)]
+#endif
     static object? SendMessageCore(void* msgSendFunc, IntPtr obj, Selector sel, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] Type returnType) // optimize for property getter
     {
         var nativeReturnType = NativeTypeConversion.ToNativeType(returnType);
@@ -820,7 +850,9 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
             return NativeTypeConversion.FromNativeParameter(((delegate*unmanaged<IntPtr, IntPtr, double>)msgSendFunc)(obj, sel.Handle), returnType);
         return SendMessageCore(msgSendFunc, obj, sel, returnType, Array.Empty<object?>());
     }
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(SendMessageRdcMessage)]
+#endif
     static object? SendMessageCore(void* msgSendFunc, IntPtr obj, Selector sel, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] Type? returnType, params object?[] args)
     {
         // check parameter
@@ -967,7 +999,9 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// </summary>
     /// <param name="selector">Selector.</param>
     /// <param name="arg">Argument.</param>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(SendMessageRdcMessage)]
+#endif
     public void SendMessageToSuper(Selector selector, object? arg)
     {
         this.VerifyReleased();
@@ -984,7 +1018,9 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// </summary>
     /// <param name="selector">Selector.</param>
     /// <param name="args">Arguments.</param>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(SendMessageRdcMessage)]
+#endif
     public void SendMessageToSuper(Selector selector, params object?[] args)
     {
         this.VerifyReleased();
@@ -1015,7 +1051,9 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <param name="selector">Selector.</param>
     /// <typeparam name="T">Type of returned value.</typeparam>
     /// <returns>Result.</returns>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(SendMessageRdcMessage)]
+#endif
     public T SendMessageToSuper<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(Selector selector)
     {
         this.VerifyReleased();
@@ -1038,7 +1076,9 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <param name="args">Arguments.</param>
     /// <typeparam name="T">Type of returned value.</typeparam>
     /// <returns>Result.</returns>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(SendMessageRdcMessage)]
+#endif
     public T SendMessageToSuper<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(Selector selector, params object?[] args)
     {
         this.VerifyReleased();
@@ -1075,7 +1115,9 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <param name="obj">Handle of instance.</param>
     /// <param name="selector">Selector.</param>
     /// <param name="arg">Argument.</param>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(SendMessageRdcMessage)]
+#endif
     public static void SendMessageToSuper(IntPtr obj, Selector selector, object? arg)
     {
         var superClass = Class.GetClass(obj).SuperClass;
@@ -1092,7 +1134,9 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <param name="obj">Handle of instance.</param>
     /// <param name="selector">Selector.</param>
     /// <param name="args">Arguments.</param>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(SendMessageRdcMessage)]
+#endif
     public static void SendMessageToSuper(IntPtr obj, Selector selector, params object?[] args)
     {
         var superClass = Class.GetClass(obj).SuperClass;
@@ -1112,7 +1156,9 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <param name="selector">Selector.</param>
     /// <typeparam name="T">Type of returned value.</typeparam>
     /// <returns>Result.</returns>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(SendMessageRdcMessage)]
+#endif
     public static T SendMessageToSuper<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(IntPtr obj, Selector selector)
     {
         var superClass = Class.GetClass(obj).SuperClass;
@@ -1135,7 +1181,9 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <param name="args">Arguments.</param>
     /// <typeparam name="T">Type of returned value.</typeparam>
     /// <returns>Result.</returns>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(SendMessageRdcMessage)]
+#endif
     public static T SendMessageToSuper<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(IntPtr obj, Selector selector, params object?[] args)
     {
         var superClass = Class.GetClass(obj).SuperClass;
@@ -1273,7 +1321,9 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <param name="property">Property.</param>
     /// <param name="value">Value.</param>
     /// <typeparam name="T">Type of property.</typeparam>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(SetPropertyRdcMessage)]
+#endif
     public void SetProperty<T>(Property property, T? value)
     {
         if (!property.Class.IsAssignableFrom(this.Class))
@@ -1289,7 +1339,9 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// </summary>
     /// <param name="ivar">Instance variable.</param>
     /// <param name="value">Value.</param>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(SetVariableRdcMessage)]
+#endif
     public void SetVariable(Variable ivar, object? value)
     {
         this.VerifyReleased();
@@ -1303,7 +1355,9 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <param name="obj">Handle of instance.</param>
     /// <param name="ivar">Instance variable.</param>
     /// <param name="value">Value.</param>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(SetVariableRdcMessage)]
+#endif
     public static void SetVariable(IntPtr obj, Variable ivar, object? value)
     {
         VerifyHandle(obj);

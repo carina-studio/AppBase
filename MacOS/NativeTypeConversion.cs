@@ -14,7 +14,9 @@ namespace CarinaStudio.MacOS;
 static class NativeTypeConversion
 {
     // Convert from native parameter to CLR parameter.
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode("Dynamic code generation is required for checking native type.")]
+#endif
     public static object? FromNativeParameter(object nativeValue, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] Type targetType)
     {
         if (IsNativeType(targetType))
@@ -58,7 +60,9 @@ static class NativeTypeConversion
 
 
     // Convert from native value to CLR value.
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode("Dynamic code generation is required for converting to CLR value type.")]
+#endif
     public static unsafe object? FromNativeValue(byte* valuePtr, int valueCount, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] Type targetType, out int consumedBytes)
     {
         if (valueCount < 1)
@@ -177,10 +181,14 @@ static class NativeTypeConversion
 
 
     // Convert from Objective-C type encoding.
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode("Dynamic code generation is required for creating Objective-C type encoding.")]
+#endif
     public static Type FromTypeEncoding(string typeEncoding, out int elementCount) =>
         FromTypeEncoding(typeEncoding.AsSpan(), out elementCount, out var _);
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode("Dynamic code generation is required for creating Objective-C type encoding.")]
+#endif
     static Type FromTypeEncoding(ReadOnlySpan<char> typeEncoding, out int elementCount, out int consumedChars)
     {
         elementCount = 1;
@@ -374,7 +382,9 @@ static class NativeTypeConversion
 
 
     // Get size of native value in bytes.
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode("Dynamic code generation is required for checking native type.")]
+#endif
     public static int GetNativeValueSize(Type type)
     {
         type = ToNativeType(type);
@@ -401,7 +411,9 @@ static class NativeTypeConversion
 
 
     // Check whether given type is the native type or not.
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode("Dynamic code generation is required for checking native type.")]
+#endif
     public static bool IsNativeType(Type type)
     {
         if (!type.IsValueType)
@@ -433,7 +445,9 @@ static class NativeTypeConversion
 
 
     // Convert from CLR parameter to native parameter.
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode("Dynamic code generation is required for checking native type.")]
+#endif
     public static object ToNativeParameter(object? value)
     {
         if (value is null)
@@ -463,7 +477,9 @@ static class NativeTypeConversion
 
 
     // Convert from CLR object to native value.
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode("Dynamic code generation is required for converting from CLR value type.")]
+#endif
     public static unsafe int ToNativeValue(object? obj, byte* valuePtr)
     {
         obj?.GetType().Let(t =>
@@ -591,7 +607,9 @@ static class NativeTypeConversion
 
 
     // Convert to corresponding native type.
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode("Dynamic code generation is required for checking native type.")]
+#endif
     public static Type ToNativeType(Type type)
     {
         if (IsNativeType(type))

@@ -7,7 +7,6 @@ namespace CarinaStudio.MacOS.AppKit;
 /// <summary>
 /// NSLayoutYAxisAnchor.
 /// </summary>
-[RequiresDynamicCode("Dynamic code generation is required for accessing NSObject.")]
 public class NSLayoutYAxisAnchor : NSLayoutAnchor<NSLayoutYAxisAnchor>
 {
     // Static fields.
@@ -39,7 +38,9 @@ public class NSLayoutYAxisAnchor : NSLayoutAnchor<NSLayoutYAxisAnchor>
     /// </summary>
     /// <param name="otherAnchor">Other anchor.</param>
     /// <returns>Layout dimension.</returns>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(CallMethodRdcMessage)]
+#endif
     public NSLayoutDimension AnchorWithOffset(NSLayoutYAxisAnchor otherAnchor)
     {
         AnchorWithOffsetSelector ??= Selector.FromName("anchorWithOffsetTo:");
@@ -51,7 +52,9 @@ public class NSLayoutYAxisAnchor : NSLayoutAnchor<NSLayoutYAxisAnchor>
     /// Define constraint.
     /// </summary>
     /// <returns>Constraint.</returns>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(CallMethodRdcMessage)]
+#endif
     public NSLayoutConstraint ConstraintEqualToSystemSpacingBelow(NSLayoutXAxisAnchor anchor, float multiplier)
     {
         ConstEqToSysSpacingBelowMultipierSelector ??= Selector.FromName("constraintEqualToAnchorSystemSpacingBelow:multiplier:");
@@ -63,7 +66,9 @@ public class NSLayoutYAxisAnchor : NSLayoutAnchor<NSLayoutYAxisAnchor>
     /// Define constraint.
     /// </summary>
     /// <returns>Constraint.</returns>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(CallMethodRdcMessage)]
+#endif
     public NSLayoutConstraint ConstraintGreaterThanOrEqualToSystemSpacingBelow(NSLayoutXAxisAnchor anchor, float multiplier)
     {
         ConstGtOrEqToSysSpacingBelowMultipierSelector ??= Selector.FromName("constraintGreaterThanOrEqualToAnchorSystemSpacingBelow:multiplier:");
@@ -75,7 +80,9 @@ public class NSLayoutYAxisAnchor : NSLayoutAnchor<NSLayoutYAxisAnchor>
     /// Define constraint.
     /// </summary>
     /// <returns>Constraint.</returns>
+#if NET7_0_OR_GREATER
     [RequiresDynamicCode(CallMethodRdcMessage)]
+#endif
     public NSLayoutConstraint ConstraintLessThanOrEqualToSystemSpacingBelow(NSLayoutXAxisAnchor anchor, float multiplier)
     {
         ConstLtOrEqToSysSpacingBelowMultipierSelector ??= Selector.FromName("constraintLessThanOrEqualToAnchorSystemSpacingBelow:multiplier:");
