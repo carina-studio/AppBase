@@ -6,6 +6,7 @@
 		<AssemblyName>CarinaStudio.AppBase.MacOS</AssemblyName>
 		<PackageId>CarinaStudio.AppBase.MacOS</PackageId>
 		<Description>AppBase is a base library set for .NET application. CarinaStudio.AppBase.MacOS provides basic layer for accessing functions of macOS.</Description>
+		<IsAotCompatible>false</IsAotCompatible>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -21,11 +22,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+			<_Parameter1>IsTrimmable</_Parameter1>
+			<_Parameter2>True</_Parameter2>
+		</AssemblyAttribute>
 		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
 			<_Parameter1>$(AssemblyName).NativeBridge</_Parameter1>
 		</AssemblyAttribute>
-	</ItemGroup>
-	<ItemGroup>
 		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
 			<_Parameter1>$(AssemblyName).Tests</_Parameter1>
 		</AssemblyAttribute>
