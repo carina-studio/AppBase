@@ -389,7 +389,7 @@ namespace CarinaStudio.Controls
 				var titleBarHeight = titleBarHeightInPixels / screenScale;
 				if (owner is Window csWindow)
 				{
-					ownerPosition = csWindow.expectedInitPosition?.Let(it => new PixelPoint(it.X, (int)(it.Y + titleBarHeightInPixels))) ?? csWindow.Position;
+					ownerPosition = csWindow.expectedInitPosition?.Let(it => new PixelPoint(it.X, it.Y + titleBarHeightInPixels)) ?? csWindow.Position;
 					ownerSize = csWindow.expectedInitSize ?? new(csWindow.Width, csWindow.Height);
 				}
 				else
