@@ -25,8 +25,10 @@ namespace CarinaStudio
                     Platform.OpenLink(uriString);
             }
 
+#pragma warning disable CS0067
             /// <inheritdoc/>
             public event EventHandler? CanExecuteChanged;
+#pragma warning restore CS0067
         }
         
         

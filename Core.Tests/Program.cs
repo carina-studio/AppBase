@@ -12,6 +12,9 @@ namespace CarinaStudio
 		{
 			var version = Platform.GetInstalledRuntimeVersion();
 			var windowsVersion = Platform.WindowsVersion;
+			
+			Console.WriteLine($"Runtime version: {version}");
+			Console.WriteLine($"Windows version: {windowsVersion}");
 
 			/*
 			var testFixure = new Collections.SortedObservableListTests();

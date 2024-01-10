@@ -1,25 +1,30 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFrameworks>net5.0;net6.0;net7.0;net8.0</TargetFrameworks>
-    <RootNamespace>CarinaStudio</RootNamespace>
-    <AssemblyName>CarinaStudio.AppBase.Core</AssemblyName>
-    <PackageId>CarinaStudio.AppBase.Core</PackageId>
-    <Description>AppBase is a base library set for .NET application. CarinaStudio.AppBase.Core is the core library of AppBase, provides extensions for object, collection and threading to make your code more elegant and clear.</Description>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFrameworks>net5.0;net6.0;net7.0;net8.0</TargetFrameworks>
+        <RootNamespace>CarinaStudio</RootNamespace>
+        <AssemblyName>CarinaStudio.AppBase.Core</AssemblyName>
+        <PackageId>CarinaStudio.AppBase.Core</PackageId>
+        <Description>AppBase is a base library set for .NET application. CarinaStudio.AppBase.Core is the core library of AppBase, provides extensions for object, collection and threading to make your code more elegant and clear.</Description>
+        <IsAotCompatible>true</IsAotCompatible>
+    </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>CarinaStudio.AppBase.Core.xml</DocumentationFile>
-  </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+        <DocumentationFile>CarinaStudio.AppBase.Core.xml</DocumentationFile>
+    </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>CarinaStudio.AppBase.Core.xml</DocumentationFile>
-  </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+        <DocumentationFile>CarinaStudio.AppBase.Core.xml</DocumentationFile>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
-      <_Parameter1>$(AssemblyName).Tests</_Parameter1>
-    </AssemblyAttribute>
-  </ItemGroup>
+    <ItemGroup>
+        <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+            <_Parameter1>IsTrimmable</_Parameter1>
+            <_Parameter2>True</_Parameter2>
+        </AssemblyAttribute>
+        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+            <_Parameter1>$(AssemblyName).Tests</_Parameter1>
+        </AssemblyAttribute>
+    </ItemGroup>
 
 </Project>

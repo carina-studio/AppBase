@@ -1,23 +1,31 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFrameworks>net5.0;net6.0;net7.0;net8.0</TargetFrameworks>
-    <RootNamespace>CarinaStudio.Configuration</RootNamespace>
-    <AssemblyName>CarinaStudio.AppBase.Configuration</AssemblyName>
-    <PackageId>CarinaStudio.AppBase.Configuration</PackageId>
-    <Description>AppBase is a base library set for .NET application. CarinaStudio.AppBase.Configuration provides easy way to use and manage your application settings.</Description>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFrameworks>net5.0;net6.0;net7.0;net8.0</TargetFrameworks>
+        <RootNamespace>CarinaStudio.Configuration</RootNamespace>
+        <AssemblyName>CarinaStudio.AppBase.Configuration</AssemblyName>
+        <PackageId>CarinaStudio.AppBase.Configuration</PackageId>
+        <Description>AppBase is a base library set for .NET application. CarinaStudio.AppBase.Configuration provides easy way to use and manage your application settings.</Description>
+        <IsAotCompatible>true</IsAotCompatible>
+    </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>CarinaStudio.AppBase.Configuration.xml</DocumentationFile>
-  </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+        <DocumentationFile>CarinaStudio.AppBase.Configuration.xml</DocumentationFile>
+    </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>CarinaStudio.AppBase.Configuration.xml</DocumentationFile>
-  </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+        <DocumentationFile>CarinaStudio.AppBase.Configuration.xml</DocumentationFile>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Core\Core.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Core\Core.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+            <_Parameter1>IsTrimmable</_Parameter1>
+            <_Parameter2>True</_Parameter2>
+        </AssemblyAttribute>
+    </ItemGroup>
 
 </Project>
