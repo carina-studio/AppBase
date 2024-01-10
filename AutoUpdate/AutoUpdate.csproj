@@ -6,6 +6,7 @@
 		<AssemblyName>CarinaStudio.AppBase.AutoUpdate</AssemblyName>
 		<PackageId>CarinaStudio.AppBase.AutoUpdate</PackageId>
 		<Description>AppBase is a base library set for .NET application. CarinaStudio.AppBase.AutoUpdate provides auto/self update functions for portable application.</Description>
+		<IsAotCompatible>true</IsAotCompatible>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -17,8 +18,14 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Core\Core.csproj" />
 		<ProjectReference Include="..\Application\Application.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+			<_Parameter1>IsTrimmable</_Parameter1>
+			<_Parameter2>True</_Parameter2>
+		</AssemblyAttribute>
 	</ItemGroup>
 
 </Project>

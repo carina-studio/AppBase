@@ -6,6 +6,7 @@
 		<AssemblyName>CarinaStudio.AppBase.Application.Avalonia</AssemblyName>
 		<PackageId>CarinaStudio.AppBase.Application.Avalonia</PackageId>
 		<Description>AppBase is a base library set for .NET application. CarinaStudio.AppBase.Application.Avalonia provides basic implementation for CarinaStudio.AppBase.Application based-on Avalonia.</Description>
+		<IsAotCompatible>true</IsAotCompatible>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -19,8 +20,13 @@
 	<ItemGroup>
 		<ProjectReference Include="..\Application\Application.csproj" />
 		<ProjectReference Include="..\Avalonia\Avalonia.csproj" />
-		<ProjectReference Include="..\Configuration\Configuration.csproj" />
-		<ProjectReference Include="..\Core\Core.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+			<_Parameter1>IsTrimmable</_Parameter1>
+			<_Parameter2>True</_Parameter2>
+		</AssemblyAttribute>
 	</ItemGroup>
 
 </Project>
