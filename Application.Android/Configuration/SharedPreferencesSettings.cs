@@ -201,7 +201,7 @@ public class SharedPreferencesSettings : ISettings
 
 
     /// <inheritdoc/>
-    public IEnumerable<SettingKey> Keys { get => this.keys.Values; }
+    public IEnumerable<SettingKey> Keys => this.keys.Values;
 
 
     // Called when shared preference changed.
@@ -210,7 +210,7 @@ public class SharedPreferencesSettings : ISettings
 #if DEBUG
         Log.Info(TAG, $"Shared preferences changed: {name}");
 #endif
-        var key = (SettingKey?)null;
+        SettingKey? key;
         var prevValue = (object?)null;
         var newValue = (object?)null;
         var needToResetValue = false;
@@ -245,7 +245,7 @@ public class SharedPreferencesSettings : ISettings
             }
             else if (this.values.TryGetValue(name, out prevValue))
             {
-                if (!object.Equals(prevValue, valueInSharedPrefs))
+                if (!Equals(prevValue, valueInSharedPrefs))
                 {
                     if (prevValue is uint uintValue)
                     {
@@ -309,7 +309,7 @@ public class SharedPreferencesSettings : ISettings
             throw new InvalidOperationException("Cannot reset value of version.");
 
         // reset value
-        var prevValue = (object?)null;
+        object? prevValue;
         lock (this.syncLock)
         {
             if (!this.values.TryGetValue(name, out prevValue))
@@ -343,7 +343,7 @@ public class SharedPreferencesSettings : ISettings
         // check value type
         var expectedType = key.ValueType;
         VerifyValueType(expectedType);
-        if (!expectedType.IsAssignableFrom(value.GetType()))
+        if (!expectedType.IsInstanceOfType(value))
             throw new ArgumentException($"Value with type {value.GetType().Name} is not suitable for key '{key.Name}', {expectedType.Name} expected.");
 
         // check key
@@ -352,14 +352,14 @@ public class SharedPreferencesSettings : ISettings
             throw new InvalidOperationException("Cannot reset value of version.");
 
         // update value
-        var prevValue = (object?)null;
-        var isDefaultValue = object.Equals(value, key.DefaultValue);
+        object? prevValue;
+        var isDefaultValue = Equals(value, key.DefaultValue);
         lock (this.syncLock)
         {
             // ignore update if value doesn't change
             if (this.values.TryGetValue(name, out prevValue))
             {
-                if (object.Equals(value, prevValue))
+                if (Equals(value, prevValue))
                     return;
             }
             else if (isDefaultValue)
