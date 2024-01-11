@@ -9,11 +9,13 @@ using System.Text;
 namespace CarinaStudio.MacOS;
 
 /// <summary>
-/// Conversion between native and CLR types.
+/// Conversion between native and CLR types. The class is not supposed to be used directly. It is used for internal type conversion and code generation.
 /// </summary>
-static class NativeTypeConversion
+public static class NativeTypeConversion
 {
-    // Convert from native parameter to CLR parameter.
+    /// <summary>
+    /// Convert from native parameter to CLR parameter.
+    /// </summary>
 #if NET7_0_OR_GREATER
     [RequiresDynamicCode("Dynamic code generation is required for checking native type.")]
 #endif
@@ -59,7 +61,9 @@ static class NativeTypeConversion
     }
 
 
-    // Convert from native value to CLR value.
+    /// <summary>
+    /// Convert from native value to CLR value.
+    /// </summary>
 #if NET7_0_OR_GREATER
     [RequiresDynamicCode("Dynamic code generation is required for converting to CLR value type.")]
 #endif
@@ -179,8 +183,10 @@ static class NativeTypeConversion
         throw new NotSupportedException($"Cannot convert native value to {targetType.Name}.");
     }
 
-
-    // Convert from Objective-C type encoding.
+    
+    /// <summary>
+    /// Convert from Objective-C type encoding.
+    /// </summary>
 #if NET7_0_OR_GREATER
     [RequiresDynamicCode("Dynamic code generation is required for creating Objective-C type encoding.")]
 #endif
@@ -381,7 +387,9 @@ static class NativeTypeConversion
     }
 
 
-    // Get size of native value in bytes.
+    /// <summary>
+    /// Get size of native value in bytes.
+    /// </summary>
 #if NET7_0_OR_GREATER
     [RequiresDynamicCode("Dynamic code generation is required for checking native type.")]
 #endif
@@ -410,7 +418,9 @@ static class NativeTypeConversion
     }
 
 
-    // Check whether given type is the native type or not.
+    /// <summary>
+    /// Check whether given type is the native type or not.
+    /// </summary>
 #if NET7_0_OR_GREATER
     [RequiresDynamicCode("Dynamic code generation is required for checking native type.")]
 #endif
@@ -443,8 +453,10 @@ static class NativeTypeConversion
             }, false);
     }
 
-
-    // Convert from CLR parameter to native parameter.
+    
+    /// <summary>
+    /// Convert from CLR parameter to native parameter.
+    /// </summary>
 #if NET7_0_OR_GREATER
     [RequiresDynamicCode("Dynamic code generation is required for checking native type.")]
 #endif
@@ -475,8 +487,10 @@ static class NativeTypeConversion
         throw new NotSupportedException($"Cannot convert from {value.GetType().Name} to native value.");
     }
 
-
-    // Convert from CLR object to native value.
+    
+    /// <summary>
+    /// Convert from CLR object to native value.
+    /// </summary>
 #if NET7_0_OR_GREATER
     [RequiresDynamicCode("Dynamic code generation is required for converting from CLR value type.")]
 #endif
@@ -606,7 +620,9 @@ static class NativeTypeConversion
     }
 
 
-    // Convert to corresponding native type.
+    /// <summary>
+    /// Convert to corresponding native type.
+    /// </summary>
 #if NET7_0_OR_GREATER
     [RequiresDynamicCode("Dynamic code generation is required for checking native type.")]
 #endif
@@ -624,9 +640,14 @@ static class NativeTypeConversion
     }
 
 
-    // Convert to Objective-C type encoding.
+    /// <summary>
+    /// Convert to Objective-C type encoding.
+    /// </summary>
     public static string ToTypeEncoding<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.NonPublicFields)] T>(int elementCount = 1) =>
         ToTypeEncoding(typeof(T), elementCount);
+    /// <summary>
+    /// Convert to Objective-C type encoding.
+    /// </summary>
     public static string ToTypeEncoding(object obj)
     {
         if (obj is Type type)
@@ -635,6 +656,9 @@ static class NativeTypeConversion
             return ToTypeEncoding(obj.GetType(), array.GetLength(0));
         return ToTypeEncoding(obj.GetType());
     }
+    /// <summary>
+    /// Convert to Objective-C type encoding.
+    /// </summary>
     public static string ToTypeEncoding([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.NonPublicFields)] Type type, int elementCount = 1)
     {
         var isArray = type.IsArray;
