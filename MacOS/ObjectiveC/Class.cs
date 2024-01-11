@@ -615,6 +615,11 @@ namespace CarinaStudio.MacOS.ObjectiveC
 
 
         // Define method.
+#if NET6_0_OR_GREATER
+        [DynamicDependency(nameof(NativeTypeConversion.FromNativeParameter), typeof(NativeTypeConversion))]
+        [DynamicDependency(nameof(NativeTypeConversion.ToNativeParameter), typeof(NativeTypeConversion))]
+        [DynamicDependency(nameof(Type.GetTypeFromHandle), typeof(Type))]
+#endif
 #if NET7_0_OR_GREATER
         [RequiresDynamicCode(DefineMethodRdcMessage)]
 #endif
