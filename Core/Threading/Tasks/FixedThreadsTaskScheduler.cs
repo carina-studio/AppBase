@@ -11,26 +11,6 @@ namespace CarinaStudio.Threading.Tasks
 	/// </summary>
 	public class FixedThreadsTaskScheduler : TaskScheduler, IDisposable
 	{
-		// Synchronization context of scheduler.
-		class SyncContext : SynchronizationContext
-		{
-			// Fields.
-			readonly FixedThreadsTaskScheduler scheduler;
-
-			// Constructor.
-			public SyncContext(FixedThreadsTaskScheduler scheduler) =>
-				this.scheduler = scheduler;
-			
-			/// <inheritdoc/>
-			public override SynchronizationContext CreateCopy() =>
-				new SyncContext(this.scheduler);
-			
-			/// <inheritdoc/>
-			public override void Post(SendOrPostCallback d, object? state) =>
-				this.scheduler.QueueTask(new Task(() => d(state)));
-		}
-
-
 		// Static fields.
 		static volatile int LatestId;
 
@@ -40,23 +20,34 @@ namespace CarinaStudio.Threading.Tasks
 		readonly int id;
 		volatile bool isDisposed;
 		volatile int latestExecThreadId;
-		volatile int numberOfBusyThreads;
-		readonly LinkedList<Task> scheduledTasks = new LinkedList<Task>();
-		readonly object syncLock = new object();
+		int numberOfBusyThreads;
+		readonly LinkedList<Task> scheduledTasks = new();
+		readonly object syncLock = new();
 		readonly bool useBackgroundThreads;
-
-
+		
+		
 		/// <summary>
 		/// Initialize new <see cref="FixedThreadsTaskScheduler"/> instance.
 		/// </summary>
 		/// <param name="maxConcurrencyLevel">Maximum concurrency level.</param>
 		/// <param name="useBackgroundThreads">True to set execution threads as background thread.</param>
-		public FixedThreadsTaskScheduler(int maxConcurrencyLevel, bool useBackgroundThreads = true)
+		public FixedThreadsTaskScheduler(int maxConcurrencyLevel, bool useBackgroundThreads = true) : this(null, maxConcurrencyLevel, useBackgroundThreads)
+		{ }
+
+
+		/// <summary>
+		/// Initialize new <see cref="FixedThreadsTaskScheduler"/> instance.
+		/// </summary>
+		/// <param name="name">Name of scheduler.</param>
+		/// <param name="maxConcurrencyLevel">Maximum concurrency level.</param>
+		/// <param name="useBackgroundThreads">True to set execution threads as background thread.</param>
+		public FixedThreadsTaskScheduler(string? name, int maxConcurrencyLevel, bool useBackgroundThreads = true)
 		{
 			if (maxConcurrencyLevel <= 0)
 				throw new ArgumentOutOfRangeException(nameof(maxConcurrencyLevel));
 			this.id = Interlocked.Increment(ref LatestId);
 			this.MaximumConcurrencyLevel = maxConcurrencyLevel;
+			this.Name = name;
 			this.useBackgroundThreads = useBackgroundThreads;
 			this.executionThreads = new List<Thread>(Math.Min(32, maxConcurrencyLevel));
 		}
@@ -65,7 +56,7 @@ namespace CarinaStudio.Threading.Tasks
 		/// <summary>
 		/// Get number of threads which are executing tasks.
 		/// </summary>
-		public int BusyThreadCount { get => this.numberOfBusyThreads; }
+		public int BusyThreadCount => this.numberOfBusyThreads;
 
 
 		/// <summary>
@@ -92,14 +83,12 @@ namespace CarinaStudio.Threading.Tasks
 		/// <summary>
 		/// Get number of active execution threads.
 		/// </summary>
-		public int ExecutionThreadCount { get => this.executionThreads.Count; }
+		public int ExecutionThreadCount => this.executionThreads.Count;
 
 
 		// Entry of execution thread.
 		void ExecutionThreadProc()
 		{
-			//var syncContext = new SyncContext(this);
-			//SynchronizationContext.SetSynchronizationContext(syncContext);
 			while (true)
 			{
 				// get next task
@@ -109,19 +98,16 @@ namespace CarinaStudio.Threading.Tasks
 						return null;
 					if (this.scheduledTasks.IsNotEmpty())
 					{
-						return this.scheduledTasks.First.AsNonNull().Value.Also((_) =>
+						return this.scheduledTasks.First.AsNonNull().Value.Also(_ =>
 						{
 							this.scheduledTasks.RemoveFirst();
 							++this.numberOfBusyThreads;
 						});
 					}
-					else
-					{
-						Monitor.Wait(this.syncLock);
-						return null;
-					}
+					Monitor.Wait(this.syncLock);
+					return null;
 				});
-				if (task == null)
+				if (task is null)
 				{
 					if (this.isDisposed)
 						break;
@@ -131,14 +117,12 @@ namespace CarinaStudio.Threading.Tasks
 				// execute task
 				try
 				{
-					//syncContext.OperationStarted();
 					this.TryExecuteTask(task);
 				}
 				finally
 				{
 					lock (this.syncLock)
 						--this.numberOfBusyThreads;
-					//syncContext.OperationCompleted();
 				}
 			}
 			lock (this.syncLock)
@@ -147,7 +131,7 @@ namespace CarinaStudio.Threading.Tasks
 
 
 		/// <inheritdoc/>
-		protected override IEnumerable<Task>? GetScheduledTasks() => this.scheduledTasks;
+		protected override IEnumerable<Task> GetScheduledTasks() => this.scheduledTasks;
 
 
 		/// <summary>
@@ -161,6 +145,12 @@ namespace CarinaStudio.Threading.Tasks
 					return this.executionThreads.Contains(Thread.CurrentThread);
 			}
 		}
+		
+		
+		/// <summary>
+		/// Get name of scheduler.
+		/// </summary>
+		public string? Name { get; }
 
 
 		/// <inheritdoc/>
@@ -180,10 +170,10 @@ namespace CarinaStudio.Threading.Tasks
 					Monitor.Pulse(this.syncLock);
 				else if (this.executionThreads.Count < this.MaximumConcurrencyLevel)
 				{
-					this.executionThreads.Add(new Thread(this.ExecutionThreadProc).Also((thread) =>
+					this.executionThreads.Add(new Thread(this.ExecutionThreadProc).Also(thread =>
 					{
 						thread.IsBackground = this.useBackgroundThreads;
-						thread.Name = $"FTTaskScheduler-{this.id}-{Interlocked.Increment(ref this.latestExecThreadId)}";
+						thread.Name = $"{this.Name ?? "FTTaskScheduler"} [{this.id}]-{Interlocked.Increment(ref this.latestExecThreadId)}";
 						thread.Start();
 					}));
 				}
@@ -199,7 +189,7 @@ namespace CarinaStudio.Threading.Tasks
 		protected override bool TryDequeue(Task task) => this.syncLock.Lock(() =>
 		{
 			var node = this.scheduledTasks.First;
-			while (node != null)
+			while (node is not null)
 			{
 				if (node.Value == task)
 				{

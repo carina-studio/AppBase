@@ -19,12 +19,12 @@ namespace CarinaStudio.Threading.Tasks
         /// <summary>
 		/// Get number of threads which are executing tasks.
 		/// </summary>
-        public int BusyThreadCount { get => ((FixedThreadsTaskScheduler)this.Scheduler!).BusyThreadCount; }
+        public int BusyThreadCount => ((FixedThreadsTaskScheduler)this.Scheduler!).BusyThreadCount;
 
 
         /// <summary>
 		/// Get maximum concurrency level supported by its <see cref="TaskFactory.Scheduler"/>.
 		/// </summary>
-        public int MaximumConcurrencyLevel { get => ((FixedThreadsTaskScheduler)this.Scheduler!).MaximumConcurrencyLevel; }
+        public int MaximumConcurrencyLevel => ((FixedThreadsTaskScheduler)this.Scheduler!).MaximumConcurrencyLevel;
     }
 }
