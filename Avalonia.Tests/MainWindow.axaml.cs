@@ -4,13 +4,16 @@ using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
+using Avalonia.Threading;
 using CarinaStudio.Controls;
 using CarinaStudio.Input.Platform;
+using CarinaStudio.Threading;
 using System;
+using System.Diagnostics;
 
 namespace CarinaStudio
 {
-    partial class MainWindow : Avalonia.Controls.Window
+    partial class MainWindow : Controls.Window
     {
         static readonly DirectProperty<MainWindow, DateTime?> DateTimeValueProperty = AvaloniaProperty.RegisterDirect<MainWindow, DateTime?>(nameof(DateTimeValue), 
             w => w.dateTimeValue, 
@@ -25,11 +28,23 @@ namespace CarinaStudio
         DateTime? dateTimeValue = DateTime.Now;
         IPAddress? ipAddressObject = IPAddress.Loopback;
         string longText = "";
+        readonly DispatcherScheduledAction scheduledAction;
+        readonly Stopwatch stopwatch = new Stopwatch().Also(it => it.Start());
         
         public MainWindow()
         {
             this.RefreshLongText();
             AvaloniaXamlLoader.Load(this);
+
+            var startTime = 0L;
+            this.scheduledAction = new(this, () =>
+            {
+                var duration = (this.stopwatch.ElapsedMilliseconds - startTime);
+            }, DispatcherPriority.Send);
+
+            startTime = this.stopwatch.ElapsedMilliseconds;
+            this.scheduledAction.Schedule(5566);
+            //this.scheduledAction.Cancel();
         }
 
 

@@ -9,6 +9,66 @@ namespace CarinaStudio.Threading;
 /// </summary>
 public class DispatcherSynchronizationContext : SynchronizationContext
 {
+    // Stub of delayed call-back.
+    class DelayedCallbackStub : IDelayedCallbackStub
+    {
+        // Fields.
+        readonly Action? actionCallback;
+        public readonly Dispatcher Dispatcher;
+        volatile bool isCancellable = true;
+        volatile bool isCancelled;
+        readonly DispatcherPriority priority;
+        readonly SendOrPostCallback? sendOrPostCallback;
+        readonly object? state;
+        
+        // Constructor.
+        public DelayedCallbackStub(Dispatcher dispatcher, Action action, DispatcherPriority priority)
+        {
+            this.actionCallback = action;
+            this.Dispatcher = dispatcher;
+            this.priority = priority;
+        }
+        public DelayedCallbackStub(Dispatcher dispatcher, SendOrPostCallback callback, object? state, DispatcherPriority priority)
+        {
+            this.Dispatcher = dispatcher;
+            this.priority = priority;
+            this.sendOrPostCallback = callback;
+            this.state = state;
+        }
+
+        /// <inheritdoc/>
+        void IDelayedCallbackStub.Callback() =>
+            this.Dispatcher.Post(this.CallbackEntry, this.priority);
+        
+        // Entry of call-back.
+        void CallbackEntry()
+        {
+            lock (this)
+            {
+                if (this.isCancelled)
+                    return;
+                this.isCancellable = false;
+            }
+            if (this.actionCallback is not null)
+                this.actionCallback();
+            else if (this.sendOrPostCallback is not null)
+                this.sendOrPostCallback(this.state);
+        }
+
+        /// <inheritdoc/>
+        bool IDelayedCallbackStub.Cancel()
+        {
+            lock (this)
+            {
+                if (this.isCancelled || !this.isCancellable)
+                    return false;
+                this.isCancelled = true;
+            }
+            return true;
+        }
+    }
+    
+    
     // Static fields.
     static volatile DispatcherSynchronizationContext? UIThreadInstance;
 
@@ -24,6 +84,23 @@ public class DispatcherSynchronizationContext : SynchronizationContext
     public DispatcherSynchronizationContext(Dispatcher dispatcher)
     {
         this.dispatcher = dispatcher;
+    }
+    
+    
+    /// <summary>
+    /// Cancel posted delayed call-back.
+    /// </summary>
+    /// <param name="token">Token returned from <see cref="PostDelayed(SendOrPostCallback, object?, DispatcherPriority, int)"/> or <see cref="PostDelayed(Action, DispatcherPriority, int)"/>.</param>
+    /// <returns>True if call-back cancelled successfully.</returns>
+    public bool CancelDelayed(object token)
+    {
+        if (!DelayedCallbacks.TryGetCallbackStub(token, out var callbackStub)
+            || callbackStub is not DelayedCallbackStub delayedCallbackStub
+            || delayedCallbackStub.Dispatcher != this.dispatcher)
+        {
+            return false;
+        }
+        return DelayedCallbacks.Cancel(token);
     }
 
 
@@ -76,6 +153,29 @@ public class DispatcherSynchronizationContext : SynchronizationContext
     /// <param name="priority">Priority.</param>
     public void Post(Action action, DispatcherPriority priority) =>
         this.dispatcher.Post(action, priority);
+    
+    
+    /// <summary>
+    /// Post delayed call-back.
+    /// </summary>
+    /// <param name="callback">Call-back.</param>
+    /// <param name="priority">Priority.</param>
+    /// <param name="delayMillis">Delayed time in milliseconds.</param>
+    /// <returns>Token of posted delayed call-back.</returns>
+    public object PostDelayed(Action callback, DispatcherPriority priority, int delayMillis) =>
+        DelayedCallbacks.Schedule(new DelayedCallbackStub(this.dispatcher, callback, priority), delayMillis);
+
+
+    /// <summary>
+    /// Post delayed call-back.
+    /// </summary>
+    /// <param name="callback">Call-back.</param>
+    /// <param name="state">Custom state pass to call-back.</param>
+    /// <param name="priority">Priority.</param>
+    /// <param name="delayMillis">Delayed time in milliseconds.</param>
+    /// <returns>Token of posted delayed call-back.</returns>
+    public object PostDelayed(SendOrPostCallback callback, object? state, DispatcherPriority priority, int delayMillis) =>
+        DelayedCallbacks.Schedule(new DelayedCallbackStub(this.dispatcher, callback, state, priority), delayMillis);
 
 
     /// <inheritdoc/>
