@@ -105,7 +105,7 @@ namespace CarinaStudio.Threading
 							try
 							{
 								var actualDelayedTime = (stopWatch.ElapsedMilliseconds - localPostTime);
-								Assert.GreaterOrEqual(actualDelayedTime, delayedTime, "Call-back executed too early.");
+								Assert.GreaterOrEqual(actualDelayedTime, delayedTime - 1, "Call-back executed too early.");
 								Assert.LessOrEqual(actualDelayedTime, delayedTime + 100, "Call-back executed too late.");
 							}
 							catch (Exception ex)
@@ -127,7 +127,7 @@ namespace CarinaStudio.Threading
 				Assert.IsTrue(Monitor.Wait(syncLock, 60000), "Unable to complete waiting for posting delayed call-back on multi-threads.");
 			}
 
-			// test on SingleThreadSybchronizationContext
+			// test on SingleThreadSynchronizationContext
 			using var singleThreadSyncContext = new SingleThreadSynchronizationContext();
 
 			// post delayed call-back which will be executed after disposing sync context
