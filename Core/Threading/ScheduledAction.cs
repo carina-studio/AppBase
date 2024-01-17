@@ -55,19 +55,28 @@ namespace CarinaStudio.Threading
 		/// <returns>True if action has been cancelled.</returns>
 		public bool Cancel()
 		{
-			if (this.token == null)
+			if (this.token is null)
 				return false;
 			lock (this)
 			{
-				if (this.token != null)
+				if (this.token is not null)
 				{
-					this.SynchronizationContext.CancelDelayed(this.token);
+					this.CancelAction(this.token);
 					this.token = null;
 					return true;
 				}
 				return false;
 			}
 		}
+
+
+		/// <summary>
+		/// Cancel posted action.
+		/// </summary>
+		/// <param name="token">Token returned from <see cref="PostAction"/> to identify the posted action.</param>
+		/// <returns>True if action has been cancelled successfully.</returns>
+		protected virtual bool CancelAction(object token) =>
+			this.SynchronizationContext.CancelDelayed(token);
 
 
 		/// <summary>
@@ -117,7 +126,18 @@ namespace CarinaStudio.Threading
 		/// <summary>
 		/// Check whether execution has been scheduled or not.
 		/// </summary>
-		public bool IsScheduled => this.token != null;
+		public bool IsScheduled => this.token is not null;
+
+
+		/// <summary>
+		/// Post action to underlying synchronization context.
+		/// </summary>
+		/// <param name="action">Action.</param>
+		/// <param name="state">State.</param>
+		/// <param name="delayMillis">Delay time in milliseconds.</param>
+		/// <returns>Token to identify the posted action.</returns>
+		protected virtual object PostAction(SendOrPostCallback action, object? state, int delayMillis) =>
+			this.SynchronizationContext.PostDelayed(action, state, delayMillis);
 
 
 		/// <summary>
@@ -127,10 +147,10 @@ namespace CarinaStudio.Threading
 		[MethodImpl(MethodImplOptions.Synchronized)]
 		public void Reschedule(int delayMillis = 0)
 		{
-			if (this.token != null)
-				this.SynchronizationContext.CancelDelayed(this.token);
+			if (this.token is not null)
+				this.CancelAction(this.token);
 			object? token = null;
-			token = this.SynchronizationContext.PostDelayed(_ =>
+			token = this.PostAction(_ =>
 			{
 				lock (this) // barrier to make sure that variable 'token' has been assigned
 				{ }
@@ -163,10 +183,10 @@ namespace CarinaStudio.Threading
 		[MethodImpl(MethodImplOptions.Synchronized)]
 		public void Schedule(int delayMillis = 0)
 		{
-			if (this.token != null)
+			if (this.token is not null)
 				return;
 			object? token = null;
-			token = this.SynchronizationContext.PostDelayed(_ =>
+			token = this.PostAction(_ =>
 			{
 				lock (this) // barrier to make sure that variable 'token' has been assigned
 				{ }
