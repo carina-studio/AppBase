@@ -130,7 +130,7 @@ namespace CarinaStudio.Threading
 			if (this.token != null)
 				this.SynchronizationContext.CancelDelayed(this.token);
 			object? token = null;
-			token = this.SynchronizationContext.PostDelayed((_) =>
+			token = this.SynchronizationContext.PostDelayed(_ =>
 			{
 				lock (this) // barrier to make sure that variable 'token' has been assigned
 				{ }
@@ -166,7 +166,7 @@ namespace CarinaStudio.Threading
 			if (this.token != null)
 				return;
 			object? token = null;
-			token = this.SynchronizationContext.PostDelayed((_) =>
+			token = this.SynchronizationContext.PostDelayed(_ =>
 			{
 				lock (this) // barrier to make sure that variable 'token' has been assigned
 				{ }

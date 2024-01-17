@@ -60,7 +60,7 @@ namespace CarinaStudio.Threading
 		/// <summary>
 		/// Get execution thread.
 		/// </summary>
-		public Thread ExecutionThread { get => this.executionThread; }
+		public Thread ExecutionThread => this.executionThread;
 
 
 		// Entry of execution thread.
@@ -119,7 +119,7 @@ namespace CarinaStudio.Threading
 		/// <summary>
 		/// Get name.
 		/// </summary>
-		public string? Name { get => this.executionThread.Name; }
+		public string? Name => this.executionThread.Name;
 
 
 		/// <summary>
