@@ -35,7 +35,7 @@ namespace CarinaStudio.Net.Http
 				new Uri("https://apple.com/"),
 				new Uri("https://facebook.com/"),
 				new Uri("https://google.com/"),
-				new Uri("https://microsoft.com/"),
+				//new Uri("https://microsoft.com/"),
 			};
 			
 			// use default HttpClient
@@ -90,7 +90,7 @@ namespace CarinaStudio.Net.Http
 			return new HttpResponseStreamProvider(() => new HttpRequestMessage
 			{
 				Method = HttpMethod.Post,
-				RequestUri = new("http://localhost:9522/"),
+				RequestUri = new("http://localhost:9523/"),
 			});
 		}
 
