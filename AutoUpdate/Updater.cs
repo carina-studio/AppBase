@@ -406,8 +406,19 @@ namespace CarinaStudio.AutoUpdate
 					// get response
 					this.logger.LogDebug("Start downloading package from '{packageUri}'", packageUri);
 #pragma warning disable SYSLIB0014
-					using var response = WebRequest.Create(packageUri).GetResponse();
+					var getResponseTask = WebRequest.Create(packageUri).GetResponseAsync();
 #pragma warning restore SYSLIB0014
+					while (true)
+					{
+						if (this.cancellationTokenSource.IsCancellationRequested)
+						{
+							this.logger.LogWarning("Downloading has been cancelled");
+							throw new TaskCanceledException();
+						}
+						if (getResponseTask.Wait(1000))
+							break;
+					}
+					using var response = getResponseTask.Result;
 					using var downloadStream = response.GetResponseStream();
 
 					// cancellation check
