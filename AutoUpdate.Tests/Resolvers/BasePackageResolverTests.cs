@@ -2,7 +2,6 @@
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
@@ -165,7 +164,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 			{
 				// prepare
 				var appName = Tests.Random.GenerateRandomString(8);
-				var appVersion = Assembly.GetExecutingAssembly()!.GetName()!.Version;
+				var appVersion = this.Application.Assembly.GetName().Version.AsNonNull();
 				var version = new Version(1, 2, 3, 4);
 				var pageUri = new Uri("https://localhost/Package.htm");
 				var runtimeVersion = Platform.GetInstalledRuntimeVersion();
