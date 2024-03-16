@@ -9,6 +9,120 @@ namespace CarinaStudio
 	public static unsafe class MemoryExtensions
 	{
 		/// <summary>
+		/// Check whether given character sequence is empty or contains whitespaces only or not.
+		/// </summary>
+		/// <param name="s">Character sequence to check.</param>
+		/// <returns>True if the character sequence is empty or contains whitespaces only.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static bool IsEmptyOrWhiteSpace(this Memory<char> s) =>
+			s.PinAs((char* cPtr) =>
+			{
+				if (cPtr is null)
+					return true;
+				var count = s.Length;
+				while (count > 0)
+				{
+					if (!char.IsWhiteSpace(*cPtr))
+						return false;
+					++cPtr;
+					--count;
+				}
+				return true;
+			});
+		
+		
+		/// <summary>
+		/// Check whether given character sequence is empty or contains whitespaces only or not.
+		/// </summary>
+		/// <param name="s">Character sequence to check.</param>
+		/// <returns>True if the character sequence is empty or contains whitespaces only.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static bool IsEmptyOrWhiteSpace(this ReadOnlyMemory<char> s) =>
+			s.PinAs((char* cPtr) =>
+			{
+				if (cPtr is null)
+					return true;
+				var count = s.Length;
+				while (count > 0)
+				{
+					if (!char.IsWhiteSpace(*cPtr))
+						return false;
+					++cPtr;
+					--count;
+				}
+				return true;
+			});
+		
+		
+		/// <summary>
+		/// Check whether given <see cref="Memory{T}"/> contains data or not.
+		/// </summary>
+		/// <param name="memory"><see cref="Memory{T}"/> to check.</param>
+		/// <typeparam name="T">Type of memory element.</typeparam>
+		/// <returns>True if <see cref="Memory{T}"/> contains data.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static bool IsNotEmpty<T>(this Memory<T> memory) =>
+			memory.Length > 0;
+		
+		
+		/// <summary>
+		/// Check whether given <see cref="ReadOnlyMemory{T}"/> contains data or not.
+		/// </summary>
+		/// <param name="memory"><see cref="ReadOnlyMemory{T}"/> to check.</param>
+		/// <typeparam name="T">Type of memory element.</typeparam>
+		/// <returns>True if <see cref="ReadOnlyMemory{T}"/> contains data.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static bool IsNotEmpty<T>(this ReadOnlyMemory<T> memory) =>
+			memory.Length > 0;
+		
+		
+		/// <summary>
+		/// Check whether given character sequence contains at least one non-whitespace or not.
+		/// </summary>
+		/// <param name="s">Character sequence to check.</param>
+		/// <returns>True if the character sequence contains contains at least one non-whitespace.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static bool IsNotWhiteSpace(this Memory<char> s) =>
+			s.PinAs((char* cPtr) =>
+			{
+				if (cPtr is null)
+					return false;
+				var count = s.Length;
+				while (count > 0)
+				{
+					if (!char.IsWhiteSpace(*cPtr))
+						return true;
+					++cPtr;
+					--count;
+				}
+				return false;
+			});
+		
+		
+		/// <summary>
+		/// Check whether given character sequence contains at least one non-whitespace or not.
+		/// </summary>
+		/// <param name="s">Character sequence to check.</param>
+		/// <returns>True if the character sequence contains contains at least one non-whitespace.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static bool IsNotWhiteSpace(this ReadOnlyMemory<char> s) =>
+			s.PinAs((char* cPtr) =>
+			{
+				if (cPtr is null)
+					return false;
+				var count = s.Length;
+				while (count > 0)
+				{
+					if (!char.IsWhiteSpace(*cPtr))
+						return true;
+					++cPtr;
+					--count;
+				}
+				return false;
+			});
+		
+		
+		/// <summary>
 		/// Pin given <see cref="Memory{T}"/>, get address of memory and perform action.
 		/// </summary>
 		/// <typeparam name="T">Type of memory element.</typeparam>

@@ -10,6 +10,33 @@ namespace CarinaStudio
 	class MemoryExtensionsTest
 	{
 		/// <summary>
+		/// Test for operations on character sequence.
+		/// </summary>
+		[Test]
+		public void CharacterSequenceTest()
+		{
+			var empty = "";
+			var whiteSpaces = "  ";
+			var nonWhiteSpace1 = "123 456";
+			var nonWhiteSpace2 = " 123456";
+			var nonWhiteSpace3 = "123456 ";
+			var nonWhiteSpace4 = "123";
+			Assert.IsTrue(empty.AsMemory().IsEmptyOrWhiteSpace());
+			Assert.IsFalse(empty.AsMemory().IsNotWhiteSpace());
+			Assert.IsTrue(whiteSpaces.AsMemory().IsEmptyOrWhiteSpace());
+			Assert.IsFalse(whiteSpaces.AsMemory().IsNotWhiteSpace());
+			Assert.IsFalse(nonWhiteSpace1.AsMemory().IsEmptyOrWhiteSpace());
+			Assert.IsTrue(nonWhiteSpace1.AsMemory().IsNotWhiteSpace());
+			Assert.IsFalse(nonWhiteSpace2.AsMemory().IsEmptyOrWhiteSpace());
+			Assert.IsTrue(nonWhiteSpace2.AsMemory().IsNotWhiteSpace());
+			Assert.IsFalse(nonWhiteSpace3.AsMemory().IsEmptyOrWhiteSpace());
+			Assert.IsTrue(nonWhiteSpace3.AsMemory().IsNotWhiteSpace());
+			Assert.IsFalse(nonWhiteSpace4.AsMemory().IsEmptyOrWhiteSpace());
+			Assert.IsTrue(nonWhiteSpace4.AsMemory().IsNotWhiteSpace());
+		}
+		
+		
+		/// <summary>
 		/// Test for pinning memory.
 		/// </summary>
 		[Test]

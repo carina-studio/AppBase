@@ -9,6 +9,132 @@ namespace CarinaStudio
     public static unsafe class SpanExtensions
     {
         /// <summary>
+        /// Check whether given character sequence is empty or contains whitespaces only or not.
+        /// </summary>
+        /// <param name="s">Character sequence to check.</param>
+        /// <returns>True if the character sequence is empty or contains whitespaces only.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsEmptyOrWhiteSpace(this Span<char> s)
+        {
+            fixed (char* p = s)
+            {
+                if (p is null)
+                    return true;
+                var cPtr = p;
+                var count = s.Length;
+                while (count > 0)
+                {
+                    if (!char.IsWhiteSpace(*cPtr))
+                        return false;
+                    ++cPtr;
+                    --count;
+                }
+                return true;
+            }
+        }
+        
+        
+        /// <summary>
+        /// Check whether given character sequence is empty or contains whitespaces only or not.
+        /// </summary>
+        /// <param name="s">Character sequence to check.</param>
+        /// <returns>True if the character sequence is empty or contains whitespaces only.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsEmptyOrWhiteSpace(this ReadOnlySpan<char> s)
+        {
+            fixed (char* p = s)
+            {
+                if (p is null)
+                    return true;
+                var cPtr = p;
+                var count = s.Length;
+                while (count > 0)
+                {
+                    if (!char.IsWhiteSpace(*cPtr))
+                        return false;
+                    ++cPtr;
+                    --count;
+                }
+                return true;
+            }
+        }
+        
+        
+        /// <summary>
+        /// Check whether given <see cref="Span{T}"/> contains data or not.
+        /// </summary>
+        /// <param name="span"><see cref="Span{T}"/> to check.</param>
+        /// <typeparam name="T">Type of value.</typeparam>
+        /// <returns>True if <see cref="Span{T}"/> contains data.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsNotEmpty<T>(this Span<T> span) =>
+            span.Length > 0;
+        
+        
+        /// <summary>
+        /// Check whether given <see cref="ReadOnlySpan{T}"/> contains data or not.
+        /// </summary>
+        /// <param name="span"><see cref="ReadOnlySpan{T}"/> to check.</param>
+        /// <typeparam name="T">Type of value.</typeparam>
+        /// <returns>True if <see cref="ReadOnlySpan{T}"/> contains data.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsNotEmpty<T>(this ReadOnlySpan<T> span) =>
+            span.Length > 0;
+        
+        
+        /// <summary>
+        /// Check whether given character sequence contains at least one non-whitespace or not.
+        /// </summary>
+        /// <param name="s">Character sequence to check.</param>
+        /// <returns>True if the character sequence contains contains at least one non-whitespace.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsNotWhiteSpace(this Span<char> s)
+        {
+            fixed (char* p = s)
+            {
+                if (p is null)
+                    return false;
+                var cPtr = p;
+                var count = s.Length;
+                while (count > 0)
+                {
+                    if (!char.IsWhiteSpace(*cPtr))
+                        return true;
+                    ++cPtr;
+                    --count;
+                }
+                return false;
+            }
+        }
+        
+        
+        /// <summary>
+        /// Check whether given character sequence contains at least one non-whitespace or not.
+        /// </summary>
+        /// <param name="s">Character sequence to check.</param>
+        /// <returns>True if the character sequence contains contains at least one non-whitespace.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsNotWhiteSpace(this ReadOnlySpan<char> s)
+        {
+            fixed (char* p = s)
+            {
+                if (p is null)
+                    return false;
+                var cPtr = p;
+                var count = s.Length;
+                while (count > 0)
+                {
+                    if (!char.IsWhiteSpace(*cPtr))
+                        return true;
+                    ++cPtr;
+                    --count;
+                }
+                return false;
+            }
+        }
+        
+        
+        /// <summary>
         /// Get address of value referenced by <see cref="Span{T}"/> and perform an action.
         /// </summary>
         /// <param name="span"><see cref="Span{T}"/>.</param>
