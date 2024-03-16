@@ -593,7 +593,7 @@ namespace CarinaStudio.Animation
         /// </summary>
         /// <returns>Task of waiting.</returns>
         public Task WaitForCompletionAsync() =>
-            this.WaitForCompletionAsync(new CancellationToken());
+            this.WaitForCompletionAsync(CancellationToken.None);
 
 
         /// <summary>
@@ -601,41 +601,38 @@ namespace CarinaStudio.Animation
         /// </summary>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>Task of waiting.</returns>
-        public async Task WaitForCompletionAsync(CancellationToken cancellationToken)
+        public Task WaitForCompletionAsync(CancellationToken cancellationToken)
         {
             // check state
             this.VerifyAccess();
             if (!this.IsStarted)
-                return;
+                return Task.CompletedTask;
+            if (cancellationToken.IsCancellationRequested)
+                return Task.FromCanceled(cancellationToken);
 
             // prepare
-            var syncLock = new object();
-            var completedOrCancelledHandler = new EventHandler((_, _) =>
-            {
-                lock (syncLock)
-                {
-                    Monitor.Pulse(syncLock);
-                }
-            });
-
-            // wait for completion
-            this.Cancelled += completedOrCancelledHandler;
-            this.Completed += completedOrCancelledHandler;
-            try
-            {
-                await Task.Run(() =>
-                {
-                    lock (syncLock)
-                    {
-                        Monitor.Wait(syncLock);
-                    }
-                }, cancellationToken);
-            }
-            finally
+            var taskCompletionSource = new TaskCompletionSource();
+            var completedOrCancelledHandler = default(EventHandler);
+            completedOrCancelledHandler = (_, _) =>
             {
                 this.Cancelled -= completedOrCancelledHandler;
                 this.Completed -= completedOrCancelledHandler;
-            }
+                taskCompletionSource.TrySetResult();
+            };
+            cancellationToken.Register(() =>
+            {
+                this.SynchronizationContext.Post(() =>
+                {
+                    this.Cancelled -= completedOrCancelledHandler;
+                    this.Completed -= completedOrCancelledHandler;
+                    taskCompletionSource.TrySetCanceled();
+                });
+            });
+
+            // start waiting
+            this.Cancelled += completedOrCancelledHandler;
+            this.Completed += completedOrCancelledHandler;
+            return taskCompletionSource.Task;
         }
     }
 }

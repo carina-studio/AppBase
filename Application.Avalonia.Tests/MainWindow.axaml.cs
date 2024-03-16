@@ -29,7 +29,7 @@ namespace CarinaStudio
 {
     partial class MainWindow : Controls.ApplicationWindow<IApp>
     {
-        DoubleAnimator? animator;
+        DoubleRenderingAnimator? animator;
         TestDialog? testDialog;
         Avalonia.Controls.TextBlock? textBlock;
 
@@ -282,6 +282,7 @@ namespace CarinaStudio
             }
             */
             
+            /*
             if (this.testDialog == null)
             {
                 this.testDialog = new TestDialog().Also(it =>
@@ -292,13 +293,14 @@ namespace CarinaStudio
             }
             else
                 _ = new TestDialog().ShowDialog(this);
+            */
             
             var transform = this.Find<Rectangle>("rect")?.RenderTransform as TranslateTransform;
             if (transform == null)
                 return;
 
             animator?.Cancel();
-            animator = new DoubleAnimator(transform.X, transform.X >= 150 ? 0 : 300).Also(it =>
+            animator = new DoubleRenderingAnimator(this, transform.X, transform.X >= 150 ? 0 : 300).Also(it =>
             {
                 it.Completed += (_, e) => transform.X = it.EndValue;
                 it.Delay = TimeSpan.FromMilliseconds(1000);

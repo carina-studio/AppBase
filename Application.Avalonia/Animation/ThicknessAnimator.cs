@@ -1,10 +1,12 @@
 ﻿using Avalonia;
+using System;
 
 namespace CarinaStudio.Animation
 {
     /// <summary>
     /// <see cref="Animator"/> to animate <see cref="Thickness"/>.
     /// </summary>
+    [Obsolete($"Use {nameof(ThicknessRenderingAnimator)} instead.")]
     public class ThicknessAnimator : ValueAnimator<Thickness>
     {
         /// <summary>

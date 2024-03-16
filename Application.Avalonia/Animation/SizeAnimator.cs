@@ -1,10 +1,12 @@
 ﻿using Avalonia;
+using System;
 
 namespace CarinaStudio.Animation
 {
     /// <summary>
     /// <see cref="Animator"/> to animate <see cref="Size"/>.
     /// </summary>
+    [Obsolete($"Use {nameof(SizeRenderingAnimator)} instead.")]
     public class SizeAnimator : ValueAnimator<Size>
     {
         /// <summary>

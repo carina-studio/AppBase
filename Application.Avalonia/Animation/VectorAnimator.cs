@@ -1,10 +1,12 @@
 ﻿using Avalonia;
+using System;
 
 namespace CarinaStudio.Animation
 {
     /// <summary>
     /// <see cref="Animator"/> to animate <see cref="Vector"/>.
     /// </summary>
+    [Obsolete($"Use {nameof(VectorRenderingAnimator)} instead.")]
     public class VectorAnimator : ValueAnimator<Vector>
     {
         /// <summary>
