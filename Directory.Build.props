@@ -18,7 +18,7 @@
         <PackageProjectUrl>https://carina-studio.github.io/AppBase/</PackageProjectUrl>
         
         <!-- Avalonia -->
-        <AvaloniaVersion>11.1.0-beta1</AvaloniaVersion>
+        <AvaloniaVersion>11.0.10</AvaloniaVersion>
 
     </PropertyGroup>
     
