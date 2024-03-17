@@ -16,7 +16,7 @@ namespace CarinaStudio.Controls
 	public static class ScrollViewerExtensions
 	{
 		// Static fields.
-		static readonly Dictionary<ScrollViewer, DoubleAnimator> SmoothScrollingAnimators = new();
+		static readonly Dictionary<ScrollViewer, DoubleRenderingAnimator> SmoothScrollingAnimators = new();
 		static readonly Dictionary<ScrollViewer, Vector> SmoothScrollingTargetOffsets = new();
 
 
@@ -145,6 +145,10 @@ namespace CarinaStudio.Controls
 	    // Scroll to given offset.
 	    static bool ScrollTo(ScrollViewer scrollViewer, Vector offset, TimeSpan duration, Func<double, double>? interpolator)
 	    {
+		    // get top level
+		    if (TopLevel.GetTopLevel(scrollViewer) is not { } topLevel)
+			    return false;
+		    
 		    // check offset
 		    var extent = scrollViewer.Extent;
 		    var viewportSize = scrollViewer.Viewport;
@@ -164,14 +168,14 @@ namespace CarinaStudio.Controls
 	        // scroll to given offset
 	        if (duration.TotalMilliseconds > 0)
 	        {
-	            var animator = default(DoubleAnimator);
+	            var animator = default(DoubleRenderingAnimator);
 	            void OnPointerPressed(object? sender, RoutedEventArgs e) =>
 	                animator?.Cancel();
 	            void OnPointerWheelChanged(object? sender, RoutedEventArgs e) =>
 	                animator?.Cancel();
 	            var extentChangedObserverToken = scrollViewer.GetObservable(ScrollViewer.ExtentProperty).Subscribe(_ => animator?.Cancel());
 	            var viewportChangedObserverToken = scrollViewer.GetObservable(ScrollViewer.ViewportProperty).Subscribe(_ => animator?.Cancel());
-	            animator = new DoubleAnimator(0, 1).Also(it =>
+	            animator = new DoubleRenderingAnimator(topLevel, 0, 1).Also(it =>
 	            {
 	                it.Cancelled += (_, _) =>
 	                {
