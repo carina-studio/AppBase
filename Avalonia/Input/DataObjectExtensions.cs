@@ -1,5 +1,6 @@
 ﻿using Avalonia.Input;
 using Avalonia.Platform.Storage;
+using System;
 
 namespace CarinaStudio.Input
 {
@@ -13,6 +14,7 @@ namespace CarinaStudio.Input
 		/// </summary>
 		/// <param name="data"><see cref="IDataObject"/>.</param>
 		/// <returns><see cref="DataObject"/>.</returns>
+		[Obsolete("Use TryClone() instead.")]
 		public static DataObject Clone(this IDataObject data) => new DataObject().Also(it =>
 		{
 			foreach (var format in data.GetDataFormats())
@@ -51,6 +53,46 @@ namespace CarinaStudio.Input
 
 
 		/// <summary>
+		/// Try cloning <see cref="IDataObject"/> as <see cref="DataObject"/>.
+		/// </summary>
+		/// <param name="data"><see cref="IDataObject"/> to clone.</param>
+		/// <param name="clone">Cloned <see cref="IDataObject"/> as <see cref="DataObject"/>.</param>
+		/// <returns>True if cloning successfully.</returns>
+		public static bool TryClone(this IDataObject data, out DataObject? clone) =>
+			TryClone(data, out clone, out _);
+
+
+		/// <summary>
+		/// Try cloning <see cref="IDataObject"/> as <see cref="DataObject"/>.
+		/// </summary>
+		/// <param name="data"><see cref="IDataObject"/> to clone.</param>
+		/// <param name="clone">Cloned <see cref="IDataObject"/> as <see cref="DataObject"/>.</param>
+		/// <param name="exception">Exception occurred while cloning.</param>
+		/// <returns>True if cloning successfully.</returns>
+		public static bool TryClone(this IDataObject data, out DataObject? clone, out Exception? exception)
+		{
+			try
+			{
+				exception = null;
+				clone = new();
+				foreach (var format in data.GetDataFormats())
+				{
+					var value = data.Get(format);
+					if (value != null)
+						clone.Set(format, value);
+				}
+				return true;
+			}
+			catch (Exception ex)
+			{
+				exception = ex;
+				clone = null;
+				return false;
+			}
+		}
+
+
+		/// <summary>
 		/// Try getting the data with given format and type.
 		/// </summary>
 		/// <typeparam name="T">Type of data.</typeparam>
@@ -58,8 +100,22 @@ namespace CarinaStudio.Input
 		/// <param name="format">Format.</param>
 		/// <param name="data">Data.</param>
 		/// <returns>True if data got successfully.</returns>
-		public static bool TryGetData<T>(this IDataObject dataObject, string format, out T? data) where T : class
+		public static bool TryGetData<T>(this IDataObject dataObject, string format, out T? data) where T : class =>
+			TryGetData(dataObject, format, out data, out _);
+		
+		
+		/// <summary>
+		/// Try getting the data with given format and type.
+		/// </summary>
+		/// <typeparam name="T">Type of data.</typeparam>
+		/// <param name="dataObject"><see cref="IDataObject"/>.</param>
+		/// <param name="format">Format.</param>
+		/// <param name="data">Data.</param>
+		/// <param name="exception">Exception occurred while getting data.</param>
+		/// <returns>True if data got successfully.</returns>
+		public static bool TryGetData<T>(this IDataObject dataObject, string format, out T? data, out Exception? exception) where T : class
 		{
+			exception = null;
 			try
 			{
 				var rawData = dataObject.Get(format);
@@ -69,9 +125,9 @@ namespace CarinaStudio.Input
 					return true;
 				}
 			}
-			catch
+			catch (Exception ex)
 			{
-				// ignored
+				exception = ex;
 			}
 			data = default;
 			return false;
@@ -84,11 +140,23 @@ namespace CarinaStudio.Input
 		/// <param name="data"><see cref="IDataObject"/>.</param>
 		/// <param name="fileName">File name contained in <see cref="IDataObject"/>.</param>
 		/// <returns>True if only one file name contained in <see cref="IDataObject"/>, or false if no file name or more than one file names are contained.</returns>
-		public static bool TryGetSingleFileName(this IDataObject data, out string? fileName)
+		public static bool TryGetSingleFileName(this IDataObject data, out string? fileName) =>
+			TryGetSingleFileName(data, out fileName, out _);
+
+
+		/// <summary>
+		/// Get the only file name contained in <see cref="IDataObject"/>.
+		/// </summary>
+		/// <param name="data"><see cref="IDataObject"/>.</param>
+		/// <param name="fileName">File name contained in <see cref="IDataObject"/>.</param>
+		/// <param name="exception">Exception occurred while getting data.</param>
+		/// <returns>True if only one file name contained in <see cref="IDataObject"/>, or false if no file name or more than one file names are contained.</returns>
+		public static bool TryGetSingleFileName(this IDataObject data, out string? fileName, out Exception? exception)
 		{
-			fileName = Global.RunOrDefault(() =>
+			exception = null;
+			try
 			{
-				return data.GetFiles()?.Let(it =>
+				fileName = data.GetFiles()?.Let(it =>
 				{
 					var fileName = default(string);
 					foreach (var candidate in it)
@@ -104,8 +172,13 @@ namespace CarinaStudio.Input
 					}
 					return fileName;
 				});
-			});
-			return (fileName is not null);
+			}
+			catch (Exception ex)
+			{
+				exception = ex;
+				fileName = null;
+			}
+			return fileName is not null;
 		}
 
 
@@ -117,8 +190,22 @@ namespace CarinaStudio.Input
 		/// <param name="format">Format.</param>
 		/// <param name="value">Value.</param>
 		/// <returns>True if value got successfully.</returns>
-		public static bool TryGetValue<T>(this IDataObject dataObject, string format, out T value) where T : struct
+		public static bool TryGetValue<T>(this IDataObject dataObject, string format, out T value) where T : struct =>
+			TryGetValue(dataObject, format, out value, out _);
+
+
+		/// <summary>
+		/// Try getting the value type data with given format and type.
+		/// </summary>
+		/// <typeparam name="T">Type of data.</typeparam>
+		/// <param name="dataObject"><see cref="IDataObject"/>.</param>
+		/// <param name="format">Format.</param>
+		/// <param name="value">Value.</param>
+		/// <param name="exception">Exception occurred while getting data.</param>
+		/// <returns>True if value got successfully.</returns>
+		public static bool TryGetValue<T>(this IDataObject dataObject, string format, out T value, out Exception? exception) where T : struct
 		{
+			exception = null;
 			try
 			{
 				var rawData = dataObject.Get(format);
@@ -128,9 +215,9 @@ namespace CarinaStudio.Input
 					return true;
 				}
 			}
-			catch
+			catch (Exception ex)
 			{
-				// ignored
+				exception = ex;
 			}
 			value = default;
 			return false;
