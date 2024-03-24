@@ -31,15 +31,22 @@ namespace CarinaStudio.Input
 		/// <returns>True if at least one file name is contained in <see cref="IDataObject"/>.</returns>
 		public static bool HasFileNames(this IDataObject data) => Global.RunOrDefault(() =>
 		{
-			return data.GetFiles()?.Let(it =>
+			try
 			{
-				foreach (var item in it)
+				return data.GetFiles()?.Let(it =>
 				{
-					if (!string.IsNullOrEmpty(item.TryGetLocalPath()))
-						return true;
-				}
+					foreach (var item in it)
+					{
+						if (!string.IsNullOrEmpty(item.TryGetLocalPath()))
+							return true;
+					}
+					return false;
+				}) ?? false;
+			}
+			catch
+			{
 				return false;
-			}) ?? false;
+			}
 		});
 
 
@@ -53,11 +60,18 @@ namespace CarinaStudio.Input
 		/// <returns>True if data got successfully.</returns>
 		public static bool TryGetData<T>(this IDataObject dataObject, string format, out T? data) where T : class
 		{
-			var rawData = dataObject.Get(format);
-			if (rawData is T dataT)
+			try
 			{
-				data = dataT;
-				return true;
+				var rawData = dataObject.Get(format);
+				if (rawData is T dataT)
+				{
+					data = dataT;
+					return true;
+				}
+			}
+			catch
+			{
+				// ignored
 			}
 			data = default;
 			return false;
@@ -105,11 +119,18 @@ namespace CarinaStudio.Input
 		/// <returns>True if value got successfully.</returns>
 		public static bool TryGetValue<T>(this IDataObject dataObject, string format, out T value) where T : struct
 		{
-			var rawData = dataObject.Get(format);
-			if (rawData is T targetValue)
+			try
 			{
-				value = targetValue;
-				return true;
+				var rawData = dataObject.Get(format);
+				if (rawData is T targetValue)
+				{
+					value = targetValue;
+					return true;
+				}
+			}
+			catch
+			{
+				// ignored
 			}
 			value = default;
 			return false;
