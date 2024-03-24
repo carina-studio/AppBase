@@ -1,5 +1,6 @@
 using Avalonia.Input;
 using Avalonia.Input.Platform;
+using System;
 using System.Threading.Tasks;
 
 namespace CarinaStudio.Input.Platform
@@ -61,7 +62,12 @@ namespace CarinaStudio.Input.Platform
         public static async Task SetTextAndDataObjectAsync(this IClipboard clipboard, string text, IDataObject dataObject)
         {
             await clipboard.SetTextAsync(text);
-            var newDataObject = (dataObject as DataObject) ?? dataObject.Clone();
+            var newDataObject = dataObject as DataObject ?? Global.Run(() =>
+            {
+                if (dataObject.TryClone(out var clone, out var ex))
+                    return clone;
+                throw new ArgumentException("Unable to clone source IDataObject.", ex);
+            });
             foreach (var format in await clipboard.GetFormatsAsync())
             {
                 var data = await clipboard.GetDataAsync(format);
