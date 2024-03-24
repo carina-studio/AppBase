@@ -1,6 +1,7 @@
 ﻿using Avalonia.Input;
 using Avalonia.Platform.Storage;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CarinaStudio.Input
 {
@@ -58,7 +59,7 @@ namespace CarinaStudio.Input
 		/// <param name="data"><see cref="IDataObject"/> to clone.</param>
 		/// <param name="clone">Cloned <see cref="IDataObject"/> as <see cref="DataObject"/>.</param>
 		/// <returns>True if cloning successfully.</returns>
-		public static bool TryClone(this IDataObject data, out DataObject? clone) =>
+		public static bool TryClone(this IDataObject data, [NotNullWhen(true)] out DataObject? clone) =>
 			TryClone(data, out clone, out _);
 
 
@@ -69,7 +70,7 @@ namespace CarinaStudio.Input
 		/// <param name="clone">Cloned <see cref="IDataObject"/> as <see cref="DataObject"/>.</param>
 		/// <param name="exception">Exception occurred while cloning.</param>
 		/// <returns>True if cloning successfully.</returns>
-		public static bool TryClone(this IDataObject data, out DataObject? clone, out Exception? exception)
+		public static bool TryClone(this IDataObject data, [NotNullWhen(true)] out DataObject? clone, out Exception? exception)
 		{
 			try
 			{
@@ -100,7 +101,7 @@ namespace CarinaStudio.Input
 		/// <param name="format">Format.</param>
 		/// <param name="data">Data.</param>
 		/// <returns>True if data got successfully.</returns>
-		public static bool TryGetData<T>(this IDataObject dataObject, string format, out T? data) where T : class =>
+		public static bool TryGetData<T>(this IDataObject dataObject, string format, [NotNullWhen(true)] out T? data) where T : class =>
 			TryGetData(dataObject, format, out data, out _);
 		
 		
@@ -113,7 +114,7 @@ namespace CarinaStudio.Input
 		/// <param name="data">Data.</param>
 		/// <param name="exception">Exception occurred while getting data.</param>
 		/// <returns>True if data got successfully.</returns>
-		public static bool TryGetData<T>(this IDataObject dataObject, string format, out T? data, out Exception? exception) where T : class
+		public static bool TryGetData<T>(this IDataObject dataObject, string format, [NotNullWhen(true)] out T? data, out Exception? exception) where T : class
 		{
 			exception = null;
 			try
@@ -140,7 +141,7 @@ namespace CarinaStudio.Input
 		/// <param name="data"><see cref="IDataObject"/>.</param>
 		/// <param name="fileName">File name contained in <see cref="IDataObject"/>.</param>
 		/// <returns>True if only one file name contained in <see cref="IDataObject"/>, or false if no file name or more than one file names are contained.</returns>
-		public static bool TryGetSingleFileName(this IDataObject data, out string? fileName) =>
+		public static bool TryGetSingleFileName(this IDataObject data, [NotNullWhen(true)] out string? fileName) =>
 			TryGetSingleFileName(data, out fileName, out _);
 
 
@@ -151,7 +152,7 @@ namespace CarinaStudio.Input
 		/// <param name="fileName">File name contained in <see cref="IDataObject"/>.</param>
 		/// <param name="exception">Exception occurred while getting data.</param>
 		/// <returns>True if only one file name contained in <see cref="IDataObject"/>, or false if no file name or more than one file names are contained.</returns>
-		public static bool TryGetSingleFileName(this IDataObject data, out string? fileName, out Exception? exception)
+		public static bool TryGetSingleFileName(this IDataObject data, [NotNullWhen(true)] out string? fileName, out Exception? exception)
 		{
 			exception = null;
 			try
