@@ -119,11 +119,11 @@ namespace CarinaStudio.Diagnostics
         /// </summary>
         /// <param name="obj">Reference of instance.</param>
         /// <returns>Size of instance.</returns>
-        public static long EstimateInstanceSize(object? obj)
+        public static long EstimateInstanceSize<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces | DynamicallyAccessedMemberTypes.NonPublicFields | DynamicallyAccessedMemberTypes.PublicFields)] T>(T? obj)
         {
             if (obj == null)
                 return 0;
-            var type = obj.GetType();
+            var type = typeof(T);
             if (type.IsValueType)
                 return EstimateStructureSizeInternal(type, true);
             if (obj is string str)
@@ -272,8 +272,8 @@ namespace CarinaStudio.Diagnostics
         /// </summary>
         /// <param name="value">Value.</param>
         /// <returns>Size of value.</returns>
-        public static long EstimateValueSize(ValueType value) =>
-            EstimateStructureSizeInternal(value.GetType());
+        public static long EstimateValueSize<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.NonPublicFields)] T>(T value) where T: struct =>
+            EstimateStructureSizeInternal(typeof(T));
         
 
         /// <summary>

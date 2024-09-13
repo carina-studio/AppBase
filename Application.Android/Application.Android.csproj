@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net7.0-android;net8.0-android</TargetFrameworks>
+		<TargetFrameworks>net8.0-android;net9.0-android</TargetFrameworks>
 		<SupportedOSPlatformVersion>29</SupportedOSPlatformVersion>
 		<RootNamespace>CarinaStudio.Android</RootNamespace>
 		<AssemblyName>CarinaStudio.AppBase.Application.Android</AssemblyName>

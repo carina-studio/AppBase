@@ -2,6 +2,7 @@ using Avalonia.Media.TextFormatting;
 using CarinaStudio.Collections;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace CarinaStudio.Media.TextFormatting;
@@ -11,6 +12,11 @@ namespace CarinaStudio.Media.TextFormatting;
 /// </summary>
 public static class TextLayoutExtensions
 {
+    // Constants.
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicFields | DynamicallyAccessedMemberTypes.PublicFields)]
+    const string WrappingTextLineBreakTypeName = "Avalonia.Media.TextFormatting.WrappingTextLineBreak";
+    
+    
     // Fields.
     static FieldInfo? RemainingRunsField;
     static Type? WrappingTextLineBreakType;
@@ -21,6 +27,7 @@ public static class TextLayoutExtensions
     /// </summary>
     /// <param name="textLayout"><see cref="TextLayout"/>.</param>
     /// <returns>True if the text of <see cref="TextLayout"/> is trimmed.</returns>
+    [RequiresUnreferencedCode("Need to access internal field to check text layout.")]
     public static bool IsTextTrimmed(this TextLayout textLayout)
     {
         var textLines = textLayout.TextLines;
@@ -35,8 +42,8 @@ public static class TextLayoutExtensions
             {
                 if (RemainingRunsField is null)
                 {
-                    var type = textLineBreak.GetType();
-                    RemainingRunsField = type.GetField("_remainingRuns", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+                    var type = textLineBreak.GetType().Assembly.GetType(WrappingTextLineBreakTypeName);
+                    RemainingRunsField = type?.GetField("_remainingRuns", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
                     if (RemainingRunsField is not null)
                         WrappingTextLineBreakType = type;
                 }

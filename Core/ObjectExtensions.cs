@@ -13,7 +13,7 @@ namespace CarinaStudio
 	public static class ObjectExtensions
 	{
 		// Base class of adapter of weak event handler.
-		abstract class BaseWeakEventHandlerAdapter<THandler> : IDisposable where THandler : Delegate
+		abstract class BaseWeakEventHandlerAdapter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicEvents)] TObject, THandler> : IDisposable where THandler : Delegate
 		{
 			// Fields.
 			readonly EventInfo eventInfo;
@@ -21,12 +21,12 @@ namespace CarinaStudio
 			readonly WeakReference<THandler> handlerRef;
 			int isDisposed;
 			readonly SynchronizationContext? syncContext;
-			readonly object target;
+			readonly TObject target;
 			
 			// Constructor.
-			protected BaseWeakEventHandlerAdapter(object target, string eventName, THandler handler)
+			protected BaseWeakEventHandlerAdapter(TObject target, string eventName, THandler handler)
 			{
-				this.eventInfo = target.GetType().GetEvent(eventName) ?? throw new ArgumentException($"Cannot find event '{eventName}' in {target.GetType().Name}.");
+				this.eventInfo = typeof(TObject).GetEvent(eventName) ?? throw new ArgumentException($"Cannot find event '{eventName}' in {typeof(TObject).Name}.");
 				// ReSharper disable VirtualMemberCallInConstructor
 				this.handlerStub = this.CreateEventHandlerStub();
 				// ReSharper restore VirtualMemberCallInConstructor
@@ -70,10 +70,10 @@ namespace CarinaStudio
 		}
 		
 		// Adapter of weak event handler.
-		class WeakActionEventHandlerAdapter : BaseWeakEventHandlerAdapter<Action>
+		class WeakActionEventHandlerAdapter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicEvents)] TObject> : BaseWeakEventHandlerAdapter<TObject, Action>
 		{
 			// Constructor.
-			public WeakActionEventHandlerAdapter(object target, string eventName, Action handler) : base(target, eventName, handler)
+			public WeakActionEventHandlerAdapter(TObject target, string eventName, Action handler) : base(target, eventName, handler)
 			{ }
 
 			/// <inheritdoc/>.
@@ -87,10 +87,10 @@ namespace CarinaStudio
 		
 		
 		// Adapter of weak event handler.
-		class WeakActionEventHandlerAdapter<TArg> : BaseWeakEventHandlerAdapter<Action<TArg>>
+		class WeakActionEventHandlerAdapter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicEvents)] TObject, TArg> : BaseWeakEventHandlerAdapter<TObject, Action<TArg>>
 		{
 			// Constructor.
-			public WeakActionEventHandlerAdapter(object target, string eventName, Action<TArg> handler) : base(target, eventName, handler)
+			public WeakActionEventHandlerAdapter(TObject target, string eventName, Action<TArg> handler) : base(target, eventName, handler)
 			{ }
 
 			/// <inheritdoc/>.
@@ -104,10 +104,10 @@ namespace CarinaStudio
 		
 		
 		// Adapter of weak event handler.
-		class WeakActionEventHandlerAdapter<TArg1, TArg2> : BaseWeakEventHandlerAdapter<Action<TArg1, TArg2>>
+		class WeakActionEventHandlerAdapter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicEvents)] TObject, TArg1, TArg2> : BaseWeakEventHandlerAdapter<TObject, Action<TArg1, TArg2>>
 		{
 			// Constructor.
-			public WeakActionEventHandlerAdapter(object target, string eventName, Action<TArg1, TArg2> handler) : base(target, eventName, handler)
+			public WeakActionEventHandlerAdapter(TObject target, string eventName, Action<TArg1, TArg2> handler) : base(target, eventName, handler)
 			{ }
 
 			/// <inheritdoc/>.
@@ -121,10 +121,10 @@ namespace CarinaStudio
 		
 		
 		// Adapter of weak event handler.
-		class WeakActionEventHandlerAdapter<TArg1, TArg2, TArg3> : BaseWeakEventHandlerAdapter<Action<TArg1, TArg2, TArg3>>
+		class WeakActionEventHandlerAdapter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicEvents)] TObject, TArg1, TArg2, TArg3> : BaseWeakEventHandlerAdapter<TObject, Action<TArg1, TArg2, TArg3>>
 		{
 			// Constructor.
-			public WeakActionEventHandlerAdapter(object target, string eventName, Action<TArg1, TArg2, TArg3> handler) : base(target, eventName, handler)
+			public WeakActionEventHandlerAdapter(TObject target, string eventName, Action<TArg1, TArg2, TArg3> handler) : base(target, eventName, handler)
 			{ }
 
 			/// <inheritdoc/>.
@@ -138,10 +138,10 @@ namespace CarinaStudio
 		
 		
 		// Adapter of weak event handler.
-		class WeakEventHandlerAdapter : BaseWeakEventHandlerAdapter<EventHandler>
+		class WeakEventHandlerAdapter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicEvents)] TObject> : BaseWeakEventHandlerAdapter<TObject, EventHandler>
 		{
 			// Constructor.
-			public WeakEventHandlerAdapter(object target, string eventName, EventHandler handler) : base(target, eventName, handler)
+			public WeakEventHandlerAdapter(TObject target, string eventName, EventHandler handler) : base(target, eventName, handler)
 			{ }
 
 			/// <inheritdoc/>.
@@ -155,10 +155,10 @@ namespace CarinaStudio
 
 
 		// Adapter of weak event handler.
-		class WeakEventHandlerAdapter<TArgs> : BaseWeakEventHandlerAdapter<EventHandler<TArgs>> where TArgs : EventArgs
+		class WeakEventHandlerAdapter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicEvents)] TObject, TArgs> : BaseWeakEventHandlerAdapter<TObject, EventHandler<TArgs>> where TArgs : EventArgs
 		{
 			// Constructor.
-			public WeakEventHandlerAdapter(object target, string eventName, EventHandler<TArgs> handler) : base(target, eventName, handler)
+			public WeakEventHandlerAdapter(TObject target, string eventName, EventHandler<TArgs> handler) : base(target, eventName, handler)
 			{ }
 
 			/// <inheritdoc/>.
@@ -178,8 +178,8 @@ namespace CarinaStudio
 		/// <param name="eventName">Name of event.</param>
 		/// <param name="handler">Event handler.</param>
 		/// <returns><see cref="IDisposable"/> which represents added weak event handler. You can call <see cref="IDisposable.Dispose"/> to remove weak event handler explicitly.</returns>
-		public static IDisposable AddWeakEventHandler(this object target, string eventName, EventHandler handler) =>
-			new WeakEventHandlerAdapter(target, eventName, handler);
+		public static IDisposable AddWeakEventHandler<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicEvents)] TObject>(this TObject target, string eventName, EventHandler handler) =>
+			new WeakEventHandlerAdapter<TObject>(target, eventName, handler);
 
 
 		/// <summary>
@@ -189,8 +189,8 @@ namespace CarinaStudio
 		/// <param name="eventName">Name of event.</param>
 		/// <param name="handler">Event handler.</param>
 		/// <returns><see cref="IDisposable"/> which represents added weak event handler. You can call <see cref="IDisposable.Dispose"/> to remove weak event handler explicitly.</returns>
-		public static IDisposable AddWeakEventHandler<TArgs>(this object target, string eventName, EventHandler<TArgs> handler) where TArgs : EventArgs =>
-			new WeakEventHandlerAdapter<TArgs>(target, eventName, handler);
+		public static IDisposable AddWeakEventHandler<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicEvents)] TObject, TArgs>(this TObject target, string eventName, EventHandler<TArgs> handler) where TArgs : EventArgs =>
+			new WeakEventHandlerAdapter<TObject, TArgs>(target, eventName, handler);
 		
 		
 		/// <summary>
@@ -200,8 +200,8 @@ namespace CarinaStudio
 		/// <param name="eventName">Name of event.</param>
 		/// <param name="handler">Event handler.</param>
 		/// <returns><see cref="IDisposable"/> which represents added weak event handler. You can call <see cref="IDisposable.Dispose"/> to remove weak event handler explicitly.</returns>
-		public static IDisposable AddWeakEventHandler(this object target, string eventName, Action handler) =>
-			new WeakActionEventHandlerAdapter(target, eventName, handler);
+		public static IDisposable AddWeakEventHandler<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicEvents)] TObject>(this TObject target, string eventName, Action handler) =>
+			new WeakActionEventHandlerAdapter<TObject>(target, eventName, handler);
 		
 		
 		/// <summary>
@@ -211,8 +211,8 @@ namespace CarinaStudio
 		/// <param name="eventName">Name of event.</param>
 		/// <param name="handler">Event handler.</param>
 		/// <returns><see cref="IDisposable"/> which represents added weak event handler. You can call <see cref="IDisposable.Dispose"/> to remove weak event handler explicitly.</returns>
-		public static IDisposable AddWeakEventHandler<TArg>(this object target, string eventName, Action<TArg> handler) =>
-			new WeakActionEventHandlerAdapter<TArg>(target, eventName, handler);
+		public static IDisposable AddWeakEventHandler<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicEvents)] TObject, TArg>(this TObject target, string eventName, Action<TArg> handler) =>
+			new WeakActionEventHandlerAdapter<TObject, TArg>(target, eventName, handler);
 		
 		
 		/// <summary>
@@ -222,8 +222,8 @@ namespace CarinaStudio
 		/// <param name="eventName">Name of event.</param>
 		/// <param name="handler">Event handler.</param>
 		/// <returns><see cref="IDisposable"/> which represents added weak event handler. You can call <see cref="IDisposable.Dispose"/> to remove weak event handler explicitly.</returns>
-		public static IDisposable AddWeakEventHandler<TArg1, TArg2>(this object target, string eventName, Action<TArg1, TArg2> handler) =>
-			new WeakActionEventHandlerAdapter<TArg1, TArg2>(target, eventName, handler);
+		public static IDisposable AddWeakEventHandler<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicEvents)] TObject, TArg1, TArg2>(this TObject target, string eventName, Action<TArg1, TArg2> handler) =>
+			new WeakActionEventHandlerAdapter<TObject, TArg1, TArg2>(target, eventName, handler);
 		
 		
 		/// <summary>
@@ -233,8 +233,8 @@ namespace CarinaStudio
 		/// <param name="eventName">Name of event.</param>
 		/// <param name="handler">Event handler.</param>
 		/// <returns><see cref="IDisposable"/> which represents added weak event handler. You can call <see cref="IDisposable.Dispose"/> to remove weak event handler explicitly.</returns>
-		public static IDisposable AddWeakEventHandler<TArg1, TArg2, TArg3>(this object target, string eventName, Action<TArg1, TArg2, TArg3> handler) =>
-			new WeakActionEventHandlerAdapter<TArg1, TArg2, TArg3>(target, eventName, handler);
+		public static IDisposable AddWeakEventHandler<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicEvents)] TObject, TArg1, TArg2, TArg3>(this TObject target, string eventName, Action<TArg1, TArg2, TArg3> handler) =>
+			new WeakActionEventHandlerAdapter<TObject, TArg1, TArg2, TArg3>(target, eventName, handler);
 
 
 		/// <summary>

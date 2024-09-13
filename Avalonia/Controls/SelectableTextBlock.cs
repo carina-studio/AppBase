@@ -8,6 +8,7 @@ using CarinaStudio.Media.TextFormatting;
 using CarinaStudio.Threading;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CarinaStudio.Controls
 {
