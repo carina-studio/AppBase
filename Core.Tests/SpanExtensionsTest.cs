@@ -21,17 +21,17 @@ public class SpanExtensionsTest
         var nonWhiteSpace2 = " 123456";
         var nonWhiteSpace3 = "123456 ";
         var nonWhiteSpace4 = "123";
-        Assert.IsTrue(empty.AsSpan().IsEmptyOrWhiteSpace());
-        Assert.IsFalse(empty.AsSpan().IsNotWhiteSpace());
-        Assert.IsTrue(whiteSpaces.AsSpan().IsEmptyOrWhiteSpace());
-        Assert.IsFalse(whiteSpaces.AsSpan().IsNotWhiteSpace());
-        Assert.IsFalse(nonWhiteSpace1.AsSpan().IsEmptyOrWhiteSpace());
-        Assert.IsTrue(nonWhiteSpace1.AsSpan().IsNotWhiteSpace());
-        Assert.IsFalse(nonWhiteSpace2.AsSpan().IsEmptyOrWhiteSpace());
-        Assert.IsTrue(nonWhiteSpace2.AsSpan().IsNotWhiteSpace());
-        Assert.IsFalse(nonWhiteSpace3.AsSpan().IsEmptyOrWhiteSpace());
-        Assert.IsTrue(nonWhiteSpace3.AsSpan().IsNotWhiteSpace());
-        Assert.IsFalse(nonWhiteSpace4.AsSpan().IsEmptyOrWhiteSpace());
-        Assert.IsTrue(nonWhiteSpace4.AsSpan().IsNotWhiteSpace());
+        Assert.That(empty.AsSpan().IsEmptyOrWhiteSpace());
+        Assert.That(!empty.AsSpan().IsNotWhiteSpace());
+        Assert.That(whiteSpaces.AsSpan().IsEmptyOrWhiteSpace());
+        Assert.That(!whiteSpaces.AsSpan().IsNotWhiteSpace());
+        Assert.That(!nonWhiteSpace1.AsSpan().IsEmptyOrWhiteSpace());
+        Assert.That(nonWhiteSpace1.AsSpan().IsNotWhiteSpace());
+        Assert.That(!nonWhiteSpace2.AsSpan().IsEmptyOrWhiteSpace());
+        Assert.That(nonWhiteSpace2.AsSpan().IsNotWhiteSpace());
+        Assert.That(!nonWhiteSpace3.AsSpan().IsEmptyOrWhiteSpace());
+        Assert.That(nonWhiteSpace3.AsSpan().IsNotWhiteSpace());
+        Assert.That(!nonWhiteSpace4.AsSpan().IsEmptyOrWhiteSpace());
+        Assert.That(nonWhiteSpace4.AsSpan().IsNotWhiteSpace());
     }
 }

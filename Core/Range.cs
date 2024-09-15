@@ -10,11 +10,11 @@ namespace CarinaStudio
         /// <summary>
         /// Empty range.
         /// </summary>
-        public static readonly Range<T> Empty = new Range<T>(default(T), default(T));
+        public static readonly Range<T> Empty = new(default(T), default(T));
         /// <summary>
         /// Universal range.
         /// </summary>
-        public static readonly Range<T> Universal = new Range<T>(null, null);
+        public static readonly Range<T> Universal = new(null, null);
 
 
         /// <summary>

@@ -24,9 +24,9 @@ namespace CarinaStudio
 					*(ptr++) = (byte)i;
 				return true;
 			});
-			Assert.IsTrue(result, "Result of Pin() is incorrect.");
+			Assert.That(result, "Result of Pin() is incorrect.");
 			for (var i = 0; i < byteArray.Length; ++i)
-				Assert.AreEqual(i, byteArray[i], $"Value[{i}] updated to array is incorrect.");
+				Assert.That(i == byteArray[i], $"Value[{i}] updated to array is incorrect.");
 
 			// pin int array
 			var intArray = new int[128];
@@ -37,9 +37,9 @@ namespace CarinaStudio
 					*(ptr++) = (i * 2);
 				return false;
 			});
-			Assert.IsFalse(result, "Result of Pin() is incorrect.");
+			Assert.That(!result, "Result of Pin() is incorrect.");
 			for (var i = 0; i < intArray.Length; ++i)
-				Assert.AreEqual(i * 2, intArray[i], $"Value[{i}] updated to array is incorrect.");
+				Assert.That(i * 2 == intArray[i], $"Value[{i}] updated to array is incorrect.");
 
 			// pin object array
 			var objectArray = new object?[1];

@@ -11,7 +11,7 @@ namespace CarinaStudio.IO
 	public abstract class BaseStreamProviderTests
 	{
 		// Fields.
-		readonly Random random = new Random();
+		readonly Random random = new();
 
 
 		/// <summary>
@@ -55,21 +55,21 @@ namespace CarinaStudio.IO
 			var isReadable = provider.CanOpenRead();
 			if (isReadable)
 			{
-				using var stream = await provider.OpenStreamAsync(StreamAccess.Read);
+				await using var stream = await provider.OpenStreamAsync(StreamAccess.Read);
 				var dataFromStream = stream.ReadAllBytes();
-				Assert.IsTrue(data.SequenceEqual(dataFromStream));
+				Assert.That(data.SequenceEqual(dataFromStream));
 			}
 
 			// check writing
 			var isWritable = provider.CanOpenWrite();
 			if (isWritable)
 			{
-				using (var stream = await provider.OpenStreamAsync(StreamAccess.Write))
+				await using (var stream = await provider.OpenStreamAsync(StreamAccess.Write))
 					stream.Write(data, 0, data.Length);
 				try
 				{
 					var dataFromStream = this.GetWrittenData(provider);
-					Assert.IsTrue(data.SequenceEqual(dataFromStream));
+					Assert.That(data.SequenceEqual(dataFromStream));
 				}
 				catch (NotSupportedException)
 				{ }
@@ -90,12 +90,12 @@ namespace CarinaStudio.IO
 			var provider = this.CreateInstance(data);
 
 			// check length reported by stream
-			using var stream = await provider.OpenStreamAsync(StreamAccess.Read);
+			await using var stream = await provider.OpenStreamAsync(StreamAccess.Read);
 			var dataFromStream = stream.ReadAllBytes();
-			Assert.IsTrue(data.SequenceEqual(dataFromStream));
+			Assert.That(data.SequenceEqual(dataFromStream));
 			try
 			{
-				Assert.AreEqual(data.Length, stream.Length);
+				Assert.That(data.Length == stream.Length);
 			}
 			catch (NotSupportedException)
 			{ }

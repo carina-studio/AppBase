@@ -18,23 +18,24 @@ namespace CarinaStudio.Threading
 		{
 			// create instance
 			var syncContext = new SingleThreadSynchronizationContext();
-			Assert.IsTrue(syncContext.ExecutionThread.IsAlive, "Execution thread should be alive.");
+			Assert.That(syncContext.ExecutionThread.IsAlive, "Execution thread should be alive.");
 
 			// dispose
 			syncContext.Dispose();
 			Thread.Sleep(500);
-			Assert.IsFalse(syncContext.ExecutionThread.IsAlive, "Execution thread should not be alive after disposing.");
+			Assert.That(!syncContext.ExecutionThread.IsAlive, "Execution thread should not be alive after disposing.");
 
 			// access after disposing
 			try
 			{
-				syncContext.Post((_) => { }, null);
+				syncContext.Post(_ => { }, null);
 				throw new AssertionException("Instance should not be accessible after disposing.");
 			}
 			catch (AssertionException)
 			{
 				throw;
 			}
+			// ReSharper disable once EmptyGeneralCatchClause
 			catch
 			{ }
 		}
@@ -56,7 +57,7 @@ namespace CarinaStudio.Threading
 				executionThread = Thread.CurrentThread;
 			});
 			Thread.Sleep(100);
-			Assert.AreSame(syncContext.ExecutionThread, executionThread, "Call-back should be executed on execution thread.");
+			Assert.That(ReferenceEquals(syncContext.ExecutionThread, executionThread), "Call-back should be executed on execution thread.");
 
 			// post call-backs continuously from multiple threads.
 			var syncLock = new object();
@@ -76,7 +77,7 @@ namespace CarinaStudio.Threading
 							{
 								try
 								{
-									Assert.AreEqual(expectedPostingId, postingId, "Incorrect call-back execution order.");
+									Assert.That(expectedPostingId == postingId, "Incorrect call-back execution order.");
 									Thread.Sleep(10);
 									++expectedPostingId;
 								}
@@ -96,7 +97,7 @@ namespace CarinaStudio.Threading
 						}
 					});
 				}
-				Assert.IsTrue(Monitor.Wait(syncLock, 10000), "Cannot complete waiting for all call-backs.");
+				Assert.That(Monitor.Wait(syncLock, 10000), "Cannot complete waiting for all call-backs.");
 				if (exception != null)
 					throw exception;
 			}
@@ -119,7 +120,7 @@ namespace CarinaStudio.Threading
 				Thread.Sleep(100);
 				executionThread = Thread.CurrentThread;
 			});
-			Assert.AreSame(syncContext.ExecutionThread, executionThread, "Call-back should be executed on execution thread.");
+			Assert.That(ReferenceEquals(syncContext.ExecutionThread, executionThread), "Call-back should be executed on execution thread.");
 		}
 	}
 }

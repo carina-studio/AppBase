@@ -26,23 +26,23 @@ namespace CarinaStudio.Threading
 			});
 
 			// cancel before execution
-			Assert.IsFalse(scheduledAction.IsScheduled, "Action should not be scheduled.");
+			Assert.That(!scheduledAction.IsScheduled, "Action should not be scheduled.");
 			scheduledAction.Schedule(200);
-			Assert.IsTrue(scheduledAction.IsScheduled, "Action should be scheduled.");
+			Assert.That(scheduledAction.IsScheduled, "Action should be scheduled.");
 			Thread.Sleep(100);
-			Assert.IsTrue(scheduledAction.Cancel(), "Cancellation should be successful.");
-			Assert.IsFalse(scheduledAction.Cancel(), "Duplicate cancellation should be failed.");
-			Assert.IsFalse(scheduledAction.IsScheduled, "Action should not be scheduled.");
+			Assert.That(scheduledAction.Cancel(), "Cancellation should be successful.");
+			Assert.That(!scheduledAction.Cancel(), "Duplicate cancellation should be failed.");
+			Assert.That(!scheduledAction.IsScheduled, "Action should not be scheduled.");
 			Thread.Sleep(200);
-			Assert.IsFalse(executed, "Action should not be executed.");
+			Assert.That(!executed, "Action should not be executed.");
 
 			// cancel after execution
 			scheduledAction.Schedule(200);
-			Assert.IsTrue(scheduledAction.IsScheduled, "Action should be scheduled.");
+			Assert.That(scheduledAction.IsScheduled, "Action should be scheduled.");
 			Thread.Sleep(400);
-			Assert.IsTrue(executed, "Action should be executed.");
-			Assert.IsFalse(scheduledAction.IsScheduled, "Action should not be scheduled.");
-			Assert.IsFalse(scheduledAction.Cancel(), "Cancellation should be failed after execution.");
+			Assert.That(executed, "Action should be executed.");
+			Assert.That(!scheduledAction.IsScheduled, "Action should not be scheduled.");
+			Assert.That(!scheduledAction.Cancel(), "Cancellation should be failed after execution.");
 		}
 
 
@@ -65,24 +65,24 @@ namespace CarinaStudio.Threading
 
 			// execute
 			scheduledAction.Execute();
-			Assert.IsTrue(executed, "Action should be executed.");
-			Assert.AreEqual(syncContext, execSyncContext, "Action should be executed by specific SynchronizationContext.");
+			Assert.That(executed, "Action should be executed.");
+			Assert.That(ReferenceEquals(syncContext, execSyncContext), "Action should be executed by specific SynchronizationContext.");
 
 			// execute after scheduling
 			executed = false;
 			execSyncContext = default;
 			scheduledAction.Schedule(200);
-			Assert.IsTrue(scheduledAction.IsScheduled, "Action should be scheduled.");
+			Assert.That(scheduledAction.IsScheduled, "Action should be scheduled.");
 			scheduledAction.Execute();
-			Assert.IsTrue(executed, "Action should be executed.");
-			Assert.AreEqual(syncContext, execSyncContext, "Action should be executed by specific SynchronizationContext.");
-			Assert.IsFalse(scheduledAction.IsScheduled, "Action should not be scheduled.");
+			Assert.That(executed, "Action should be executed.");
+			Assert.That(ReferenceEquals(syncContext, execSyncContext), "Action should be executed by specific SynchronizationContext.");
+			Assert.That(!scheduledAction.IsScheduled, "Action should not be scheduled.");
 
 			// execute on other thread
 			executed = false;
 			execSyncContext = default;
 			var exception = (Exception?)null;
-			ThreadPool.QueueUserWorkItem((_) =>
+			ThreadPool.QueueUserWorkItem(_ =>
 			{
 				try
 				{
@@ -96,29 +96,29 @@ namespace CarinaStudio.Threading
 			Thread.Sleep(1000);
 			if (exception != null)
 				throw exception;
-			Assert.IsTrue(executed, "Action should be executed.");
-			Assert.AreEqual(syncContext, execSyncContext, "Action should be executed by specific SynchronizationContext.");
+			Assert.That(executed, "Action should be executed.");
+			Assert.That(ReferenceEquals(syncContext, execSyncContext), "Action should be executed by specific SynchronizationContext.");
 
 			// execute before scheduling
 			executed = false;
 			execSyncContext = default;
-			Assert.IsFalse(scheduledAction.ExecuteIfScheduled(), "Should not execute before scheduling.");
-			Assert.IsFalse(executed, "Action should not be executed.");
+			Assert.That(!scheduledAction.ExecuteIfScheduled(), "Should not execute before scheduling.");
+			Assert.That(!executed, "Action should not be executed.");
 
 			// execute after scheduling
 			scheduledAction.Schedule(200);
-			Assert.IsTrue(scheduledAction.IsScheduled, "Action should be scheduled.");
-			Assert.IsTrue(scheduledAction.ExecuteIfScheduled(), "Should execute after scheduling.");
-			Assert.IsTrue(executed, "Action should be executed.");
-			Assert.AreEqual(syncContext, execSyncContext, "Action should be executed by specific SynchronizationContext.");
-			Assert.IsFalse(scheduledAction.IsScheduled, "Action should not be scheduled.");
+			Assert.That(scheduledAction.IsScheduled, "Action should be scheduled.");
+			Assert.That(scheduledAction.ExecuteIfScheduled(), "Should execute after scheduling.");
+			Assert.That(executed, "Action should be executed.");
+			Assert.That(ReferenceEquals(syncContext, execSyncContext), "Action should be executed by specific SynchronizationContext.");
+			Assert.That(!scheduledAction.IsScheduled, "Action should not be scheduled.");
 
 			// execute on other thread
 			executed = false;
 			exception = null;
 			scheduledAction.Schedule(200);
-			Assert.IsTrue(scheduledAction.IsScheduled, "Action should be scheduled.");
-			ThreadPool.QueueUserWorkItem((_) =>
+			Assert.That(scheduledAction.IsScheduled, "Action should be scheduled.");
+			ThreadPool.QueueUserWorkItem(_ =>
 			{
 				try
 				{
@@ -132,8 +132,8 @@ namespace CarinaStudio.Threading
 			Thread.Sleep(1000);
 			if (exception != null)
 				throw exception;
-			Assert.IsTrue(executed, "Action should be executed.");
-			Assert.AreEqual(syncContext, execSyncContext, "Action should be executed by specific SynchronizationContext.");
+			Assert.That(executed, "Action should be executed.");
+			Assert.That(ReferenceEquals(syncContext, execSyncContext), "Action should be executed by specific SynchronizationContext.");
 		}
 
 
@@ -155,40 +155,40 @@ namespace CarinaStudio.Threading
 			});
 
 			// schedule
-			Assert.IsFalse(scheduledAction.IsScheduled, "Action should not be scheduled.");
+			Assert.That(!scheduledAction.IsScheduled, "Action should not be scheduled.");
 			var schedulingTime = stopWatch.ElapsedMilliseconds;
 			scheduledAction.Schedule(200);
-			Assert.IsTrue(scheduledAction.IsScheduled, "Action should be scheduled.");
+			Assert.That(scheduledAction.IsScheduled, "Action should be scheduled.");
 			Thread.Sleep(400);
-			Assert.IsTrue(executed, "Action should be executed.");
-			Assert.IsFalse(scheduledAction.IsScheduled, "Action should not be scheduled.");
-			Assert.GreaterOrEqual(executionTime - schedulingTime, 200, "Action executed too early.");
+			Assert.That(executed, "Action should be executed.");
+			Assert.That(!scheduledAction.IsScheduled, "Action should not be scheduled.");
+			Assert.That(executionTime - schedulingTime >= 200, "Action executed too early.");
 
 			// schedule twice
 			executed = false;
 			schedulingTime = stopWatch.ElapsedMilliseconds;
 			scheduledAction.Schedule(400);
-			Assert.IsTrue(scheduledAction.IsScheduled, "Action should be scheduled.");
+			Assert.That(scheduledAction.IsScheduled, "Action should be scheduled.");
 			scheduledAction.Schedule(200);
 			Thread.Sleep(600);
-			Assert.IsTrue(executed, "Action should be executed.");
-			Assert.IsFalse(scheduledAction.IsScheduled, "Action should not be scheduled.");
-			Assert.GreaterOrEqual(executionTime - schedulingTime, 400, "Action executed too early.");
+			Assert.That(executed, "Action should be executed.");
+			Assert.That(!scheduledAction.IsScheduled, "Action should not be scheduled.");
+			Assert.That(executionTime - schedulingTime >= 400, "Action executed too early.");
 
 			// reschedule
 			executed = false;
 			schedulingTime = stopWatch.ElapsedMilliseconds;
 			scheduledAction.Schedule(200);
-			Assert.IsTrue(scheduledAction.IsScheduled, "Action should be scheduled.");
+			Assert.That(scheduledAction.IsScheduled, "Action should be scheduled.");
 			Thread.Sleep(100);
 			scheduledAction.Reschedule(400);
-			Assert.IsTrue(scheduledAction.IsScheduled, "Action should be scheduled.");
+			Assert.That(scheduledAction.IsScheduled, "Action should be scheduled.");
 			Thread.Sleep(300);
-			Assert.IsFalse(executed, "Action should not be executed.");
+			Assert.That(!executed, "Action should not be executed.");
 			Thread.Sleep(300);
-			Assert.IsTrue(executed, "Action should be executed.");
-			Assert.IsFalse(scheduledAction.IsScheduled, "Action should not be scheduled.");
-			Assert.GreaterOrEqual(executionTime - schedulingTime, 500, "Action executed too early.");
+			Assert.That(executed, "Action should be executed.");
+			Assert.That(!scheduledAction.IsScheduled, "Action should not be scheduled.");
+			Assert.That(executionTime - schedulingTime >= 500, "Action executed too early.");
 		}
 	}
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 
 namespace CarinaStudio
 {
@@ -22,7 +23,7 @@ namespace CarinaStudio
 			protected abstract void Release();
 
 			// Reference counter.
-			internal volatile int ReferenceCount = 1;
+			internal int ReferenceCount = 1;
 		}
 
 
@@ -54,8 +55,7 @@ namespace CarinaStudio
 		{
 			lock (this.resourceHolder)
 			{
-				--this.resourceHolder.ReferenceCount;
-				if (this.resourceHolder.ReferenceCount == 0)
+				if (Interlocked.Decrement(ref this.resourceHolder.ReferenceCount) == 0)
 					this.resourceHolder.CallRelease();
 			}
 		}
@@ -80,27 +80,20 @@ namespace CarinaStudio
 		public TSelf Share()
 		{
 			this.VerifyDisposed();
-			lock (this.resourceHolder)
-			{
-				if (this.resourceHolder.ReferenceCount <= 0)
-					throw new InvalidOperationException("Resource has been released.");
-				++this.resourceHolder.ReferenceCount;
-			}
+			if (this.resourceHolder.ReferenceCount <= 0)
+				throw new InvalidOperationException("Resource has been released.");
+			Interlocked.Increment(ref this.resourceHolder.ReferenceCount);
 			try
 			{
 				var newInstance = this.Share(this.resourceHolder);
-				if (!object.ReferenceEquals(newInstance, this))
+				if (!ReferenceEquals(newInstance, this))
 					return newInstance;
 				throw new InvalidOperationException("Cannot share the same instance.");
 			}
 			catch
 			{
-				lock (this.resourceHolder)
-				{
-					--this.resourceHolder.ReferenceCount;
-					if (this.resourceHolder.ReferenceCount == 0)
-						this.resourceHolder.CallRelease();
-				}
+				if (Interlocked.Decrement(ref this.resourceHolder.ReferenceCount) == 0)
+					this.resourceHolder.CallRelease();
 				throw;
 			}
 		}

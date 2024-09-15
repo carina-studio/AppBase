@@ -65,9 +65,9 @@ namespace CarinaStudio.Collections
 		// Verify elements in type converted list.
 		void VerifyTypeConvertedList(IList<int> sourceList, TestList testList)
 		{
-			Assert.AreEqual(sourceList.Count, testList.Count, "Number of elements is incorrect.");
+			Assert.That(sourceList.Count == testList.Count, "Number of elements is incorrect.");
 			for (var i = sourceList.Count - 1; i >= 0; --i)
-				Assert.AreEqual(sourceList[i] * 2L, testList[i], $"Element[{i}] is incorrect.");
+				Assert.That(sourceList[i] * 2L == testList[i], $"Element[{i}] is incorrect.");
 		}
 	}
 }

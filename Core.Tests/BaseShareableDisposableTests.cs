@@ -52,9 +52,9 @@ namespace CarinaStudio
 		{
 			var instance = new TestShareableDisposable();
 			var resourceHolder = instance.GetResourceHolder();
-			Assert.IsFalse(resourceHolder.IsResourceReleased, "Resource should not be released.");
+			Assert.That(!resourceHolder.IsResourceReleased, "Resource should not be released.");
 			instance.Dispose();
-			Assert.IsTrue(resourceHolder.IsResourceReleased, "Resource should be released.");
+			Assert.That(resourceHolder.IsResourceReleased, "Resource should be released.");
 			try
 			{
 				instance.GetResourceHolder();
@@ -64,6 +64,7 @@ namespace CarinaStudio
 			{
 				throw;
 			}
+			// ReSharper disable once EmptyGeneralCatchClause
 			catch
 			{ }
 			try
@@ -75,6 +76,7 @@ namespace CarinaStudio
 			{
 				throw;
 			}
+			// ReSharper disable once EmptyGeneralCatchClause
 			catch
 			{ }
 		}
@@ -89,7 +91,7 @@ namespace CarinaStudio
 			// build base instance
 			var baseInstance = new TestShareableDisposable();
 			var resourceHolder = baseInstance.GetResourceHolder();
-			Assert.IsFalse(resourceHolder.IsResourceReleased, "Resource should not be released.");
+			Assert.That(!resourceHolder.IsResourceReleased, "Resource should not be released.");
 
 			// share instance on multiple threads
 			var syncLock = new object();
@@ -103,11 +105,9 @@ namespace CarinaStudio
 					{
 						try
 						{
-							using (var sharedInstance = baseInstance.Share())
-							{
-								Assert.IsFalse(resourceHolder.IsResourceReleased, "Resource should not be released after sharing instance.");
-								Thread.Sleep(this.random.Next(10, 100));
-							}
+							using var sharedInstance = baseInstance.Share();
+							Assert.That(!resourceHolder.IsResourceReleased, "Resource should not be released after sharing instance.");
+							Thread.Sleep(this.random.Next(10, 100));
 						}
 						catch (Exception ex)
 						{
@@ -124,15 +124,15 @@ namespace CarinaStudio
 						}
 					});
 				}
-				Assert.IsTrue(Monitor.Wait(syncLock, 10000), "Cannot complete waiting for sharing instance on multi-threads.");
+				Assert.That(Monitor.Wait(syncLock, 10000), "Cannot complete waiting for sharing instance on multi-threads.");
 			}
 			if (exception != null)
 				throw exception;
 
 			// dispose base instance
-			Assert.IsFalse(resourceHolder.IsResourceReleased, "Resource should not be released before disposing all instances.");
+			Assert.That(!resourceHolder.IsResourceReleased, "Resource should not be released before disposing all instances.");
 			baseInstance.Dispose();
-			Assert.IsTrue(resourceHolder.IsResourceReleased, "Resource should be released after disposing all instances.");
+			Assert.That(resourceHolder.IsResourceReleased, "Resource should be released after disposing all instances.");
 		}
 
 
@@ -145,25 +145,25 @@ namespace CarinaStudio
 			// build base instance
 			var baseInstance = new TestShareableDisposable();
 			var resourceHolder = baseInstance.GetResourceHolder();
-			Assert.IsFalse(resourceHolder.IsResourceReleased, "Resource should not be released.");
+			Assert.That(!resourceHolder.IsResourceReleased, "Resource should not be released.");
 
 			// share
 			var sharedInstance = baseInstance.Share();
-			Assert.AreNotSame(baseInstance, sharedInstance, "Shared instance should not be same as base instance.");
-			Assert.AreSame(resourceHolder, sharedInstance.GetResourceHolder(), "Resource holder of shared instance should be same as base instance.");
+			Assert.That(!ReferenceEquals(baseInstance, sharedInstance), "Shared instance should not be same as base instance.");
+			Assert.That(ReferenceEquals(resourceHolder, sharedInstance.GetResourceHolder()), "Resource holder of shared instance should be same as base instance.");
 
 			// dispose shared instance
 			sharedInstance.Dispose();
-			Assert.IsFalse(resourceHolder.IsResourceReleased, "Resource should not be released after disposing shared instance.");
+			Assert.That(!resourceHolder.IsResourceReleased, "Resource should not be released after disposing shared instance.");
 
 			// share and dispose base instance
 			sharedInstance = baseInstance.Share();
 			baseInstance.Dispose();
-			Assert.IsFalse(resourceHolder.IsResourceReleased, "Resource should not be released before disposing all instances.");
+			Assert.That(!resourceHolder.IsResourceReleased, "Resource should not be released before disposing all instances.");
 
 			// dispose shared instance
 			sharedInstance.Dispose();
-			Assert.IsTrue(resourceHolder.IsResourceReleased, "Resource should be released after disposing all instances.");
+			Assert.That(resourceHolder.IsResourceReleased, "Resource should be released after disposing all instances.");
 		}
 	}
 }

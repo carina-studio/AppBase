@@ -13,7 +13,7 @@ namespace CarinaStudio.Collections
 	class ObservableListTests
 	{
 		// Fields.
-		readonly Random random = new Random();
+		readonly Random random = new();
 
 
 		/// <summary>
@@ -64,26 +64,26 @@ namespace CarinaStudio.Collections
 				// add random elements
 				for (var i = 0; i < 100; ++i)
 					list.Add(this.random.Next());
-				Assert.IsTrue(list.SequenceEqual(reflectedList), "List built by collection change event is incorrect after adding elements.");
+				Assert.That(list.SequenceEqual(reflectedList), "List built by collection change event is incorrect after adding elements.");
 				for (var i = 0; i < 100; ++i)
 				{
 					var count = this.random.Next(1, 101);
 					var elements = this.GenerateRandomArray(count);
 					list.AddRange(elements);
 				}
-				Assert.IsTrue(list.SequenceEqual(reflectedList), "List built by collection change event is incorrect after adding elements.");
+				Assert.That(list.SequenceEqual(reflectedList), "List built by collection change event is incorrect after adding elements.");
 
 				// insert random elements
 				for (var i = 0; i < 100; ++i)
 					list.Insert(this.random.Next(list.Count + 1), this.random.Next());
-				Assert.IsTrue(list.SequenceEqual(reflectedList), "List built by collection change event is incorrect after inserting elements.");
+				Assert.That(list.SequenceEqual(reflectedList), "List built by collection change event is incorrect after inserting elements.");
 				for (var i = 0; i < 100; ++i)
 				{
 					var count = this.random.Next(1, 101);
 					var elements = this.GenerateRandomArray(count);
 					list.InsertRange(this.random.Next(list.Count + 1), elements);
 				}
-				Assert.IsTrue(list.SequenceEqual(reflectedList), "List built by collection change event is incorrect after inserting elements.");
+				Assert.That(list.SequenceEqual(reflectedList), "List built by collection change event is incorrect after inserting elements.");
 
 				// move random elements
 				for (var i = 0; i < 100; ++i)
@@ -92,7 +92,7 @@ namespace CarinaStudio.Collections
 					var newIndex = this.random.Next(list.Count);
 					list.Move(index, newIndex);
 				}
-				Assert.IsTrue(list.SequenceEqual(reflectedList), "List built by collection change event is incorrect after moving elements.");
+				Assert.That(list.SequenceEqual(reflectedList), "List built by collection change event is incorrect after moving elements.");
 				for (var i = 0; i < 100; ++i)
 				{
 					var count = this.random.Next(1, 11);
@@ -100,19 +100,19 @@ namespace CarinaStudio.Collections
 					var newIndex = this.random.Next(list.Count - count);
 					list.MoveRange(index, newIndex, count);
 				}
-				Assert.IsTrue(list.SequenceEqual(reflectedList), "List built by collection change event is incorrect after moving elements.");
+				Assert.That(list.SequenceEqual(reflectedList), "List built by collection change event is incorrect after moving elements.");
 
 				// replace random elements
 				for (var i = 0; i < 100; ++i)
 					list[this.random.Next(list.Count)] = this.random.Next();
-				Assert.IsTrue(list.SequenceEqual(reflectedList), "List built by collection change event is incorrect after replacing elements.");
+				Assert.That(list.SequenceEqual(reflectedList), "List built by collection change event is incorrect after replacing elements.");
 
 				// remove random elements
 				for (var i = 0; i < 100; ++i)
 					list.RemoveAt(this.random.Next(list.Count));
-				Assert.IsTrue(list.SequenceEqual(reflectedList), "List built by collection change event is incorrect after removing elements.");
+				Assert.That(list.SequenceEqual(reflectedList), "List built by collection change event is incorrect after removing elements.");
 				if (list.RemoveAll(element => (element % 3) == 0) > 0)
-					Assert.IsTrue(list.SequenceEqual(reflectedList), "List built by collection change event is incorrect after removing elements.");
+					Assert.That(list.SequenceEqual(reflectedList), "List built by collection change event is incorrect after removing elements.");
 				for (var i = 0; i < 100 && list.IsNotEmpty(); ++i)
 				{
 					var index = this.random.Next(list.Count - 1);
@@ -121,11 +121,11 @@ namespace CarinaStudio.Collections
 						count = list.Count - index;
 					list.RemoveRange(index, count);
 				}
-				Assert.IsTrue(list.SequenceEqual(reflectedList), "List built by collection change event is incorrect after removing elements.");
+				Assert.That(list.SequenceEqual(reflectedList), "List built by collection change event is incorrect after removing elements.");
 
 				// Clear
 				list.Clear();
-				Assert.IsTrue(list.SequenceEqual(reflectedList), "List built by collection change event is incorrect after clearing.");
+				Assert.That(list.SequenceEqual(reflectedList), "List built by collection change event is incorrect after clearing.");
 			}
 		}
 
@@ -149,14 +149,14 @@ namespace CarinaStudio.Collections
 				// prepare
 				var refList = new List<int>(this.GenerateRandomArray(10240));
 				var list = new ObservableList<int>(refList);
-				Assert.IsTrue(list.SequenceEqual(refList), "List built by initial elements is different from reference list.");
+				Assert.That(list.SequenceEqual(refList), "List built by initial elements is different from reference list.");
 
 				// remove all
 				var predicate = new Predicate<int>(n => (n & 0x1) == 0);
 				if (refList.RemoveAll(predicate) > 0)
 				{
 					list.RemoveAll(predicate);
-					Assert.IsTrue(list.SequenceEqual(refList), "List is different from reference list after removing elements.");
+					Assert.That(list.SequenceEqual(refList), "List is different from reference list after removing elements.");
 				}
 			}
 		}

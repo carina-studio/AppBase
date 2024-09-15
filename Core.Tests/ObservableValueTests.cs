@@ -49,10 +49,10 @@ namespace CarinaStudio
 			var source = new MutableObservableBoolean(false);
 			var inverted = source.Invert();
 			inverted.Subscribe(value => notifiedValue = value);
-			Assert.IsTrue(notifiedValue!.Value);
+			Assert.That(notifiedValue!.Value);
 			notifiedValue = default;
 			source.Update(true);
-			Assert.IsFalse(notifiedValue!.Value);
+			Assert.That(!notifiedValue!.Value);
 		}
 
 
@@ -70,28 +70,28 @@ namespace CarinaStudio
 			var subscription2 = (IDisposable?)observableValue.Subscribe(observer2);
 
 			// check initial notification
-			Assert.IsTrue(observer1.IsOnNextCalled, "First notification should be sent.");
-			Assert.IsTrue(observer2.IsOnNextCalled, "First notification should be sent.");
-			Assert.AreEqual(1, observer1.LatestValue, "Value of initial notification is unexpected.");
-			Assert.AreEqual(1, observer2.LatestValue, "Value of initial notification is unexpected.");
+			Assert.That(observer1.IsOnNextCalled, "First notification should be sent.");
+			Assert.That(observer2.IsOnNextCalled, "First notification should be sent.");
+			Assert.That(1 == observer1.LatestValue, "Value of initial notification is unexpected.");
+			Assert.That(1 == observer2.LatestValue, "Value of initial notification is unexpected.");
 
 			// update value
 			observer1.IsOnNextCalled = false;
 			observer2.IsOnNextCalled = false;
 			observableValue.Update(2);
-			Assert.IsTrue(observer1.IsOnNextCalled, "Notification should be sent.");
-			Assert.IsTrue(observer2.IsOnNextCalled, "Notification should be sent.");
-			Assert.AreEqual(2, observer1.LatestValue, "Value of notification is unexpected.");
-			Assert.AreEqual(2, observer2.LatestValue, "Value of notification is unexpected.");
+			Assert.That(observer1.IsOnNextCalled, "Notification should be sent.");
+			Assert.That(observer2.IsOnNextCalled, "Notification should be sent.");
+			Assert.That(2 == observer1.LatestValue, "Value of notification is unexpected.");
+			Assert.That(2 == observer2.LatestValue, "Value of notification is unexpected.");
 
-			// unscribe
+			// unsubscribe
 			subscription2 = subscription2.DisposeAndReturnNull();
 			observer1.IsOnNextCalled = false;
 			observer2.IsOnNextCalled = false;
 			observableValue.Update(3);
-			Assert.IsTrue(observer1.IsOnNextCalled, "Notification should be sent.");
-			Assert.IsFalse(observer2.IsOnNextCalled, "Notification should not be sent.");
-			Assert.AreEqual(3, observer1.LatestValue, "Value of notification is unexpected.");
+			Assert.That(observer1.IsOnNextCalled, "Notification should be sent.");
+			Assert.That(!observer2.IsOnNextCalled, "Notification should not be sent.");
+			Assert.That(3 == observer1.LatestValue, "Value of notification is unexpected.");
 
 			// subscribe when updating value
 			var isFirstOnNext3 = true;
@@ -107,34 +107,34 @@ namespace CarinaStudio
 			var subscription3 = observableValue.Subscribe(observer3);
 			observer1.IsOnNextCalled = false;
 			observer3.IsOnNextCalled = false;
-			Assert.IsFalse(observer2.IsOnNextCalled, "Notification should not be sent.");
+			Assert.That(!observer2.IsOnNextCalled, "Notification should not be sent.");
 			observableValue.Update(0);
-			Assert.IsTrue(observer1.IsOnNextCalled, "Notification should be sent.");
-			Assert.IsTrue(observer2.IsOnNextCalled, "Notification should be sent.");
-			Assert.IsTrue(observer3.IsOnNextCalled, "Notification should be sent.");
+			Assert.That(observer1.IsOnNextCalled, "Notification should be sent.");
+			Assert.That(observer2.IsOnNextCalled, "Notification should be sent.");
+			Assert.That(observer3.IsOnNextCalled, "Notification should be sent.");
 
 			// unsubscribe when updating value
 			observer1.IsOnNextCalled = false;
 			observer2.IsOnNextCalled = false;
 			observer3.IsOnNextCalled = false;
 			observableValue.Update(1);
-			Assert.IsTrue(observer1.IsOnNextCalled, "Notification should be sent.");
-			Assert.IsFalse(observer2.IsOnNextCalled, "Notification should not be sent.");
-			Assert.IsTrue(observer3.IsOnNextCalled, "Notification should be sent.");
+			Assert.That(observer1.IsOnNextCalled, "Notification should be sent.");
+			Assert.That(!observer2.IsOnNextCalled, "Notification should not be sent.");
+			Assert.That(observer3.IsOnNextCalled, "Notification should be sent.");
 
 			// subscribe
 			subscription3.Dispose();
 			var observer4 = new Observer<int>();
-			var subscription4 = observableValue.Subscribe(observer4);
+			_ = observableValue.Subscribe(observer4);
 			observer1.IsOnNextCalled = false;
 			observer2.IsOnNextCalled = false;
 			observer3.IsOnNextCalled = false;
 			observer4.IsOnNextCalled = false;
 			observableValue.Update(2);
-			Assert.IsTrue(observer1.IsOnNextCalled, "Notification should be sent.");
-			Assert.IsFalse(observer2.IsOnNextCalled, "Notification should not be sent.");
-			Assert.IsFalse(observer3.IsOnNextCalled, "Notification should not be sent.");
-			Assert.IsTrue(observer4.IsOnNextCalled, "Notification should be sent.");
+			Assert.That(observer1.IsOnNextCalled, "Notification should be sent.");
+			Assert.That(!observer2.IsOnNextCalled, "Notification should not be sent.");
+			Assert.That(!observer3.IsOnNextCalled, "Notification should not be sent.");
+			Assert.That(observer4.IsOnNextCalled, "Notification should be sent.");
 
 			// complete
 			subscription1.Dispose();
@@ -153,19 +153,19 @@ namespace CarinaStudio
 			using var subscription1 = observableValue.Subscribe(observer1);
 
 			// check initial notification
-			Assert.IsTrue(observer1.IsOnNextCalled, "First notification should be sent.");
-			Assert.AreEqual(1, observer1.LatestValue, "Value of initial notification is unexpected.");
+			Assert.That(observer1.IsOnNextCalled, "First notification should be sent.");
+			Assert.That( 1== observer1.LatestValue, "Value of initial notification is unexpected.");
 
 			// update different value
 			observer1.IsOnNextCalled = false;
 			observableValue.Update(2);
-			Assert.IsTrue(observer1.IsOnNextCalled, "Notification should be sent.");
-			Assert.AreEqual(2, observer1.LatestValue, "Value of notification is unexpected.");
+			Assert.That(observer1.IsOnNextCalled, "Notification should be sent.");
+			Assert.That(2 == observer1.LatestValue, "Value of notification is unexpected.");
 
 			// update same value
 			observer1.IsOnNextCalled = false;
 			observableValue.Update(2);
-			Assert.IsFalse(observer1.IsOnNextCalled, "Notification should not be sent.");
+			Assert.That(!observer1.IsOnNextCalled, "Notification should not be sent.");
 
 			// update value nestedly
 			var observer2 = new Observer<int>(() =>
@@ -178,12 +178,12 @@ namespace CarinaStudio
 			observer2.IsOnNextCalled = false;
 			observer3.IsOnNextCalled = false;
 			observableValue.Update(3);
-			Assert.IsTrue(observer1.IsOnNextCalled, "Notification should be sent.");
-			Assert.IsTrue(observer2.IsOnNextCalled, "Notification should be sent.");
-			Assert.IsTrue(observer3.IsOnNextCalled, "Notification should be sent.");
-			Assert.AreEqual(123, observer1.LatestValue, "Value of notification is unexpected.");
-			Assert.AreEqual(123, observer2.LatestValue, "Value of notification is unexpected.");
-			Assert.AreEqual(123, observer3.LatestValue, "Value of notification is unexpected.");
+			Assert.That(observer1.IsOnNextCalled, "Notification should be sent.");
+			Assert.That(observer2.IsOnNextCalled, "Notification should be sent.");
+			Assert.That(observer3.IsOnNextCalled, "Notification should be sent.");
+			Assert.That(123 == observer1.LatestValue, "Value of notification is unexpected.");
+			Assert.That(123 == observer2.LatestValue, "Value of notification is unexpected.");
+			Assert.That(123 == observer3.LatestValue, "Value of notification is unexpected.");
 		}
 	}
 }

@@ -33,19 +33,19 @@ namespace CarinaStudio.Diagnostics
                 size1 = Memory.EstimateArrayInstanceSize<int>(intArray.Length);
                 size2 = Memory.EstimateArrayInstanceSize(sizeof(int), intArray.Length);
                 size3 = Memory.EstimateInstanceSize(intArray);
-                Assert.AreEqual(ObjectHeaderSize + IntPtr.Size + sizeof(int) * intArray.Length, size1);
-                Assert.AreEqual(size1, size2);
-                Assert.AreEqual(size1, size3);
+                Assert.That(ObjectHeaderSize + IntPtr.Size + sizeof(int) * intArray.Length == size1);
+                Assert.That(size1 == size2);
+                Assert.That(size1 == size3);
             }
 
             // empty value array
-            intArray = new int[0];
+            intArray = Array.Empty<int>();
             size1 = Memory.EstimateArrayInstanceSize<int>(intArray.Length);
             size2 = Memory.EstimateArrayInstanceSize(sizeof(int), intArray.Length);
             size3 = Memory.EstimateInstanceSize(intArray);
-            Assert.AreEqual(ObjectHeaderSize + IntPtr.Size, size1);
-            Assert.AreEqual(size1, size2);
-            Assert.AreEqual(size1, size3);
+            Assert.That(ObjectHeaderSize + IntPtr.Size == size1);
+            Assert.That(size1 == size2);
+            Assert.That(size1 == size3);
 
             // object array
             object[] objArray;
@@ -55,19 +55,19 @@ namespace CarinaStudio.Diagnostics
                 size1 = Memory.EstimateArrayInstanceSize<object>(objArray.Length);
                 size2 = Memory.EstimateArrayInstanceSize(IntPtr.Size, objArray.Length);
                 size3 = Memory.EstimateInstanceSize(objArray);
-                Assert.AreEqual(ObjectHeaderSize + IntPtr.Size + IntPtr.Size * objArray.Length, size1);
-                Assert.AreEqual(size1, size2);
-                Assert.AreEqual(size1, size3);
+                Assert.That(ObjectHeaderSize + IntPtr.Size + IntPtr.Size * objArray.Length == size1);
+                Assert.That(size1 == size2);
+                Assert.That(size1 == size3);
             }
 
             // empty object array
-            objArray = new object[0];
+            objArray = Array.Empty<object>();
             size1 = Memory.EstimateArrayInstanceSize<object>(objArray.Length);
             size2 = Memory.EstimateArrayInstanceSize(IntPtr.Size, objArray.Length);
             size3 = Memory.EstimateInstanceSize(objArray);
-            Assert.AreEqual(ObjectHeaderSize + IntPtr.Size, size1);
-            Assert.AreEqual(size1, size2);
-            Assert.AreEqual(size1, size3);
+            Assert.That(ObjectHeaderSize + IntPtr.Size == size1);
+            Assert.That(size1 == size2);
+            Assert.That(size1 == size3);
         }
 
 
@@ -80,7 +80,6 @@ namespace CarinaStudio.Diagnostics
             // value collection
             var random = new Random();
             ICollection collection;
-            ICollection<int> intCollection;
             var count = 0;
             var size1 = 0L;
             var size2 = 0L;
@@ -93,7 +92,7 @@ namespace CarinaStudio.Diagnostics
                     for (var i = count; i > 0; --i)
                         it.Add(i);
                 });
-                intCollection = new List<int>(count).Also(it =>
+                var intCollection = new List<int>(count).Also(it =>
                 {
                     for (var i = count; i > 0; --i)
                         it.Add(i);
@@ -101,15 +100,15 @@ namespace CarinaStudio.Diagnostics
                 size1 = Memory.EstimateCollectionInstanceSize<object>(count);
                 size2 = Memory.EstimateCollectionInstanceSize(IntPtr.Size, count);
                 size3 = Memory.EstimateInstanceSize(collection);
-                Assert.AreEqual(ObjectHeaderSize + sizeof(int) + Memory.EstimateArrayInstanceSize<object>(count), size1);
-                Assert.AreEqual(size1, size2);
-                Assert.AreEqual(size1, size3);
+                Assert.That(ObjectHeaderSize + sizeof(int) + Memory.EstimateArrayInstanceSize<object>(count) == size1);
+                Assert.That(size1 == size2);
+                Assert.That(size1 == size3);
                 size1 = Memory.EstimateCollectionInstanceSize<int>(count);
                 size2 = Memory.EstimateCollectionInstanceSize(sizeof(int), count);
                 size3 = Memory.EstimateInstanceSize(intCollection);
-                Assert.AreEqual(ObjectHeaderSize + sizeof(int) + Memory.EstimateArrayInstanceSize<int>(count), size1);
-                Assert.AreEqual(size1, size2);
-                Assert.AreEqual(size1, size3);
+                Assert.That(ObjectHeaderSize + sizeof(int) + Memory.EstimateArrayInstanceSize<int>(count) == size1);
+                Assert.That(size1 == size2);
+                Assert.That(size1 == size3);
             }
 
             // object collection
@@ -125,9 +124,9 @@ namespace CarinaStudio.Diagnostics
                 size1 = Memory.EstimateCollectionInstanceSize<object>(count);
                 size2 = Memory.EstimateCollectionInstanceSize(IntPtr.Size, count);
                 size3 = Memory.EstimateInstanceSize(objCollection);
-                Assert.AreEqual(ObjectHeaderSize + sizeof(int) + Memory.EstimateArrayInstanceSize<object>(count), size1);
-                Assert.AreEqual(size1, size2);
-                Assert.AreEqual(size1, size3);
+                Assert.That(ObjectHeaderSize + sizeof(int) + Memory.EstimateArrayInstanceSize<object>(count) == size1);
+                Assert.That(size1 == size2);
+                Assert.That(size1 == size3);
             }
 
             // empty collection
@@ -136,11 +135,11 @@ namespace CarinaStudio.Diagnostics
             size1 = Memory.EstimateCollectionInstanceSize<object>(0);
             size2 = Memory.EstimateCollectionInstanceSize(IntPtr.Size, 0);
             size3 = Memory.EstimateInstanceSize(collection);
-            Assert.AreEqual(ObjectHeaderSize + sizeof(int) + Memory.EstimateArrayInstanceSize<object>(0), size1);
-            Assert.AreEqual(size1, size2);
-            Assert.AreEqual(size1, size3);
+            Assert.That(ObjectHeaderSize + sizeof(int) + Memory.EstimateArrayInstanceSize<object>(0) == size1);
+            Assert.That(size1 == size2);
+            Assert.That(size1 == size3);
             size3 = Memory.EstimateInstanceSize(objCollection);
-            Assert.AreEqual(size1, size3);
+            Assert.That(size1 == size3);
         }
 
 
@@ -151,24 +150,24 @@ namespace CarinaStudio.Diagnostics
         public void InstanceTest()
         {
             // native type
-            Assert.AreEqual(sizeof(int), Memory.EstimateValueSize(0));
-            Assert.AreEqual(sizeof(int), Memory.EstimateValueSize<int>());
+            Assert.That(sizeof(int) == Memory.EstimateValueSize(0));
+            Assert.That(sizeof(int) == Memory.EstimateValueSize<int>());
 
             // native type (boxed)
-            Assert.AreEqual(ObjectHeaderSize + IntPtr.Size, Memory.EstimateInstanceSize(0));
-            Assert.AreEqual(ObjectHeaderSize + IntPtr.Size, Memory.EstimateInstanceSize<int>());
+            Assert.That(ObjectHeaderSize + IntPtr.Size == Memory.EstimateInstanceSize(0));
+            Assert.That(ObjectHeaderSize + IntPtr.Size == Memory.EstimateInstanceSize<int>());
 
             // structure
-            Assert.AreEqual(sizeof(int) * 3, Memory.EstimateValueSize(new ValueTuple<int, int, int>()));
-            Assert.AreEqual(sizeof(int) * 3, Memory.EstimateValueSize<ValueTuple<int, int, int>>());
+            Assert.That(sizeof(int) * 3 == Memory.EstimateValueSize(new ValueTuple<int, int, int>()));
+            Assert.That(sizeof(int) * 3 == Memory.EstimateValueSize<ValueTuple<int, int, int>>());
 
             // structure (boxed)
-            Assert.AreEqual(ObjectHeaderSize + IntPtr.Size * 3, Memory.EstimateInstanceSize(new ValueTuple<IntPtr, IntPtr, IntPtr>()));
-            Assert.AreEqual(ObjectHeaderSize + IntPtr.Size * 3, Memory.EstimateInstanceSize<ValueTuple<IntPtr, IntPtr, IntPtr>>());
+            Assert.That(ObjectHeaderSize + IntPtr.Size * 3 == Memory.EstimateInstanceSize(new ValueTuple<IntPtr, IntPtr, IntPtr>()));
+            Assert.That(ObjectHeaderSize + IntPtr.Size * 3 == Memory.EstimateInstanceSize<ValueTuple<IntPtr, IntPtr, IntPtr>>());
 
             // object
-            Assert.AreEqual(ObjectHeaderSize + IntPtr.Size * 2, Memory.EstimateInstanceSize(new Tuple<IntPtr, IntPtr>(default, default)));
-            Assert.AreEqual(ObjectHeaderSize + IntPtr.Size * 2, Memory.EstimateInstanceSize<Tuple<IntPtr, IntPtr>>());
+            Assert.That(ObjectHeaderSize + IntPtr.Size * 2 == Memory.EstimateInstanceSize(new Tuple<IntPtr, IntPtr>(default, default)));
+            Assert.That(ObjectHeaderSize + IntPtr.Size * 2 == Memory.EstimateInstanceSize<Tuple<IntPtr, IntPtr>>());
         }
     }
 }

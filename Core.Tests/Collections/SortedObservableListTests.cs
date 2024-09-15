@@ -15,7 +15,7 @@ namespace CarinaStudio.Collections
 	class SortedObservableListTests
 	{
 		// Fields.
-		readonly Random random = new Random();
+		readonly Random random = new();
 
 
 		/// <summary>
@@ -26,7 +26,7 @@ namespace CarinaStudio.Collections
 		{
 			// prepare
 			var randomElements = this.GenerateRandomArray(10240);
-			var sortedElements = ((int[])randomElements.Clone()).Also((it) => Array.Sort(it));
+			var sortedElements = ((int[])randomElements.Clone()).Also(Array.Sort);
 			var planeElements = new int[randomElements.Length];
 			var sortedList = new SortedObservableList<int>();
 			var refList = new List<int>();
@@ -157,7 +157,7 @@ namespace CarinaStudio.Collections
 				remaining -= count;
 				sortedList.AddAll(elements);
 			}
-			Assert.IsTrue(sortedList.SequenceEqual(reflectedList), "List built by collection change event is incorrect after adding elements.");
+			Assert.That(sortedList.SequenceEqual(reflectedList), "List built by collection change event is incorrect after adding elements.");
 
 			// remove random range elements
 			remaining = sortedList.Count;
@@ -171,11 +171,11 @@ namespace CarinaStudio.Collections
 				});
 				sortedList.RemoveAll(removingElements);
 			}
-			Assert.IsTrue(sortedList.SequenceEqual(reflectedList), "List built by collection change event is incorrect after removing elements.");
+			Assert.That(sortedList.SequenceEqual(reflectedList), "List built by collection change event is incorrect after removing elements.");
 
 			// Clear
 			sortedList.Clear();
-			Assert.IsTrue(sortedList.SequenceEqual(reflectedList), "List built by collection change event is incorrect after clearing.");
+			Assert.That(sortedList.SequenceEqual(reflectedList), "List built by collection change event is incorrect after clearing.");
 		}
 
 
@@ -195,9 +195,10 @@ namespace CarinaStudio.Collections
 		public void RandomAddingPerformanceTest(int elementCount, int addingBlockSize)
 		{
 			var testCount = 3;
-			var stopWatch = new Stopwatch().Also((it) => it.Start());
+			var stopWatch = new Stopwatch().Also(it => it.Start());
 			var sortedList = new SortedObservableList<int>();
 			var observableCollection = new ObservableCollection<int>();
+			// ReSharper disable once CollectionNeverQueried.Local
 			var list = new List<int>();
 			var sortedListDuration = 0L;
 			var observableCollectionDuration = 0L;
@@ -336,6 +337,7 @@ namespace CarinaStudio.Collections
 			var stopWatch = new Stopwatch().Also((it) => it.Start());
 			var sortedList = new SortedObservableList<int>();
 			var observableCollection = new ObservableCollection<int>();
+			// ReSharper disable once CollectionNeverQueried.Local
 			var list = new List<int>();
 			var sortedListDuration = 0L;
 			var observableCollectionDuration = 0L;
@@ -473,7 +475,7 @@ namespace CarinaStudio.Collections
 		{
 			// prepare
 			var randomElements = this.GenerateRandomArray(10240);
-			var sortedElements = ((int[])randomElements.Clone()).Also((it) => Array.Sort(it));
+			var sortedElements = ((int[])randomElements.Clone()).Also(Array.Sort);
 			var sortedList = new SortedObservableList<int>(randomElements);
 			var refList = new List<int>(sortedList);
 			this.VerifySortedList(sortedList, refList);
@@ -533,7 +535,7 @@ namespace CarinaStudio.Collections
 			var observableCollection = new ObservableCollection<int[]>();
 			for (var i = 0; i < count; ++i)
 			{
-				var element = new int[] { i };
+				var element = new[] { i };
 				sortedList.Add(element);
 				observableCollection.Add(element);
 			}
@@ -546,16 +548,16 @@ namespace CarinaStudio.Collections
 			// move element to tail of list
 			var index = this.random.Next(count - 1);
 			sortedList[index][0] = count;
-			Assert.IsTrue(sortedList.Sort(sortedList[index]));
-			Assert.IsTrue(sortedList.IsSorted(sortedList.Comparer));
-			Assert.IsTrue(sortedList.SequenceEqual(observableCollection));
+			Assert.That(sortedList.Sort(sortedList[index]));
+			Assert.That(sortedList.IsSorted(sortedList.Comparer));
+			Assert.That(sortedList.SequenceEqual(observableCollection));
 
 			// move element to head of list
 			index = this.random.Next(1, count - 1);
 			sortedList[index][0] = -1;
-			Assert.IsTrue(sortedList.SortAt(index));
-			Assert.IsTrue(sortedList.IsSorted(sortedList.Comparer));
-			Assert.IsTrue(sortedList.SequenceEqual(observableCollection));
+			Assert.That(sortedList.SortAt(index));
+			Assert.That(sortedList.IsSorted(sortedList.Comparer));
+			Assert.That(sortedList.SequenceEqual(observableCollection));
 
 			// random moving elements
 			for (var t = 0; t < 1000; ++t)
@@ -564,17 +566,17 @@ namespace CarinaStudio.Collections
 				sortedList[index][0] = this.random.Next();
 				sortedList.SortAt(index);
 			}
-			Assert.IsTrue(sortedList.IsSorted(sortedList.Comparer));
-			Assert.IsTrue(sortedList.SequenceEqual(observableCollection));
+			Assert.That(sortedList.IsSorted(sortedList.Comparer));
+			Assert.That(sortedList.SequenceEqual(observableCollection));
 		}
 
 
 		// Verify sorted list.
 		void VerifySortedList(SortedObservableList<int> sortedList, IList<int> refList)
 		{
-			Assert.AreEqual(refList.Count, sortedList.Count, "Number of elements is incorrect.");
+			Assert.That(refList.Count == sortedList.Count, "Number of elements is incorrect.");
 			for (var i = sortedList.Count - 1; i >= 0; --i)
-				Assert.AreEqual(refList[i], sortedList[i], $"Element[{i}] is incorrect.");
+				Assert.That(refList[i] == sortedList[i], $"Element[{i}] is incorrect.");
 		}
 	}
 }

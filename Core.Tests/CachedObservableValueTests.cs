@@ -28,13 +28,13 @@ namespace CarinaStudio
 
             // create
             var cachedValue = new CachedObservableValue<int>(updateFunc);
-            Assert.AreEqual(latestUpdatedValue, cachedValue.Value);
+            Assert.That(latestUpdatedValue == cachedValue.Value);
 
             // update value
             latestUpdatedValue = -1;
             cachedValue.Invalidate();
-            Assert.GreaterOrEqual(latestUpdatedValue, 0);
-            Assert.AreEqual(latestUpdatedValue, cachedValue.Value);
+            Assert.That(latestUpdatedValue >= 0);
+            Assert.That(latestUpdatedValue == cachedValue.Value);
         }
 
 
@@ -55,13 +55,13 @@ namespace CarinaStudio
             {
                 // create
                 var cachedValue = new CachedObservableValue<int>(sourceValue);
-                Assert.AreEqual(sourceValue.Value, cachedValue.Value);
+                Assert.That(sourceValue.Value == cachedValue.Value);
 
                 // update value
                 for (var i = 0; i < 10; ++i)
                 {
                     sourceValue.Update(random.Next());
-                    Assert.AreEqual(sourceValue.Value, cachedValue.Value);
+                    Assert.That(sourceValue.Value == cachedValue.Value);
                 }
                 cachedValueRef = new(cachedValue);
             });
@@ -76,7 +76,7 @@ namespace CarinaStudio
                     throw new AssertionException("Unable to finalize cached value.");
                 Thread.Sleep(500);
             }
-            Assert.IsFalse(sourceValue.HasObservers);
+            Assert.That(!sourceValue.HasObservers);
 
             // create in specific thread
             syncContext.Send(testAction);
@@ -90,7 +90,7 @@ namespace CarinaStudio
                     throw new AssertionException("Unable to finalize cached value.");
                 Thread.Sleep(500);
             }
-            syncContext.Send(() => Assert.IsFalse(sourceValue.HasObservers));
+            syncContext.Send(() => Assert.That(!sourceValue.HasObservers));
         }
     }
 }

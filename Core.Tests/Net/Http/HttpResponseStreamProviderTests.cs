@@ -50,7 +50,7 @@ namespace CarinaStudio.Net.Http
 						Method = HttpMethod.Get,
 						RequestUri = requestUri,
 					});
-					Assert.IsTrue(provider.IsDefaultHttpClient);
+					Assert.That(provider.IsDefaultHttpClient);
 					providers.Add(provider);
 					tasks.Add(provider.OpenStreamAsync(StreamAccess.Read));
 				}
@@ -71,7 +71,7 @@ namespace CarinaStudio.Net.Http
 						Method = HttpMethod.Get,
 						RequestUri = requestUri,
 					}, timeout: TimeSpan.FromSeconds(random.Next(10, 31)));
-					Assert.IsFalse(provider.IsDefaultHttpClient);
+					Assert.That(!provider.IsDefaultHttpClient);
 					providers.Add(provider);
 					tasks.Add(provider.OpenStreamAsync(StreamAccess.Read));
 				}
@@ -114,12 +114,12 @@ namespace CarinaStudio.Net.Http
 				Method = HttpMethod.Get,
 				RequestUri = new("https://google.com/"),
 			});
-			using var stream1 = await provider.OpenStreamAsync(StreamAccess.Read);
-			using var stream2 = await provider.OpenStreamAsync(StreamAccess.Read);
+			await using var stream1 = await provider.OpenStreamAsync(StreamAccess.Read);
+			await using var stream2 = await provider.OpenStreamAsync(StreamAccess.Read);
 			provider.Dispose();
 			try
 			{
-				using var stream3 = await provider.OpenStreamAsync(StreamAccess.Read);
+				await using var stream3 = await provider.OpenStreamAsync(StreamAccess.Read);
 				throw new AssertionException("ObjectDisposedException exception should be thrown.");
 			}
 			catch (ObjectDisposedException)
@@ -151,7 +151,7 @@ namespace CarinaStudio.Net.Http
 					}
 					catch
 					{
-						if (this.httpListener?.IsListening != true)
+						if (this.httpListener.IsListening != true)
 							break;
 						throw;
 					}

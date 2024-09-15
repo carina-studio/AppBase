@@ -21,18 +21,18 @@ namespace CarinaStudio
 			var nonWhiteSpace2 = " 123456";
 			var nonWhiteSpace3 = "123456 ";
 			var nonWhiteSpace4 = "123";
-			Assert.IsTrue(empty.AsMemory().IsEmptyOrWhiteSpace());
-			Assert.IsFalse(empty.AsMemory().IsNotWhiteSpace());
-			Assert.IsTrue(whiteSpaces.AsMemory().IsEmptyOrWhiteSpace());
-			Assert.IsFalse(whiteSpaces.AsMemory().IsNotWhiteSpace());
-			Assert.IsFalse(nonWhiteSpace1.AsMemory().IsEmptyOrWhiteSpace());
-			Assert.IsTrue(nonWhiteSpace1.AsMemory().IsNotWhiteSpace());
-			Assert.IsFalse(nonWhiteSpace2.AsMemory().IsEmptyOrWhiteSpace());
-			Assert.IsTrue(nonWhiteSpace2.AsMemory().IsNotWhiteSpace());
-			Assert.IsFalse(nonWhiteSpace3.AsMemory().IsEmptyOrWhiteSpace());
-			Assert.IsTrue(nonWhiteSpace3.AsMemory().IsNotWhiteSpace());
-			Assert.IsFalse(nonWhiteSpace4.AsMemory().IsEmptyOrWhiteSpace());
-			Assert.IsTrue(nonWhiteSpace4.AsMemory().IsNotWhiteSpace());
+			Assert.That(empty.AsMemory().IsEmptyOrWhiteSpace());
+			Assert.That(!empty.AsMemory().IsNotWhiteSpace());
+			Assert.That(whiteSpaces.AsMemory().IsEmptyOrWhiteSpace());
+			Assert.That(!whiteSpaces.AsMemory().IsNotWhiteSpace());
+			Assert.That(!nonWhiteSpace1.AsMemory().IsEmptyOrWhiteSpace());
+			Assert.That(nonWhiteSpace1.AsMemory().IsNotWhiteSpace());
+			Assert.That(!nonWhiteSpace2.AsMemory().IsEmptyOrWhiteSpace());
+			Assert.That(nonWhiteSpace2.AsMemory().IsNotWhiteSpace());
+			Assert.That(!nonWhiteSpace3.AsMemory().IsEmptyOrWhiteSpace());
+			Assert.That(nonWhiteSpace3.AsMemory().IsNotWhiteSpace());
+			Assert.That(!nonWhiteSpace4.AsMemory().IsEmptyOrWhiteSpace());
+			Assert.That(nonWhiteSpace4.AsMemory().IsNotWhiteSpace());
 		}
 		
 		
@@ -52,9 +52,9 @@ namespace CarinaStudio
 					*(ptr++) = (byte)i;
 				return true;
 			});
-			Assert.IsTrue(result, "Result of Pin() is incorrect.");
+			Assert.That(result, "Result of Pin() is incorrect.");
 			for (var i = 0; i < byteSpan.Length; ++i)
-				Assert.AreEqual(i, byteSpan[i], $"Value[{i}] updated to array is incorrect.");
+				Assert.That(i == byteSpan[i], $"Value[{i}] updated to array is incorrect.");
 
 			// pin int memory
 			var intMemory = new ReadOnlyMemory<int>(new int[128]);
@@ -66,9 +66,9 @@ namespace CarinaStudio
 					*(ptr++) = i * 2;
 				return false;
 			});
-			Assert.IsFalse(result, "Result of Pin() is incorrect.");
+			Assert.That(!result, "Result of Pin() is incorrect.");
 			for (var i = 0; i < intSpan.Length; ++i)
-				Assert.AreEqual(i * 2, intSpan[i], $"Value[{i}] updated to array is incorrect.");
+				Assert.That(i * 2 == intSpan[i], $"Value[{i}] updated to array is incorrect.");
 		}
 	}
 }

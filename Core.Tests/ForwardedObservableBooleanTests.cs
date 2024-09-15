@@ -1,5 +1,4 @@
 ﻿using NUnit.Framework;
-using System;
 
 namespace CarinaStudio
 {
@@ -16,7 +15,7 @@ namespace CarinaStudio
         public void ValueUpdatingTest()
         {
             // prepare sources
-            var sources = new MutableObservableBoolean[]
+            var sources = new[]
             {
                 new MutableObservableBoolean(),
                 new MutableObservableBoolean(),
@@ -43,42 +42,43 @@ namespace CarinaStudio
 
             // create empty forwarded value
             var forwardedValue = new ForwardedObservableBoolean(mode, defaultValue);
-            Assert.AreEqual(defaultValue, forwardedValue.Value);
+            Assert.That(defaultValue == forwardedValue.Value);
 
             // attach to sources
+            // ReSharper disable once CoVariantArrayConversion
             forwardedValue.Attach(sources);
-            Assert.AreEqual(expectedValues[0], forwardedValue.Value);
+            Assert.That(expectedValues[0] == forwardedValue.Value);
 
             // verify result of [false, true]
             sources[0].Update(true);
-            Assert.AreEqual(expectedValues[1], forwardedValue.Value);
+            Assert.That(expectedValues[1] == forwardedValue.Value);
 
             // verify result of [true, false]
             sources[0].Update(false);
             sources[1].Update(true);
-            Assert.AreEqual(expectedValues[2], forwardedValue.Value);
+            Assert.That(expectedValues[2] == forwardedValue.Value);
 
             // verify result of [true, true]
             sources[0].Update(true);
-            Assert.AreEqual(expectedValues[3], forwardedValue.Value);
+            Assert.That(expectedValues[3] == forwardedValue.Value);
 
             // verify result of [false, false]
             sources[0].Update(false);
             sources[1].Update(false);
-            Assert.AreEqual(expectedValues[0], forwardedValue.Value);
+            Assert.That(expectedValues[0] == forwardedValue.Value);
 
             // detach
             sources[0].Update(true);
             sources[1].Update(true);
             forwardedValue.Detach();
-            Assert.AreEqual(defaultValue, forwardedValue.Value);
+            Assert.That(defaultValue == forwardedValue.Value);
             sources[0].Update(false);
-            Assert.AreEqual(defaultValue, forwardedValue.Value);
+            Assert.That(defaultValue == forwardedValue.Value);
             sources[0].Update(true);
             sources[1].Update(false);
-            Assert.AreEqual(defaultValue, forwardedValue.Value);
+            Assert.That(defaultValue == forwardedValue.Value);
             sources[0].Update(false);
-            Assert.AreEqual(defaultValue, forwardedValue.Value);
+            Assert.That(defaultValue == forwardedValue.Value);
         }
     }
 }

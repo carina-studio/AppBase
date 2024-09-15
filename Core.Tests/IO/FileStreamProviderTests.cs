@@ -1,5 +1,4 @@
 ﻿using NUnit.Framework;
-using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -12,7 +11,7 @@ namespace CarinaStudio.IO
 	class FileStreamProviderTests : BaseStreamProviderTests
 	{
 		// Fields.
-		readonly List<string> tempFilePaths = new List<string>();
+		readonly List<string> tempFilePaths = new();
 
 
 		/// <summary>
@@ -45,8 +44,8 @@ namespace CarinaStudio.IO
 		// Get written data.
 		protected override byte[] GetWrittenData(IStreamProvider provider)
 		{
-			using (var stream = new FileStream(((FileStreamProvider)provider).FileName, FileMode.Open, FileAccess.Read))
-				return stream.ReadAllBytes();
+			using var stream = new FileStream(((FileStreamProvider)provider).FileName, FileMode.Open, FileAccess.Read);
+			return stream.ReadAllBytes();
 		}
 	}
 }
