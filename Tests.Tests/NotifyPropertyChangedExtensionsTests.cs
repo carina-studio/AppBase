@@ -50,42 +50,42 @@ namespace CarinaStudio.Tests
 
 			// wait for current property
 			var waitingResult = await obj.WaitForPropertyAsync(nameof(TestObject.TestProperty), obj.TestProperty);
-			Assert.IsTrue(waitingResult);
+			Assert.That(waitingResult);
 
 			// change property before timeout
 			_ = Task.Delay(300).ContinueWith(_ => obj.TestProperty = 123);
 			waitingResult = await obj.WaitForPropertyAsync(nameof(TestObject.TestProperty), 123, 500);
-			Assert.IsTrue(waitingResult);
-			Assert.AreEqual(123, obj.TestProperty);
+			Assert.That(waitingResult);
+			Assert.That(123 == obj.TestProperty);
 
 			// change property after timeout
 			_ = Task.Delay(500).ContinueWith(_ => obj.TestProperty = 321);
 			waitingResult = await obj.WaitForPropertyAsync(nameof(TestObject.TestProperty), 321, 300);
-			Assert.IsFalse(waitingResult);
-			Assert.AreNotEqual(321, obj.TestProperty);
+			Assert.That(!waitingResult);
+			Assert.That(321 != obj.TestProperty);
 			Thread.Sleep(400);
-			Assert.AreEqual(321, obj.TestProperty);
+			Assert.That(321 == obj.TestProperty);
 
 			// cancel waiting before changing property
 			using (var cancellationTokenSource = new CancellationTokenSource())
 			{
-				_ = Task.Delay(500).ContinueWith(_ => obj.TestProperty = 456);
-				_ = Task.Delay(300).ContinueWith(_ => cancellationTokenSource.Cancel());
+				_ = Task.Delay(500, CancellationToken.None).ContinueWith(_ => obj.TestProperty = 456, CancellationToken.None);
+				_ = Task.Delay(300, CancellationToken.None).ContinueWith(_ => cancellationTokenSource.Cancel(), CancellationToken.None);
 				waitingResult = await obj.WaitForPropertyAsync(nameof(TestObject.TestProperty), 456, cancellationToken: cancellationTokenSource.Token);
-				Assert.IsFalse(waitingResult);
-				Assert.AreNotEqual(456, obj.TestProperty);
+				Assert.That(!waitingResult);
+				Assert.That(456 != obj.TestProperty);
 				Thread.Sleep(400);
-				Assert.AreEqual(456, obj.TestProperty);
+				Assert.That(456 == obj.TestProperty);
 			}
 
 			// cancel waiting after changing property
 			using (var cancellationTokenSource = new CancellationTokenSource())
 			{
-				_ = Task.Delay(300).ContinueWith(_ => obj.TestProperty = 789);
-				_ = Task.Delay(500).ContinueWith(_ => cancellationTokenSource.Cancel());
+				_ = Task.Delay(300, CancellationToken.None).ContinueWith(_ => obj.TestProperty = 789, CancellationToken.None);
+				_ = Task.Delay(500, CancellationToken.None).ContinueWith(_ => cancellationTokenSource.Cancel(), CancellationToken.None);
 				waitingResult = await obj.WaitForPropertyAsync(nameof(TestObject.TestProperty), 789, cancellationToken: cancellationTokenSource.Token);
-				Assert.IsTrue(waitingResult);
-				Assert.AreEqual(789, obj.TestProperty);
+				Assert.That(waitingResult);
+				Assert.That(789 == obj.TestProperty);
 			}
 
 			// wait for invalid property

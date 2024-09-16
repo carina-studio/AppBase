@@ -39,26 +39,27 @@ namespace CarinaStudio.Tests
 			// prepare
 			var obj = new TestObject();
 			using var monitor = new EventMonitor<PropertyChangedEventArgs>(obj, nameof(TestObject.TestEvent));
-			Assert.AreEqual(0, monitor.EventCount);
-			Assert.IsNull(monitor.EventArgs);
+			Assert.That(0 == monitor.EventCount);
+			Assert.That(monitor.EventArgs is null);
 
 			// raise event
 			obj.RaiseTestEvents();
-			Assert.AreEqual(1, monitor.EventCount);
-			Assert.AreSame(obj.LatestEventArgs, monitor.EventArgs);
+			Assert.That(1 == monitor.EventCount);
+			Assert.That(ReferenceEquals(obj.LatestEventArgs, monitor.EventArgs));
 
 			// raise event multiple times
 			obj.RaiseTestEvents(128);
-			Assert.AreEqual(129, monitor.EventCount);
-			Assert.AreSame(obj.LatestEventArgs, monitor.EventArgs);
+			Assert.That(129 == monitor.EventCount);
+			Assert.That(ReferenceEquals(obj.LatestEventArgs, monitor.EventArgs));
 
 			// dispose monitor
+			// ReSharper disable once DisposeOnUsingVariable
 			monitor.Dispose();
 
 			// raise event after disposing
 			obj.RaiseTestEvents(128);
-			Assert.AreEqual(129, monitor.EventCount);
-			Assert.AreNotSame(obj.LatestEventArgs, monitor.EventArgs);
+			Assert.That(129 == monitor.EventCount);
+			Assert.That(!ReferenceEquals(obj.LatestEventArgs, monitor.EventArgs));
 		}
 
 
@@ -70,26 +71,27 @@ namespace CarinaStudio.Tests
 		{
 			// prepare
 			using var monitor = new EventMonitor<PropertyChangedEventArgs>(typeof(EventMonitorTests), nameof(TestStaticEvent));
-			Assert.AreEqual(0, monitor.EventCount);
-			Assert.IsNull(monitor.EventArgs);
+			Assert.That(0 == monitor.EventCount);
+			Assert.That(monitor.EventArgs is null);
 
 			// raise event
 			RaiseTestStaticEvents();
-			Assert.AreEqual(1, monitor.EventCount);
-			Assert.AreSame(LatestStaticEventArgs, monitor.EventArgs);
+			Assert.That(1 == monitor.EventCount);
+			Assert.That(ReferenceEquals(LatestStaticEventArgs, monitor.EventArgs));
 
 			// raise event multiple times
 			RaiseTestStaticEvents(128);
-			Assert.AreEqual(129, monitor.EventCount);
-			Assert.AreSame(LatestStaticEventArgs, monitor.EventArgs);
+			Assert.That(129 == monitor.EventCount);
+			Assert.That(ReferenceEquals(LatestStaticEventArgs, monitor.EventArgs));
 
 			// dispose monitor
+			// ReSharper disable once DisposeOnUsingVariable
 			monitor.Dispose();
 
 			// raise event after disposing
 			RaiseTestStaticEvents(128);
-			Assert.AreEqual(129, monitor.EventCount);
-			Assert.AreNotSame(LatestStaticEventArgs, monitor.EventArgs);
+			Assert.That(129 == monitor.EventCount);
+			Assert.That(!ReferenceEquals(LatestStaticEventArgs, monitor.EventArgs));
 		}
 
 
