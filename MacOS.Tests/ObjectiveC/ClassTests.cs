@@ -1,7 +1,6 @@
 using NUnit.Framework;
-using System;
+using System.Collections;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace CarinaStudio.MacOS.ObjectiveC
@@ -73,14 +72,15 @@ namespace CarinaStudio.MacOS.ObjectiveC
                 ("_clsVar", typeof(Class), Class.GetClass("NSString").AsNonNull(), sizeof(nint), "#"),
                 ("_selVar", typeof(Selector), Selector.FromName("hash"), sizeof(nint), ":"),
 
-                ("_boolArrayVar", typeof(bool[]), new bool[] { true, false, true, }, 3 * sizeof(bool), "[3B]"),
+                ("_boolArrayVar", typeof(bool[]), new[] { true, false, true, }, 3 * sizeof(bool), "[3B]"),
                 ("_byteArrayVar", typeof(byte[]), new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }, 8 * sizeof(byte), "[8C]"),
-                ("_intArrayVar", typeof(int[]), new int[] { int.MinValue, int.MaxValue }, 2 * sizeof(int), "[2i]"),
+                ("_intArrayVar", typeof(int[]), new[] { int.MinValue, int.MaxValue }, 2 * sizeof(int), "[2i]"),
                 ("_nsObjArrayVar", typeof(NSObject[]), new NSString[] { new("Hello"), new("World") }, 2 * sizeof(nint), "[2@]"),
             };
-            var invalidVarInfoList = new (/* name */ string, /* native type */ Type, object, int, string)[] {
+            var invalidVarInfoList = new[] {
+                // name, native type, object, int, string
                 ("_objVar", typeof(object), new object(), sizeof(nint), "^v"),
-                ("_objArrayVar", typeof(nint[]), new object[] { "Hello", "World", "!", new object() }, 4 * Marshal.SizeOf(typeof(nint)), "[4^v]"),
+                ("_objArrayVar", typeof(nint[]), new[] { "Hello", "World", "!", new object() }, 4 * Marshal.SizeOf(typeof(nint)), "[4^v]"),
             };
 
             // define class
@@ -99,6 +99,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
                         cls.DefineInstanceVariable(varInfo.Item1, varInfo.Item3.GetType(), array?.Length ?? 1);
                         Assert.Fail($"Should not support defining variable with {varInfo.Item2.Name}.");
                     }
+                    // ReSharper disable once EmptyGeneralCatchClause
                     catch
                     { }
                 }
@@ -109,36 +110,47 @@ namespace CarinaStudio.MacOS.ObjectiveC
             foreach (var varInfo in varInfoList)
             {
                 var ivar = cls.GetInstanceVariable(varInfo.Item1);
-                Assert.IsNotNull(ivar);
+                Assert.That(ivar is not null);
                 
                 // check name
-                Assert.AreEqual(varInfo.Item1, ivar!.Name);
+                Assert.That(varInfo.Item1 == ivar!.Name);
 
                 // check value type
                 if (varInfo.Item2 == typeof(char))
-                    Assert.AreEqual(typeof(ushort), ivar.Type);
+                    Assert.That(typeof(ushort) == ivar.Type);
                 else if (varInfo.Item2 == typeof(nuint))
-                    Assert.AreEqual(typeof(nint), ivar.Type);
+                    Assert.That(typeof(nint) == ivar.Type);
                 else if (varInfo.Item2 == typeof(TestStructure))
-                    Assert.AreEqual(typeof(byte[]), ivar.Type);
+                    Assert.That(typeof(byte[]) == ivar.Type);
                 else
-                    Assert.AreEqual(varInfo.Item2, ivar.Type);
+                    Assert.That(varInfo.Item2 == ivar.Type);
                 
                 // check data size
                 if (varInfo.Item2 == typeof(TestStructure))
                 {
-                    Assert.AreEqual(Marshal.SizeOf<TestStructure>(), ivar.Size);
-                    Assert.AreEqual(Marshal.SizeOf<TestStructure>(), ivar.ElementCount);
+                    Assert.That(Marshal.SizeOf<TestStructure>() == ivar.Size);
+                    Assert.That(Marshal.SizeOf<TestStructure>() == ivar.ElementCount);
                 }
                 else
-                    Assert.AreEqual(varInfo.Item4, ivar.Size);
+                    Assert.That(varInfo.Item4 == ivar.Size);
 
                 // check type encoding
-                Assert.AreEqual(varInfo.Item5, ivar.TypeEncoding);
+                Assert.That(varInfo.Item5 == ivar.TypeEncoding);
 
                 // check value after setting and getting
                 NSObject.SetVariable(instance, ivar, varInfo.Item3);
-                Assert.AreEqual(varInfo.Item3, NSObject.GetVariable(instance, ivar, varInfo.Item3.GetType()));
+                var x = varInfo.Item3;
+                var y = NSObject.GetVariable(instance, ivar, varInfo.Item3.GetType());
+                if (x is not IList xList)
+                     Assert.That(Equals(x, y));
+                else if (y is not IList yList)
+                    Assert.Fail("Value got from NSObject should be an IList.");
+                else
+                {
+                    Assert.That(xList.Count == yList.Count);
+                    for (var i = 0; i < xList.Count; ++i)
+                        Assert.That(Equals(xList[i], yList[i]));
+                }
             }
 
             // complete
@@ -162,20 +174,20 @@ namespace CarinaStudio.MacOS.ObjectiveC
                 DoubleField = double.NaN,
             };
             var methodInfoList = new (Selector, Delegate, Type?, object?)[] {
-                (Selector.FromName("boolMethod"), new Func<IntPtr, Selector, bool>((self, cmd) => true), typeof(bool), null),
-                (Selector.FromName("boolMethod1"), new Func<IntPtr, Selector, bool, bool>((self, cmd, arg) => arg), typeof(bool), true),
-                (Selector.FromName("byteMethod"), new Func<IntPtr, Selector, byte>((self, cmd) => byte.MaxValue), typeof(byte), null),
-                (Selector.FromName("byteMethod1"), new Func<IntPtr, Selector, byte, byte>((self, cmd, arg) => arg), typeof(byte), byte.MaxValue),
-                (Selector.FromName("sbyteMethod"), new Func<IntPtr, Selector, sbyte>((self, cmd) => sbyte.MinValue), typeof(sbyte), null),
-                (Selector.FromName("sbyteMethod1"), new Func<IntPtr, Selector, sbyte, sbyte>((self, cmd, arg) => arg), typeof(sbyte), sbyte.MinValue),
-                (Selector.FromName("intMethod"), new Func<IntPtr, Selector, int>((self, cmd) => int.MinValue), typeof(int), null),
-                (Selector.FromName("intMethod1"), new Func<IntPtr, Selector, int, int>((self, cmd, arg) => arg), typeof(int), int.MinValue),
-                (Selector.FromName("uintMethod"), new Func<IntPtr, Selector, uint>((self, cmd) => uint.MaxValue), typeof(uint), null),
-                (Selector.FromName("uintMethod1"), new Func<IntPtr, Selector, uint, uint>((self, cmd, arg) => arg), typeof(uint), uint.MaxValue),
-                (Selector.FromName("tsMethod"), new Func<IntPtr, Selector, TestStructure>((self, cmd) => ts), typeof(TestStructure), null),
-                (Selector.FromName("tsMethod1"), new Func<IntPtr, Selector, TestStructure, TestStructure>((self, cmd, arg) => arg), typeof(TestStructure), ts),
-                (Selector.FromName("nsObjMethod"), new Func<IntPtr, Selector, NSString>((self, cmd) => new NSString("Foo")), typeof(NSString), null),
-                (Selector.FromName("nsObjMethod1"), new Func<IntPtr, Selector, NSString, NSString>((self, cmd, arg) => arg), typeof(NSString), new NSString("Bar")),
+                (Selector.FromName("boolMethod"), new Func<IntPtr, Selector, bool>((_, _) => true), typeof(bool), null),
+                (Selector.FromName("boolMethod1"), new Func<IntPtr, Selector, bool, bool>((_, _, arg) => arg), typeof(bool), true),
+                (Selector.FromName("byteMethod"), new Func<IntPtr, Selector, byte>((_, _) => byte.MaxValue), typeof(byte), null),
+                (Selector.FromName("byteMethod1"), new Func<IntPtr, Selector, byte, byte>((_, _, arg) => arg), typeof(byte), byte.MaxValue),
+                (Selector.FromName("sbyteMethod"), new Func<IntPtr, Selector, sbyte>((_, _) => sbyte.MinValue), typeof(sbyte), null),
+                (Selector.FromName("sbyteMethod1"), new Func<IntPtr, Selector, sbyte, sbyte>((_, _, arg) => arg), typeof(sbyte), sbyte.MinValue),
+                (Selector.FromName("intMethod"), new Func<IntPtr, Selector, int>((_, _) => int.MinValue), typeof(int), null),
+                (Selector.FromName("intMethod1"), new Func<IntPtr, Selector, int, int>((_, _, arg) => arg), typeof(int), int.MinValue),
+                (Selector.FromName("uintMethod"), new Func<IntPtr, Selector, uint>((_, _) => uint.MaxValue), typeof(uint), null),
+                (Selector.FromName("uintMethod1"), new Func<IntPtr, Selector, uint, uint>((_, _, arg) => arg), typeof(uint), uint.MaxValue),
+                (Selector.FromName("tsMethod"), new Func<IntPtr, Selector, TestStructure>((_, _) => ts), typeof(TestStructure), null),
+                (Selector.FromName("tsMethod1"), new Func<IntPtr, Selector, TestStructure, TestStructure>((_, _, arg) => arg), typeof(TestStructure), ts),
+                (Selector.FromName("nsObjMethod"), new Func<IntPtr, Selector, NSString>((_, _) => new NSString("Foo")), typeof(NSString), null),
+                (Selector.FromName("nsObjMethod1"), new Func<IntPtr, Selector, NSString, NSString>((_, _, arg) => arg), typeof(NSString), new NSString("Bar")),
             };
 
             // define class
@@ -185,12 +197,11 @@ namespace CarinaStudio.MacOS.ObjectiveC
                 // define method to verify self and selector
                 cls.DefineMethod<IntPtr>(verifySelfAndCmdSelector, (self, sel, expectedSelf) =>
                 {
-                    Assert.AreEqual(expectedSelf, self);
-                    Assert.AreEqual(verifySelfAndCmdSelector, sel);
+                    Assert.That(expectedSelf == self);
+                    Assert.That(verifySelfAndCmdSelector == sel);
                 });
 
                 // define method returning value without parameter
-                var funcType = typeof(Func<object>).GetGenericTypeDefinition();
                 foreach (var methodInfo in methodInfoList)
                     cls.DefineMethod(methodInfo.Item1, methodInfo.Item2);
             });
@@ -206,7 +217,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
                 var returnValue = methodInfo.Item4 == null
                     ? NSObject.SendMessageCore(instance, methodInfo.Item1, methodInfo.Item3)
                     : NSObject.SendMessageCore(instance, methodInfo.Item1, methodInfo.Item3, methodInfo.Item4);
-                Assert.AreEqual(expectedReturnValue, returnValue);
+                Assert.That(Equals(expectedReturnValue, returnValue));
             }
 
             // complete

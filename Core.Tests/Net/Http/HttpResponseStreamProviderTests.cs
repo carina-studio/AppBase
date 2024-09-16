@@ -137,7 +137,7 @@ namespace CarinaStudio.Net.Http
 		[OneTimeSetUp]
 		public void SetupHttpListener()
 		{
-			this.httpListener.Prefixes.Add("http://localhost:9522/");
+			this.httpListener.Prefixes.Add("http://localhost:9523/");
 			this.httpListener.Start();
 			ThreadPool.QueueUserWorkItem(_ =>
 			{
