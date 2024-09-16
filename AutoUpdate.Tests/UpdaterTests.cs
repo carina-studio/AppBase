@@ -41,8 +41,8 @@ namespace CarinaStudio.AutoUpdate
 			{
 				var bytes = hashAlgorithm.ComputeHash(stream);
 				var hashBuilder = new StringBuilder();
-				for (var i = 0; i < bytes.Length; ++i)
-					hashBuilder.AppendFormat("{0:X2}", bytes[i]);
+				foreach (var b in bytes)
+					hashBuilder.AppendFormat("{0:X2}", b);
 				stream.Position = 0;
 				return hashBuilder.ToString();
 			}
@@ -87,90 +87,90 @@ namespace CarinaStudio.AutoUpdate
 				this.remotePackageFilePath = packageFilePath;
 
 				// update and cancel immediately
-				using (var updater = new Updater(this.Application)
+				await new Updater(this.Application).Setup(updater =>
 				{
-					ApplicationDirectoryPath = baseAppDirectory,
-					PackageInstaller = new ZipPackageInstaller(this.Application),
-					PackageResolver = new DummyPackageResolver(this.Application, packageFilePath) { Source = new MemoryStreamProvider() },
-				})
+					updater.ApplicationDirectoryPath = baseAppDirectory;
+					updater.PackageInstaller = new ZipPackageInstaller(this.Application);
+					updater.PackageResolver = new DummyPackageResolver(this.Application, packageFilePath) { Source = new MemoryStreamProvider() };
+				}).UseAsync(async updater =>
 				{
-					Assert.IsFalse(updater.Cancel());
-					Assert.IsTrue(updater.Start());
-					Assert.IsTrue(updater.Cancel());
-					Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.Cancelled, 10000));
-				}
+					Assert.That(!updater.Cancel());
+					Assert.That(updater.Start());
+					Assert.That(updater.Cancel());
+					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.Cancelled, 10000));
+				});
 
 				// verify installed files
-				Assert.IsTrue(baseAppFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
+				Assert.That(baseAppFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
 
 				// update and cancel when resolving package
-				using (var updater = new Updater(this.Application)
+				await new Updater(this.Application).Setup(updater =>
 				{
-					ApplicationDirectoryPath = baseAppDirectory,
-					PackageInstaller = new ZipPackageInstaller(this.Application),
-					PackageResolver = new DummyPackageResolver(this.Application, packageFilePath) { Source = new MemoryStreamProvider() },
-				})
+					updater.ApplicationDirectoryPath = baseAppDirectory;
+					updater.PackageInstaller = new ZipPackageInstaller(this.Application);
+					updater.PackageResolver = new DummyPackageResolver(this.Application, packageFilePath) { Source = new MemoryStreamProvider() };
+				}).UseAsync(async updater =>
 				{
-					Assert.IsTrue(updater.Start());
+					Assert.That(updater.Start());
 					await Task.Delay(500);
-					Assert.AreEqual(UpdaterState.ResolvingPackage, updater.State);
-					Assert.IsTrue(updater.Cancel());
-					Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.Cancelled, 10000));
-				}
+					Assert.That(UpdaterState.ResolvingPackage == updater.State);
+					Assert.That(updater.Cancel());
+					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.Cancelled, 10000));
+				});
 
 				// verify installed files
-				Assert.IsTrue(baseAppFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
+				Assert.That(baseAppFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
 
 				// update and cancel when downloading package
-				using (var updater = new Updater(this.Application)
+				await new Updater(this.Application).Setup(updater =>
 				{
-					ApplicationDirectoryPath = baseAppDirectory,
-					PackageInstaller = new ZipPackageInstaller(this.Application),
-					PackageResolver = new DummyPackageResolver(this.Application, packageFilePath) { Source = new MemoryStreamProvider() },
-				})
+					updater.ApplicationDirectoryPath = baseAppDirectory;
+					updater.PackageInstaller = new ZipPackageInstaller(this.Application);
+					updater.PackageResolver = new DummyPackageResolver(this.Application, packageFilePath) { Source = new MemoryStreamProvider() };
+				}).UseAsync(async updater =>
 				{
-					Assert.IsTrue(updater.Start());
-					Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.DownloadingPackage, 10000));
+					Assert.That(updater.Start());
+					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.DownloadingPackage, 10000));
 					await Task.Delay(500);
-					Assert.IsTrue(updater.Cancel());
-					Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.Cancelled, 10000));
-				}
+					Assert.That(updater.Cancel());
+					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.Cancelled, 10000));
+				});
 
 				// verify installed files
-				Assert.IsTrue(baseAppFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
+				Assert.That(baseAppFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
 
 				// update and cancel when installing package
-				using (var updater = new Updater(this.Application)
+				await new Updater(this.Application).Setup(updater =>
 				{
-					ApplicationDirectoryPath = baseAppDirectory,
-					PackageInstaller = new ZipPackageInstaller(this.Application),
-					PackageResolver = new DummyPackageResolver(this.Application, packageFilePath) { Source = new MemoryStreamProvider() },
-				})
+					updater.ApplicationDirectoryPath = baseAppDirectory;
+					updater.PackageInstaller = new ZipPackageInstaller(this.Application);
+					updater.PackageResolver = new DummyPackageResolver(this.Application, packageFilePath) { Source = new MemoryStreamProvider() };
+				}).UseAsync(async updater =>
 				{
-					Assert.IsTrue(updater.Start());
-					Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.InstallingPackage, 60000));
-					Assert.IsTrue(updater.Cancel());
-					Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.Cancelled, 10000));
-				}
+					Assert.That(updater.Start());
+					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.InstallingPackage, 60000));
+					Assert.That(updater.Cancel());
+					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.Cancelled, 10000));
+				});
 
 				// verify installed files
-				Assert.IsTrue(baseAppFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
+				Assert.That(baseAppFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
 
 				// update and cancel after completed
-				using (var updater = new Updater(this.Application)
+				await new Updater(this.Application).Setup(updater =>
 				{
-					ApplicationDirectoryPath = baseAppDirectory,
-					PackageInstaller = new ZipPackageInstaller(this.Application),
-					PackageResolver = new DummyPackageResolver(this.Application, packageFilePath) { Source = new MemoryStreamProvider() },
-				})
+					updater.ApplicationDirectoryPath = baseAppDirectory;
+					updater.PackageInstaller = new ZipPackageInstaller(this.Application);
+					updater.PackageResolver = new DummyPackageResolver(this.Application, packageFilePath) { Source = new MemoryStreamProvider() };
+				}).UseAsync(async updater =>
 				{
-					Assert.IsTrue(updater.Start());
-					Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.Succeeded, 60000));
-					Assert.IsFalse(updater.Cancel());
-				}
+					Assert.That(updater.Start());
+					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.Succeeded, 60000));
+					Assert.That(!updater.Cancel());
+				});
 
 				// verify installed files
-				Assert.IsTrue(expectedUpdatedFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
+				Assert.That(expectedUpdatedFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
 			});
 		}
 
@@ -199,79 +199,82 @@ namespace CarinaStudio.AutoUpdate
 
 				// prepare update package
 				var packageDirectory = this.GenerateRandomApplication();
-				var packageFilePaths = this.CollectFilePaths(packageDirectory);
 				var packageFilePath = this.GeneratePackageFile(packageDirectory);
 				this.remotePackageFilePath = packageFilePath;
 
 				// update and dispose immediately
-				using (var updater = new Updater(this.Application)
+				new Updater(this.Application).Setup(updater =>
 				{
-					ApplicationDirectoryPath = baseAppDirectory,
-					PackageInstaller = new ZipPackageInstaller(this.Application),
-					PackageResolver = new DummyPackageResolver(this.Application, packageFilePath) { Source = new MemoryStreamProvider() },
-				})
+					updater.ApplicationDirectoryPath = baseAppDirectory;
+					updater.PackageInstaller = new ZipPackageInstaller(this.Application);
+					updater.PackageResolver = new DummyPackageResolver(this.Application, packageFilePath) { Source = new MemoryStreamProvider() };
+				}).Use(updater =>
 				{
-					Assert.IsFalse(updater.Cancel());
-					Assert.IsTrue(updater.Start());
+					Assert.That(!updater.Cancel());
+					Assert.That(updater.Start());
+					// ReSharper disable once DisposeOnUsingVariable
 					updater.Dispose();
-					Assert.AreEqual(UpdaterState.Disposed, updater.State);
-				}
+					Assert.That(UpdaterState.Disposed == updater.State);
+				});
 
 				// verify installed files
-				Assert.IsTrue(baseAppFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
+				Assert.That(baseAppFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
 
 				// update and dispose when resolving package
-				using (var updater = new Updater(this.Application)
+				await new Updater(this.Application).Setup(updater =>
 				{
-					ApplicationDirectoryPath = baseAppDirectory,
-					PackageInstaller = new ZipPackageInstaller(this.Application),
-					PackageResolver = new DummyPackageResolver(this.Application, packageFilePath) { Source = new MemoryStreamProvider() },
-				})
+					updater.ApplicationDirectoryPath = baseAppDirectory;
+					updater.PackageInstaller = new ZipPackageInstaller(this.Application);
+					updater.PackageResolver = new DummyPackageResolver(this.Application, packageFilePath) { Source = new MemoryStreamProvider() };
+				}).UseAsync(async updater =>
 				{
-					Assert.IsTrue(updater.Start());
+					Assert.That(updater.Start());
 					await Task.Delay(500);
-					Assert.AreEqual(UpdaterState.ResolvingPackage, updater.State);
+					Assert.That(UpdaterState.ResolvingPackage == updater.State);
+					// ReSharper disable once DisposeOnUsingVariable
 					updater.Dispose();
-					Assert.AreEqual(UpdaterState.Disposed, updater.State);
-				}
+					Assert.That(UpdaterState.Disposed == updater.State);
+				});
 
 				// verify installed files
-				Assert.IsTrue(baseAppFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
+				Assert.That(baseAppFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
 
 				// update and dispose when downloading package
-				using (var updater = new Updater(this.Application)
+				await new Updater(this.Application).Setup(updater =>
 				{
-					ApplicationDirectoryPath = baseAppDirectory,
-					PackageInstaller = new ZipPackageInstaller(this.Application),
-					PackageResolver = new DummyPackageResolver(this.Application, packageFilePath) { Source = new MemoryStreamProvider() },
-				})
+					updater.ApplicationDirectoryPath = baseAppDirectory;
+					updater.PackageInstaller = new ZipPackageInstaller(this.Application);
+					updater.PackageResolver = new DummyPackageResolver(this.Application, packageFilePath) { Source = new MemoryStreamProvider() };
+				}).UseAsync(async updater =>
 				{
-					Assert.IsTrue(updater.Start());
-					Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.DownloadingPackage, 10000));
+					Assert.That(updater.Start());
+					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.DownloadingPackage, 10000));
 					await Task.Delay(500);
+					// ReSharper disable once DisposeOnUsingVariable
 					updater.Dispose();
-					Assert.AreEqual(UpdaterState.Disposed, updater.State);
-				}
+					Assert.That(UpdaterState.Disposed == updater.State);
+				});
 
 				// verify installed files
-				Assert.IsTrue(baseAppFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
+				Assert.That(baseAppFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
 
 				// update and dispose when installing package
-				using (var updater = new Updater(this.Application)
+				await new Updater(this.Application).Setup(updater =>
 				{
-					ApplicationDirectoryPath = baseAppDirectory,
-					PackageInstaller = new ZipPackageInstaller(this.Application),
-					PackageResolver = new DummyPackageResolver(this.Application, packageFilePath) { Source = new MemoryStreamProvider() },
-				})
+					updater.ApplicationDirectoryPath = baseAppDirectory;
+					updater.PackageInstaller = new ZipPackageInstaller(this.Application);
+					updater.PackageResolver = new DummyPackageResolver(this.Application, packageFilePath) { Source = new MemoryStreamProvider() };
+				}).UseAsync(async updater =>
 				{
-					Assert.IsTrue(updater.Start());
-					Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.InstallingPackage, 60000));
+					Assert.That(updater.Start());
+					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.InstallingPackage, 60000));
+					// ReSharper disable once DisposeOnUsingVariable
 					updater.Dispose();
-					Assert.AreEqual(UpdaterState.Disposed, updater.State);
-				}
+					Assert.That(UpdaterState.Disposed == updater.State);
+				});
 
 				// verify installed files
-				Assert.IsTrue(baseAppFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
+				Assert.That(baseAppFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
 			});
 		}
 
@@ -290,25 +293,26 @@ namespace CarinaStudio.AutoUpdate
 
 				// prepare update package
 				var packageDirectory = this.GenerateRandomApplication();
-				var packageFilePaths = this.CollectFilePaths(packageDirectory);
 				var packageFilePath = this.GeneratePackageFile(packageDirectory);
 				this.remotePackageFilePath = null;
 
 				// update application
-				using var updater = new Updater(this.Application)
+				await new Updater(this.Application).Setup(updater =>
 				{
-					ApplicationDirectoryPath = baseAppDirectory,
-					PackageInstaller = new ZipPackageInstaller(this.Application),
-					PackageResolver = new DummyPackageResolver(this.Application, packageFilePath) { Source = new MemoryStreamProvider() },
-				};
-				Assert.IsTrue(updater.Start());
-				Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.ResolvingPackage, 1000));
-				Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.DownloadingPackage, 5000));
-				Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.VerifyingPackage, 60000));
-				Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.Failed, 10000));
+					updater.ApplicationDirectoryPath = baseAppDirectory;
+					updater.PackageInstaller = new ZipPackageInstaller(this.Application);
+					updater.PackageResolver = new DummyPackageResolver(this.Application, packageFilePath) { Source = new MemoryStreamProvider() };
+				}).UseAsync(async updater =>
+				{
+					Assert.That(updater.Start());
+					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.ResolvingPackage, 1000));
+					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.DownloadingPackage, 5000));
+					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.VerifyingPackage, 60000));
+					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.Failed, 10000));
+				});
 
 				// verify installed files
-				Assert.IsTrue(baseAppFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
+				Assert.That(baseAppFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
 			});
 		}
 
@@ -340,46 +344,46 @@ namespace CarinaStudio.AutoUpdate
 			{
 				// prepare base application
 				var baseAppDirectory = this.GenerateRandomApplication();
-				var baseAppFilePaths = this.CollectFilePaths(baseAppDirectory);
 
 				// prepare update package
 				var packageDirectory = this.GenerateRandomApplication();
-				var packageFilePaths = this.CollectFilePaths(packageDirectory);
 				var packageFilePath = this.GeneratePackageFile(packageDirectory);
 				this.remotePackageFilePath = packageFilePath;
 
 				// check progress reported when downloading package
-				using var updater = new Updater(this.Application)
+				await new Updater(this.Application).Setup(updater =>
 				{
-					ApplicationDirectoryPath = baseAppDirectory,
-					PackageInstaller = new ZipPackageInstaller(this.Application),
-					PackageResolver = new DummyPackageResolver(this.Application, packageFilePath) { Source = new MemoryStreamProvider() },
-				};
-				var prevProgress = updater.Progress;
-				var hasIncrementalProgressChange = false;
-				var propertyChangedHandler = new PropertyChangedEventHandler((_, e) =>
+					updater.ApplicationDirectoryPath = baseAppDirectory;
+					updater.PackageInstaller = new ZipPackageInstaller(this.Application);
+					updater.PackageResolver = new DummyPackageResolver(this.Application, packageFilePath) { Source = new MemoryStreamProvider() };
+				}).UseAsync(async updater =>
 				{
-					if (e.PropertyName == nameof(Updater.Progress))
+					var prevProgress = updater.Progress;
+					var hasIncrementalProgressChange = false;
+					var propertyChangedHandler = new PropertyChangedEventHandler((_, e) =>
 					{
-						if (updater.State != UpdaterState.DownloadingPackage)
-							return;
-						var progress = updater.Progress;
-						if (double.IsFinite(progress))
+						if (e.PropertyName == nameof(Updater.Progress))
 						{
-							Assert.IsTrue(double.IsNaN(prevProgress) || prevProgress < progress);
-							hasIncrementalProgressChange = true;
+							if (updater.State != UpdaterState.DownloadingPackage)
+								return;
+							var progress = updater.Progress;
+							if (double.IsFinite(progress))
+							{
+								Assert.That(double.IsNaN(prevProgress) || prevProgress < progress);
+								hasIncrementalProgressChange = true;
+							}
+							prevProgress = progress;
 						}
-						prevProgress = progress;
-					}
+					});
+					Assert.That(updater.Start());
+					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.DownloadingPackage, 5000));
+					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.Progress), 0.0, 5000));
+					updater.PropertyChanged += propertyChangedHandler;
+					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.InstallingPackage, 60000));
+					updater.PropertyChanged -= propertyChangedHandler;
+					Assert.That(hasIncrementalProgressChange);
+					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.Succeeded, 10000));
 				});
-				Assert.IsTrue(updater.Start());
-				Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.DownloadingPackage, 5000));
-				Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.Progress), 0.0, 5000));
-				updater.PropertyChanged += propertyChangedHandler;
-				Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.InstallingPackage, 60000));
-				updater.PropertyChanged -= propertyChangedHandler;
-				Assert.IsTrue(hasIncrementalProgressChange);
-				Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.Succeeded, 10000));
 			});
 		}
 
@@ -397,60 +401,55 @@ namespace CarinaStudio.AutoUpdate
 				while (true)
 				{
 					// wait for connection
-					var context = (HttpListenerContext?)null;
+					HttpListenerContext? context;
 					try
 					{
 						context = this.httpListener.GetContext();
 					}
 					catch
 					{
-						if (this.httpListener?.IsListening != true)
+						if (this.httpListener.IsListening != true)
 							break;
 						throw;
 					}
 
 					// load update package
-					var updatePackage = this.remotePackageFilePath?.Let(it =>
-					{
-						return new FileStream(it, FileMode.Open, FileAccess.Read).Use(stream => stream.ReadAllBytes());
-					}) ?? new byte[0];
+					var updatePackage = this.remotePackageFilePath?.Let(it => { return new FileStream(it, FileMode.Open, FileAccess.Read).Use(stream => stream.ReadAllBytes()); }) ?? Array.Empty<byte>();
 
 					// response
-					using (var response = context.Response)
+					using var response = context.Response;
+					var offset = 0;
+					var chunkSize = updatePackage.Length / 30;
+					var stopWatch = new Stopwatch().Also(it => it.Start());
+					using var stream = response.OutputStream;
+					response.ContentLength64 = updatePackage.Length;
+					while (offset < updatePackage.Length)
 					{
-						var offset = 0;
-						var chunkSize = updatePackage.Length / 30;
-						var stopWatch = new Stopwatch().Also(it => it.Start());
-						using var stream = response.OutputStream;
-						response.ContentLength64 = updatePackage.Length;
-						while (offset < updatePackage.Length)
+						try
 						{
-							try
+							if (offset + chunkSize >= updatePackage.Length)
 							{
-								if (offset + chunkSize >= updatePackage.Length)
-								{
-									var delay = (3000 - stopWatch.ElapsedMilliseconds);
-									if (delay > 0)
-										Thread.Sleep((int)delay);
-									stream.Write(updatePackage, offset, updatePackage.Length - offset);
-									offset = updatePackage.Length;
-								}
-								else
-								{
-									stream.Write(updatePackage, offset, chunkSize);
-									offset += chunkSize;
-								}
-								stream.Flush();
+								var delay = (3000 - stopWatch.ElapsedMilliseconds);
+								if (delay > 0)
+									Thread.Sleep((int)delay);
+								stream.Write(updatePackage, offset, updatePackage.Length - offset);
+								offset = updatePackage.Length;
 							}
-							catch (Exception ex)
-							{ 
-								Console.Error.WriteLine("Error occurred while sending update package");
-								Console.Error.WriteLine(ex.Message);
-								Console.Error.WriteLine(ex.StackTrace);
-								break;
+							else
+							{
+								stream.Write(updatePackage, offset, chunkSize);
+								offset += chunkSize;
 							}
-							Thread.Sleep(100);
+							stream.Flush();
 						}
+						catch (Exception ex)
+						{
+							Console.Error.WriteLine("Error occurred while sending update package");
+							Console.Error.WriteLine(ex.Message);
+							Console.Error.WriteLine(ex.StackTrace);
+							break;
+						}
+						Thread.Sleep(100);
 					}
 				}
 			});
@@ -484,21 +483,23 @@ namespace CarinaStudio.AutoUpdate
 				this.remotePackageFilePath = packageFilePath;
 
 				// update application
-				using var updater = new Updater(this.Application)
+				await new Updater(this.Application).Setup(updater =>
 				{
-					ApplicationDirectoryPath = baseAppDirectory,
-					PackageInstaller = new ZipPackageInstaller(this.Application),
-					PackageResolver = new DummyPackageResolver(this.Application, packageFilePath) { Source = new MemoryStreamProvider() },
-				};
-				Assert.IsTrue(updater.Start());
-				Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.ResolvingPackage, 1000));
-				Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.DownloadingPackage, 5000));
-				Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.VerifyingPackage, 60000));
-				Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.InstallingPackage, 5000));
-				Assert.IsTrue(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.Succeeded, 10000));
+					updater.ApplicationDirectoryPath = baseAppDirectory;
+					updater.PackageInstaller = new ZipPackageInstaller(this.Application);
+					updater.PackageResolver = new DummyPackageResolver(this.Application, packageFilePath) { Source = new MemoryStreamProvider() };
+				}).UseAsync(async updater =>
+				{
+					Assert.That(updater.Start());
+					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.ResolvingPackage, 1000));
+					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.DownloadingPackage, 5000));
+					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.VerifyingPackage, 60000));
+					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.InstallingPackage, 5000));
+					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.Succeeded, 10000));
+				});
 
 				// verify installed files
-				Assert.IsTrue(expectedUpdatedFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
+				Assert.That(expectedUpdatedFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
 			});
 		}
 	}

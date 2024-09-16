@@ -36,14 +36,14 @@ namespace CarinaStudio.AutoUpdate.Installers
 				// prepare
 				var installer = this.CreateInstance();
 				var packageSourceDir = this.GenerateRandomApplication();
-				var packageFileName = Tests.Random.CreateFileWithRandomName(this.RootTempDirectoryPath).Use(it => it.Name);
+				var packageFileName = Random.CreateFileWithRandomName(this.RootTempDirectoryPath).Use(it => it.Name);
 				this.CreatePackageFile(packageSourceDir, packageFileName);
 
 				// install package
 				installer.PackageFileName = packageFileName;
 				installer.TargetDirectoryPath = this.CreateTempDirectory();
-				Assert.IsTrue(installer.Start());
-				Assert.IsTrue(await installer.WaitForPropertyAsync(nameof(IPackageInstaller.State), UpdaterComponentState.Succeeded, 60000));
+				Assert.That(installer.Start());
+				Assert.That(await installer.WaitForPropertyAsync(nameof(IPackageInstaller.State), UpdaterComponentState.Succeeded, 60000));
 
 				// verify installed files
 				this.VerifyFilesAndDirectories(packageSourceDir, installer.TargetDirectoryPath);
@@ -51,7 +51,7 @@ namespace CarinaStudio.AutoUpdate.Installers
 				// verify reported installed files
 				var actualInstalledFilePaths = new HashSet<string>(PathEqualityComparer.Default);
 				this.CollectFilePaths(installer.TargetDirectoryPath, actualInstalledFilePaths);
-				Assert.IsTrue(actualInstalledFilePaths.SetEquals(installer.InstalledFilePaths));
+				Assert.That(actualInstalledFilePaths.SetEquals(installer.InstalledFilePaths));
 			});
 		}
 	}

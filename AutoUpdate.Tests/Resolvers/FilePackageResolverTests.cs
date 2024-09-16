@@ -28,10 +28,10 @@ namespace CarinaStudio.AutoUpdate.Resolvers
                 await resolver.StartAndWaitAsync();
 
                 // check result
-                Assert.AreEqual(UpdaterComponentState.Succeeded, resolver.State);
-                Assert.AreEqual(appName, resolver.ApplicationName);
-                Assert.AreEqual("file", resolver.PackageUri?.Scheme);
-                Assert.AreEqual(packageFile, resolver.PackageUri?.Let(uri =>
+                Assert.That(UpdaterComponentState.Succeeded == resolver.State);
+                Assert.That(appName == resolver.ApplicationName);
+                Assert.That("file" == resolver.PackageUri?.Scheme);
+                Assert.That(packageFile == resolver.PackageUri?.Let(uri =>
                 {
                     var localPath = uri.LocalPath;
                     return Path.DirectorySeparatorChar switch
@@ -40,7 +40,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
                         _ => localPath,
                     };
                 }));
-                Assert.AreEqual(packageVersion, resolver.PackageVersion);
+                Assert.That(packageVersion == resolver.PackageVersion);
             });
         }
     }

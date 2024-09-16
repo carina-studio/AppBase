@@ -211,6 +211,7 @@ namespace CarinaStudio.AutoUpdate
 			var exception = (Exception?)null;
 			lock (syncLock)
 			{
+				// ReSharper disable once AsyncVoidLambda
 				this.applicationSyncContext.AsNonNull().Post(async () =>
 				{
 					try
@@ -251,26 +252,26 @@ namespace CarinaStudio.AutoUpdate
 			// verify files
 			var refFileNames = System.IO.Directory.GetFiles(refDirectory).Also(it => Array.Sort(it, string.Compare));
 			var fileNames = System.IO.Directory.GetFiles(directory).Also(it => Array.Sort(it, string.Compare));
-			Assert.AreEqual(refFileNames.Length, fileNames.Length);
+			Assert.That(refFileNames.Length == fileNames.Length);
 			for (var i = refFileNames.Length - 1; i >= 0; --i)
 			{
 				var refFileName = refFileNames[i];
 				var fileName = fileNames[i];
-				Assert.AreEqual(Path.GetFileName(refFileName), Path.GetFileName(fileName));
+				Assert.That(Path.GetFileName(refFileName) == Path.GetFileName(fileName));
 				var srcData = new FileStream(refFileName, FileMode.Open, FileAccess.Read).Use(it => it.ReadAllBytes());
 				var targetData = new FileStream(fileName, FileMode.Open, FileAccess.Read).Use(it => it.ReadAllBytes());
-				Assert.IsTrue(srcData.SequenceEqual(targetData));
+				Assert.That(srcData.SequenceEqual(targetData));
 			}
 
 			// verify sub directories
 			var refSubDirectories = System.IO.Directory.GetDirectories(refDirectory).Also(it => Array.Sort(it, string.Compare));
 			var subDirectories = System.IO.Directory.GetDirectories(directory).Also(it => Array.Sort(it, string.Compare));
-			Assert.AreEqual(refSubDirectories.Length, subDirectories.Length);
+			Assert.That(refSubDirectories.Length == subDirectories.Length);
 			for (var i = refSubDirectories.Length - 1; i >= 0; --i)
 			{
 				var refSubDirectory = refSubDirectories[i];
 				var subDirectory = subDirectories[i];
-				Assert.AreEqual(Path.GetFileName(refSubDirectory), Path.GetFileName(subDirectory));
+				Assert.That(Path.GetFileName(refSubDirectory) == Path.GetFileName(subDirectory));
 				this.VerifyFilesAndDirectories(refSubDirectory, subDirectory);
 			}
 		}

@@ -15,40 +15,40 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 		/// <summary>
 		/// Information of single package.
 		/// </summary>
-		public struct PackageInfo
+		protected record struct PackageInfo
 		{
 			/// <summary>
 			/// Get or set CPU architecture.
 			/// </summary>
-			public Architecture? Architecture { get; set; }
+			public Architecture? Architecture { get; init; }
 			/// <summary>
 			/// Get or set base version to upgrade.
 			/// </summary>
-			public Version? BaseVersion { get; set; }
+			public Version? BaseVersion { get; init; }
 			/// <summary>
 			/// MD5 of update package.
 			/// </summary>
-			public string? MD5 { get; set; }
+			public string? MD5 { get; init; }
 			/// <summary>
 			/// Get or set operating system.
 			/// </summary>
-			public string? OperatingSystem { get; set; }
+			public string? OperatingSystem { get; init; }
 			/// <summary>
 			/// Get or set version of target runtime.
 			/// </summary>
-			public Version? RuntimeVersion { get; set; }
+			public Version? RuntimeVersion { get; init; }
 			/// <summary>
 			/// SHA256 of update package.
 			/// </summary>
-			public string? SHA256 { get; set; }
+			public string? SHA256 { get; init; }
 			/// <summary>
 			/// SHA512 of update package.
 			/// </summary>
-			public string? SHA512 { get; set; }
+			public string? SHA512 { get; init; }
 			/// <summary>
 			/// Get or set URI of package.
 			/// </summary>
-			public Uri? Uri { get; set; }
+			public Uri? Uri { get; init; }
 		}
 
 
@@ -80,38 +80,36 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 				// cancel before resolving completed
 				using (var packageResolver = this.CreateInstance(packageManifest))
 				{
-					Assert.IsTrue(packageResolver.Start());
-					Assert.IsTrue(packageResolver.Cancel());
-					Assert.AreEqual(UpdaterComponentState.Cancelling, packageResolver.State);
-					Assert.IsTrue(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Cancelled, 10000));
+					Assert.That(packageResolver.Start());
+					Assert.That(packageResolver.Cancel());
+					Assert.That(UpdaterComponentState.Cancelling == packageResolver.State);
+					Assert.That(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Cancelled, 10000));
 				}
 
 				// cancel after resolving completed
 				using (var packageResolver = this.CreateInstance(packageManifest))
 				{
-					Assert.IsTrue(packageResolver.Start());
-					Assert.IsTrue(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Succeeded, 10000));
-					Assert.IsFalse(packageResolver.Cancel());
-					Assert.AreEqual(UpdaterComponentState.Succeeded, packageResolver.State);
+					Assert.That(packageResolver.Start());
+					Assert.That(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Succeeded, 10000));
+					Assert.That(!packageResolver.Cancel());
+					Assert.That(UpdaterComponentState.Succeeded == packageResolver.State);
 				}
 
 				// cancel randomly when resolving
 				for (var t = 0; t < 100; ++t)
 				{
-					using (var packageResolver = this.CreateInstance(packageManifest))
+					using var packageResolver = this.CreateInstance(packageManifest);
+					Assert.That(packageResolver.Start());
+					await Task.Delay(Tests.Random.Next(100));
+					if (packageResolver.Cancel())
 					{
-						Assert.IsTrue(packageResolver.Start());
-						await Task.Delay(Tests.Random.Next(100));
-						if (packageResolver.Cancel())
-						{
-							Assert.AreEqual(UpdaterComponentState.Cancelling, packageResolver.State);
-							Assert.IsTrue(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Cancelled, 10000));
-						}
-						else
-						{
-							Assert.AreNotEqual(UpdaterComponentState.Cancelling, packageResolver.State);
-							Assert.IsTrue(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Succeeded, 10000));
-						}
+						Assert.That(UpdaterComponentState.Cancelling == packageResolver.State);
+						Assert.That(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Cancelled, 10000));
+					}
+					else
+					{
+						Assert.That(UpdaterComponentState.Cancelling != packageResolver.State);
+						Assert.That(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Succeeded, 10000));
 					}
 				}
 			});
@@ -358,9 +356,9 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 				using (var packageResolver = this.CreateInstance(packageManifest))
 				{
 					packageResolver.SelfContainedPackageOnly = true;
-					Assert.IsTrue(packageResolver.Start());
-					Assert.IsTrue(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Succeeded, 10000));
-					Assert.IsNull(packageResolver.Exception);
+					Assert.That(packageResolver.Start());
+					Assert.That(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Succeeded, 10000));
+					Assert.That(packageResolver.Exception is null);
 					this.VerifyResolvedPackage(packageResolver, appName, version, pageUri, expectedPackageUri, expectedMD5, expectedSHA256, expectedSHA512);
 				}
 
@@ -371,9 +369,9 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 				expectedSHA512 = $"SHA512-{osName}-{architecture}";
 				using (var packageResolver = this.CreateInstance(packageManifest))
 				{
-					Assert.IsTrue(packageResolver.Start());
-					Assert.IsTrue(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Succeeded, 10000));
-					Assert.IsNull(packageResolver.Exception);
+					Assert.That(packageResolver.Start());
+					Assert.That(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Succeeded, 10000));
+					Assert.That(packageResolver.Exception is null);
 					this.VerifyResolvedPackage(packageResolver, appName, version, pageUri, expectedPackageUri, expectedMD5, expectedSHA256, expectedSHA512);
 				}
 
@@ -381,9 +379,9 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 				packageManifest = this.GeneratePackageManifest(null, version, pageUri, packageInfos);
 				using (var packageResolver = this.CreateInstance(packageManifest))
 				{
-					Assert.IsTrue(packageResolver.Start());
-					Assert.IsTrue(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Succeeded, 10000));
-					Assert.IsNull(packageResolver.Exception);
+					Assert.That(packageResolver.Start());
+					Assert.That(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Succeeded, 10000));
+					Assert.That(packageResolver.Exception is null);
 					this.VerifyResolvedPackage(packageResolver, null, version, pageUri, expectedPackageUri, expectedMD5, expectedSHA256, expectedSHA512);
 				}
 
@@ -391,25 +389,25 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 				packageManifest = this.GeneratePackageManifest(appName, null, pageUri, packageInfos);
 				using (var packageResolver = this.CreateInstance(packageManifest))
 				{
-					Assert.IsTrue(packageResolver.Start());
-					Assert.IsTrue(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Succeeded, 10000));
-					Assert.IsNull(packageResolver.Exception);
+					Assert.That(packageResolver.Start());
+					Assert.That(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Succeeded, 10000));
+					Assert.That(packageResolver.Exception is null);
 					this.VerifyResolvedPackage(packageResolver, appName, null, pageUri, expectedPackageUri, expectedMD5, expectedSHA256, expectedSHA512);
 				}
 
 				// resolve package info without package list
-				packageManifest = this.GeneratePackageManifest(appName, version, pageUri, new PackageInfo[0]);
+				packageManifest = this.GeneratePackageManifest(appName, version, pageUri, Array.Empty<PackageInfo>());
 				using (var packageResolver = this.CreateInstance(packageManifest))
 				{
-					Assert.IsTrue(packageResolver.Start());
-					Assert.IsTrue(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Failed, 10000));
+					Assert.That(packageResolver.Start());
+					Assert.That(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Failed, 10000));
 				}
 
 				// resolve package info without package manifest content
 				using (var packageResolver = this.CreateInstance(" "))
 				{
-					Assert.IsTrue(packageResolver.Start());
-					Assert.IsTrue(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Failed, 10000));
+					Assert.That(packageResolver.Start());
+					Assert.That(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Failed, 10000));
 				}
 
 				// resolve package info with self-contained package with specified base version only
@@ -435,9 +433,9 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					using (var packageResolver = this.CreateInstance(packageManifest))
 					{
 						packageResolver.SelfContainedPackageOnly = true;
-						Assert.IsTrue(packageResolver.Start());
-						Assert.IsTrue(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Succeeded, 10000));
-						Assert.IsNull(packageResolver.Exception);
+						Assert.That(packageResolver.Start());
+						Assert.That(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Succeeded, 10000));
+						Assert.That(packageResolver.Exception is null);
 						this.VerifyResolvedPackage(packageResolver, appName, version, pageUri, expectedPackageUri, expectedMD5, expectedSHA256, expectedSHA512);
 					}
 					packageInfos.Remove(tempPackageInfo);
@@ -465,9 +463,9 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					expectedSHA512 = $"SHA512-{osName}-{architecture}-partial";
 					using (var packageResolver = this.CreateInstance(packageManifest))
 					{
-						Assert.IsTrue(packageResolver.Start());
-						Assert.IsTrue(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Succeeded, 10000));
-						Assert.IsNull(packageResolver.Exception);
+						Assert.That(packageResolver.Start());
+						Assert.That(await packageResolver.WaitForPropertyAsync(nameof(IUpdaterComponent.State), UpdaterComponentState.Succeeded, 10000));
+						Assert.That(packageResolver.Exception is null);
 						this.VerifyResolvedPackage(packageResolver, appName, version, pageUri, expectedPackageUri, expectedMD5, expectedSHA256, expectedSHA512);
 					}
 					packageInfos.Remove(tempPackageInfo);
@@ -479,16 +477,16 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 		// Verify fields in resolved package info.
 		void VerifyResolvedPackage(IPackageResolver packageResolver, string? appName, Version? version, Uri? pageUri, Uri? packageUri, string? md5 = null, string? sha256 = null, string? sha512 = null)
 		{
-			Assert.AreEqual(appName, packageResolver.ApplicationName);
-			Assert.AreEqual(version, packageResolver.PackageVersion);
-			Assert.AreEqual(pageUri, packageResolver.PageUri);
-			Assert.AreEqual(packageUri, packageResolver.PackageUri);
+			Assert.That(appName == packageResolver.ApplicationName);
+			Assert.That(version == packageResolver.PackageVersion);
+			Assert.That(pageUri == packageResolver.PageUri);
+			Assert.That(packageUri == packageResolver.PackageUri);
 			if (md5 != null)
-				Assert.AreEqual(md5, packageResolver.MD5.AsNonNull());
+				Assert.That(md5 == packageResolver.MD5.AsNonNull());
 			if (sha256 != null)
-				Assert.AreEqual(sha256, packageResolver.SHA256.AsNonNull());
+				Assert.That(sha256 == packageResolver.SHA256.AsNonNull());
 			if (sha512 != null)
-				Assert.AreEqual(sha512, packageResolver.SHA512.AsNonNull());
+				Assert.That(sha512 == packageResolver.SHA512.AsNonNull());
 		}
 	}
 }

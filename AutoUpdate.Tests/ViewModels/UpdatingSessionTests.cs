@@ -62,82 +62,81 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 
 				// prepare update package
 				var packageDirectory = this.GenerateRandomApplication();
-				var packageFilePaths = this.CollectFilePaths(packageDirectory);
 				var packageFilePath = this.GeneratePackageFile(packageDirectory);
 				this.remotePackageFilePath = packageFilePath;
 
 				// update application and cancel immediately
-				using (var session = new UpdatingSessionImpl(this.Application)
+				await new UpdatingSessionImpl(this.Application).Setup(session =>
 				{
-					ApplicationDirectoryPath = baseAppDirectory,
-					PackageManifestSource = new MemoryStreamProvider(),
-				})
+					session.ApplicationDirectoryPath = baseAppDirectory;
+					session.PackageManifestSource = new MemoryStreamProvider();
+				}).UseAsync(async session =>
 				{
-					Assert.IsTrue(session.StartUpdatingCommand.CanExecute(null));
+					Assert.That(session.StartUpdatingCommand.CanExecute(null));
 					session.StartUpdatingCommand.Execute(null);
 					await Task.Delay(50);
-					Assert.IsTrue(session.CancelUpdatingCommand.CanExecute(null));
+					Assert.That(session.CancelUpdatingCommand.CanExecute(null));
 					session.CancelUpdatingCommand.Execute(null);
-					Assert.IsFalse(session.CancelUpdatingCommand.CanExecute(null));
-					Assert.IsTrue(session.IsUpdatingCancelling);
-					Assert.IsTrue(await session.WaitForPropertyAsync(nameof(UpdatingSession.IsUpdatingCompleted), true, 60000));
+					Assert.That(!session.CancelUpdatingCommand.CanExecute(null));
+					Assert.That(session.IsUpdatingCancelling);
+					Assert.That(await session.WaitForPropertyAsync(nameof(UpdatingSession.IsUpdatingCompleted), true, 60000));
 					await Task.Delay(500);
-					Assert.IsTrue(session.IsUpdatingCancelled);
-					Assert.IsFalse(session.IsUpdatingFailed);
-					Assert.IsFalse(session.IsUpdatingSucceeded);
-				}
+					Assert.That(session.IsUpdatingCancelled);
+					Assert.That(!session.IsUpdatingFailed);
+					Assert.That(!session.IsUpdatingSucceeded);
+				});
 
 				// verify installed files
-				Assert.IsTrue(baseAppFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
+				Assert.That(baseAppFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
 
 				// update application and cancel when downloading package
-				using (var session = new UpdatingSessionImpl(this.Application)
+				await new UpdatingSessionImpl(this.Application).Setup(session =>
 				{
-					ApplicationDirectoryPath = baseAppDirectory,
-					PackageManifestSource = new MemoryStreamProvider(),
-				})
+					session.ApplicationDirectoryPath = baseAppDirectory;
+					session.PackageManifestSource = new MemoryStreamProvider();
+				}).UseAsync(async session =>
 				{
-					Assert.IsTrue(session.StartUpdatingCommand.CanExecute(null));
+					Assert.That(session.StartUpdatingCommand.CanExecute(null));
 					session.StartUpdatingCommand.Execute(null);
-					Assert.IsTrue(await session.WaitForPropertyAsync(nameof(UpdatingSession.IsDownloadingPackage), true, 60000));
+					Assert.That(await session.WaitForPropertyAsync(nameof(UpdatingSession.IsDownloadingPackage), true, 60000));
 					await Task.Delay(50);
-					Assert.IsTrue(session.CancelUpdatingCommand.CanExecute(null));
+					Assert.That(session.CancelUpdatingCommand.CanExecute(null));
 					session.CancelUpdatingCommand.Execute(null);
-					Assert.IsFalse(session.CancelUpdatingCommand.CanExecute(null));
-					Assert.IsTrue(session.IsUpdatingCancelling);
-					Assert.IsTrue(await session.WaitForPropertyAsync(nameof(UpdatingSession.IsUpdatingCompleted), true, 60000));
+					Assert.That(!session.CancelUpdatingCommand.CanExecute(null));
+					Assert.That(session.IsUpdatingCancelling);
+					Assert.That(await session.WaitForPropertyAsync(nameof(UpdatingSession.IsUpdatingCompleted), true, 60000));
 					await Task.Delay(500);
-					Assert.IsTrue(session.IsUpdatingCancelled);
-					Assert.IsFalse(session.IsUpdatingFailed);
-					Assert.IsFalse(session.IsUpdatingSucceeded);
-				}
+					Assert.That(session.IsUpdatingCancelled);
+					Assert.That(!session.IsUpdatingFailed);
+					Assert.That(!session.IsUpdatingSucceeded);
+				});
 
 				// verify installed files
-				Assert.IsTrue(baseAppFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
+				Assert.That(baseAppFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
 
 				// update application and cancel when installing package
-				using (var session = new UpdatingSessionImpl(this.Application)
+				await new UpdatingSessionImpl(this.Application).Setup(session =>
 				{
-					ApplicationDirectoryPath = baseAppDirectory,
-					PackageManifestSource = new MemoryStreamProvider(),
-				})
+					session.ApplicationDirectoryPath = baseAppDirectory;
+					session.PackageManifestSource = new MemoryStreamProvider();
+				}).UseAsync(async session =>
 				{
-					Assert.IsTrue(session.StartUpdatingCommand.CanExecute(null));
+					Assert.That(session.StartUpdatingCommand.CanExecute(null));
 					session.StartUpdatingCommand.Execute(null);
-					Assert.IsTrue(await session.WaitForPropertyAsync(nameof(UpdatingSession.IsInstallingPackage), true, 60000));
-					Assert.IsTrue(session.CancelUpdatingCommand.CanExecute(null));
+					Assert.That(await session.WaitForPropertyAsync(nameof(UpdatingSession.IsInstallingPackage), true, 60000));
+					Assert.That(session.CancelUpdatingCommand.CanExecute(null));
 					session.CancelUpdatingCommand.Execute(null);
-					Assert.IsFalse(session.CancelUpdatingCommand.CanExecute(null));
-					Assert.IsTrue(session.IsUpdatingCancelling);
-					Assert.IsTrue(await session.WaitForPropertyAsync(nameof(UpdatingSession.IsUpdatingCompleted), true, 60000));
+					Assert.That(!session.CancelUpdatingCommand.CanExecute(null));
+					Assert.That(session.IsUpdatingCancelling);
+					Assert.That(await session.WaitForPropertyAsync(nameof(UpdatingSession.IsUpdatingCompleted), true, 60000));
 					await Task.Delay(500);
-					Assert.IsTrue(session.IsUpdatingCancelled);
-					Assert.IsFalse(session.IsUpdatingFailed);
-					Assert.IsFalse(session.IsUpdatingSucceeded);
-				}
+					Assert.That(session.IsUpdatingCancelled);
+					Assert.That(!session.IsUpdatingFailed);
+					Assert.That(!session.IsUpdatingSucceeded);
+				});
 
 				// verify installed files
-				Assert.IsTrue(baseAppFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
+				Assert.That(baseAppFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
 			});
 		}
 
@@ -165,29 +164,26 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 				var baseAppFilePaths = this.CollectFilePaths(baseAppDirectory);
 
 				// prepare update package
-				var packageDirectory = this.GenerateRandomApplication();
-				var packageFilePaths = this.CollectFilePaths(packageDirectory);
-				var packageFilePath = this.GeneratePackageFile(packageDirectory);
 				this.remotePackageFilePath = null;
 
 				// update application
-				using (var session = new UpdatingSessionImpl(this.Application)
+				await new UpdatingSessionImpl(this.Application).Setup(session =>
 				{
-					ApplicationDirectoryPath = baseAppDirectory,
-					PackageManifestSource = new MemoryStreamProvider(),
-				})
+					session.ApplicationDirectoryPath = baseAppDirectory;
+					session.PackageManifestSource = new MemoryStreamProvider();
+				}).UseAsync(async session =>
 				{
-					Assert.IsTrue(session.StartUpdatingCommand.CanExecute(null));
+					Assert.That(session.StartUpdatingCommand.CanExecute(null));
 					session.StartUpdatingCommand.Execute(null);
-					Assert.IsTrue(await session.WaitForPropertyAsync(nameof(UpdatingSession.IsUpdatingCompleted), true, 60000));
+					Assert.That(await session.WaitForPropertyAsync(nameof(UpdatingSession.IsUpdatingCompleted), true, 60000));
 					await Task.Delay(500);
-					Assert.IsFalse(session.IsUpdatingCancelled);
-					Assert.IsTrue(session.IsUpdatingFailed);
-					Assert.IsFalse(session.IsUpdatingSucceeded);
-				}
+					Assert.That(!session.IsUpdatingCancelled);
+					Assert.That(session.IsUpdatingFailed);
+					Assert.That(!session.IsUpdatingSucceeded);
+				});
 
 				// verify installed files
-				Assert.IsTrue(baseAppFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
+				Assert.That(baseAppFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
 			});
 		}
 
@@ -222,14 +218,14 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 				while (true)
 				{
 					// wait for connection
-					var context = (HttpListenerContext?)null;
+					HttpListenerContext? context;
 					try
 					{
 						context = this.httpListener.GetContext();
 					}
 					catch
 					{
-						if (this.httpListener?.IsListening != true)
+						if (this.httpListener.IsListening != true)
 							break;
 						throw;
 					}
@@ -238,7 +234,7 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 					var updatePackage = this.remotePackageFilePath?.Let(it =>
 					{
 						return new FileStream(it, FileMode.Open, FileAccess.Read).Use(stream => stream.ReadAllBytes());
-					}) ?? new byte[0];
+					}) ?? Array.Empty<byte>();
 
 					// response
 					context.Response.Let(response =>
@@ -282,43 +278,43 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 				this.remotePackageFilePath = packageFilePath;
 
 				// setup session
-				using var session = new UpdatingSessionImpl(this.Application)
+				using var session = new UpdatingSessionImpl(this.Application).Setup(session =>
 				{
-					ApplicationDirectoryPath = baseAppDirectory,
-					PackageManifestSource = new MemoryStreamProvider(),
-				};
-				Assert.IsFalse(session.CancelUpdatingCommand.CanExecute(null));
-				Assert.IsFalse(session.IsProgressAvailable);
-				Assert.IsFalse(session.IsUpdating);
-				Assert.IsFalse(session.IsUpdatingCancelled);
-				Assert.IsFalse(session.IsUpdatingCancelling);
-				Assert.IsFalse(session.IsUpdatingCompleted);
-				Assert.IsFalse(session.IsUpdatingFailed);
-				Assert.IsFalse(session.IsUpdatingSucceeded);
+					session.ApplicationDirectoryPath = baseAppDirectory;
+					session.PackageManifestSource = new MemoryStreamProvider();
+				});
+				Assert.That(!session.CancelUpdatingCommand.CanExecute(null));
+				Assert.That(!session.IsProgressAvailable);
+				Assert.That(!session.IsUpdating);
+				Assert.That(!session.IsUpdatingCancelled);
+				Assert.That(!session.IsUpdatingCancelling);
+				Assert.That(!session.IsUpdatingCompleted);
+				Assert.That(!session.IsUpdatingFailed);
+				Assert.That(!session.IsUpdatingSucceeded);
 
 				// update application
-				Assert.IsTrue(session.StartUpdatingCommand.CanExecute(null));
+				Assert.That(session.StartUpdatingCommand.CanExecute(null));
 				session.StartUpdatingCommand.Execute(null);
-				Assert.IsFalse(session.StartUpdatingCommand.CanExecute(null));
-				Assert.IsTrue(session.IsUpdating);
-				Assert.IsFalse(session.IsUpdatingCancelled);
-				Assert.IsFalse(session.IsUpdatingCancelling);
-				Assert.IsFalse(session.IsUpdatingCompleted);
-				Assert.IsFalse(session.IsUpdatingFailed);
-				Assert.IsFalse(session.IsUpdatingSucceeded);
-				Assert.IsTrue(await session.WaitForPropertyAsync(nameof(UpdatingSession.IsUpdatingCompleted), true, 60000));
+				Assert.That(!session.StartUpdatingCommand.CanExecute(null));
+				Assert.That(session.IsUpdating);
+				Assert.That(!session.IsUpdatingCancelled);
+				Assert.That(!session.IsUpdatingCancelling);
+				Assert.That(!session.IsUpdatingCompleted);
+				Assert.That(!session.IsUpdatingFailed);
+				Assert.That(!session.IsUpdatingSucceeded);
+				Assert.That(await session.WaitForPropertyAsync(nameof(UpdatingSession.IsUpdatingCompleted), true, 60000));
 				await Task.Delay(500);
-				Assert.IsFalse(session.CancelUpdatingCommand.CanExecute(null));
-				Assert.IsFalse(session.StartUpdatingCommand.CanExecute(null));
-				Assert.IsFalse(session.IsProgressAvailable);
-				Assert.IsFalse(session.IsUpdating);
-				Assert.IsFalse(session.IsUpdatingCancelled);
-				Assert.IsFalse(session.IsUpdatingCancelling);
-				Assert.IsFalse(session.IsUpdatingFailed);
-				Assert.IsTrue(session.IsUpdatingSucceeded);
+				Assert.That(!session.CancelUpdatingCommand.CanExecute(null));
+				Assert.That(!session.StartUpdatingCommand.CanExecute(null));
+				Assert.That(!session.IsProgressAvailable);
+				Assert.That(!session.IsUpdating);
+				Assert.That(!session.IsUpdatingCancelled);
+				Assert.That(!session.IsUpdatingCancelling);
+				Assert.That(!session.IsUpdatingFailed);
+				Assert.That(session.IsUpdatingSucceeded);
 
 				// verify installed files
-				Assert.IsTrue(expectedUpdatedFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
+				Assert.That(expectedUpdatedFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
 			});
 		}
 	}
