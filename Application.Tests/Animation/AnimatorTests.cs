@@ -15,7 +15,7 @@ namespace CarinaStudio.Animation
     class AnimatorTests
     {
         // Fields.
-        private volatile SingleThreadSynchronizationContext? syncContext;
+        volatile SingleThreadSynchronizationContext? syncContext;
 
 
         /// <summary>
@@ -43,16 +43,16 @@ namespace CarinaStudio.Animation
                 }
                 await Animator.StartAndWaitForCompletionAsync(TimeSpan.FromSeconds(1), TimeSpan.FromMilliseconds(16), (progress) =>
                 {
-                    Assert.GreaterOrEqual(progress, prevProgress);
+                    Assert.That(progress >= prevProgress);
                     prevProgress = progress;
                     ++progressUpdateCount;
                 });
                 var actualDuration = (stopwatch.ElapsedMilliseconds - startTime);
-                Assert.GreaterOrEqual(prevProgress, 0.9);
-                Assert.GreaterOrEqual(actualDuration, 1000);
-                Assert.Less(actualDuration, 1100);
-                Assert.GreaterOrEqual(progressUpdateCount, 54);
-                Assert.LessOrEqual(progressUpdateCount, 66);
+                Assert.That(prevProgress >= 0.9);
+                Assert.That(actualDuration >= 1000);
+                Assert.That(actualDuration < 1100);
+                Assert.That(progressUpdateCount >= 54);
+                Assert.That(progressUpdateCount <= 66);
                 prevProgress = 0;
                 progressUpdateCount = 0;
                 startTime = stopwatch.ElapsedMilliseconds;
@@ -65,16 +65,16 @@ namespace CarinaStudio.Animation
                 }
                 await Animator.StartAndWaitForCompletionAsync(TimeSpan.FromSeconds(1), TimeSpan.FromMilliseconds(33), (progress) =>
                 {
-                    Assert.GreaterOrEqual(progress, prevProgress);
+                    Assert.That(progress >= prevProgress);
                     prevProgress = progress;
                     ++progressUpdateCount;
                 });
                 actualDuration = (stopwatch.ElapsedMilliseconds - startTime);
-                Assert.GreaterOrEqual(prevProgress, 0.9);
-                Assert.GreaterOrEqual(actualDuration, 1000);
-                Assert.Less(actualDuration, 1100);
-                Assert.GreaterOrEqual(progressUpdateCount, 27);
-                Assert.LessOrEqual(progressUpdateCount, 33);
+                Assert.That(prevProgress >= 0.9);
+                Assert.That(actualDuration >= 1000);
+                Assert.That(actualDuration < 1100);
+                Assert.That(progressUpdateCount >= 27);
+                Assert.That(progressUpdateCount <= 33);
 
                 // check interpolator
                 prevProgress = 1;
@@ -89,16 +89,16 @@ namespace CarinaStudio.Animation
                 }
                 await Animator.StartAndWaitForCompletionAsync(TimeSpan.FromSeconds(1), TimeSpan.FromMilliseconds(16), Interpolators.Inverted, (progress) =>
                 {
-                    Assert.LessOrEqual(progress, prevProgress);
+                    Assert.That(progress <= prevProgress);
                     prevProgress = progress;
                     ++progressUpdateCount;
                 }, new CancellationToken());
                 actualDuration = (stopwatch.ElapsedMilliseconds - startTime);
-                Assert.LessOrEqual(prevProgress, 0.1);
-                Assert.GreaterOrEqual(actualDuration, 1000);
-                Assert.Less(actualDuration, 1100);
-                Assert.GreaterOrEqual(progressUpdateCount, 54);
-                Assert.LessOrEqual(progressUpdateCount, 66);
+                Assert.That(prevProgress <= 0.1);
+                Assert.That(actualDuration >= 1000);
+                Assert.That(actualDuration < 1100);
+                Assert.That(progressUpdateCount >= 54);
+                Assert.That(progressUpdateCount <= 66);
 
                 // check delay
                 prevProgress = 0;
@@ -118,19 +118,19 @@ namespace CarinaStudio.Animation
                     it.Delay = TimeSpan.FromMilliseconds(1234);
                     it.Duration = TimeSpan.FromSeconds(1);
                     it.Interval = TimeSpan.FromMilliseconds(16);
-                    it.ProgressChanged += (_, e) =>
+                    it.ProgressChanged += (_, _) =>
                     {
-                        Assert.GreaterOrEqual(it.Progress, prevProgress);
+                        Assert.That(it.Progress >= prevProgress);
                         prevProgress = it.Progress;
                         ++progressUpdateCount;
                     };
                 }).StartAndWaitForCompletionAsync();
                 actualDuration = (stopwatch.ElapsedMilliseconds - startTime);
-                Assert.GreaterOrEqual(prevProgress, 0.9);
-                Assert.GreaterOrEqual(actualDuration, 2234);
-                Assert.Less(actualDuration, 2334);
-                Assert.GreaterOrEqual(progressUpdateCount, 54);
-                Assert.LessOrEqual(progressUpdateCount, 66);
+                Assert.That(prevProgress >= 0.9);
+                Assert.That(actualDuration >= 2234);
+                Assert.That(actualDuration < 2334);
+                Assert.That(progressUpdateCount >= 54);
+                Assert.That(progressUpdateCount <= 66);
             });
         }
 
@@ -149,23 +149,23 @@ namespace CarinaStudio.Animation
                 var isCancelledCalled = false;
                 var isCompletedCalled = false;
                 var animator = new Animator();
-                animator.Cancelled += (_, e) =>
+                animator.Cancelled += (_, _) =>
                 {
                     isCancelledCalled = true;
                 };
-                animator.Completed += (_, e) =>
+                animator.Completed += (_, _) =>
                 {
                     isCompletedCalled = true;
                 };
                 animator.Duration = TimeSpan.FromSeconds(1);
-                animator.ProgressChanged += (_, e) =>
+                animator.ProgressChanged += (_, _) =>
                 {
                     latestProgress = animator.Progress;
                 };
 
                 // cancel before animating
                 animator.Cancel();
-                Assert.IsFalse(animator.IsStarted);
+                Assert.That(!animator.IsStarted);
 
                 // cancel when animating
                 animator.Start();
@@ -175,16 +175,16 @@ namespace CarinaStudio.Animation
                         _ => {}
                     );
                 }
-                Assert.IsTrue(animator.IsStarted);
+                Assert.That(animator.IsStarted);
                 await Task.Delay(500);
-                Assert.IsTrue(animator.IsStarted);
+                Assert.That(animator.IsStarted);
                 animator.Cancel();
-                Assert.IsFalse(animator.IsStarted);
-                Assert.IsTrue(isCancelledCalled);
+                Assert.That(!animator.IsStarted);
+                Assert.That(isCancelledCalled);
                 await Task.Delay(1500);
-                Assert.Less(latestProgress, 1);
-                Assert.Greater(latestProgress, 0);
-                Assert.IsFalse(isCompletedCalled);
+                Assert.That(latestProgress < 1);
+                Assert.That(latestProgress > 0);
+                Assert.That(!isCompletedCalled);
 
                 // cancel after animating
                 latestProgress = 0;
@@ -197,14 +197,14 @@ namespace CarinaStudio.Animation
                         _ => {}
                     );
                 }
-                Assert.IsTrue(animator.IsStarted);
+                Assert.That(animator.IsStarted);
                 await Task.Delay(1500);
-                Assert.IsFalse(animator.IsStarted);
-                Assert.IsTrue(isCompletedCalled);
-                Assert.IsFalse(isCancelledCalled);
-                Assert.GreaterOrEqual(latestProgress, 0.9);
+                Assert.That(!animator.IsStarted);
+                Assert.That(isCompletedCalled);
+                Assert.That(!isCancelledCalled);
+                Assert.That(latestProgress >= 0.9);
                 animator.Cancel();
-                Assert.IsFalse(animator.IsStarted);
+                Assert.That(!animator.IsStarted);
             });
         }
 
@@ -231,7 +231,7 @@ namespace CarinaStudio.Animation
                 var random = new Random();
                 var stopwatch = new Stopwatch().Also(it => it.Start());
                 var startTime = stopwatch.ElapsedMilliseconds;
-                var animator = Animator.Start(TimeSpan.FromSeconds(1), p => { });
+                var animator = Animator.Start(TimeSpan.FromSeconds(1), _ => { });
                 for (var i = 0; i < 10; ++i)
                 {
                     Animator.Start(TimeSpan.FromMilliseconds(500 + random.Next(2001)),
@@ -242,14 +242,14 @@ namespace CarinaStudio.Animation
                 animator.Duration = TimeSpan.FromSeconds(2);
                 await animator.WaitForCompletionAsync();
                 var actualDuration = (stopwatch.ElapsedMilliseconds - startTime);
-                Assert.IsFalse(animator.IsStarted);
-                Assert.GreaterOrEqual(actualDuration, 2000);
-                Assert.LessOrEqual(actualDuration, 2100);
+                Assert.That(!animator.IsStarted);
+                Assert.That(actualDuration >= 2000);
+                Assert.That(actualDuration <= 2100);
 
                 // change interval in animation
                 var progressUpdateCount = 0;
                 animator.Duration = TimeSpan.FromSeconds(3);
-                animator.ProgressChanged += (_, e) =>
+                animator.ProgressChanged += (_, _) =>
                 {
                     ++progressUpdateCount;
                 };
@@ -268,9 +268,9 @@ namespace CarinaStudio.Animation
                 await animator.WaitForCompletionAsync();
                 var secondActualDuration = (stopwatch.ElapsedMilliseconds - startTime) - firstActualDuration;
                 var expectedProgressCount = firstProgressUpdateCount + (secondActualDuration / 100);
-                Assert.IsFalse(animator.IsStarted);
-                Assert.GreaterOrEqual(progressUpdateCount, expectedProgressCount * 0.9);
-                Assert.LessOrEqual(progressUpdateCount, expectedProgressCount * 1.1);
+                Assert.That(!animator.IsStarted);
+                Assert.That(progressUpdateCount >= expectedProgressCount * 0.9);
+                Assert.That(progressUpdateCount <= expectedProgressCount * 1.1);
 
                 // change delay in animation
                 startTime = stopwatch.ElapsedMilliseconds;
@@ -293,8 +293,8 @@ namespace CarinaStudio.Animation
                 animator.Delay = TimeSpan.FromMilliseconds(800);
                 await animator.WaitForCompletionAsync();
                 actualDuration = (stopwatch.ElapsedMilliseconds - startTime);
-                Assert.GreaterOrEqual(actualDuration, 1620);
-                Assert.LessOrEqual(actualDuration, 1980);
+                Assert.That(actualDuration >= 1620);
+                Assert.That(actualDuration <= 1980);
                 startTime = stopwatch.ElapsedMilliseconds;
                 animator = new Animator().Also(it =>
                 {
@@ -306,8 +306,8 @@ namespace CarinaStudio.Animation
                 animator.Delay = TimeSpan.FromMilliseconds(1000);
                 await animator.WaitForCompletionAsync();
                 actualDuration = (stopwatch.ElapsedMilliseconds - startTime);
-                Assert.GreaterOrEqual(actualDuration, 1800);
-                Assert.LessOrEqual(actualDuration, 2200);
+                Assert.That(actualDuration >= 1800);
+                Assert.That(actualDuration <= 2200);
             });
         }
 

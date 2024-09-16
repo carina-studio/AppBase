@@ -87,7 +87,7 @@ namespace CarinaStudio.ViewModels
 				for (var i = 0; i < 100; ++i)
 				{
 					using var viewModel = new TestViewModel(this.application.AsNonNull());
-					Assert.IsTrue(usingId.Add(viewModel.Id), "Duplicate ID of view-model.");
+					Assert.That(usingId.Add(viewModel.Id), "Duplicate ID of view-model.");
 				}
 			});
 		}
@@ -114,15 +114,15 @@ namespace CarinaStudio.ViewModels
 
 				// check log
 				var logItem1 = logItems[originalLogItemCount];
-				Assert.AreEqual(categoryName, logItem1.CategoryName);
-				Assert.AreEqual(LogLevel.Debug, logItem1.Level);
-				Assert.AreEqual(eventId1, logItem1.EventId);
-				Assert.AreEqual("Message 1", logItem1.Message);
+				Assert.That(categoryName == logItem1.CategoryName);
+				Assert.That(LogLevel.Debug == logItem1.Level);
+				Assert.That(eventId1 == logItem1.EventId);
+				Assert.That("Message 1" == logItem1.Message);
 				var logItem2 = logItems[originalLogItemCount + 1];
-				Assert.AreEqual(categoryName, logItem2.CategoryName);
-				Assert.AreEqual(LogLevel.Error, logItem2.Level);
-				Assert.AreEqual(eventId2, logItem2.EventId);
-				Assert.AreEqual("Message 2", logItem2.Message);
+				Assert.That(categoryName == logItem2.CategoryName);
+				Assert.That(LogLevel.Error == logItem2.Level);
+				Assert.That(eventId2 == logItem2.EventId);
+				Assert.That("Message 2" == logItem2.Message);
 			});
 		}
 
@@ -156,53 +156,53 @@ namespace CarinaStudio.ViewModels
 				};
 
 				// check default property value
-				Assert.AreEqual(TestViewModel.TestInt32Property.DefaultValue, viewModel.TestInt32, "Default property value is incorrect.");
-				Assert.AreEqual(TestViewModel.TestRangeInt32Property.DefaultValue, viewModel.TestRangeInt32, "Default property value is incorrect.");
+				Assert.That(TestViewModel.TestInt32Property.DefaultValue == viewModel.TestInt32, "Default property value is incorrect.");
+				Assert.That(TestViewModel.TestRangeInt32Property.DefaultValue == viewModel.TestRangeInt32, "Default property value is incorrect.");
 
 				// change property
 				viewModel.TestInt32 = 123;
-				Assert.AreEqual(123, viewModel.TestInt32, "Property value is different from set one.");
-				Assert.AreEqual(nameof(TestViewModel.TestInt32), latestChangedPropertyName, "PropertyChanged not received.");
+				Assert.That(123 == viewModel.TestInt32, "Property value is different from set one.");
+				Assert.That(nameof(TestViewModel.TestInt32) == latestChangedPropertyName, "PropertyChanged not received.");
 				latestChangedPropertyName = "";
 				viewModel.TestInt32 = 123;
-				Assert.AreEqual("", latestChangedPropertyName, "PropertyChanged should not be raised.");
+				Assert.That("" == latestChangedPropertyName, "PropertyChanged should not be raised.");
 				viewModel.TestInt32 = TestViewModel.TestInt32Property.DefaultValue;
-				Assert.AreEqual(TestViewModel.TestInt32Property.DefaultValue, viewModel.TestInt32, "Property value is different from set one.");
-				Assert.AreEqual(nameof(TestViewModel.TestInt32), latestChangedPropertyName, "PropertyChanged not received.");
+				Assert.That(TestViewModel.TestInt32Property.DefaultValue == viewModel.TestInt32, "Property value is different from set one.");
+				Assert.That(nameof(TestViewModel.TestInt32) == latestChangedPropertyName, "PropertyChanged not received.");
 				latestChangedPropertyName = "";
 
 				// change property with coercion function
 				viewModel.TestRangeInt32 = TestViewModel.MaxTestRangeInt32 - 1;
-				Assert.AreEqual(TestViewModel.MaxTestRangeInt32 - 1, viewModel.TestRangeInt32, "Property value is different from set one.");
-				Assert.AreEqual(nameof(TestViewModel.TestRangeInt32), latestChangedPropertyName, "PropertyChanged not received.");
+				Assert.That(TestViewModel.MaxTestRangeInt32 - 1 == viewModel.TestRangeInt32, "Property value is different from set one.");
+				Assert.That(nameof(TestViewModel.TestRangeInt32) == latestChangedPropertyName, "PropertyChanged not received.");
 				latestChangedPropertyName = "";
 				viewModel.TestRangeInt32 = TestViewModel.MinTestRangeInt32 + 1;
-				Assert.AreEqual(TestViewModel.MinTestRangeInt32 + 1, viewModel.TestRangeInt32, "Property value is different from set one.");
-				Assert.AreEqual(nameof(TestViewModel.TestRangeInt32), latestChangedPropertyName, "PropertyChanged not received.");
+				Assert.That(TestViewModel.MinTestRangeInt32 + 1 == viewModel.TestRangeInt32, "Property value is different from set one.");
+				Assert.That(nameof(TestViewModel.TestRangeInt32) == latestChangedPropertyName, "PropertyChanged not received.");
 				latestChangedPropertyName = "";
 				viewModel.TestRangeInt32 = TestViewModel.MaxTestRangeInt32 + 1;
-				Assert.AreEqual(TestViewModel.MaxTestRangeInt32, viewModel.TestRangeInt32, "Property value is not coerced.");
-				Assert.AreEqual(nameof(TestViewModel.TestRangeInt32), latestChangedPropertyName, "PropertyChanged not received.");
+				Assert.That(TestViewModel.MaxTestRangeInt32 == viewModel.TestRangeInt32, "Property value is not coerced.");
+				Assert.That(nameof(TestViewModel.TestRangeInt32) == latestChangedPropertyName, "PropertyChanged not received.");
 				latestChangedPropertyName = "";
 				viewModel.TestRangeInt32 = TestViewModel.MaxTestRangeInt32 + 2;
-				Assert.AreEqual(TestViewModel.MaxTestRangeInt32, viewModel.TestRangeInt32, "Property value is not coerced.");
-				Assert.AreEqual("", latestChangedPropertyName, "PropertyChanged should not be raised.");
+				Assert.That(TestViewModel.MaxTestRangeInt32 == viewModel.TestRangeInt32, "Property value is not coerced.");
+				Assert.That("" == latestChangedPropertyName, "PropertyChanged should not be raised.");
 				viewModel.TestRangeInt32 = TestViewModel.MinTestRangeInt32 - 1;
-				Assert.AreEqual(TestViewModel.MinTestRangeInt32, viewModel.TestRangeInt32, "Property value is not coerced.");
-				Assert.AreEqual(nameof(TestViewModel.TestRangeInt32), latestChangedPropertyName, "PropertyChanged not received.");
+				Assert.That(TestViewModel.MinTestRangeInt32 == viewModel.TestRangeInt32, "Property value is not coerced.");
+				Assert.That(nameof(TestViewModel.TestRangeInt32) == latestChangedPropertyName, "PropertyChanged not received.");
 				latestChangedPropertyName = "";
 				viewModel.TestRangeInt32 = TestViewModel.MinTestRangeInt32 - 2;
-				Assert.AreEqual(TestViewModel.MinTestRangeInt32, viewModel.TestRangeInt32, "Property value is not coerced.");
-				Assert.AreEqual("", latestChangedPropertyName, "PropertyChanged should not be raised.");
+				Assert.That(TestViewModel.MinTestRangeInt32 == viewModel.TestRangeInt32, "Property value is not coerced.");
+				Assert.That("" == latestChangedPropertyName, "PropertyChanged should not be raised.");
 
 				// get property as IObservable
 				var observable = viewModel.GetValueAsObservable(TestViewModel.TestInt32Property);
-				var observer = new Observer<int>(); ;
+				var observer = new Observer<int>();
 				using var subscribedObserver = observable.Subscribe(observer);
 				viewModel.TestInt32 = -123;
-				Assert.AreEqual(-123, observer.LatestValue, "Observer for property was not notified.");
+				Assert.That(-123 == observer.LatestValue, "Observer for property was not notified.");
 				viewModel.TestInt32 = 123;
-				Assert.AreEqual(123, observer.LatestValue, "Observer for property was not notified.");
+				Assert.That(123 == observer.LatestValue, "Observer for property was not notified.");
 				latestChangedPropertyName = "";
 
 				// change property with validation function
@@ -216,17 +216,21 @@ namespace CarinaStudio.ViewModels
 					if (ex is AssertionException)
 						throw;
 				}
-				Assert.AreEqual("", latestChangedPropertyName, "PropertyChanged should not be raised.");
+				Assert.That("" == latestChangedPropertyName, "PropertyChanged should not be raised.");
 
 				// get property from another thread
 				var exception = (Exception?)null;
 				var syncLock = new object();
 				lock (syncLock)
 				{
-					ThreadPool.QueueUserWorkItem((_) =>
+					// ReSharper disable once AllUnderscoreLocalParameterName
+					// ReSharper disable once RedundantAssignment
+					ThreadPool.QueueUserWorkItem(_ =>
 					{
 						try
 						{
+							// ReSharper disable once RedundantAssignment
+							// ReSharper disable once AssignmentInsteadOfDiscard
 							_ = viewModel.TestInt32;
 						}
 						catch (Exception ex)
@@ -239,7 +243,7 @@ namespace CarinaStudio.ViewModels
 								Monitor.Pulse(syncLock);
 						}
 					});
-					Assert.IsTrue(Monitor.Wait(syncLock, 5000), "Unable to complete waiting for test.");
+					Assert.That(Monitor.Wait(syncLock, 5000), "Unable to complete waiting for test.");
 				}
 				if (exception == null)
 					throw new AssertionException("Should not allow getting property from another thread.");
@@ -247,7 +251,7 @@ namespace CarinaStudio.ViewModels
 				// set property from another thread
 				lock (syncLock)
 				{
-					ThreadPool.QueueUserWorkItem((_) =>
+					ThreadPool.QueueUserWorkItem(_ =>
 					{
 						try
 						{
@@ -263,9 +267,10 @@ namespace CarinaStudio.ViewModels
 								Monitor.Pulse(syncLock);
 						}
 					});
-					Assert.IsTrue(Monitor.Wait(syncLock, 5000), "Unable to complete waiting for test.");
+					Assert.That(Monitor.Wait(syncLock, 5000), "Unable to complete waiting for test.");
 				}
-				if (exception == null)
+				// ReSharper disable once ConditionIsAlwaysTrueOrFalse
+				if (exception is null)
 					throw new AssertionException("Should not allow setting property from another thread.");
 			});
 		}
@@ -284,38 +289,39 @@ namespace CarinaStudio.ViewModels
 				var settings = this.application.AsNonNull().Settings;
 
 				// check initial state
-				Assert.IsNull(viewModel.LatestSettingChangedEventArgs, "OnSettingChanged should not be called.");
-				Assert.IsNull(viewModel.LatestSettingChangingEventArgs, "OnSettingChanging should not be called.");
+				Assert.That(viewModel.LatestSettingChangedEventArgs is null, "OnSettingChanged should not be called.");
+				Assert.That(viewModel.LatestSettingChangingEventArgs is null, "OnSettingChanging should not be called.");
 
 				// change setting
 #pragma warning disable CS0618
 				settings.SetValue(TestSettings.Int32, 123);
-				Assert.IsNotNull(viewModel.LatestSettingChangedEventArgs, "OnSettingChanged should be called.");
-				Assert.IsNotNull(viewModel.LatestSettingChangingEventArgs, "OnSettingChanging should be called.");
-				Assert.AreEqual(TestSettings.Int32, viewModel.LatestSettingChangedEventArgs?.Key, "Key received in OnSettingChanged is incorrect.");
-				Assert.AreEqual(TestSettings.Int32, viewModel.LatestSettingChangingEventArgs?.Key, "Key received in OnSettingChanging is incorrect.");
+				Assert.That(viewModel.LatestSettingChangedEventArgs is not null, "OnSettingChanged should be called.");
+				Assert.That(viewModel.LatestSettingChangingEventArgs is not null, "OnSettingChanging should be called.");
+				Assert.That(TestSettings.Int32 == viewModel.LatestSettingChangedEventArgs?.Key!, "Key received in OnSettingChanged is incorrect.");
+				Assert.That(TestSettings.Int32 == viewModel.LatestSettingChangingEventArgs?.Key!, "Key received in OnSettingChanging is incorrect.");
 				viewModel.LatestSettingChangedEventArgs = null;
 				viewModel.LatestSettingChangingEventArgs = null;
 				settings.SetValue(TestSettings.Int32, 123);
-				Assert.IsNull(viewModel.LatestSettingChangedEventArgs, "OnSettingChanged should not be called.");
-				Assert.IsNull(viewModel.LatestSettingChangingEventArgs, "OnSettingChanging should not be called.");
+				Assert.That(viewModel.LatestSettingChangedEventArgs is null, "OnSettingChanged should not be called.");
+				Assert.That(viewModel.LatestSettingChangingEventArgs is null, "OnSettingChanging should not be called.");
 
 				// change setting again
 				settings.SetValue(TestSettings.Int32, 456);
-				Assert.IsNotNull(viewModel.LatestSettingChangedEventArgs, "OnSettingChanged should be called.");
-				Assert.IsNotNull(viewModel.LatestSettingChangingEventArgs, "OnSettingChanging should be called.");
-				Assert.AreEqual(TestSettings.Int32, viewModel.LatestSettingChangedEventArgs?.Key, "Key received in OnSettingChanged is incorrect.");
-				Assert.AreEqual(TestSettings.Int32, viewModel.LatestSettingChangingEventArgs?.Key, "Key received in OnSettingChanging is incorrect.");
+				Assert.That(viewModel.LatestSettingChangedEventArgs is not null, "OnSettingChanged should be called.");
+				Assert.That(viewModel.LatestSettingChangingEventArgs is not null, "OnSettingChanging should be called.");
+				Assert.That(TestSettings.Int32 == viewModel.LatestSettingChangedEventArgs?.Key!, "Key received in OnSettingChanged is incorrect.");
+				Assert.That(TestSettings.Int32 == viewModel.LatestSettingChangingEventArgs?.Key!, "Key received in OnSettingChanging is incorrect.");
 				viewModel.LatestSettingChangedEventArgs = null;
 				viewModel.LatestSettingChangingEventArgs = null;
 
 				// dispose view-model
+				// ReSharper disable once DisposeOnUsingVariable
 				viewModel.Dispose();
 
 				// change setting after disposing
 				settings.SetValue(TestSettings.Int32, 1234);
-				Assert.IsNull(viewModel.LatestSettingChangedEventArgs, "OnSettingChanged should not be called after disposing.");
-				Assert.IsNull(viewModel.LatestSettingChangingEventArgs, "OnSettingChanging should not be called after disposing.");
+				Assert.That(viewModel.LatestSettingChangedEventArgs is null, "OnSettingChanged should not be called after disposing.");
+				Assert.That(viewModel.LatestSettingChangingEventArgs is null, "OnSettingChanging should not be called after disposing.");
 #pragma warning restore CS0618
 			});
 		}
@@ -330,26 +336,27 @@ namespace CarinaStudio.ViewModels
 			object syncLock = new object();
 			lock (syncLock)
 			{
+				// ReSharper disable once AsyncVoidLambda
 				this.testSyncContext?.Post(async () =>
 				{
 					// prepare
 					using var viewModel = new TestViewModel(this.application.AsNonNull());
 
 					// perform necessary tasks
-					Assert.IsFalse(viewModel.HasNecessaryTasks);
+					Assert.That(!viewModel.HasNecessaryTasks);
 					for (var t = 0; t < 10; ++t)
 						_ = viewModel.PerformNecessaryTaskAsync();
-					Assert.IsTrue(viewModel.HasNecessaryTasks);
+					Assert.That(viewModel.HasNecessaryTasks);
 
 					// wait for completion of tasks
 					await viewModel.WaitForNecessaryTasksAsync();
-					Assert.IsFalse(viewModel.HasNecessaryTasks);
+					Assert.That(!viewModel.HasNecessaryTasks);
 
 					// complete
 					lock (syncLock)
 						Monitor.Pulse(syncLock);
 				});
-				Assert.IsTrue(Monitor.Wait(syncLock, 10000));
+				Assert.That(Monitor.Wait(syncLock, 10000));
 			}
 		}
 	}

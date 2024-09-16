@@ -11,7 +11,7 @@ namespace CarinaStudio.ViewModels
 	class ObservablePropertyTests
 	{
 		// Fields.
-		readonly Random random = new Random();
+		readonly Random random = new();
 
 
 		/// <summary>
@@ -61,10 +61,10 @@ namespace CarinaStudio.ViewModels
 			var propertyIds = new HashSet<int>();
 			for (var i = valueTypes.Length - 1; i >= 0; --i)
 			{
-				Assert.IsTrue(propertyIds.Add(properties[i].Id));
-				Assert.AreEqual(typeof(ObservablePropertyTests), properties[i].OwnerType);
-				Assert.AreEqual(valueTypes[i], properties[i].ValueType);
-				Assert.AreEqual(i, int.Parse(properties[i].Name));
+				Assert.That(propertyIds.Add(properties[i].Id));
+				Assert.That(typeof(ObservablePropertyTests) == properties[i].OwnerType);
+				Assert.That(valueTypes[i] == properties[i].ValueType);
+				Assert.That(i == int.Parse(properties[i].Name));
 			}
 		}
 	}

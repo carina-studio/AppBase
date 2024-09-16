@@ -37,13 +37,13 @@ namespace CarinaStudio
 
 				// get non-null string
 				var str = app.GetStringNonNull(TestApplication.FormatStringKey, "default");
-				Assert.AreEqual(TestApplication.FormatString, str, "Invalid string get from application.");
+				Assert.That(TestApplication.FormatString == str, "Invalid string get from application.");
 				str = app.GetStringNonNull(TestApplication.InvalidStringKey, "default");
-				Assert.AreEqual("default", str, "Invalid default string get from application.");
+				Assert.That("default" == str, "Invalid default string get from application.");
 
 				// get formatted string
 				str = app.GetFormattedString(TestApplication.FormatStringKey, "Carina Studio");
-				Assert.AreEqual(string.Format(TestApplication.FormatString, "Carina Studio"), str, "Invalid formatted string get from application.");
+				Assert.That(string.Format(TestApplication.FormatString, "Carina Studio") == str, "Invalid formatted string get from application.");
 				try
 				{
 					app.GetFormattedString(TestApplication.InvalidStringKey, "Carina Studio");
@@ -88,13 +88,13 @@ namespace CarinaStudio
 				if (Directory.Exists(fullDirPath1))
 					Directory.Delete(fullDirPath1, true);
 				var dirInfo1 = app.CreatePrivateDirectory(dirPath1);
-				Assert.IsTrue(dirInfo1.Exists, "Private directory didn't created.");
-				Assert.AreEqual(fullDirPath1, dirInfo1.FullName, "Private directory path is incorrect.");
+				Assert.That(dirInfo1.Exists, "Private directory didn't created.");
+				Assert.That(fullDirPath1 == dirInfo1.FullName, "Private directory path is incorrect.");
 
 				// create existing directory
 				var dirInfo2 = app.CreatePrivateDirectory(dirPath1);
-				Assert.IsTrue(dirInfo2.Exists, "Private directory didn't created.");
-				Assert.AreEqual(fullDirPath1, dirInfo2.FullName, "Private directory path is incorrect.");
+				Assert.That(dirInfo2.Exists, "Private directory didn't created.");
+				Assert.That(fullDirPath1 == dirInfo2.FullName, "Private directory path is incorrect.");
 
 				// create directory by absolute path
 				var dirPath2 = $"test1{Path.DirectorySeparatorChar}test2";
