@@ -150,7 +150,7 @@ namespace CarinaStudio.Diagnostics
             }
             if (obj is ICollection collection)
                 return EstimateCollectionInstanceSizeInternal(IntPtr.Size, collection.Count);
-            return EstimateInstanceSize(type);
+            return EstimateInstanceSize(type, length: 0);
         }
         
 
