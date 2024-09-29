@@ -3,6 +3,7 @@ using CarinaStudio.AutoUpdate.Resolvers;
 using CarinaStudio.Threading;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Net;
@@ -27,6 +28,14 @@ namespace CarinaStudio.AutoUpdate
 		double progress = double.NaN;
 		UpdaterState state = UpdaterState.Initializing;
 		readonly object waitingSyncLock = new();
+
+		static Dictionary<string, string>? extraHeaders;
+
+		/// <summary>
+		/// Set extra headers.
+		/// </summary>
+		/// <param name="outExtraHeaders"></param>
+		public static void SetExtraHeaders(Dictionary<string, string> outExtraHeaders) => extraHeaders =  outExtraHeaders;
 
 
 		/// <summary>
@@ -406,7 +415,22 @@ namespace CarinaStudio.AutoUpdate
 					// get response
 					this.logger.LogDebug("Start downloading package from '{packageUri}'", packageUri);
 #pragma warning disable SYSLIB0014
-					var getResponseTask = WebRequest.Create(packageUri).GetResponseAsync();
+					var request = WebRequest.Create(packageUri);
+					if (request is HttpWebRequest)
+					{
+						ServicePointManager.ServerCertificateValidationCallback = (a, b, c, d) => { return true; };
+						if (extraHeaders != null && extraHeaders.Count > 0)
+						{
+							foreach (var item in extraHeaders)
+							{
+								if (item.Key != "accept-encoding")
+								{
+									request.Headers.Add(item.Key, item.Value);
+								}
+							}
+						}
+					}
+					var getResponseTask = request.GetResponseAsync();
 #pragma warning restore SYSLIB0014
 					while (true)
 					{

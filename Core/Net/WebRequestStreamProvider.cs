@@ -187,7 +187,20 @@ namespace CarinaStudio.Net
 					it.Method = this.method;
 			});
 			if (request is HttpWebRequest)
+			{
+				ServicePointManager.ServerCertificateValidationCallback = (a, b, c, d) => { return true; };
+				if (ExtraHeaders != null && ExtraHeaders.Count > 0)
+				{
+					foreach (var item in ExtraHeaders)
+					{
+						if (item.Key != "accept-encoding")
+						{
+							request.Headers.Add(item.Key, item.Value);
+						}
+					}
+				}
 				request.Headers.Add("accept-encoding", "deflate,gzip");
+			}
 			if (isWriteNeeded)
 				return (Stream)new RequestStream(request);
 #pragma warning restore SYSLIB0014
@@ -230,5 +243,16 @@ namespace CarinaStudio.Net
 		/// Get URI of request.
 		/// </summary>
 		public Uri RequestUri { get; }
+
+	    /// <summary>
+		/// ExtraHeaders.
+		/// </summary>
+		static Dictionary<string, string>? ExtraHeaders = null;
+
+		/// <summary>
+		/// Set extra headers.
+		/// </summary>
+		/// <param name="extraHeader"></param>
+		public static void SetExtraHeaders(Dictionary<string, string> extraHeaders) => ExtraHeaders = extraHeaders;
 	}
 }
