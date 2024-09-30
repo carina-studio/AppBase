@@ -1,8 +1,10 @@
 ﻿using CarinaStudio.AutoUpdate.Installers;
 using CarinaStudio.AutoUpdate.Resolvers;
+using CarinaStudio.Collections;
 using CarinaStudio.Threading;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Net;
@@ -22,6 +24,7 @@ namespace CarinaStudio.AutoUpdate
 		bool backupApplicationCompletely;
 		readonly CancellationTokenSource cancellationTokenSource = new();
 		readonly ILogger logger;
+		IDictionary<string, string> packageRequestHeaders = new Dictionary<string, string>();
 		IPackageInstaller? packageInstaller;
 		IPackageResolver? packageResolver;
 		double progress = double.NaN;
@@ -406,7 +409,12 @@ namespace CarinaStudio.AutoUpdate
 					// get response
 					this.logger.LogDebug("Start downloading package from '{packageUri}'", packageUri);
 #pragma warning disable SYSLIB0014
-					var getResponseTask = WebRequest.Create(packageUri).GetResponseAsync();
+					var getResponseTask = WebRequest.Create(packageUri).Also(it =>
+					{
+						var requestHeaders = it.Headers;
+						foreach (var (key, value) in this.packageRequestHeaders)
+							requestHeaders.Add(key, value);
+					}).GetResponseAsync();
 #pragma warning restore SYSLIB0014
 					while (true)
 					{
@@ -592,6 +600,12 @@ namespace CarinaStudio.AutoUpdate
 		/// </summary>
 		/// <param name="propertyName">Name of changed property.</param>
 		protected virtual void OnPropertyChanged(string propertyName) => this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+
+		/// <summary>
+		/// Get collection of custom headers for requesting package download.
+		/// </summary>
+		public IDictionary<string, string> PackageRequestHeaders => this.packageRequestHeaders;
 
 
 		/// <summary>
@@ -828,6 +842,9 @@ namespace CarinaStudio.AutoUpdate
 			// check state
 			if (this.state != UpdaterState.Starting)
 				return;
+			
+			// lock custom headers
+			this.packageRequestHeaders = DictionaryExtensions.AsReadOnly(this.packageRequestHeaders);
 
 			// resolve package
 			if (!this.ChangeState(UpdaterState.ResolvingPackage))
