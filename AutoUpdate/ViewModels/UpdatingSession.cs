@@ -6,6 +6,7 @@ using CarinaStudio.ViewModels;
 using CarinaStudio.Windows.Input;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -218,13 +219,8 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 
 
 		// Check availability of progress.
-		void CheckProgressAvailability()
-		{
-			if (!this.IsUpdating)
-				this.SetValue(IsProgressAvailableProperty, false);
-			else
-				this.SetValue(IsProgressAvailableProperty, double.IsFinite(this.ProgressPercentage));
-		}
+		void CheckProgressAvailability() =>
+			this.SetValue(IsProgressAvailableProperty, this.IsUpdating && double.IsFinite(this.ProgressPercentage));
 		
 		
 		// Complete updating progress.
@@ -488,6 +484,12 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 				this.OnPropertyChanged(nameof(PackageManifestSource));
 			}
 		}
+		
+		
+		/// <summary>
+		/// Get collection of custom headers for requesting package download.
+		/// </summary>
+		public IDictionary<string, string> PackageRequestHeaders => this.updater.PackageRequestHeaders;
 
 
 		/// <summary>
