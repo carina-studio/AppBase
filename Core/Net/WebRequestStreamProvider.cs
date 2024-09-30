@@ -1,6 +1,8 @@
-﻿using System.Net.Cache;
+﻿using CarinaStudio.Collections;
+using System.Net.Cache;
 using CarinaStudio.IO;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
@@ -54,6 +56,7 @@ namespace CarinaStudio.Net
 			protected override void Dispose(bool disposing)
 			{
 				base.Dispose(disposing);
+				// ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
 				this.response?.Dispose(); // In case of error occurred in constructor
 			}
 
@@ -71,6 +74,7 @@ namespace CarinaStudio.Net
 
 
 		// Fields.
+		readonly IDictionary<string, string>? headers;
 #pragma warning disable CS0649
 		readonly RequestCachePolicy? cachePolicy;
 #pragma warning restore CS0649
@@ -83,12 +87,16 @@ namespace CarinaStudio.Net
 		/// </summary>
 		/// <param name="requestUri">Request URI.</param>
 		/// <param name="method">Protocol method.</param>
+		/// <param name="headers">Custom headers.</param>
 		/// <param name="credentials">Credentials.</param>
 		/// <param name="cachePolicy">Cache policy.</param>
-		public WebRequestStreamProvider(Uri requestUri, string? method = null, ICredentials? credentials = null, RequestCachePolicy? cachePolicy = null)
+		public WebRequestStreamProvider(Uri requestUri, string? method = null, IDictionary<string, string>? headers = null, ICredentials? credentials = null, RequestCachePolicy? cachePolicy = null)
 		{
 			this.cachePolicy = cachePolicy;
 			this.credentials = credentials;
+			this.headers = headers is null
+				? null
+				: new Dictionary<string, string>(headers);
 			this.method = method ?? requestUri.Scheme switch
 			{
 				"file" => WebRequestMethods.File.DownloadFile,
@@ -179,6 +187,12 @@ namespace CarinaStudio.Net
 #pragma warning disable SYSLIB0014
 			var request = WebRequest.Create(this.RequestUri).Also(it =>
 			{
+				if (this.headers is not null && this.headers.IsNotEmpty())
+				{
+					var requestHeaders = it.Headers;
+					foreach (var (key, value) in this.headers)
+						requestHeaders.Add(key, value);
+				}
 				if (this.cachePolicy != null)
 					it.CachePolicy = this.cachePolicy;
 				if (this.credentials != null)
@@ -187,7 +201,10 @@ namespace CarinaStudio.Net
 					it.Method = this.method;
 			});
 			if (request is HttpWebRequest)
-				request.Headers.Add("accept-encoding", "deflate,gzip");
+			{
+				if (this.headers?.ContainsKey("accept-encoding") != true)
+					request.Headers.Add("accept-encoding", "deflate,gzip");
+			}
 			if (isWriteNeeded)
 				return (Stream)new RequestStream(request);
 #pragma warning restore SYSLIB0014
