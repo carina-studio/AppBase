@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace CarinaStudio.MacOS.ObjectiveC
 {
@@ -97,6 +98,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         static readonly IDictionary<IntPtr, Class> CachedProtocolsByHandle = new ConcurrentDictionary<IntPtr, Class>();
         static readonly IDictionary<string, Class> CachedProtocolsByName = new ConcurrentDictionary<string, Class>();
         static volatile ModuleBuilder? NativeBridgeModule;
+        static readonly Lock syncLock = new();
 
 
         // Fields.
@@ -654,14 +656,14 @@ namespace CarinaStudio.MacOS.ObjectiveC
             // create bridge assembly
             if (NativeBridgeModule == null)
             {
-                NativeBridgeModule = typeof(Class).Lock(() =>
+                lock (syncLock)
                 {
-                    return NativeBridgeModule ?? AssemblyBuilder.DefineDynamicAssembly(new AssemblyName("CarinaStudio.AppBase.MacOS.NativeBridge"), AssemblyBuilderAccess.RunAndCollect).Let(it =>
+                    NativeBridgeModule = NativeBridgeModule ?? AssemblyBuilder.DefineDynamicAssembly(new AssemblyName("CarinaStudio.AppBase.MacOS.NativeBridge"), AssemblyBuilderAccess.RunAndCollect).Let(it =>
                     {
                         NativeBridgeModule = it.DefineDynamicModule("Class");
                         return NativeBridgeModule;
                     });
-                });
+                }
             }
 
             // create bridge type

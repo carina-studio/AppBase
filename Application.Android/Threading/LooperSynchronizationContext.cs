@@ -12,6 +12,7 @@ public class LooperSynchronizationContext : SynchronizationContext
 {
     // Static fields.
     static volatile LooperSynchronizationContext? MainInstance;
+    static readonly Lock staticSyncLock = new();
     
     
     // Fields.
@@ -51,14 +52,14 @@ public class LooperSynchronizationContext : SynchronizationContext
         {
             if (MainInstance is not null)
                 return MainInstance;
-            return typeof(LooperSynchronizationContext).Lock(() =>
+            lock (staticSyncLock)
             {
                 // ReSharper disable ConvertIfStatementToNullCoalescingExpression
                 if (MainInstance is null)
                     MainInstance = new(Looper.MainLooper.AsNonNull());
                 // ReSharper restore ConvertIfStatementToNullCoalescingExpression
                 return MainInstance;
-            });
+            }
         }
     }
 

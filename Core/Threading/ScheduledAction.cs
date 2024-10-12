@@ -12,6 +12,7 @@ namespace CarinaStudio.Threading
 		// Fields.
 		readonly Action action;
 		volatile object? token;
+		readonly Lock syncLock = new();
 
 
 		/// <summary>
@@ -57,7 +58,7 @@ namespace CarinaStudio.Threading
 		{
 			if (this.token is null)
 				return false;
-			lock (this)
+			lock (syncLock)
 			{
 				if (this.token is not null)
 				{
@@ -95,7 +96,7 @@ namespace CarinaStudio.Threading
 		// Execute action.
 		void ExecuteAction(object? token)
 		{
-			lock (this)
+			lock (syncLock)
 			{
 				if (token != this.token)
 					return;
@@ -152,7 +153,7 @@ namespace CarinaStudio.Threading
 			object? token = null;
 			token = this.PostAction(_ =>
 			{
-				lock (this) // barrier to make sure that variable 'token' has been assigned
+				lock (syncLock) // barrier to make sure that variable 'token' has been assigned
 				{ }
 				this.ExecuteAction(token);
 			}, null, delayMillis);
@@ -188,7 +189,7 @@ namespace CarinaStudio.Threading
 			object? token = null;
 			token = this.PostAction(_ =>
 			{
-				lock (this) // barrier to make sure that variable 'token' has been assigned
+				lock (syncLock) // barrier to make sure that variable 'token' has been assigned
 				{ }
 				this.ExecuteAction(token);
 			}, null, delayMillis);

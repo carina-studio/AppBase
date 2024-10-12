@@ -14,6 +14,7 @@ namespace CarinaStudio.Controls
         // Fields.
         IApplication? app;
         volatile ILogger? logger;
+        readonly Lock syncLock = new();
 
 
         /// <summary>
@@ -47,7 +48,7 @@ namespace CarinaStudio.Controls
             {
                 if (this.logger != null)
                     return this.logger;
-                lock (this)
+                lock (syncLock)
                 {
                     if (this.logger != null)
                         return this.logger;

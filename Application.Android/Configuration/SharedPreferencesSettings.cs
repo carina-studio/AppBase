@@ -25,7 +25,7 @@ public class SharedPreferencesSettings : ISettings
         // Constructor.
         public SharedPreferencesChangedListener(SharedPreferencesSettings settings) =>
             this.settings = settings;
-        
+
         /// <inheritdoc/>
         public void OnSharedPreferenceChanged(ISharedPreferences? sharedPreferences, string? key)
         {
@@ -42,6 +42,7 @@ public class SharedPreferencesSettings : ISettings
 
 
     // Static fields.
+    static readonly Lock staticSyncLock = new();
     static volatile SharedPreferencesSettings? DefaultSettings;
     static readonly ISet<string> EmptyStringSet = new HashSet<string>().AsReadOnly();
     static readonly SynchronizationContext SharedPrefsEditingSyncContext = new SingleThreadSynchronizationContext();
@@ -55,7 +56,7 @@ public class SharedPreferencesSettings : ISettings
     EventHandler<SettingChangingEventArgs>? settingChangingHandlers;
     readonly ISharedPreferences sharedPrefs;
     IDictionary<string, object> sharedPrefsValues;
-    readonly object syncLock = new();
+    readonly Lock syncLock = new();
     readonly Dictionary<string, object> values;
     int version;
 
@@ -90,7 +91,7 @@ public class SharedPreferencesSettings : ISettings
 #endif
                 return;
             }
-            
+
             // apply changes
             var editor = this.sharedPrefs!.Edit()!;
             foreach (var (key, value) in changedValues)
@@ -175,7 +176,7 @@ public class SharedPreferencesSettings : ISettings
     {
         if (DefaultSettings != null)
             return DefaultSettings;
-        lock (typeof(SharedPreferencesSettings))
+        lock (staticSyncLock)
         {
             if (DefaultSettings != null)
                 return DefaultSettings;
@@ -193,11 +194,14 @@ public class SharedPreferencesSettings : ISettings
 
 
     /// <inheritdoc/>
-    public object? GetRawValue(SettingKey key) => this.syncLock.Lock(() =>
+    public object? GetRawValue(SettingKey key)
     {
-        this.values.TryGetValue(key.Name, out var value);
-        return value;
-    });
+        lock (this.syncLock)
+        {
+            this.values.TryGetValue(key.Name, out var value);
+            return value;
+        }
+    }
 
 
     /// <inheritdoc/>

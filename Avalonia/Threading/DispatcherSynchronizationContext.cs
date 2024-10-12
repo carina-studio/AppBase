@@ -20,6 +20,8 @@ public class DispatcherSynchronizationContext : SynchronizationContext
         readonly DispatcherPriority priority;
         readonly SendOrPostCallback? sendOrPostCallback;
         readonly object? state;
+        readonly Lock syncLock = new();
+        static readonly Lock staticSyncLock = new();
         
         // Constructor.
         public DelayedCallbackStub(Dispatcher dispatcher, Action action, DispatcherPriority priority)
@@ -43,7 +45,7 @@ public class DispatcherSynchronizationContext : SynchronizationContext
         // Entry of call-back.
         void CallbackEntry()
         {
-            lock (this)
+            lock (syncLock)
             {
                 if (this.isCancelled)
                     return;
@@ -58,7 +60,7 @@ public class DispatcherSynchronizationContext : SynchronizationContext
         /// <inheritdoc/>
         bool IDelayedCallbackStub.Cancel()
         {
-            lock (this)
+            lock (syncLock)
             {
                 if (this.isCancelled || !this.isCancellable)
                     return false;
@@ -120,13 +122,13 @@ public class DispatcherSynchronizationContext : SynchronizationContext
         {
             if (UIThreadInstance is not null)
                 return UIThreadInstance;
-            return typeof(DispatcherSynchronizationContext).Lock(() =>
+            lock (staticSyncLock)
             {
                 // ReSharper disable once ConvertIfStatementToNullCoalescingExpression
                 if (UIThreadInstance is null)
                     UIThreadInstance = new(Dispatcher.UIThread);
                 return UIThreadInstance;
-            });
+            }
         }
     }
 

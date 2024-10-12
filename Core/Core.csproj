@@ -7,9 +7,14 @@
         <PackageId>CarinaStudio.AppBase.Core</PackageId>
         <Description>AppBase is a base library set for .NET application. CarinaStudio.AppBase.Core is the core library of AppBase, provides extensions for object, collection and threading to make your code more elegant and clear.</Description>
         <IsAotCompatible>true</IsAotCompatible>
+		<LangVersion>preview</LangVersion>
     </PropertyGroup>
 
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+	<ItemGroup Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net9.0'))">
+		<PackageReference Include="Backport.System.Threading.Lock" Version="2.0.5" />
+	</ItemGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
         <DocumentationFile>CarinaStudio.AppBase.Core.xml</DocumentationFile>
     </PropertyGroup>
 

@@ -7,6 +7,7 @@
         <PackageId>CarinaStudio.AppBase.Configuration</PackageId>
         <Description>AppBase is a base library set for .NET application. CarinaStudio.AppBase.Configuration provides easy way to use and manage your application settings.</Description>
         <IsAotCompatible>true</IsAotCompatible>
+		<LangVersion>preview</LangVersion>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
