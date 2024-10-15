@@ -2,6 +2,7 @@ using CarinaStudio.MacOS.ObjectiveC;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace CarinaStudio.MacOS.AppKit;
 
@@ -57,6 +58,7 @@ public unsafe class NSApplication : NSResponder
     static Selector? RunSelector;
     static Selector? SetActivationPolicySelector;
     static Selector? WindowsSelector;
+    static readonly Lock syncLock = new();
 
 
     // Fields.
@@ -168,7 +170,11 @@ public unsafe class NSApplication : NSResponder
     {
         get
         {
-            return _Current ?? typeof(NSApplication).Lock(() =>
+            if (_Current != null)
+            {
+                return _Current;
+            }
+            lock (syncLock)
             {
                 if (_Current != null)
                     return _Current;
@@ -180,7 +186,7 @@ public unsafe class NSApplication : NSResponder
                     IsDefaultInstance = true
                 };
                 return _Current;
-            });
+            }
         }
     }
 
@@ -400,7 +406,11 @@ public unsafe class NSApplication : NSResponder
     {
         get
         {
-            return _Current ?? typeof(NSApplication).Lock(() =>
+            if (_Current != null)
+            {
+                return _Current;
+            }
+            lock (syncLock)
             {
                 if (_Current != null)
                     return _Current;
@@ -415,7 +425,7 @@ public unsafe class NSApplication : NSResponder
                     IsDefaultInstance = true
                 };
                 return _Current;
-            });
+            }
         }
     }
 

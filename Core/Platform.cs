@@ -20,6 +20,7 @@ namespace CarinaStudio
 		static LinuxDistribution? linuxDistribution;
 		static Regex? runtimeVersionRegex;
 		static WindowsVersion? windowsVersion;
+		static readonly Lock syncLock = new();
 
 
 		/// <summary>
@@ -169,7 +170,7 @@ namespace CarinaStudio
             {
 				if (isOpeningFileManagerSupported.HasValue)
 					return isOpeningFileManagerSupported.Value;
-				lock (typeof(Platform))
+				lock (syncLock)
 				{
 					if (isOpeningFileManagerSupported.HasValue)
 						return isOpeningFileManagerSupported.Value;
@@ -192,7 +193,7 @@ namespace CarinaStudio
 			{
 				if (isOpeningLinkSupported.HasValue)
 					return isOpeningLinkSupported.Value;
-				lock (typeof(Platform))
+				lock (syncLock)
 					isOpeningLinkSupported = (IsWindows || IsMacOS || (IsLinux && IsNotAndroid));
 				return isOpeningLinkSupported.Value;
 			}
@@ -232,7 +233,7 @@ namespace CarinaStudio
 			{
 				if (linuxDesktop.HasValue)
 					return linuxDesktop.Value;
-				lock (typeof(Platform))
+				lock (syncLock)
 				{
 					if (linuxDesktop.HasValue)
 						return linuxDesktop.Value;
@@ -265,7 +266,7 @@ namespace CarinaStudio
             {
 				if (linuxDistribution.HasValue)
 					return linuxDistribution.Value;
-				lock (typeof(Platform))
+				lock (syncLock)
 				{
 					if (linuxDistribution.HasValue)
 						return linuxDistribution.Value;
@@ -450,7 +451,7 @@ namespace CarinaStudio
 			{
 				if (windowsVersion.HasValue)
 					return windowsVersion.GetValueOrDefault();
-				lock (typeof(Platform))
+				lock (syncLock)
 				{
 					if (windowsVersion.HasValue)
 						return windowsVersion.GetValueOrDefault();

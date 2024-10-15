@@ -1,5 +1,6 @@
 ﻿using CarinaStudio.Windows.Input;
 using System;
+using System.Threading;
 using System.Windows.Input;
 
 namespace CarinaStudio
@@ -35,6 +36,7 @@ namespace CarinaStudio
         // Fields.
         static ICommand? openFileManagerCommand;
         static ICommand? openLinkCommand;
+        static readonly Lock syncLock = new();
 
 
         /// <summary>
@@ -47,7 +49,7 @@ namespace CarinaStudio
             {
                 if (openFileManagerCommand is not null)
                     return openFileManagerCommand;
-                lock (typeof(PlatformCommands))
+                lock (syncLock)
                     openFileManagerCommand ??= new Command<string>(Platform.OpenFileManager, new FixedObservableValue<bool>(Platform.IsOpeningFileManagerSupported));
                 return openFileManagerCommand;
             }
@@ -64,7 +66,7 @@ namespace CarinaStudio
             {
                 if (openLinkCommand is not null)
                     return openLinkCommand;
-                lock (typeof(PlatformCommands))
+                lock (syncLock)
                     openLinkCommand ??= new OpenLinkCommandImpl();
                 return openLinkCommand;
             }

@@ -7,6 +7,7 @@
 		<PackageId>CarinaStudio.AppBase.MacOS</PackageId>
 		<Description>AppBase is a base library set for .NET application. CarinaStudio.AppBase.MacOS provides basic layer for accessing functions of macOS.</Description>
 		<IsAotCompatible>false</IsAotCompatible>
+		<LangVersion>preview</LangVersion>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

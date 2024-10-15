@@ -49,12 +49,13 @@ namespace CarinaStudio.IO
 		volatile int dataOffset;
 		readonly bool isFixedSize;
 		readonly bool isWritable;
+        readonly Lock syncLock = new();
 
 
-		/// <summary>
-		/// Initialize new <see cref="MemoryStreamProvider"/>.
-		/// </summary>
-		public MemoryStreamProvider()
+        /// <summary>
+        /// Initialize new <see cref="MemoryStreamProvider"/>.
+        /// </summary>
+        public MemoryStreamProvider()
 		{
 			this.data = new byte[0];
 			this.isWritable = true;
@@ -127,12 +128,13 @@ namespace CarinaStudio.IO
 				throw new InvalidOperationException();
 
 			// create memory stream
-			var memoryStream = this.Lock(() =>
+			MemoryStream? memoryStream;
+			lock (syncLock)
 			{
-				return this.isFixedSize || this.data.Length > 0
+				memoryStream = this.isFixedSize || this.data.Length > 0
 					? new MemoryStream(this.data, this.dataOffset, this.dataCount, this.isWritable)
 					: new MemoryStream();
-			});
+			};
 			return Task.Run(() => (Stream)new StreamImpl(this, memoryStream));
 		}
 
@@ -141,11 +143,14 @@ namespace CarinaStudio.IO
 		/// Copy data as byte array.
 		/// </summary>
 		/// <returns>Byte array.</returns>
-		public byte[] ToByteArray() => this.Lock(() =>
+		public byte[] ToByteArray()
 		{
-			if (this.dataOffset != 0 || this.dataCount != this.data.Length)
-				return new byte[this.dataCount].Also(it => Array.Copy(this.data, this.dataOffset, it, 0, this.dataCount));
-			return (byte[])this.data.Clone();
-		});
+			lock (syncLock)
+			{
+				if (this.dataOffset != 0 || this.dataCount != this.data.Length)
+					return new byte[this.dataCount].Also(it => Array.Copy(this.data, this.dataOffset, it, 0, this.dataCount));
+				return (byte[])this.data.Clone();
+			}
+		}
 	}
 }
