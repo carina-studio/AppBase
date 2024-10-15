@@ -21,7 +21,6 @@ public class DispatcherSynchronizationContext : SynchronizationContext
         readonly SendOrPostCallback? sendOrPostCallback;
         readonly object? state;
         readonly Lock syncLock = new();
-        static readonly Lock staticSyncLock = new();
         
         // Constructor.
         public DelayedCallbackStub(Dispatcher dispatcher, Action action, DispatcherPriority priority)
@@ -73,6 +72,7 @@ public class DispatcherSynchronizationContext : SynchronizationContext
     
     // Static fields.
     static volatile DispatcherSynchronizationContext? UIThreadInstance;
+    static readonly Lock SyncLock = new();
 
 
     // Fields.
@@ -122,7 +122,7 @@ public class DispatcherSynchronizationContext : SynchronizationContext
         {
             if (UIThreadInstance is not null)
                 return UIThreadInstance;
-            lock (staticSyncLock)
+            lock (SyncLock)
             {
                 // ReSharper disable once ConvertIfStatementToNullCoalescingExpression
                 if (UIThreadInstance is null)

@@ -42,7 +42,7 @@ public class SharedPreferencesSettings : ISettings
 
 
     // Static fields.
-    static readonly Lock staticSyncLock = new();
+    static readonly Lock SyncLock = new();
     static volatile SharedPreferencesSettings? DefaultSettings;
     static readonly ISet<string> EmptyStringSet = new HashSet<string>().AsReadOnly();
     static readonly SynchronizationContext SharedPrefsEditingSyncContext = new SingleThreadSynchronizationContext();
@@ -176,7 +176,7 @@ public class SharedPreferencesSettings : ISettings
     {
         if (DefaultSettings != null)
             return DefaultSettings;
-        lock (staticSyncLock)
+        lock (SyncLock)
         {
             if (DefaultSettings != null)
                 return DefaultSettings;
