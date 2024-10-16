@@ -70,12 +70,8 @@ namespace CarinaStudio
 		}
 		
 		// Adapter of weak event handler.
-		class WeakActionEventHandlerAdapter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicEvents)] TObject> : BaseWeakEventHandlerAdapter<TObject, Action>
+		class WeakActionEventHandlerAdapter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicEvents)] TObject>(TObject target, string eventName, Action handler) : BaseWeakEventHandlerAdapter<TObject, Action>(target, eventName, handler)
 		{
-			// Constructor.
-			public WeakActionEventHandlerAdapter(TObject target, string eventName, Action handler) : base(target, eventName, handler)
-			{ }
-
 			/// <inheritdoc/>.
 			protected override Action CreateEventHandlerStub() =>
 				this.OnEventReceived;
@@ -87,12 +83,8 @@ namespace CarinaStudio
 		
 		
 		// Adapter of weak event handler.
-		class WeakActionEventHandlerAdapter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicEvents)] TObject, TArg> : BaseWeakEventHandlerAdapter<TObject, Action<TArg>>
+		class WeakActionEventHandlerAdapter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicEvents)] TObject, TArg>(TObject target, string eventName, Action<TArg> handler) : BaseWeakEventHandlerAdapter<TObject, Action<TArg>>(target, eventName, handler)
 		{
-			// Constructor.
-			public WeakActionEventHandlerAdapter(TObject target, string eventName, Action<TArg> handler) : base(target, eventName, handler)
-			{ }
-
 			/// <inheritdoc/>.
 			protected override Action<TArg> CreateEventHandlerStub() =>
 				this.OnEventReceived;
@@ -104,12 +96,8 @@ namespace CarinaStudio
 		
 		
 		// Adapter of weak event handler.
-		class WeakActionEventHandlerAdapter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicEvents)] TObject, TArg1, TArg2> : BaseWeakEventHandlerAdapter<TObject, Action<TArg1, TArg2>>
+		class WeakActionEventHandlerAdapter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicEvents)] TObject, TArg1, TArg2>(TObject target, string eventName, Action<TArg1, TArg2> handler) : BaseWeakEventHandlerAdapter<TObject, Action<TArg1, TArg2>>(target, eventName, handler)
 		{
-			// Constructor.
-			public WeakActionEventHandlerAdapter(TObject target, string eventName, Action<TArg1, TArg2> handler) : base(target, eventName, handler)
-			{ }
-
 			/// <inheritdoc/>.
 			protected override Action<TArg1, TArg2> CreateEventHandlerStub() =>
 				this.OnEventReceived;
@@ -121,12 +109,8 @@ namespace CarinaStudio
 		
 		
 		// Adapter of weak event handler.
-		class WeakActionEventHandlerAdapter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicEvents)] TObject, TArg1, TArg2, TArg3> : BaseWeakEventHandlerAdapter<TObject, Action<TArg1, TArg2, TArg3>>
+		class WeakActionEventHandlerAdapter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicEvents)] TObject, TArg1, TArg2, TArg3>(TObject target, string eventName, Action<TArg1, TArg2, TArg3> handler) : BaseWeakEventHandlerAdapter<TObject, Action<TArg1, TArg2, TArg3>>(target, eventName, handler)
 		{
-			// Constructor.
-			public WeakActionEventHandlerAdapter(TObject target, string eventName, Action<TArg1, TArg2, TArg3> handler) : base(target, eventName, handler)
-			{ }
-
 			/// <inheritdoc/>.
 			protected override Action<TArg1, TArg2, TArg3> CreateEventHandlerStub() =>
 				this.OnEventReceived;
@@ -138,12 +122,8 @@ namespace CarinaStudio
 		
 		
 		// Adapter of weak event handler.
-		class WeakEventHandlerAdapter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicEvents)] TObject> : BaseWeakEventHandlerAdapter<TObject, EventHandler>
+		class WeakEventHandlerAdapter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicEvents)] TObject>(TObject target, string eventName, EventHandler handler) : BaseWeakEventHandlerAdapter<TObject, EventHandler>(target, eventName, handler)
 		{
-			// Constructor.
-			public WeakEventHandlerAdapter(TObject target, string eventName, EventHandler handler) : base(target, eventName, handler)
-			{ }
-
 			/// <inheritdoc/>.
 			protected override EventHandler CreateEventHandlerStub() =>
 				this.OnEventReceived;
@@ -155,12 +135,9 @@ namespace CarinaStudio
 
 
 		// Adapter of weak event handler.
-		class WeakEventHandlerAdapter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicEvents)] TObject, TArgs> : BaseWeakEventHandlerAdapter<TObject, EventHandler<TArgs>> where TArgs : EventArgs
+		class WeakEventHandlerAdapter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicEvents)] TObject, TArgs>(TObject target, string eventName, EventHandler<TArgs> handler) : BaseWeakEventHandlerAdapter<TObject, EventHandler<TArgs>>(target, eventName, handler)
+			where TArgs : EventArgs
 		{
-			// Constructor.
-			public WeakEventHandlerAdapter(TObject target, string eventName, EventHandler<TArgs> handler) : base(target, eventName, handler)
-			{ }
-
 			/// <inheritdoc/>.
 			protected override EventHandler<TArgs> CreateEventHandlerStub() =>
 				this.OnEventReceived;
@@ -392,6 +369,43 @@ namespace CarinaStudio
 		/// <returns>Task of asynchronous action.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static Task<R> LetAsync<T, R>(this T value, Func<T, Task<R>> action) => action(value);
+		
+		
+		/// <summary>
+		/// Acquire lock on given object and perform action before releasing lock.
+		/// </summary>
+		/// <typeparam name="T">Type of given object.</typeparam>
+		/// <param name="obj">Object to acquire lock on.</param>
+		/// <param name="action">Action to perform.</param>
+		/// <returns>Generated value.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static void Lock<T>(this T obj, Action action) where T : class
+		{
+#if NET9_0_OR_GREATER
+			if (obj is Lock @lock)
+			{
+				@lock.Enter();
+				try
+				{
+					action();
+				}
+				finally
+				{
+					@lock.Exit();
+				}
+				return;
+			}
+#endif
+			Monitor.Enter(obj);
+			try
+			{
+				action();
+			}
+			finally
+			{
+				Monitor.Exit(obj);
+			}
+		}
 
 
 		/// <summary>
@@ -404,6 +418,21 @@ namespace CarinaStudio
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static void Lock<T>(this T obj, Action<T> action) where T : class
 		{
+#if NET9_0_OR_GREATER
+			if (obj is Lock @lock)
+			{
+				@lock.Enter();
+				try
+				{
+					action(obj);
+				}
+				finally
+				{
+					@lock.Exit();
+				}
+				return;
+			}
+#endif
 			Monitor.Enter(obj);
 			try
 			{
@@ -427,6 +456,20 @@ namespace CarinaStudio
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static R Lock<T, R>(this T obj, Func<R> func) where T : class
 		{
+#if NET9_0_OR_GREATER
+			if (obj is Lock @lock)
+			{
+				@lock.Enter();
+				try
+				{
+					return func();
+				}
+				finally
+				{
+					@lock.Exit();
+				}
+			}
+#endif
 			Monitor.Enter(obj);
 			try
 			{
@@ -450,6 +493,20 @@ namespace CarinaStudio
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static ref R Lock<T, R>(this T obj, RefOutFunc<R> func) where T : class
 		{
+#if NET9_0_OR_GREATER
+			if (obj is Lock @lock)
+			{
+				@lock.Enter();
+				try
+				{
+					return ref func();
+				}
+				finally
+				{
+					@lock.Exit();
+				}
+			}
+#endif
 			Monitor.Enter(obj);
 			try
 			{
@@ -473,6 +530,20 @@ namespace CarinaStudio
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static R Lock<T, R>(this T obj, Func<T, R> func) where T : class
 		{
+#if NET9_0_OR_GREATER
+			if (obj is Lock @lock)
+			{
+				@lock.Enter();
+				try
+				{
+					return func(obj);
+				}
+				finally
+				{
+					@lock.Exit();
+				}
+			}
+#endif
 			Monitor.Enter(obj);
 			try
 			{
@@ -496,10 +567,61 @@ namespace CarinaStudio
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static ref R Lock<T, R>(this T obj, RefOutFunc<T, R> func) where T : class
 		{
+#if NET9_0_OR_GREATER
+			if (obj is Lock @lock)
+			{
+				@lock.Enter();
+				try
+				{
+					return ref func(obj);
+				}
+				finally
+				{
+					@lock.Exit();
+				}
+			}
+#endif
 			Monitor.Enter(obj);
 			try
 			{
 				return ref func(obj);
+			}
+			finally
+			{
+				Monitor.Exit(obj);
+			}
+		}
+		
+		
+		/// <summary>
+		/// Acquire lock on given object and perform asynchronous action before releasing lock.
+		/// </summary>
+		/// <typeparam name="T">Type of given object.</typeparam>
+		/// <param name="obj">Object to acquire lock on.</param>
+		/// <param name="action">Action to perform.</param>
+		/// <returns>Task of asynchronous action to generated value.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static async Task LockAsync<T>(this T obj, Func<Task> action) where T : class
+		{
+#if NET9_0_OR_GREATER
+			if (obj is Lock @lock)
+			{
+				@lock.Enter();
+				try
+				{
+					await action();
+				}
+				finally
+				{
+					@lock.Exit();
+				}
+				return;
+			}
+#endif
+			Monitor.Enter(obj);
+			try
+			{
+				await action();
 			}
 			finally
 			{
@@ -518,6 +640,21 @@ namespace CarinaStudio
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static async Task LockAsync<T>(this T obj, Func<T, Task> action) where T : class
 		{
+#if NET9_0_OR_GREATER
+			if (obj is Lock @lock)
+			{
+				@lock.Enter();
+				try
+				{
+					await action(obj);
+				}
+				finally
+				{
+					@lock.Exit();
+				}
+				return;
+			}
+#endif
 			Monitor.Enter(obj);
 			try
 			{
@@ -541,6 +678,20 @@ namespace CarinaStudio
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static async Task<R> LockAsync<T, R>(this T obj, Func<Task<R>> func) where T : class
 		{
+#if NET9_0_OR_GREATER
+			if (obj is Lock @lock)
+			{
+				@lock.Enter();
+				try
+				{
+					return await func();
+				}
+				finally
+				{
+					@lock.Exit();
+				}
+			}
+#endif
 			Monitor.Enter(obj);
 			try
 			{
@@ -564,6 +715,20 @@ namespace CarinaStudio
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static async Task<R> LockAsync<T, R>(this T obj, Func<T, Task<R>> func) where T : class
 		{
+#if NET9_0_OR_GREATER
+			if (obj is Lock @lock)
+			{
+				@lock.Enter();
+				try
+				{
+					return await func(obj);
+				}
+				finally
+				{
+					@lock.Exit();
+				}
+			}
+#endif
 			Monitor.Enter(obj);
 			try
 			{
