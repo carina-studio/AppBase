@@ -169,7 +169,6 @@ namespace CarinaStudio.Controls
 	                animator?.Cancel();
 	            void OnPointerWheelChanged(object? sender, RoutedEventArgs e) =>
 	                animator?.Cancel();
-	            var extentChangedObserverToken = scrollViewer.GetObservable(ScrollViewer.ExtentProperty).Subscribe(_ => animator?.Cancel());
 	            var viewportChangedObserverToken = scrollViewer.GetObservable(ScrollViewer.ViewportProperty).Subscribe(_ => animator?.Cancel());
 	            animator = new DoubleAnimator(0, 1).Also(it =>
 	            {
@@ -182,7 +181,6 @@ namespace CarinaStudio.Controls
 	                    }
 	                    scrollViewer.RemoveHandler(ScrollViewer.PointerPressedEvent, OnPointerPressed);
 	                    scrollViewer.RemoveHandler(ScrollViewer.PointerWheelChangedEvent, OnPointerWheelChanged);
-	                    extentChangedObserverToken.Dispose();
 	                    viewportChangedObserverToken.Dispose();
 	                };
 	                it.Completed += (_, _) =>
@@ -195,7 +193,6 @@ namespace CarinaStudio.Controls
 	                    }
 	                    scrollViewer.RemoveHandler(ScrollViewer.PointerPressedEvent, OnPointerPressed);
 	                    scrollViewer.RemoveHandler(ScrollViewer.PointerWheelChangedEvent, OnPointerWheelChanged);
-	                    extentChangedObserverToken.Dispose();
 	                    viewportChangedObserverToken.Dispose();
 	                };
 	                it.Duration = duration;
