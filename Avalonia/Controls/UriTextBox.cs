@@ -18,7 +18,7 @@ namespace CarinaStudio.Controls
 		/// <summary>
 		/// Property of <see cref="ObjectTextBox{Uri}.Object"/>.
 		/// </summary>
-		public static readonly new DirectProperty<UriTextBox, Uri?> ObjectProperty = AvaloniaProperty.RegisterDirect<UriTextBox, Uri?>(nameof(Object), t => t.Object, (t, o) => t.Object = o);
+		public static new readonly DirectProperty<UriTextBox, Uri?> ObjectProperty = AvaloniaProperty.RegisterDirect<UriTextBox, Uri?>(nameof(Object), t => t.Object, (t, o) => t.Object = o);
 		/// <summary>
 		/// Property of <see cref="UriKind"/>.
 		/// </summary>

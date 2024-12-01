@@ -21,13 +21,13 @@ namespace CarinaStudio.Controls
                 return false;
             if (parent is ContentControl contentControl)
             {
-                if (contentControl.Content != control)
+                if (!ReferenceEquals(contentControl.Content, control))
                     return false;
                 contentControl.Content = null;
             }
             else if (parent is ContentPresenter contentPresenter)
             {
-                if (contentPresenter.Content != control)
+                if (!ReferenceEquals(contentPresenter.Content, control))
                     return false;
                 contentPresenter.Content = null;
             }
@@ -39,22 +39,22 @@ namespace CarinaStudio.Controls
             }
             else if (parent is HeaderedContentControl headeredContentControl)
             {
-                if (headeredContentControl.Header == control)
+                if (ReferenceEquals(headeredContentControl.Header, control))
                     headeredContentControl.Header = null;
-                else if (headeredContentControl.Content == control)
+                else if (ReferenceEquals(headeredContentControl.Content, control))
                     headeredContentControl.Content = null;
                 else
                     return false;
             }
             else if (parent is HeaderedItemsControl headeredItemsControl)
             {
-                if (headeredItemsControl.Header != control)
+                if (!ReferenceEquals(headeredItemsControl.Header, control))
                     return false;
                 headeredItemsControl.Header = null;
             }
             else if (parent is HeaderedSelectingItemsControl headeredSelectingItemsControl)
             {
-                if (headeredSelectingItemsControl.Header != control)
+                if (!ReferenceEquals(headeredSelectingItemsControl.Header, control))
                     return false;
                 headeredSelectingItemsControl.Header = null;
             }

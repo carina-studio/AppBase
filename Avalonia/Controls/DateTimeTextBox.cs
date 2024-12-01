@@ -14,7 +14,7 @@ namespace CarinaStudio.Controls
         /// <summary>
         /// Property of <see cref="ValueTextBox{DateTime}.Value"/>.
         /// </summary>
-        public static readonly new DirectProperty<DateTimeTextBox, DateTime?> ValueProperty = AvaloniaProperty.RegisterDirect<DateTimeTextBox, DateTime?>(nameof(Value), t => t.Value, (t, v) => t.Value = v);
+        public static new readonly DirectProperty<DateTimeTextBox, DateTime?> ValueProperty = AvaloniaProperty.RegisterDirect<DateTimeTextBox, DateTime?>(nameof(Value), t => t.Value, (t, v) => t.Value = v);
         
         
         // Constants.

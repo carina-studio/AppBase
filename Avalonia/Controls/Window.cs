@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Threading;
 using CarinaStudio.Collections;
 using CarinaStudio.MacOS.AppKit;
+using CarinaStudio.MacOS.ObjectiveC;
 using CarinaStudio.Threading;
 using System;
 using System.Collections.Generic;
@@ -82,7 +83,7 @@ namespace CarinaStudio.Controls
 						if (!isDialog)
 						{
 							var handle = (childWindow.TryGetPlatformHandle()?.Handle).GetValueOrDefault();
-							var childNSWindow = NSWindow.FromHandle<NSWindow>(handle);
+							var childNSWindow = NSObject.FromHandle<NSWindow>(handle);
 							childNSWindow?.OrderFront();
 						}
 						RefreshChildWindowPositions(childWindow);

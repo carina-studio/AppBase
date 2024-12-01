@@ -14,7 +14,7 @@ namespace CarinaStudio.Controls
         /// <summary>
         /// Property of <see cref="ValueTextBox{TimeSpan}.Value"/>.
         /// </summary>
-        public static readonly new DirectProperty<TimeSpanTextBox, TimeSpan?> ValueProperty = AvaloniaProperty.RegisterDirect<TimeSpanTextBox, TimeSpan?>(nameof(Value), t => t.Value, (t, v) => t.Value = v);
+        public static new readonly DirectProperty<TimeSpanTextBox, TimeSpan?> ValueProperty = AvaloniaProperty.RegisterDirect<TimeSpanTextBox, TimeSpan?>(nameof(Value), t => t.Value, (t, v) => t.Value = v);
         
         
         // Static fields.

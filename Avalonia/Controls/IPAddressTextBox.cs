@@ -17,7 +17,7 @@ namespace CarinaStudio.Controls
         /// <summary>
         /// Property of <see cref="ObjectTextBox{IPAddress}.Object"/>.
         /// </summary>
-        public static readonly new DirectProperty<IPAddressTextBox, IPAddress?> ObjectProperty = AvaloniaProperty.RegisterDirect<IPAddressTextBox, IPAddress?>(nameof(Object), t => t.Object, (t, o) => t.Object = o);
+        public static new readonly DirectProperty<IPAddressTextBox, IPAddress?> ObjectProperty = AvaloniaProperty.RegisterDirect<IPAddressTextBox, IPAddress?>(nameof(Object), t => t.Object, (t, o) => t.Object = o);
 
 
         /// <summary>

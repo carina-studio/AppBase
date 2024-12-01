@@ -65,7 +65,7 @@ public abstract class ValueTextBox : TextBox
 	/// <summary>
 	/// Initialize new <see cref="ValueTextBox"/> instance.
 	/// </summary>
-	internal ValueTextBox()
+	protected ValueTextBox()
 	{
 		if (!IsNullValueAllowedProperty.GetDefaultValue(this.GetType()))
 			this.lastValidValue = this.GetValue(DefaultValueProperty);
@@ -178,10 +178,7 @@ public abstract class ValueTextBox : TextBox
 	{
 		if (text is null)
 			return;
-		if (this.AcceptsReturn)
-			this.SelectedText = text;
-		else
-			this.SelectedText = text.RemoveLineBreaks();
+		this.SelectedText = this.AcceptsReturn ? text : text.RemoveLineBreaks();
 	}
 
 
@@ -461,7 +458,7 @@ public abstract class ValueTextBox<T> : ValueTextBox where T : struct
 
 
 	/// <inheritdoc/>
-	protected override sealed bool CheckValueEquality(object? x, object? y)
+	protected sealed override bool CheckValueEquality(object? x, object? y)
 	{
 		var valueX = x is T tx ? (T?)tx : null;
 		var valueY = y is T ty ? (T?)ty : null;
@@ -479,7 +476,7 @@ public abstract class ValueTextBox<T> : ValueTextBox where T : struct
 
 
 	/// <inheritdoc/>
-	protected override sealed object CoerceValue(object value) =>
+	protected sealed override object CoerceValue(object value) =>
 		this.CoerceValue((T)value);
 
 
@@ -492,7 +489,7 @@ public abstract class ValueTextBox<T> : ValueTextBox where T : struct
 
 
 	/// <inheritdoc/>
-	protected override sealed string? ConvertToText(object value) =>
+	protected sealed override string? ConvertToText(object value) =>
 		this.ConvertToText((T)value);
 
 
@@ -530,7 +527,7 @@ public abstract class ValueTextBox<T> : ValueTextBox where T : struct
 
 
 	/// <inheritdoc/>
-	protected override sealed bool TryConvertToValue(string text, out object? value)
+	protected sealed override bool TryConvertToValue(string text, out object? value)
 	{
 		if (this.TryConvertToValue(text, out var t))
 		{

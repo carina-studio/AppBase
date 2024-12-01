@@ -141,7 +141,7 @@ namespace CarinaStudio.Controls
             this.window = TopLevel.GetTopLevel(this) as Avalonia.Controls.Window;
             if (Platform.IsMacOS)
             {
-                this.isWindowActiveObserverToken = this.window?.GetObservable(Window.IsActiveProperty).Subscribe(_ => 
+                this.isWindowActiveObserverToken = this.window?.GetObservable(WindowBase.IsActiveProperty).Subscribe(_ => 
                     this.updateToolTipAction.Schedule());
                 this.updateToolTipAction.Schedule();
             }

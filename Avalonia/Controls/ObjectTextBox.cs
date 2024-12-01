@@ -38,7 +38,7 @@ public abstract class ObjectTextBox : TextBox
 	/// <summary>
 	/// Initialize new <see cref="ObjectTextBox"/> instance.
 	/// </summary>
-	internal ObjectTextBox()
+	protected ObjectTextBox()
 	{
 		this.validateAction = new ScheduledAction(() => this.Validate());
 		this.PastingFromClipboard += (_, e) =>
@@ -113,10 +113,7 @@ public abstract class ObjectTextBox : TextBox
 	{
 		if (text is null)
 			return;
-		if (this.AcceptsReturn)
-			this.SelectedText = text;
-		else
-			this.SelectedText = text.RemoveLineBreaks();
+		this.SelectedText = this.AcceptsReturn ? text : text.RemoveLineBreaks();
 	}
 
 
@@ -300,7 +297,7 @@ public abstract class ObjectTextBox<T> : ObjectTextBox where T : class
 
 
 	/// <inheritdoc/>
-	protected override sealed bool CheckObjectEquality(object? x, object? y) =>
+	protected sealed override bool CheckObjectEquality(object? x, object? y) =>
 		this.CheckObjectEquality(x as T, y as T);
 
 
@@ -314,7 +311,7 @@ public abstract class ObjectTextBox<T> : ObjectTextBox where T : class
 
 
 	/// <inheritdoc/>
-	protected override sealed string? ConvertToText(object obj) =>
+	protected sealed override string? ConvertToText(object obj) =>
 		obj is T t ? this.ConvertToText(t) : null;
 	
 
@@ -350,7 +347,7 @@ public abstract class ObjectTextBox<T> : ObjectTextBox where T : class
 
 
 	/// <inheritdoc/>
-	protected override sealed bool TryConvertToObject(string text, out object? obj)
+	protected sealed override bool TryConvertToObject(string text, out object? obj)
 	{
 		if (this.TryConvertToObject(text, out var t))
 		{

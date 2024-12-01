@@ -27,7 +27,7 @@ public class RealNumberTextBox : ValueTextBox<double>
     /// <summary>
     /// Property of <see cref="ValueTextBox{Double}.Value"/>.
     /// </summary>
-    public static readonly new DirectProperty<RealNumberTextBox, double?> ValueProperty = AvaloniaProperty.RegisterDirect<RealNumberTextBox, double?>(nameof(Value), t => t.Value, (t, v) => t.Value = v);
+    public static new readonly DirectProperty<RealNumberTextBox, double?> ValueProperty = AvaloniaProperty.RegisterDirect<RealNumberTextBox, double?>(nameof(Value), t => t.Value, (t, v) => t.Value = v);
 
 
     /// <summary>

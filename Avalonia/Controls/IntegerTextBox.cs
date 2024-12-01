@@ -26,7 +26,7 @@ namespace CarinaStudio.Controls
         /// <summary>
         /// Property of <see cref="ValueTextBox{Int64}.Value"/>.
         /// </summary>
-        public static readonly new DirectProperty<IntegerTextBox, long?> ValueProperty = AvaloniaProperty.RegisterDirect<IntegerTextBox, long?>(nameof(Value), t => t.Value, (t, v) => t.Value = v);
+        public static new readonly DirectProperty<IntegerTextBox, long?> ValueProperty = AvaloniaProperty.RegisterDirect<IntegerTextBox, long?>(nameof(Value), t => t.Value, (t, v) => t.Value = v);
 
 
         // Constants.
