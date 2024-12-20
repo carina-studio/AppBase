@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace CarinaStudio;
 
 /// <summary>
-/// Base implementation of <see cref="IDisposable"/>.
+/// Base implementation of <see cref="IAsyncDisposable"/>.
 /// </summary>
-public abstract class BaseDisposable : IDisposable
+public abstract class BaseAsyncDisposable : IAsyncDisposable
 {
 	// Fields.
 	bool isDisposed;
@@ -14,27 +15,29 @@ public abstract class BaseDisposable : IDisposable
 	/// <summary>
 	/// Finalizer.
 	/// </summary>
-	~BaseDisposable() => this.Dispose(false);
+	~BaseAsyncDisposable() => _ = this.DisposeAsync(false);
 
 
 	/// <summary>
-	/// Dispose instance.
+	/// Dispose the instance asynchronously.
 	/// </summary>
-	public void Dispose()
+	/// <returns>Task of disposing the instance.</returns>
+	public ValueTask DisposeAsync()
 	{
 		if (this.isDisposed)
-			return;
+			return ValueTask.CompletedTask;
 		this.isDisposed = true;
 		GC.SuppressFinalize(this);
-		this.Dispose(true);
+		return this.DisposeAsync(true);
 	}
 
 
 	/// <summary>
-	/// Called to dispose instance.
+	/// Called to dispose the instance asynchronously.
 	/// </summary>
 	/// <param name="disposing">True to release managed resources also.</param>
-	protected abstract void Dispose(bool disposing);
+	/// <returns>Task of disposing the instance.</returns>
+	protected abstract ValueTask DisposeAsync(bool disposing);
 
 
 	/// <summary>
