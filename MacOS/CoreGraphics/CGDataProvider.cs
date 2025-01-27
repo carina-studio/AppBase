@@ -1,4 +1,3 @@
-using CarinaStudio.Collections;
 using CarinaStudio.MacOS.CoreFoundation;
 using System;
 using System.Runtime.InteropServices;
@@ -8,19 +7,15 @@ namespace CarinaStudio.MacOS.CoreGraphics;
 /// <summary>
 /// CGDataProvider.
 /// </summary>
-public class CGDataProvider : CFObject
+public unsafe class CGDataProvider : CFObject
 {
     // Native symbols.
     [DllImport(NativeLibraryNames.CoreGraphics)]
-    static extern IntPtr CGDataProviderCreateDirect(IntPtr info, nint size, ref CGDataProviderDirectCallbacks callbacks);
+    static extern IntPtr CGDataProviderCreateDirect(IntPtr info, nint size, CGDataProviderDirectCallbacks* callbacks);
     [DllImport(NativeLibraryNames.CoreGraphics)]
     static extern IntPtr CGDataProviderCreateWithCFData(IntPtr data);
     [DllImport(NativeLibraryNames.CoreGraphics)]
 	static extern IntPtr CGDataProviderCopyData(IntPtr provider);
-    delegate IntPtr CGDataProviderGetBytePointerCallback(IntPtr info);
-    delegate nuint CGDataProviderGetBytesAtPositionCallback(IntPtr info, IntPtr buffer, nint position, nuint size);
-    delegate void CGDataProviderReleaseBytePointerCallback(IntPtr info, IntPtr pointer);
-    delegate void CGDataProviderReleaseInfoCallback(IntPtr info);
 
 
     // CGDataProviderSequentialCallbacks.
@@ -28,14 +23,10 @@ public class CGDataProvider : CFObject
     struct CGDataProviderDirectCallbacks
     {
         public uint Version;
-        [MarshalAs(UnmanagedType.FunctionPtr)]
-        public CGDataProviderGetBytePointerCallback GetBytePointer;
-        [MarshalAs(UnmanagedType.FunctionPtr)]
-        public CGDataProviderReleaseBytePointerCallback ReleaseBytePointer;
-        [MarshalAs(UnmanagedType.FunctionPtr)]
-        public CGDataProviderGetBytesAtPositionCallback GetBytesAtPosition;
-        [MarshalAs(UnmanagedType.FunctionPtr)]
-        public CGDataProviderReleaseInfoCallback ReleaseInfo;
+        public delegate*<IntPtr, IntPtr> GetBytePointer;
+        public delegate*<IntPtr, IntPtr, void> ReleaseBytePointer;
+        public delegate*<IntPtr, IntPtr, nint, nuint, nuint> GetBytesAtPosition;
+        public delegate*<IntPtr, void> ReleaseInfo;
     }
 
 
@@ -44,11 +35,15 @@ public class CGDataProvider : CFObject
     {
         public readonly byte[] Data;
         public readonly GCHandle DataHandle;
+        public readonly int Offset;
+        public readonly int Size;
 
-        public DirectAccessInfo(byte[] data)
+        public DirectAccessInfo(byte[] data, int offset, int size)
         {
             this.Data = data;
             this.DataHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
+            this.Offset = offset;
+            this.Size = size;
         }
 
         public void Release()
@@ -60,17 +55,27 @@ public class CGDataProvider : CFObject
 
 
     // Static fields.
-    static CGDataProviderDirectCallbacks DataProviderDirectCallbacks = new()
-    {
-        GetBytePointer = GetDirectBytePointer,
-        GetBytesAtPosition = GetDirectBytesAtPosition,
-        ReleaseBytePointer = ReleaseDirectBytePointer,
-        ReleaseInfo = ReleaseDirectInfo,
-    };
+    static readonly CGDataProviderDirectCallbacks* DataProviderDirectCallbacks;
 
 
     // Fields.
     volatile CFData? data;
+    
+    
+    // Statuc constructor.
+    static CGDataProvider()
+    {
+        if (Platform.IsNotMacOS)
+            return;
+        DataProviderDirectCallbacks = (CGDataProviderDirectCallbacks*)NativeMemory.Alloc((nuint)sizeof(CGDataProviderDirectCallbacks));
+        *DataProviderDirectCallbacks = new CGDataProviderDirectCallbacks
+        {
+            GetBytePointer = &GetDirectBytePointer,
+            GetBytesAtPosition = &GetDirectBytesAtPosition,
+            ReleaseBytePointer = &ReleaseDirectBytePointer,
+            ReleaseInfo = &ReleaseDirectInfo
+        };
+    }
 
 
     /// <summary>
@@ -93,9 +98,9 @@ public class CGDataProvider : CFObject
             throw new ArgumentOutOfRangeException(nameof(offset));
         if (size < 0 || offset + size > data.Length)
             throw new ArgumentOutOfRangeException(nameof(size));
-        var info = new DirectAccessInfo(data);
+        var info = new DirectAccessInfo(data, offset, size);
         var gcHandle = GCHandle.Alloc(info);
-        return CGDataProviderCreateDirect(GCHandle.ToIntPtr(gcHandle), size, ref DataProviderDirectCallbacks);
+        return CGDataProviderCreateDirect(GCHandle.ToIntPtr(gcHandle), size, DataProviderDirectCallbacks);
     }), false, true)
     { }
     
@@ -142,7 +147,7 @@ public class CGDataProvider : CFObject
         if (directAccessInfo == null)
             return default;
         // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable
-        return directAccessInfo.DataHandle.AddrOfPinnedObject();
+        return directAccessInfo.DataHandle.AddrOfPinnedObject() + directAccessInfo.Offset;
     }
 
     
@@ -154,11 +159,10 @@ public class CGDataProvider : CFObject
         var directAccessInfo = GCHandle.FromIntPtr(info).Target as DirectAccessInfo;
         if (directAccessInfo == null)
             return default;
-        if (directAccessInfo.Data.IsEmpty() || position >= directAccessInfo.Data.Length || position >= int.MaxValue || position < 0)
+        if (directAccessInfo.Size <= 0 || position < 0 || position > int.MaxValue || size > int.MaxValue || position >= directAccessInfo.Size)
             return 0;
-        var maxCopyCount = Math.Min((ulong)int.MaxValue, (ulong)directAccessInfo.Data.Length - (ulong)position);
-        var copyCount = (int)Math.Min(maxCopyCount, size);
-        Marshal.Copy(directAccessInfo.Data, (int)position, buffer, copyCount);
+        var copyCount = Math.Min(directAccessInfo.Size - (int)position, (int)size);
+        Marshal.Copy(directAccessInfo.Data, (int)(directAccessInfo.Offset + position), buffer, copyCount);
         return (nuint)copyCount;
     }
 

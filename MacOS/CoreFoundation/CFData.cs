@@ -10,20 +10,29 @@ namespace CarinaStudio.MacOS.CoreFoundation;
 public unsafe class CFData : CFObject
 {
     // Native symbols.
-    [DllImport(NativeLibraryNames.CoreFoundation)]
-	internal static extern void CFDataAppendBytes(IntPtr theData, void* bytes, nint length);
-    [DllImport(NativeLibraryNames.CoreFoundation)]
-	static extern IntPtr CFDataCreate(IntPtr allocator, void* data, nint length);
-    [DllImport(NativeLibraryNames.CoreFoundation)]
-    internal static extern IntPtr CFDataCreateMutable(IntPtr allocator, nint capacity);
-    [DllImport(NativeLibraryNames.CoreFoundation)]
-    static extern byte* CFDataGetBytePtr(IntPtr theData);
-    [DllImport(NativeLibraryNames.CoreFoundation)]
-    static extern nuint CFDataGetLength(IntPtr theData);
-    [DllImport(NativeLibraryNames.CoreFoundation)]
-    internal static extern byte* CFDataGetMutableBytePtr(IntPtr theData);
-    [DllImport(NativeLibraryNames.CoreFoundation)]
-    internal static extern void CFDataSetLength(IntPtr theData, nint length);
+    internal static readonly delegate*<IntPtr, void*, nint, void> CFDataAppendBytes;
+    static readonly delegate*<IntPtr, void*, nint, IntPtr> CFDataCreate;
+    internal static readonly delegate*<IntPtr, nint, IntPtr> CFDataCreateMutable;
+    static readonly delegate*<IntPtr, byte*> CFDataGetBytePtr;
+    static readonly delegate*<IntPtr, nuint> CFDataGetLength;
+    internal static readonly delegate*<IntPtr, byte*> CFDataGetMutableBytePtr;
+    internal static readonly delegate*<IntPtr, nint, void> CFDataSetLength;
+    
+    
+    // Static constructor.
+    static CFData()
+    {
+        if (Platform.IsNotMacOS)
+            return;
+        var libHandle = NativeLibraryHandles.CoreFoundation;
+        CFDataAppendBytes = (delegate*<IntPtr, void*, nint, void>)NativeLibrary.GetExport(libHandle, nameof(CFDataAppendBytes));
+        CFDataCreate = (delegate*<IntPtr, void*, nint, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CFDataCreate));
+        CFDataCreateMutable = (delegate*<IntPtr, nint, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CFDataCreateMutable));
+        CFDataGetBytePtr = (delegate*<IntPtr, byte*>)NativeLibrary.GetExport(libHandle, nameof(CFDataGetBytePtr));
+        CFDataGetLength = (delegate*<IntPtr, nuint>)NativeLibrary.GetExport(libHandle, nameof(CFDataGetLength));
+        CFDataGetMutableBytePtr = (delegate*<IntPtr, byte*>)NativeLibrary.GetExport(libHandle, nameof(CFDataGetMutableBytePtr));
+        CFDataSetLength = (delegate*<IntPtr, nint, void>)NativeLibrary.GetExport(libHandle, nameof(CFDataSetLength));
+    }
 
 
     /// <summary>
@@ -102,9 +111,7 @@ public unsafe class CFData : CFObject
     /// <param name="allocator">Allocator.</param>
     /// <param name="data">Source data to copy.</param>
     public CFData(CFAllocator allocator, ReadOnlySpan<byte> data) : this(data.Pin((ptr, size) =>
-    {
-        return CFDataCreate(allocator.Handle, ptr.ToPointer(), size);
-    }), false, true)
+        CFDataCreate(allocator.Handle, ptr.ToPointer(), size)), false, true)
     { }
 
 
@@ -122,9 +129,7 @@ public unsafe class CFData : CFObject
     /// <param name="allocator">Allocator.</param>
     /// <param name="data">Source data to copy.</param>
     public CFData(CFAllocator allocator, Span<byte> data) : this(data.Pin((ptr, size) =>
-    {
-        return CFDataCreate(allocator.Handle, ptr.ToPointer(), size);
-    }), false, true)
+        CFDataCreate(allocator.Handle, ptr.ToPointer(), size)), false, true)
     { }
 
 
@@ -242,7 +247,7 @@ public unsafe class CFData : CFObject
         {
             this.VerifyReleased();
             var length = CFDataGetLength(this.Handle);
-            if (length > long.MaxValue)
+            if ((decimal)length > long.MaxValue)
                 throw new NotSupportedException($"Length is too large: {length}.");
             return (long)length;
         }
