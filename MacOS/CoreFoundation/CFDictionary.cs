@@ -6,17 +6,26 @@ namespace CarinaStudio.MacOS.CoreFoundation;
 /// <summary>
 /// CFDictionary.
 /// </summary>
-public class CFDictionary : CFObject
+public unsafe class CFDictionary : CFObject
 {
     // Native symbols.
-    [DllImport(NativeLibraryNames.CoreFoundation)]
-    static extern bool CFDictionaryContainsKey(IntPtr theDict, IntPtr key);
-    [DllImport(NativeLibraryNames.CoreFoundation)]
-    static extern bool CFDictionaryContainsValue(IntPtr theDict, IntPtr value);
-    [DllImport(NativeLibraryNames.CoreFoundation)]
-    static extern nint CFDictionaryGetCount(IntPtr theDict);
-    [DllImport(NativeLibraryNames.CoreFoundation)]
-    static extern bool CFDictionaryGetValueIfPresent(IntPtr theDict, IntPtr key, out IntPtr value);
+    static readonly delegate*<IntPtr, IntPtr, bool> CFDictionaryContainsKey;
+    static readonly delegate*<IntPtr, IntPtr, bool> CFDictionaryContainsValue;
+    static readonly delegate*<IntPtr, nint> CFDictionaryGetCount;
+    static readonly delegate*<IntPtr, IntPtr, IntPtr*, bool> CFDictionaryGetValueIfPresent;
+    
+    
+    // Static constructor.
+    static CFDictionary()
+    {
+        if (Platform.IsNotMacOS)
+            return;
+        var libHandle = NativeLibraryHandles.CoreFoundation;
+        CFDictionaryContainsKey = (delegate*<IntPtr, IntPtr, bool>)NativeLibrary.GetExport(libHandle, nameof(CFDictionaryContainsKey));
+        CFDictionaryContainsValue = (delegate*<IntPtr, IntPtr, bool>)NativeLibrary.GetExport(libHandle, nameof(CFDictionaryContainsValue));
+        CFDictionaryGetCount = (delegate*<IntPtr, nint>)NativeLibrary.GetExport(libHandle, nameof(CFDictionaryGetCount));
+        CFDictionaryGetValueIfPresent = (delegate*<IntPtr, IntPtr, IntPtr*, bool>)NativeLibrary.GetExport(libHandle, nameof(CFDictionaryGetValueIfPresent));
+    }
     
     
     // Constructor.
@@ -61,7 +70,8 @@ public class CFDictionary : CFObject
     /// <returns>True if value got from dictionary successfully.</returns>
     public bool TryGetValue(CFString key, out CFObject? value)
     {
-        if (CFDictionaryGetValueIfPresent(this.Handle, key.Handle, out var valueHandle))
+        var valueHandle = IntPtr.Zero;
+        if (CFDictionaryGetValueIfPresent(this.Handle, key.Handle, &valueHandle))
         {
             value = FromHandle(valueHandle);
             return true;

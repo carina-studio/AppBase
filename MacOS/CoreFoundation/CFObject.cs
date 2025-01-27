@@ -10,13 +10,13 @@ namespace CarinaStudio.MacOS.CoreFoundation
     /// <summary>
     /// Object of Core Foundation.
     /// </summary>
-    public class CFObject : IShareableDisposable<CFObject>
+    public unsafe class CFObject : IShareableDisposable<CFObject>
     {
         // Native symbols.
-        [DllImport(NativeLibraryNames.CoreFoundation)]
-        static extern IntPtr CFCopyTypeIDDescription(uint type_id);
-        [DllImport(NativeLibraryNames.CoreFoundation)]
-        static extern uint CFGetTypeID(IntPtr cf);
+        static readonly delegate*<uint, IntPtr> CFCopyTypeIDDescription;
+        static readonly delegate*<IntPtr, uint> CFGetTypeID;
+        static readonly delegate*<IntPtr, void> CFRelease;
+        static readonly delegate*<IntPtr, IntPtr> CFRetain;
 
 
         // Static fields.
@@ -27,6 +27,19 @@ namespace CarinaStudio.MacOS.CoreFoundation
         // Fields.
         volatile IntPtr handle;
         readonly bool ownsInstance;
+        
+        
+        // Static constructor.
+        static CFObject()
+        {
+            if (Platform.IsNotMacOS)
+                return;
+            var libHandle = NativeLibraryHandles.CoreFoundation;
+            CFCopyTypeIDDescription = (delegate*<uint, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CFCopyTypeIDDescription));
+            CFGetTypeID = (delegate*<IntPtr, uint>)NativeLibrary.GetExport(libHandle, nameof(CFGetTypeID));
+            CFRelease = (delegate*<IntPtr, void>)NativeLibrary.GetExport(libHandle, nameof(CFRelease));
+            CFRetain = (delegate*<IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CFRetain));
+        }
 
 
         /// <summary>
@@ -160,8 +173,8 @@ namespace CarinaStudio.MacOS.CoreFoundation
                 throw new ArgumentException($"Invalid type: {type.Name}.");
             var ctor = GetWrappingConstructor(type);
             if (ctor.GetParameters().Length == 2)
-                return (CFObject)Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ cf, ownsInstance }, null).AsNonNull();
-            return (CFObject)Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ cf }, null).AsNonNull();
+                return (CFObject)Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, [ cf, ownsInstance ], null).AsNonNull();
+            return (CFObject)Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, [ cf ], null).AsNonNull();
         }
 
 
@@ -244,8 +257,8 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// Release given instance.
         /// </summary>
         /// <param name="cf">Handle of instance.</param>
-        [DllImport(NativeLibraryNames.CoreFoundation, EntryPoint="CFRelease")]
-        public static extern void Release(IntPtr cf);
+        public static void Release(IntPtr cf) =>
+            CFRelease(cf);
 
 
         /// <summary>
@@ -276,8 +289,8 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// </summary>
         /// <param name="cf">Handle of instance.</param>
         /// <returns>Handle of retained instance.</returns>
-        [DllImport(NativeLibraryNames.CoreFoundation, EntryPoint="CFRetain")]
-        public static extern IntPtr Retain(IntPtr cf);
+        public static IntPtr Retain(IntPtr cf) =>
+            CFRetain(cf);
         
 
         /// <inheritdoc/>
