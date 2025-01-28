@@ -1,4 +1,3 @@
-using System;
 using System.Runtime.InteropServices;
 
 namespace CarinaStudio.MacOS.CoreGraphics;
@@ -6,21 +5,34 @@ namespace CarinaStudio.MacOS.CoreGraphics;
 /// <summary>
 /// Provide functions for displays.
 /// </summary>
-public static class Display
+public static unsafe class Display
 {
     // Native symbols.
-    [DllImport(NativeLibraryNames.CoreGraphics)]
-    static extern CGError CGGetActiveDisplayList(uint maxDisplays, [MarshalAs(UnmanagedType.LPArray)] uint[]? activeDisplays, out uint displayCount);
-    [DllImport(NativeLibraryNames.CoreGraphics)]
-    static extern nuint CGDisplayPixelsHigh(uint display);
-    [DllImport(NativeLibraryNames.CoreGraphics)]
-    static extern nuint CGDisplayPixelsWide(uint display);
-    [DllImport(NativeLibraryNames.CoreGraphics)]
-	static extern CGError CGGetDisplaysWithPoint(CGPoint point, uint maxDisplays, [MarshalAs(UnmanagedType.LPArray)] uint[]? displays, out uint matchingDisplayCount);
-    [DllImport(NativeLibraryNames.CoreGraphics)]
-	static extern CGError CGGetDisplaysWithRect(CGRect rect, uint maxDisplays, [MarshalAs(UnmanagedType.LPArray)] uint[]? displays, out uint matchingDisplayCount);
-    [DllImport(NativeLibraryNames.CoreGraphics)]
-    static extern CGError CGGetOnlineDisplayList(uint maxDisplays, [MarshalAs(UnmanagedType.LPArray)] uint[]? onlineDisplays, out uint displayCount);
+    static readonly delegate*<uint, CGRect> CGDisplayBounds;
+    static readonly delegate*<uint, nuint> CGDisplayPixelsHigh;
+    static readonly delegate*<uint, nuint> CGDisplayPixelsWide;
+    static readonly delegate*<uint, uint*, uint*, CGError> CGGetActiveDisplayList;
+    static readonly delegate*<CGPoint, uint, uint*, uint*, CGError> CGGetDisplaysWithPoint;
+    static readonly delegate*<CGRect, uint, uint*, uint*, CGError> CGGetDisplaysWithRect;
+    static readonly delegate*<uint, uint*, uint*, CGError> CGGetOnlineDisplayList;
+    static readonly delegate*<uint> CGMainDisplayID;
+    
+    
+    // Static constructor.
+    static Display()
+    {
+        if (Platform.IsNotMacOS)
+            return;
+        var libHandle = NativeLibraryHandles.CoreGraphics;
+        CGDisplayBounds = (delegate*<uint, CGRect>)NativeLibrary.GetExport(libHandle, nameof(CGDisplayBounds));
+        CGDisplayPixelsHigh = (delegate*<uint, nuint>)NativeLibrary.GetExport(libHandle, nameof(CGDisplayPixelsHigh));
+        CGDisplayPixelsWide = (delegate*<uint, nuint>)NativeLibrary.GetExport(libHandle, nameof(CGDisplayPixelsWide));
+        CGGetActiveDisplayList = (delegate*<uint, uint*, uint*, CGError>)NativeLibrary.GetExport(libHandle, nameof(CGGetActiveDisplayList));
+        CGGetDisplaysWithPoint = (delegate*<CGPoint, uint, uint*, uint*, CGError>)NativeLibrary.GetExport(libHandle, nameof(CGGetDisplaysWithPoint));
+        CGGetDisplaysWithRect = (delegate*<CGRect, uint, uint*, uint*, CGError>)NativeLibrary.GetExport(libHandle, nameof(CGGetDisplaysWithRect));
+        CGGetOnlineDisplayList = (delegate*<uint, uint*, uint*, CGError>)NativeLibrary.GetExport(libHandle, nameof(CGGetOnlineDisplayList));
+        CGMainDisplayID = (delegate*<uint>)NativeLibrary.GetExport(libHandle, nameof(CGMainDisplayID));
+    }
 
 
     /// <summary>
@@ -35,13 +47,15 @@ public static class Display
     /// <returns>ID of displays.</returns>
     public static uint[] GetActiveDisplays()
     {
-        var result = CGGetActiveDisplayList(0, null, out var displayCount);
+        var displayCount = 0u;
+        var result = CGGetActiveDisplayList(0, null, &displayCount);
         if (result != CGError.Success)
             throw result.ToException();
         if (displayCount == 0)
-            return Array.Empty<uint>();
+            return [];
         var displays = new uint[displayCount];
-        result = CGGetActiveDisplayList(displayCount, displays, out displayCount);
+        fixed (uint* displaysPtr = displays)
+            result = CGGetActiveDisplayList(displayCount, displaysPtr, &displayCount);
         if (result == CGError.Success)
             return displays;
         throw result.ToException();
@@ -53,8 +67,8 @@ public static class Display
     /// </summary>
     /// <param name="display">ID of display.</param>
     /// <returns>Bounds of display.</returns>
-    [DllImport(NativeLibraryNames.CoreGraphics, EntryPoint = "CGDisplayBounds")]
-    public static extern CGRect GetDisplayBounds(uint display);
+    public static CGRect GetDisplayBounds(uint display) => 
+        CGDisplayBounds(display);
 
 
     /// <summary>
@@ -64,12 +78,13 @@ public static class Display
     /// <returns>ID of display.</returns>
     public static uint GetDisplayFromPoint(CGPoint point)
     {
-        var displays = new uint[1];
-        var result = CGGetDisplaysWithPoint(point, 1, displays, out var displayCount);
+        var displays = 0u;
+        var displayCount = 0u;
+        var result = CGGetDisplaysWithPoint(point, 1, &displays, &displayCount);
         if (result != CGError.Success)
             throw result.ToException();
         if (displayCount == 1)
-            return displays[0];
+            return displays;
         return Invalid;
     }
 
@@ -81,12 +96,13 @@ public static class Display
     /// <returns>ID of display.</returns>
     public static uint GetDisplayFromRect(CGRect rect)
     {
-        var displays = new uint[1];
-        var result = CGGetDisplaysWithRect(rect, 1, displays, out var displayCount);
+        var displays = 0u;
+        var displayCount = 0u;
+        var result = CGGetDisplaysWithRect(rect, 1, &displays, &displayCount);
         if (result != CGError.Success)
             throw result.ToException();
         if (displayCount == 1)
-            return displays[0];
+            return displays;
         return Invalid;
     }
 
@@ -98,13 +114,15 @@ public static class Display
     /// <returns>List of ID of displays.</returns>
     public static uint[] GetDisplaysFromPoint(CGPoint point)
     {
-        var result = CGGetDisplaysWithPoint(point, 0, null, out var displayCount);
+        var displayCount = 0u;
+        var result = CGGetDisplaysWithPoint(point, 0, null, &displayCount);
         if (result != CGError.Success)
             throw result.ToException();
         if (displayCount == 0)
-            return Array.Empty<uint>();
+            return [];
         var displays = new uint[displayCount];
-        result = CGGetDisplaysWithPoint(point, displayCount, displays, out displayCount);
+        fixed (uint* displaysPtr = displays)
+            result = CGGetDisplaysWithPoint(point, displayCount, displaysPtr, &displayCount);
         if (result == CGError.Success)
             return displays;
         throw result.ToException();
@@ -118,13 +136,15 @@ public static class Display
     /// <returns>List of ID of displays.</returns>
     public static uint[] GetDisplaysFromRect(CGRect rect)
     {
-        var result = CGGetDisplaysWithRect(rect, 0, null, out var displayCount);
+        var displayCount = 0u;
+        var result = CGGetDisplaysWithRect(rect, 0, null, &displayCount);
         if (result != CGError.Success)
             throw result.ToException();
         if (displayCount == 0)
-            return Array.Empty<uint>();
+            return [];
         var displays = new uint[displayCount];
-        result = CGGetDisplaysWithRect(rect, displayCount, displays, out displayCount);
+        fixed (uint* displaysPtr = displays)
+            result = CGGetDisplaysWithRect(rect, displayCount, displaysPtr, &displayCount);
         if (result == CGError.Success)
             return displays;
         throw result.ToException();
@@ -135,8 +155,8 @@ public static class Display
     /// Get ID of main display.
     /// </summary>
     /// <returns>ID of main display.</returns>
-    [DllImport(NativeLibraryNames.CoreGraphics, EntryPoint = "CGMainDisplayID")]
-	public static extern uint GetMainDisplay();
+	public static uint GetMainDisplay() => 
+        CGMainDisplayID();
 
 
     /// <summary>
@@ -145,13 +165,15 @@ public static class Display
     /// <returns>ID of displays.</returns>
     public static uint[] GetOnlineDisplays()
     {
-        var result = CGGetOnlineDisplayList(0, null, out var displayCount);
+        var displayCount = 0u;
+        var result = CGGetOnlineDisplayList(0, null, &displayCount);
         if (result != CGError.Success)
             throw result.ToException();
         if (displayCount == 0)
-            return Array.Empty<uint>();
+            return [];
         var displays = new uint[displayCount];
-        result = CGGetOnlineDisplayList(displayCount, displays, out displayCount);
+        fixed (uint* displaysPtr = displays) 
+            result = CGGetOnlineDisplayList(displayCount, displaysPtr, &displayCount);
         if (result == CGError.Success)
             return displays;
         throw result.ToException();
