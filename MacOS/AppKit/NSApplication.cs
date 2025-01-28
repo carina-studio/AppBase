@@ -71,11 +71,8 @@ public unsafe class NSApplication : NSResponder
     {
         if (Platform.IsNotMacOS)
             return;
-        var libHandle = NativeLibrary.Load(NativeLibraryNames.AppKit);
-        if (libHandle != IntPtr.Zero)
-        {
-            NSAppPtr = (IntPtr*)NativeLibrary.GetExport(libHandle, "NSApp");
-        }
+        var libHandle = NativeLibraryHandles.AppKit;
+        NSAppPtr = (IntPtr*)NativeLibrary.GetExport(libHandle, "NSApp");
         NSApplicationClass = Class.GetClass("NSApplication").AsNonNull();
     }
 
