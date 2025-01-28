@@ -9,6 +9,10 @@ namespace CarinaStudio.MacOS;
 public static class NativeLibraryHandles
 {
     // Constants.
+    static readonly string[] AppKitLibPaths =
+    [
+        "/System/Library/Frameworks/AppKit.framework/AppKit"
+    ];
     static readonly string[] CoreFoundationLibPaths =
     [
         "/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation",
@@ -27,12 +31,20 @@ public static class NativeLibraryHandles
     
     
     // Fields.
+    static IntPtr appKitLibHandle;
     static IntPtr coreFoundationLibHandle;
     static IntPtr coreGraphicsLibHandle;
+    static bool isAppKitLibResolved;
     static bool isCoreFoundationLibResolved;
     static bool isCoreGraphicsLibResolved;
     static bool isImageIOLibResolved;
     static IntPtr imageIOLibHandle;
+    
+    
+    /// <summary>
+    /// Handle of AppKit library.
+    /// </summary>
+    public static IntPtr AppKit => GetHandle(AppKitLibPaths, ref appKitLibHandle, ref isAppKitLibResolved);
 
 
     /// <summary>
