@@ -19,6 +19,7 @@ public static class NativeLibraryNames
     /// <summary>
     /// Core Graphics.
     /// </summary>
+    [Obsolete("The path to CoreFoundation may be different between macOS, use NativeLibraryHandles.CoreGraphics instead.")]
     public const string CoreGraphics = "/System/Library/Frameworks/ApplicationServices.framework/Frameworks/CoreGraphics.framework/CoreGraphics";
     /// <summary>
     /// Image I/O.

@@ -8,35 +8,22 @@ namespace CarinaStudio.MacOS.CoreGraphics;
 /// <summary>
 /// CGImage.
 /// </summary>
-public class CGImage : CFObject
+public unsafe class CGImage : CFObject
 {
     // Native symbols.
-    [DllImport(NativeLibraryNames.CoreGraphics)]
-    static extern IntPtr CGImageCreate(nuint width, nuint height, nuint bitsPerComponent, nuint bitsPerPixel, nuint bytesPerRow, IntPtr space, CGBitmapInfo bitmapInfo, IntPtr provider, IntPtr decode, bool shouldInterpolate, CGColorRenderingIntent intent);
-    [DllImport(NativeLibraryNames.CoreGraphics)]
-    static extern IntPtr CGImageCreateCopy(IntPtr image);
-    [DllImport(NativeLibraryNames.CoreGraphics)]
-    static extern IntPtr CGImageCreateCopyWithColorSpace(IntPtr image, IntPtr space);
-    [DllImport(NativeLibraryNames.CoreGraphics)]
-    static extern CGImageAlphaInfo CGImageGetAlphaInfo(IntPtr image);
-    [DllImport(NativeLibraryNames.CoreGraphics)]
-    static extern CGBitmapInfo CGImageGetBitmapInfo(IntPtr image);
-    [DllImport(NativeLibraryNames.CoreGraphics)]
-    static extern nuint CGImageGetBitsPerPixel(IntPtr image);
-    [DllImport(NativeLibraryNames.CoreGraphics)]
-    static extern CGImageByteOrderInfo CGImageGetByteOrderInfo(IntPtr image);
-    [DllImport(NativeLibraryNames.CoreGraphics)]
-    static extern nuint CGImageGetBytesPerRow(IntPtr image);
-    [DllImport(NativeLibraryNames.CoreGraphics)]
-    static extern IntPtr CGImageGetColorSpace(IntPtr image);
-    [DllImport(NativeLibraryNames.CoreGraphics)]
-    static extern IntPtr CGImageGetDataProvider(IntPtr image);
-    [DllImport(NativeLibraryNames.CoreGraphics)]
-    static extern nuint CGImageGetHeight(IntPtr image);
-    [DllImport(NativeLibraryNames.CoreGraphics)]
-    static extern CGImagePixelFormatInfo CGImageGetPixelFormatInfo(IntPtr image);
-    [DllImport(NativeLibraryNames.CoreGraphics)]
-    static extern nuint CGImageGetWidth(IntPtr image);
+    static readonly delegate*<nuint, nuint, nuint, nuint, nuint, IntPtr, CGBitmapInfo, IntPtr, IntPtr, bool, CGColorRenderingIntent, IntPtr> CGImageCreate;
+    static readonly delegate*<IntPtr, IntPtr> CGImageCreateCopy;
+    static readonly delegate*<IntPtr, IntPtr, IntPtr> CGImageCreateCopyWithColorSpace;
+    static readonly delegate*<IntPtr, CGImageAlphaInfo> CGImageGetAlphaInfo;
+    static readonly delegate*<IntPtr, CGBitmapInfo> CGImageGetBitmapInfo;
+    static readonly delegate*<IntPtr, nuint> CGImageGetBitsPerPixel;
+    static readonly delegate*<IntPtr, CGImageByteOrderInfo> CGImageGetByteOrderInfo;
+    static readonly delegate*<IntPtr, nuint> CGImageGetBytesPerRow;
+    static readonly delegate*<IntPtr, IntPtr> CGImageGetColorSpace;
+    static readonly delegate*<IntPtr, IntPtr> CGImageGetDataProvider;
+    static readonly delegate*<IntPtr, nuint> CGImageGetHeight;
+    static readonly delegate*<IntPtr, CGImagePixelFormatInfo> CGImageGetPixelFormatInfo;
+    static readonly delegate*<IntPtr, nuint> CGImageGetWidth;
 
 
     // Static fields.
@@ -47,6 +34,28 @@ public class CGImage : CFObject
     // Fields.
     CGDataProvider? dataProvider;
     readonly bool ownsDataProvider;
+    
+    
+    // Static constructor.
+    static CGImage()
+    {
+        if (Platform.IsNotMacOS)
+            return;
+        var libHandle = NativeLibraryHandles.CoreGraphics;
+        CGImageCreate = (delegate*<nuint, nuint, nuint, nuint, nuint, IntPtr, CGBitmapInfo, IntPtr, IntPtr, bool, CGColorRenderingIntent, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGImageCreate));
+        CGImageCreateCopy = (delegate*<IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGImageCreateCopy));
+        CGImageCreateCopyWithColorSpace = (delegate*<IntPtr, IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGImageCreateCopyWithColorSpace));
+        CGImageGetAlphaInfo = (delegate*<IntPtr, CGImageAlphaInfo>)NativeLibrary.GetExport(libHandle, nameof(CGImageGetAlphaInfo));
+        CGImageGetBitmapInfo = (delegate*<IntPtr, CGBitmapInfo>)NativeLibrary.GetExport(libHandle, nameof(CGImageGetBitmapInfo));
+        CGImageGetBitsPerPixel = (delegate*<IntPtr, nuint>)NativeLibrary.GetExport(libHandle, nameof(CGImageGetBitsPerPixel));
+        CGImageGetByteOrderInfo = (delegate*<IntPtr, CGImageByteOrderInfo>)NativeLibrary.GetExport(libHandle, nameof(CGImageGetByteOrderInfo));
+        CGImageGetBytesPerRow = (delegate*<IntPtr, nuint>)NativeLibrary.GetExport(libHandle, nameof(CGImageGetBytesPerRow));
+        CGImageGetColorSpace = (delegate*<IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGImageGetColorSpace));
+        CGImageGetDataProvider = (delegate*<IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGImageGetDataProvider));
+        CGImageGetHeight = (delegate*<IntPtr, nuint>)NativeLibrary.GetExport(libHandle, nameof(CGImageGetHeight));
+        CGImageGetPixelFormatInfo = (delegate*<IntPtr, CGImagePixelFormatInfo>)NativeLibrary.GetExport(libHandle, nameof(CGImageGetPixelFormatInfo));
+        CGImageGetWidth = (delegate*<IntPtr, nuint>)NativeLibrary.GetExport(libHandle, nameof(CGImageGetWidth));
+    }
 
 
     /// <summary>

@@ -10,12 +10,9 @@ namespace CarinaStudio.MacOS.CoreGraphics;
 public unsafe class CGDataProvider : CFObject
 {
     // Native symbols.
-    [DllImport(NativeLibraryNames.CoreGraphics)]
-    static extern IntPtr CGDataProviderCreateDirect(IntPtr info, nint size, CGDataProviderDirectCallbacks* callbacks);
-    [DllImport(NativeLibraryNames.CoreGraphics)]
-    static extern IntPtr CGDataProviderCreateWithCFData(IntPtr data);
-    [DllImport(NativeLibraryNames.CoreGraphics)]
-	static extern IntPtr CGDataProviderCopyData(IntPtr provider);
+    static readonly delegate*<IntPtr, nint, CGDataProviderDirectCallbacks*, IntPtr> CGDataProviderCreateDirect;
+    static readonly delegate*<IntPtr, IntPtr> CGDataProviderCreateWithCFData;
+    static readonly delegate*<IntPtr, IntPtr> CGDataProviderCopyData;
 
 
     // CGDataProviderSequentialCallbacks.
@@ -62,11 +59,15 @@ public unsafe class CGDataProvider : CFObject
     volatile CFData? data;
     
     
-    // Statuc constructor.
+    // Static constructor.
     static CGDataProvider()
     {
         if (Platform.IsNotMacOS)
             return;
+        var libHandle = NativeLibraryHandles.CoreGraphics;
+        CGDataProviderCreateDirect = (delegate*<IntPtr, nint, CGDataProviderDirectCallbacks*, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGDataProviderCreateDirect));
+        CGDataProviderCreateWithCFData = (delegate*<IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGDataProviderCreateWithCFData));
+        CGDataProviderCopyData = (delegate*<IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGDataProviderCopyData));
         DataProviderDirectCallbacks = (CGDataProviderDirectCallbacks*)NativeMemory.Alloc((nuint)sizeof(CGDataProviderDirectCallbacks));
         *DataProviderDirectCallbacks = new CGDataProviderDirectCallbacks
         {

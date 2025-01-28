@@ -7,21 +7,15 @@ namespace CarinaStudio.MacOS.CoreGraphics;
 /// <summary>
 /// CGColorSpace.
 /// </summary>
-public class CGColorSpace : CFObject
+public unsafe class CGColorSpace : CFObject
 {
     // Native symbols.
-    [DllImport(NativeLibraryNames.CoreGraphics)]
-    static extern IntPtr CGColorSpaceCopyICCData(IntPtr space);
-    [DllImport(NativeLibraryNames.CoreGraphics)]
-    static extern IntPtr CGColorSpaceCreateWithICCProfile(IntPtr data);
-    [DllImport(NativeLibraryNames.CoreGraphics)]
-    static extern IntPtr CGColorSpaceCreateWithName(IntPtr name);
-    [DllImport(NativeLibraryNames.CoreGraphics)]
-    static extern CGColorSpaceModel CGColorSpaceGetModel(IntPtr space);
-    [DllImport(NativeLibraryNames.CoreGraphics)]
-    static extern IntPtr CGColorSpaceCopyName(IntPtr space);
-    [DllImport(NativeLibraryNames.CoreGraphics)]
-	static extern IntPtr CGDisplayCopyColorSpace(uint display);
+    static readonly delegate*<IntPtr, IntPtr> CGColorSpaceCopyICCData;
+    static readonly delegate*<IntPtr, IntPtr> CGColorSpaceCreateWithICCProfile;
+    static readonly delegate*<IntPtr, IntPtr> CGColorSpaceCreateWithName;
+    static readonly delegate*<IntPtr, CGColorSpaceModel> CGColorSpaceGetModel;
+    static readonly delegate*<IntPtr, IntPtr> CGColorSpaceCopyName;
+    static readonly delegate*<uint, IntPtr> CGDisplayCopyColorSpace;
     static readonly CFString? kCGColorSpaceAdobeRGB1998;
     static readonly CFString? kCGColorSpaceDisplayP3;
     static readonly CFString? kCGColorSpaceGenericCMYK;
@@ -44,22 +38,25 @@ public class CGColorSpace : CFObject
 
 
     // Static initializer.
-    static unsafe CGColorSpace()
+    static CGColorSpace()
     {
         if (Platform.IsNotMacOS)
             return;
-        var libHandle = NativeLibrary.Load(NativeLibraryNames.CoreGraphics);
-        if (libHandle != default)
-        {
-            kCGColorSpaceAdobeRGB1998 = FromHandle<CFString>(*(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCGColorSpaceAdobeRGB1998)));
-            kCGColorSpaceDisplayP3 = FromHandle<CFString>(*(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCGColorSpaceDisplayP3)));
-            kCGColorSpaceGenericCMYK = FromHandle<CFString>(*(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCGColorSpaceGenericCMYK)));
-            kCGColorSpaceGenericGray = FromHandle<CFString>(*(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCGColorSpaceGenericGray)));
-            kCGColorSpaceGenericGrayGamma2_2 = FromHandle<CFString>(*(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCGColorSpaceGenericGrayGamma2_2)));
-            kCGColorSpaceGenericRGB = FromHandle<CFString>(*(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCGColorSpaceGenericRGB)));
-            kCGColorSpaceGenericRGBLinear = FromHandle<CFString>(*(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCGColorSpaceGenericRGBLinear)));
-            kCGColorSpaceSRGB = FromHandle<CFString>(*(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCGColorSpaceSRGB)));
-        }
+        var libHandle = NativeLibraryHandles.CoreGraphics;
+        CGColorSpaceCopyICCData = (delegate*<IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGColorSpaceCopyICCData));
+        CGColorSpaceCreateWithICCProfile = (delegate*<IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGColorSpaceCreateWithICCProfile));
+        CGColorSpaceCreateWithName = (delegate*<IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGColorSpaceCreateWithName));
+        CGColorSpaceGetModel = (delegate*<IntPtr, CGColorSpaceModel>)NativeLibrary.GetExport(libHandle, nameof(CGColorSpaceGetModel));
+        CGColorSpaceCopyName = (delegate*<IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGColorSpaceCopyName));
+        CGDisplayCopyColorSpace = (delegate*<uint, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGDisplayCopyColorSpace));
+        kCGColorSpaceAdobeRGB1998 = FromHandle<CFString>(*(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCGColorSpaceAdobeRGB1998)));
+        kCGColorSpaceDisplayP3 = FromHandle<CFString>(*(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCGColorSpaceDisplayP3)));
+        kCGColorSpaceGenericCMYK = FromHandle<CFString>(*(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCGColorSpaceGenericCMYK)));
+        kCGColorSpaceGenericGray = FromHandle<CFString>(*(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCGColorSpaceGenericGray)));
+        kCGColorSpaceGenericGrayGamma2_2 = FromHandle<CFString>(*(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCGColorSpaceGenericGrayGamma2_2)));
+        kCGColorSpaceGenericRGB = FromHandle<CFString>(*(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCGColorSpaceGenericRGB)));
+        kCGColorSpaceGenericRGBLinear = FromHandle<CFString>(*(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCGColorSpaceGenericRGBLinear)));
+        kCGColorSpaceSRGB = FromHandle<CFString>(*(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCGColorSpaceSRGB)));
     }
 
 

@@ -14,6 +14,11 @@ public static class NativeLibraryHandles
         "/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation",
         "/System/Library/Frameworks/ApplicationServices.framework/Frameworks/CoreFoundation.framework/CoreFoundation"
     ];
+    static readonly string[] CoreGraphicsLibPaths =
+    [
+        "/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics",
+        "/System/Library/Frameworks/ApplicationServices.framework/Frameworks/CoreGraphics.framework/CoreGraphics"
+    ];
     static readonly string[] ImageIOLibPaths =
     [
         "/System/Library/Frameworks/ImageIO.framework/ImageIO",
@@ -23,7 +28,9 @@ public static class NativeLibraryHandles
     
     // Fields.
     static IntPtr coreFoundationLibHandle;
+    static IntPtr coreGraphicsLibHandle;
     static bool isCoreFoundationLibResolved;
+    static bool isCoreGraphicsLibResolved;
     static bool isImageIOLibResolved;
     static IntPtr imageIOLibHandle;
 
@@ -32,6 +39,12 @@ public static class NativeLibraryHandles
     /// Handle of Core Foundation library.
     /// </summary>
     public static IntPtr CoreFoundation => GetHandle(CoreFoundationLibPaths, ref coreFoundationLibHandle, ref isCoreFoundationLibResolved);
+    
+    
+    /// <summary>
+    /// Handle of Core Graphics library.
+    /// </summary>
+    public static IntPtr CoreGraphics => GetHandle(CoreGraphicsLibPaths, ref coreGraphicsLibHandle, ref isCoreGraphicsLibResolved);
     
     
     // Get handle of library.
