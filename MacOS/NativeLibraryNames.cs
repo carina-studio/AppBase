@@ -23,6 +23,7 @@ public static class NativeLibraryNames
     /// <summary>
     /// Image I/O.
     /// </summary>
+    [Obsolete("The path to CoreFoundation may be different between macOS, use NativeLibraryHandles.ImageIO instead.")]
     public const string ImageIO = "/System/Library/Frameworks/ApplicationServices.framework/Frameworks/ImageIO.framework/ImageIO";
     /// <summary>
     /// Objective-C Runtime.

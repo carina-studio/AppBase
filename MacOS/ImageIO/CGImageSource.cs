@@ -9,21 +9,30 @@ namespace CarinaStudio.MacOS.ImageIO;
 /// <summary>
 /// CGImageSource.
 /// </summary>
-public class CGImageSource : CFObject
+public unsafe class CGImageSource : CFObject
 {
     // Native symbols.
-    [DllImport(NativeLibraryNames.ImageIO)]
-    static extern IntPtr CGImageSourceCopyPropertiesAtIndex(IntPtr isrc, nuint index, IntPtr options);
-    [DllImport(NativeLibraryNames.ImageIO)]
-    static extern IntPtr CGImageSourceCreateImageAtIndex(IntPtr isrc, nuint index, IntPtr options);
-    [DllImport(NativeLibraryNames.ImageIO)]
-    static extern IntPtr CGImageSourceCreateWithData(IntPtr data, IntPtr options);
-    [DllImport(NativeLibraryNames.ImageIO)]
-    static extern nuint CGImageSourceGetCount(IntPtr isrc);
-    [DllImport(NativeLibraryNames.ImageIO)]
-    static extern nuint CGImageSourceGetPrimaryImageIndex(IntPtr isrc);
-    [DllImport(NativeLibraryNames.ImageIO)]
-    static extern CGImageSourceStatus CGImageSourceGetStatus(IntPtr isrc);
+    static readonly delegate*<IntPtr, nuint, IntPtr, IntPtr> CGImageSourceCopyPropertiesAtIndex;
+    static readonly delegate*<IntPtr, nuint, IntPtr, IntPtr> CGImageSourceCreateImageAtIndex;
+    static readonly delegate*<IntPtr, IntPtr, IntPtr> CGImageSourceCreateWithData;
+    static readonly delegate*<IntPtr, nuint> CGImageSourceGetCount;
+    static readonly delegate*<IntPtr, nuint> CGImageSourceGetPrimaryImageIndex;
+    static readonly delegate*<IntPtr, CGImageSourceStatus> CGImageSourceGetStatus;
+    
+    
+    // Static constructor.
+    static CGImageSource()
+    {
+        if (Platform.IsNotMacOS)
+            return;
+        var libHandle = NativeLibraryHandles.ImageIO;
+        CGImageSourceCopyPropertiesAtIndex = (delegate*<IntPtr, nuint, IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGImageSourceCopyPropertiesAtIndex));
+        CGImageSourceCreateImageAtIndex = (delegate*<IntPtr, nuint, IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGImageSourceCreateImageAtIndex));
+        CGImageSourceCreateWithData = (delegate*<IntPtr, IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGImageSourceCreateWithData));
+        CGImageSourceGetCount = (delegate*<IntPtr, nuint>)NativeLibrary.GetExport(libHandle, nameof(CGImageSourceGetCount));
+        CGImageSourceGetPrimaryImageIndex = (delegate*<IntPtr, nuint>)NativeLibrary.GetExport(libHandle, nameof(CGImageSourceGetPrimaryImageIndex));
+        CGImageSourceGetStatus = (delegate*<IntPtr, CGImageSourceStatus>)NativeLibrary.GetExport(libHandle, nameof(CGImageSourceGetStatus));
+    }
 
 
     // Constructor.
@@ -58,7 +67,7 @@ public class CGImageSource : CFObject
     public CGImage CreateImage()
     {
         this.VerifyReleased();
-        return CFObject.FromHandle<CGImage>(CGImageSourceCreateImageAtIndex(this.Handle, CGImageSourceGetPrimaryImageIndex(this.Handle), IntPtr.Zero), true);
+        return FromHandle<CGImage>(CGImageSourceCreateImageAtIndex(this.Handle, CGImageSourceGetPrimaryImageIndex(this.Handle), IntPtr.Zero), true);
     }
 
 

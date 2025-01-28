@@ -105,9 +105,7 @@ public static unsafe class CGImageProperties
             return;
         
         // load symbols in ImageIO.Framework
-        var imageIOLibHandle = NativeLibrary.Load(NativeLibraryNames.ImageIO);
-        if (imageIOLibHandle == default)
-            throw new InvalidOperationException("Unable to load native library.");
+        var imageIOLibHandle = NativeLibraryHandles.ImageIO;
         ColorModel = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyColorModel"), false, false);
         ColorModelCMYK = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyColorModelCMYK"), false, false);
         ColorModelGray = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyColorModelGray"), false, false);
