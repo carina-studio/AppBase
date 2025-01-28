@@ -14,11 +14,18 @@ public static class NativeLibraryHandles
         "/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation",
         "/System/Library/Frameworks/ApplicationServices.framework/Frameworks/CoreFoundation.framework/CoreFoundation"
     ];
+    static readonly string[] ImageIOLibPaths =
+    [
+        "/System/Library/Frameworks/ImageIO.framework/ImageIO",
+        "/System/Library/Frameworks/ApplicationServices.framework/Frameworks/ImageIO.framework/ImageIO"
+    ];
     
     
     // Fields.
     static IntPtr coreFoundationLibHandle;
     static bool isCoreFoundationLibResolved;
+    static bool isImageIOLibResolved;
+    static IntPtr imageIOLibHandle;
 
 
     /// <summary>
@@ -49,4 +56,10 @@ public static class NativeLibraryHandles
         isResolved = true;
         throw new DllNotFoundException();
     }
+    
+    
+    /// <summary>
+    /// Handle of Image I/O library.
+    /// </summary>
+    public static IntPtr ImageIO => GetHandle(ImageIOLibPaths, ref imageIOLibHandle, ref isImageIOLibResolved);
 }
