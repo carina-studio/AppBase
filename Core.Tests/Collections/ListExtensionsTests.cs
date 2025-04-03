@@ -233,7 +233,7 @@ namespace CarinaStudio.Collections
 		public void GettingRangeViewTest()
 		{
 			// empty list
-			var sourceList = Array.Empty<int>();
+			var sourceList = (IList<int>)Array.Empty<int>();
 			var view = sourceList.GetRangeView(0, 0);
 			Assert.That(0 == view.Count);
 			view = sourceList.GetRangeView(0, 1);
@@ -312,7 +312,7 @@ namespace CarinaStudio.Collections
 			// setup observable list
 			var collectionChangedEventArgs = default(NotifyCollectionChangedEventArgs);
 			var observableSourceList = new ObservableList<int>();
-			reversedList = observableSourceList.Reverse();
+			reversedList = ((IList<int>)observableSourceList).Reverse();
 			((INotifyCollectionChanged)reversedList).CollectionChanged += (_, e) =>
 			{
 				collectionChangedEventArgs = e;

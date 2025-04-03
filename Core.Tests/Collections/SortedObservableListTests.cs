@@ -231,7 +231,7 @@ namespace CarinaStudio.Collections
 					for (var j = elementCount - 1; j >= 0; --j)
 					{
 						var element = addingElements[j];
-						var index = observableCollection.BinarySearch(element);
+						var index = ((IList<int>)observableCollection).BinarySearch(element);
 						if (index < 0)
 							index = ~index;
 						observableCollection.Insert(index, element);
@@ -294,7 +294,7 @@ namespace CarinaStudio.Collections
 						var block = addingBlocks[j];
 						foreach (var element in block)
 						{
-							var index = observableCollection.BinarySearch(element);
+							var index = ((IList<int>)observableCollection).BinarySearch(element);
 							if (index < 0)
 								index = ~index;
 							observableCollection.Insert(index, element);
@@ -371,7 +371,7 @@ namespace CarinaStudio.Collections
 					for (var j = elementCount - 1; j >= 0; --j)
 					{
 						var element = addingElements[j];
-						var index = observableCollection.BinarySearch(element);
+						var index = ((IList<int>)observableCollection).BinarySearch(element);
 						if (index < 0)
 							index = ~index;
 						observableCollection.Insert(index, element);
@@ -435,7 +435,7 @@ namespace CarinaStudio.Collections
 						var block = addingBlocks[j];
 						foreach (var element in block)
 						{
-							var index = observableCollection.BinarySearch(element);
+							var index = ((IList<int>)observableCollection).BinarySearch(element);
 							if (index < 0)
 								index = ~index;
 							observableCollection.Insert(index, element);
@@ -549,14 +549,14 @@ namespace CarinaStudio.Collections
 			var index = this.random.Next(count - 1);
 			sortedList[index][0] = count;
 			Assert.That(sortedList.Sort(sortedList[index]));
-			Assert.That(sortedList.IsSorted(sortedList.Comparer));
+			Assert.That(((IList<int[]>)sortedList).IsSorted(sortedList.Comparer));
 			Assert.That(sortedList.SequenceEqual(observableCollection));
 
 			// move element to head of list
 			index = this.random.Next(1, count - 1);
 			sortedList[index][0] = -1;
 			Assert.That(sortedList.SortAt(index));
-			Assert.That(sortedList.IsSorted(sortedList.Comparer));
+			Assert.That(((IList<int[]>)sortedList).IsSorted(sortedList.Comparer));
 			Assert.That(sortedList.SequenceEqual(observableCollection));
 
 			// random moving elements
@@ -566,7 +566,7 @@ namespace CarinaStudio.Collections
 				sortedList[index][0] = this.random.Next();
 				sortedList.SortAt(index);
 			}
-			Assert.That(sortedList.IsSorted(sortedList.Comparer));
+			Assert.That(((IList<int[]>)sortedList).IsSorted(sortedList.Comparer));
 			Assert.That(sortedList.SequenceEqual(observableCollection));
 		}
 

@@ -105,7 +105,7 @@ namespace CarinaStudio.Collections
             var list3 = new FilteredObservableList<int>(source, _ => false);
             Assert.That(list1.SequenceEqual(source));
             Assert.That(list2.SequenceEqual(new[] { 0, 2, 4 }));
-            Assert.That(list3.IsEmpty());
+            Assert.That(list3.IsEmpty);
         }
 
 
@@ -264,7 +264,7 @@ namespace CarinaStudio.Collections
 
             // clear
             source.Clear();
-            Assert.That(filteredList.IsEmpty());
+            Assert.That(filteredList.IsEmpty);
             Assert.That(NotifyCollectionChangedAction.Reset == eventArgs!.Action);
             eventArgs = null;
 
@@ -304,7 +304,7 @@ namespace CarinaStudio.Collections
 
             // clear
             source.Clear();
-            Assert.That(filteredList.IsEmpty());
+            Assert.That(filteredList.IsEmpty);
             Assert.That(NotifyCollectionChangedAction.Reset == eventArgs!.Action);
             eventArgs = null;
         }
