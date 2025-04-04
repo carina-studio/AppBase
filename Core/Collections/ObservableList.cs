@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
-using System.Reflection;
 
 namespace CarinaStudio.Collections;
 
@@ -248,14 +247,14 @@ public class ObservableList<T> : IList, IList<T>, INotifyCollectionChanged, INot
 	/// Check whether the list is empty or not.
 	/// </summary>
 	/// <returns>True if the list is empty.</returns>
-	public bool IsEmpty => this.list.Count <= 0;
+	public bool IsEmpty() => this.list.Count <= 0;
 	
 	
 	/// <summary>
 	/// Check whether the list is not empty or not.
 	/// </summary>
 	/// <returns>True if the list is not empty.</returns>
-	public bool IsNotEmpty => this.list.Count > 0;
+	public bool IsNotEmpty() => this.list.Count > 0;
 
 
 	/// <summary>

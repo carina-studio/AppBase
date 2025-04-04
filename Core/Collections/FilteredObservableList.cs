@@ -102,14 +102,14 @@ public class FilteredObservableList<T> : IList, IList<T>, INotifyCollectionChang
     /// Check whether the list is empty or not.
     /// </summary>
     /// <returns>True if the list is empty.</returns>
-    public bool IsEmpty => this.items.Count <= 0;
+    public bool IsEmpty() => this.items.Count <= 0;
 	
 	
     /// <summary>
     /// Check whether the list is not empty or not.
     /// </summary>
     /// <returns>True if the list is not empty.</returns>
-    public bool IsNotEmpty => this.items.Count > 0;
+    public bool IsNotEmpty() => this.items.Count > 0;
 
 
     /// <inheritdoc cref="ICollection{T}.IsReadOnly"/>

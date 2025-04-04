@@ -48,6 +48,9 @@ public static class CollectionExtensions
 	/// <typeparam name="T">Type of element of collection.</typeparam>
 	/// <param name="collection">Collection to check.</param>
 	/// <returns>True if collection is empty.</returns>
+#if NET9_0_OR_GREATER
+	[OverloadResolutionPriority(-1)]
+#endif
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static bool IsEmpty<T>(this IReadOnlyCollection<T> collection) => collection.Count <= 0;
 
@@ -68,6 +71,9 @@ public static class CollectionExtensions
 	/// <typeparam name="T">Type of element of collection.</typeparam>
 	/// <param name="collection">Collection to check.</param>
 	/// <returns>True if collection is not empty.</returns>
+#if NET9_0_OR_GREATER
+	[OverloadResolutionPriority(-1)]
+#endif
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static bool IsNotEmpty<T>([NotNullWhen(true)] this IReadOnlyCollection<T>? collection) => collection is not null && collection.Count > 0;
 
@@ -88,6 +94,9 @@ public static class CollectionExtensions
 	/// <typeparam name="T">Type of element of collection.</typeparam>
 	/// <param name="collection">Collection to check.</param>
 	/// <returns>True if collection is null or empty.</returns>
+#if NET9_0_OR_GREATER
+	[OverloadResolutionPriority(-1)]
+#endif
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static bool IsNullOrEmpty<T>([NotNullWhen(false)] this IReadOnlyCollection<T>? collection) => collection is null || collection.Count <= 0;
 

@@ -113,7 +113,7 @@ namespace CarinaStudio.Collections
 				Assert.That(list.SequenceEqual(reflectedList), "List built by collection change event is incorrect after removing elements.");
 				if (list.RemoveAll(element => (element % 3) == 0) > 0)
 					Assert.That(list.SequenceEqual(reflectedList), "List built by collection change event is incorrect after removing elements.");
-				for (var i = 0; i < 100 && list.IsNotEmpty; ++i)
+				for (var i = 0; i < 100 && list.IsNotEmpty(); ++i)
 				{
 					var index = this.random.Next(list.Count - 1);
 					var count = this.random.Next(1, 11);

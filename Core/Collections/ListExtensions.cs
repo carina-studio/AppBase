@@ -3,7 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+#if !NET9_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
+#endif
 using System.Runtime.CompilerServices;
 
 namespace CarinaStudio.Collections;
@@ -54,6 +56,9 @@ public static class ListExtensions
 	/// <param name="element">Element to be found.</param>
 	/// <param name="comparer"><see cref="IComparer{T}"/> to compare elements.</param>
 	/// <returns>Index of found element, or bitwise complement of index of proper position to put element.</returns>
+#if NET9_0_OR_GREATER
+	[OverloadResolutionPriority(-1)]
+#endif
 	public static int BinarySearch<T>(this IReadOnlyList<T> list, T element, IComparer<T> comparer) => BinarySearch(list, 0, list.Count, element, comparer.Compare);
 
 
@@ -76,6 +81,9 @@ public static class ListExtensions
 	/// <param name="element">Element to be found.</param>
 	/// <param name="comparison">Comparison function.</param>
 	/// <returns>Index of found element, or bitwise complement of index of proper position to put element.</returns>
+#if NET9_0_OR_GREATER
+	[OverloadResolutionPriority(-1)]
+#endif
 	public static int BinarySearch<T>(this IReadOnlyList<T> list, T element, Comparison<T> comparison) => BinarySearch(list, 0, list.Count, element, comparison);
 	
 	
@@ -112,6 +120,9 @@ public static class ListExtensions
 	/// <param name="key">Key of element to be found.</param>
 	/// <param name="keyGetter">Method to get key from element.</param>
 	/// <returns>Index of found element, or bitwise complement of index of proper position to put element.</returns>
+#if NET9_0_OR_GREATER
+	[OverloadResolutionPriority(-1)]
+#endif
 	public static int BinarySearch<T, TKey>(this IReadOnlyList<T> list, TKey key, Func<T, TKey> keyGetter) where TKey : IComparable<TKey> => BinarySearch(list, 0, list.Count, key, keyGetter, (lhs, rhs) => lhs.CompareTo(rhs));
 
 
@@ -151,6 +162,9 @@ public static class ListExtensions
 	/// <param name="keyGetter">Method to get key from element.</param>
 	/// <param name="comparison">Comparison function.</param>
 	/// <returns>Index of found element, or bitwise complement of index of proper position to put element.</returns>
+#if NET9_0_OR_GREATER
+	[OverloadResolutionPriority(-1)]
+#endif
 	public static int BinarySearch<T, TKey>(this IReadOnlyList<T> list, TKey key, Func<T, TKey> keyGetter, Comparison<TKey> comparison) => BinarySearch(list, 0, list.Count, key, keyGetter, comparison);
 	
 	
@@ -171,6 +185,9 @@ public static class ListExtensions
 	/// <param name="list">List to find element.</param>
 	/// <param name="element">Element to be found.</param>
 	/// <returns>Index of found element, or bitwise complement of index of proper position to put element.</returns>
+#if NET9_0_OR_GREATER
+	[OverloadResolutionPriority(-1)]
+#endif
 	public static int BinarySearch<T>(this IReadOnlyList<T> list, T element) where T : IComparable<T> => BinarySearch(list, 0, list.Count, element);
 
 
@@ -271,6 +288,7 @@ public static class ListExtensions
 	}
 	
 	
+#if !NET9_0_OR_GREATER
 	/// <summary>
 	/// Copy elements to array.
 	/// </summary>
@@ -281,7 +299,8 @@ public static class ListExtensions
 	/// <param name="arrayIndex">Index of first position in <paramref name="array"/> to place copied elements.</param>
 	/// <param name="count">Number of elements to copy.</param>
 	public static void CopyTo<T>(this List<T> list, int index, T[] array, int arrayIndex, int count) => CopyTo((IList<T>)list, index, array, arrayIndex, count);
-
+#endif
+	
 
 	/// <summary>
 	/// Copy elements to array.
@@ -324,6 +343,9 @@ public static class ListExtensions
 	/// <param name="array">Array to place copied elements.</param>
 	/// <param name="arrayIndex">Index of first position in <paramref name="array"/> to place copied elements.</param>
 	/// <param name="count">Number of elements to copy.</param>
+#if NET9_0_OR_GREATER
+	[OverloadResolutionPriority(-1)]
+#endif
 	public static void CopyTo<T>(this IReadOnlyList<T> list, int index, T[] array, int arrayIndex, int count)
 	{
 		if (list is List<T> sysList)
@@ -347,6 +369,7 @@ public static class ListExtensions
 	}
 	
 	
+#if !NET9_0_OR_GREATER
 	/// <summary>
 	/// Get read-only view of range of source list which allows accessing elements from source list directly without copying.
 	/// </summary>
@@ -357,7 +380,8 @@ public static class ListExtensions
 	/// <returns>View of range of source list.</returns>
 	/// <remarks>The element get from view and <see cref="ICollection{T}.Count"/> of view may be changed if source list has been modified.</remarks>
 	public static IList<T> GetRangeView<T>(this List<T> list, int start, int count) => GetRangeView((IList<T>)list, start, count);
-
+#endif
+	
 
 	/// <summary>
 	/// Get read-only view of range of source list which allows accessing elements from source list directly without copying.
@@ -381,10 +405,14 @@ public static class ListExtensions
 	/// <typeparam name="T">Type of element.</typeparam>
 	/// <returns>View of range of source list.</returns>
 	/// <remarks>The element get from view and <see cref="ICollection{T}.Count"/> of view may be changed if source list has been modified.</remarks>
+#if NET9_0_OR_GREATER
+	[OverloadResolutionPriority(-1)]
+#endif
 	public static IReadOnlyList<T> GetRangeView<T>(this IReadOnlyList<T> list, int start, int count) =>
 		new ReadOnlyListRangeView<T>(list, start, count);
 	
 	
+#if !NET9_0_OR_GREATER
 	/// <summary>
 	/// Check whether the given list is empty or not.
 	/// </summary>
@@ -393,8 +421,10 @@ public static class ListExtensions
 	/// <returns>True if the list is empty.</returns>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static bool IsEmpty<T>(this List<T> list) => list.Count <= 0;
+#endif
 
 
+#if !NET9_0_OR_GREATER
 	/// <summary>
 	/// Check whether the given list is not empty or not.
 	/// </summary>
@@ -403,8 +433,10 @@ public static class ListExtensions
 	/// <returns>True if the list is not empty.</returns>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static bool IsNotEmpty<T>([NotNullWhen(true)] this List<T>? list) => list is not null && list.Count > 0;
+#endif
 	
 	
+#if !NET9_0_OR_GREATER
 	/// <summary>
 	/// Check whether given list is null/empty or not.
 	/// </summary>
@@ -413,8 +445,10 @@ public static class ListExtensions
 	/// <returns>True if the list is null or empty.</returns>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static bool IsNullOrEmpty<T>([NotNullWhen(false)] this List<T>? collection) => collection is null || collection.Count <= 0;
+#endif
 	
 	
+#if !NET9_0_OR_GREATER
 	/// <summary>
 	/// Check whether elements in given list is sorted or not.
 	/// </summary>
@@ -423,6 +457,7 @@ public static class ListExtensions
 	/// <param name="comparer"><see cref="IComparer{T}"/> to check order of elements.</param>
 	/// <returns>True if elements in the list are sorted.</returns>
 	public static bool IsSorted<T>(this List<T> list, IComparer<T> comparer) => IsSorted(list, comparer.Compare);
+#endif
 
 
 	/// <summary>
@@ -442,9 +477,13 @@ public static class ListExtensions
 	/// <param name="list"><see cref="IReadOnlyList{T}"/>.</param>
 	/// <param name="comparer"><see cref="IComparer{T}"/> to check order of elements.</param>
 	/// <returns>True if elements in <see cref="IReadOnlyList{T}"/> are sorted.</returns>
+#if NET9_0_OR_GREATER
+	[OverloadResolutionPriority(-1)]
+#endif
 	public static bool IsSorted<T>(this IReadOnlyList<T> list, IComparer<T> comparer) => IsSorted(list, comparer.Compare);
 
 
+#if !NET9_0_OR_GREATER
 	/// <summary>
 	/// Check whether elements in given <see cref="IList{T}"/> is sorted or not.
 	/// </summary>
@@ -453,6 +492,7 @@ public static class ListExtensions
 	/// <param name="comparison">Comparison method to check order of elements.</param>
 	/// <returns>True if elements in <see cref="IList{T}"/> are sorted.</returns>
 	public static bool IsSorted<T>(this List<T> list, Comparison<T> comparison) => IsSorted((IList<T>)list, comparison);
+#endif
 
 
 	/// <summary>
@@ -487,6 +527,9 @@ public static class ListExtensions
 	/// <param name="list"><see cref="IReadOnlyList{T}"/>.</param>
 	/// <param name="comparison">Comparison method to check order of elements.</param>
 	/// <returns>True if elements in <see cref="IReadOnlyList{T}"/> are sorted.</returns>
+#if NET9_0_OR_GREATER
+	[OverloadResolutionPriority(-1)]
+#endif
 	public static bool IsSorted<T>(this IReadOnlyList<T> list, Comparison<T> comparison)
 	{
 		var count = list.Count;
@@ -505,6 +548,7 @@ public static class ListExtensions
 	}
 
 
+#if !NET9_0_OR_GREATER
 	/// <summary>
 	/// Check whether elements in given list is sorted or not.
 	/// </summary>
@@ -512,6 +556,7 @@ public static class ListExtensions
 	/// <param name="list"><see cref="IList{T}"/>.</param>
 	/// <returns>True if elements in the list are sorted.</returns>
 	public static bool IsSorted<T>(this List<T> list) where T : IComparable<T> => IsSorted((IList<T>)list);
+#endif
 
 
 	/// <summary>
@@ -544,6 +589,9 @@ public static class ListExtensions
 	/// <typeparam name="T">Type of elements.</typeparam>
 	/// <param name="list"><see cref="IReadOnlyList{T}"/>.</param>
 	/// <returns>True if elements in <see cref="IReadOnlyList{T}"/> are sorted.</returns>
+#if NET9_0_OR_GREATER
+	[OverloadResolutionPriority(-1)]
+#endif
 	public static bool IsSorted<T>(this IReadOnlyList<T> list) where T : IComparable<T>
 	{
 		var count = list.Count;
@@ -562,6 +610,7 @@ public static class ListExtensions
 	}
 
 
+#if !NET9_0_OR_GREATER
 	/// <summary>
 	/// Make given list as reversed <see cref="IList{T}"/>.
 	/// </summary>
@@ -569,6 +618,7 @@ public static class ListExtensions
 	/// <param name="list">The list to be reversed.</param>
 	/// <returns>Reversed <see cref="IList{T}"/>.</returns>
 	public static IList<T> Reverse<T>(this List<T> list) => Reverse((IList<T>)list);
+#endif
 
 
 	/// <summary>
@@ -593,6 +643,9 @@ public static class ListExtensions
 	/// <typeparam name="T">Type of element.</typeparam>
 	/// <param name="list"><see cref="IReadOnlyList{T}"/> to be reversed.</param>
 	/// <returns>Reversed <see cref="IReadOnlyList{T}"/>.</returns>
+#if NET9_0_OR_GREATER
+	[OverloadResolutionPriority(-1)]
+#endif
 	public static IReadOnlyList<T> Reverse<T>(this IReadOnlyList<T> list)
 	{
 		return list is INotifyCollectionChanged 
@@ -637,6 +690,9 @@ public static class ListExtensions
 	/// <typeparam name="T">Type of element.</typeparam>
 	/// <param name="list"><see cref="IList{T}"/>.</param>
 	/// <returns>Element selected from <see cref="IList{T}"/>.</returns>
+#if NET9_0_OR_GREATER
+	[OverloadResolutionPriority(-1)]
+#endif
 	public static T SelectRandomElement<T>(this IReadOnlyList<T> list)
 	{
 		if (list.IsEmpty())
@@ -683,6 +739,7 @@ public static class ListExtensions
 	}
 	
 	
+#if !NET9_0_OR_GREATER
 	/// <summary>
 	/// Copy elements to array.
 	/// </summary>
@@ -692,6 +749,7 @@ public static class ListExtensions
 	/// <param name="count">Number of elements to copy.</param>
 	/// <returns>Array of copied elements</returns>
 	public static T[] ToArray<T>(this List<T> list, int index, int count) => ToArray((IList<T>)list, index, count);
+#endif
 
 
 	/// <summary>
@@ -713,6 +771,9 @@ public static class ListExtensions
 	/// <param name="index">Index of first element in list to copy.</param>
 	/// <param name="count">Number of elements to copy.</param>
 	/// <returns>Array of copied elements</returns>
+#if NET9_0_OR_GREATER
+	[OverloadResolutionPriority(-1)]
+#endif
 	public static T[] ToArray<T>(this IReadOnlyList<T> list, int index, int count) => new T[count].Also(it => list.CopyTo(index, it, 0, count));
 }
 
@@ -721,20 +782,12 @@ public static class ListExtensions
 internal class ListRangeView<T> : IList, IList<T>, IReadOnlyList<T>
 {
 	// Enumerator.
-	class Enumerator : IEnumerator<T>
+	class Enumerator(ListRangeView<T> view) : IEnumerator<T>
 	{
 		// Fields.
 		int currentIndex = -1;
-		readonly int initCount;
+		readonly int initCount = view.Count;
 		bool isEnded;
-		readonly ListRangeView<T> view;
-
-		// Constructor.
-		public Enumerator(ListRangeView<T> view)
-		{
-			this.initCount = view.Count;
-			this.view = view;
-		}
 
 		/// <inheritdoc/>
 		public T Current
@@ -743,9 +796,9 @@ internal class ListRangeView<T> : IList, IList<T>, IReadOnlyList<T>
 			{
 				if (isEnded || this.currentIndex < 0)
 					throw new InvalidOperationException();
-				if (this.view.Count != this.initCount)
+				if (view.Count != this.initCount)
 					throw new InvalidOperationException();
-				return this.view[this.currentIndex];
+				return view[this.currentIndex];
 			}
 		}
 
@@ -758,7 +811,7 @@ internal class ListRangeView<T> : IList, IList<T>, IReadOnlyList<T>
 		{
 			if (this.isEnded)
 				return false;
-			if (this.view.Count != this.initCount)
+			if (view.Count != this.initCount)
 				throw new InvalidOperationException();
 			++this.currentIndex;
 			if (this.currentIndex >= this.initCount)
@@ -940,20 +993,12 @@ internal class ListRangeView<T> : IList, IList<T>, IReadOnlyList<T>
 internal class ReadOnlyListRangeView<T> : IReadOnlyList<T>
 {
 	// Enumerator.
-	class Enumerator : IEnumerator<T>
+	class Enumerator(ReadOnlyListRangeView<T> view) : IEnumerator<T>
 	{
 		// Fields.
 		int currentIndex = -1;
-		readonly int initCount;
+		readonly int initCount = view.Count;
 		bool isEnded;
-		readonly ReadOnlyListRangeView<T> view;
-
-		// Constructor.
-		public Enumerator(ReadOnlyListRangeView<T> view)
-		{
-			this.initCount = view.Count;
-			this.view = view;
-		}
 
 		/// <inheritdoc/>
 		public T Current
@@ -962,9 +1007,9 @@ internal class ReadOnlyListRangeView<T> : IReadOnlyList<T>
 			{
 				if (isEnded || this.currentIndex < 0)
 					throw new InvalidOperationException();
-				if (this.view.Count != this.initCount)
+				if (view.Count != this.initCount)
 					throw new InvalidOperationException();
-				return this.view[this.currentIndex];
+				return view[this.currentIndex];
 			}
 		}
 
@@ -977,7 +1022,7 @@ internal class ReadOnlyListRangeView<T> : IReadOnlyList<T>
 		{
 			if (this.isEnded)
 				return false;
-			if (this.view.Count != this.initCount)
+			if (view.Count != this.initCount)
 				throw new InvalidOperationException();
 			++this.currentIndex;
 			if (this.currentIndex >= this.initCount)
