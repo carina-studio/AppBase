@@ -12,6 +12,7 @@ namespace CarinaStudio;
 /// </summary>
 public static class ArrayExtensions
 {
+#if !NET9_0_OR_GREATER
 	/// <summary>
 	/// Get read-only view of range of source array which allows accessing elements from source array directly without copying.
 	/// </summary>
@@ -20,37 +21,48 @@ public static class ArrayExtensions
 	/// <param name="count">Number of elements needed to be included.</param>
 	/// <typeparam name="T">Type of element.</typeparam>
 	/// <returns>View of range of source array.</returns>
+	/// <remarks>The method is available for target framework before .NET 9.</remarks>
 	public static IList<T> GetRangeView<T>(this T[] array, int start, int count) => ((IList<T>)array).GetRangeView(start, count);
+#endif
 	
 	
+#if !NET9_0_OR_GREATER
 	/// <summary>
 	/// Check whether the given array is empty or not.
 	/// </summary>
 	/// <typeparam name="T">Type of element of array.</typeparam>
 	/// <param name="array">Array to check.</param>
 	/// <returns>True if the array is empty.</returns>
+	/// <remarks>The method is available for target framework before .NET 9.</remarks>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static bool IsEmpty<T>(this T[] array) => array.Length <= 0;
+#endif
 
 
+#if !NET9_0_OR_GREATER
 	/// <summary>
 	/// Check whether the given array is not empty or not.
 	/// </summary>
 	/// <typeparam name="T">Type of element of array.</typeparam>
 	/// <param name="array">Array to check.</param>
 	/// <returns>True if the array is not empty.</returns>
+	/// <remarks>The method is available for target framework before .NET 9.</remarks>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static bool IsNotEmpty<T>([NotNullWhen(true)] this T[]? array) => array is not null && array.Length > 0;
+#endif
 	
-	
+
+#if !NET9_0_OR_GREATER
 	/// <summary>
 	/// Check whether given array is null/empty or not.
 	/// </summary>
 	/// <typeparam name="T">Type of element of array.</typeparam>
 	/// <param name="array">Array to check.</param>
 	/// <returns>True if the array is null or empty.</returns>
+	/// <remarks>The method is available for target framework before .NET 9.</remarks>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static bool IsNullOrEmpty<T>([NotNullWhen(false)] this T[]? array) => array is null || array.Length <= 0;
+#endif
 	
 	
 	/// <summary>

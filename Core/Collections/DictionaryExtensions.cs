@@ -87,8 +87,37 @@ public static class DictionaryExtensions
 	/// <typeparam name="TValue">Type of value in dictionary.</typeparam>
 	/// <param name="dictionary">Dictionary to check.</param>
 	/// <returns>True if the dictionary is empty.</returns>
+	/// <remarks>The method is available for target framework before .NET 9.</remarks>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static bool IsEmpty<TKey, TValue>(this Dictionary<TKey, TValue> dictionary) where TKey : notnull => dictionary.Count <= 0;
+#endif
+	
+	
+#if !NET9_0_OR_GREATER
+	/// <summary>
+	/// Check whether the given dictionary is empty or not.
+	/// </summary>
+	/// <typeparam name="TKey">Type of key in dictionary.</typeparam>
+	/// <typeparam name="TValue">Type of value in dictionary.</typeparam>
+	/// <param name="dictionary">Dictionary to check.</param>
+	/// <returns>True if the dictionary is empty.</returns>
+	/// <remarks>The method is available for target framework before .NET 9.</remarks>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static bool IsEmpty<TKey, TValue>(this IDictionary<TKey, TValue> dictionary) => dictionary.Count <= 0;
+#endif
+	
+	
+#if !NET9_0_OR_GREATER
+	/// <summary>
+	/// Check whether the given dictionary is not empty or not.
+	/// </summary>
+	/// <typeparam name="TKey">Type of key in dictionary.</typeparam>
+	/// <typeparam name="TValue">Type of value in dictionary.</typeparam>
+	/// <param name="dictionary">Dictionary to check.</param>
+	/// <returns>True if the dictionary is not empty.</returns>
+	/// <remarks>The method is available for target framework before .NET 9.</remarks>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static bool IsNotEmpty<TKey, TValue>([NotNullWhen(true)] Dictionary<TKey, TValue>? dictionary) where TKey : notnull => dictionary is not null && dictionary.Count > 0;
 #endif
 
 
@@ -100,6 +129,7 @@ public static class DictionaryExtensions
 	/// <typeparam name="TValue">Type of value in dictionary.</typeparam>
 	/// <param name="dictionary">Dictionary to check.</param>
 	/// <returns>True if the dictionary is not empty.</returns>
+	/// <remarks>The method is available for target framework before .NET 9.</remarks>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static bool IsNotEmpty<TKey, TValue>([NotNullWhen(true)] IDictionary<TKey, TValue>? dictionary) => dictionary is not null && dictionary.Count > 0;
 #endif
@@ -113,6 +143,21 @@ public static class DictionaryExtensions
 	/// <typeparam name="TValue">Type of value in dictionary.</typeparam>
 	/// <param name="dictionary">Dictionary to check.</param>
 	/// <returns>True if the dictionary is null or empty.</returns>
+	/// <remarks>The method is available for target framework before .NET 9.</remarks>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static bool IsNullOrEmpty<TKey, TValue>([NotNullWhen(false)] Dictionary<TKey, TValue>? dictionary) where TKey : notnull => dictionary is null || dictionary.Count <= 0;
+#endif
+	
+	
+#if !NET9_0_OR_GREATER
+	/// <summary>
+	/// Check whether given dictionary is null/empty or not.
+	/// </summary>
+	/// <typeparam name="TKey">Type of key in dictionary.</typeparam>
+	/// <typeparam name="TValue">Type of value in dictionary.</typeparam>
+	/// <param name="dictionary">Dictionary to check.</param>
+	/// <returns>True if the dictionary is null or empty.</returns>
+	/// <remarks>The method is available for target framework before .NET 9.</remarks>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static bool IsNullOrEmpty<TKey, TValue>([NotNullWhen(false)] IDictionary<TKey, TValue>? dictionary) => dictionary is null || dictionary.Count <= 0;
 #endif

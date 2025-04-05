@@ -298,6 +298,7 @@ public static class ListExtensions
 	/// <param name="array">Array to place copied elements.</param>
 	/// <param name="arrayIndex">Index of first position in <paramref name="array"/> to place copied elements.</param>
 	/// <param name="count">Number of elements to copy.</param>
+	/// <remarks>The method is available for target framework before .NET 9.</remarks>
 	public static void CopyTo<T>(this List<T> list, int index, T[] array, int arrayIndex, int count) => CopyTo((IList<T>)list, index, array, arrayIndex, count);
 #endif
 	
@@ -378,7 +379,7 @@ public static class ListExtensions
 	/// <param name="count">Number of elements needed to be included.</param>
 	/// <typeparam name="T">Type of element.</typeparam>
 	/// <returns>View of range of source list.</returns>
-	/// <remarks>The element get from view and <see cref="ICollection{T}.Count"/> of view may be changed if source list has been modified.</remarks>
+	/// <remarks>The element get from view and <see cref="ICollection{T}.Count"/> of view may be changed if source list has been modified. The method is available for target framework before .NET 9. The method is available for target framework before .NET 9.</remarks>
 	public static IList<T> GetRangeView<T>(this List<T> list, int start, int count) => GetRangeView((IList<T>)list, start, count);
 #endif
 	
@@ -419,6 +420,7 @@ public static class ListExtensions
 	/// <typeparam name="T">Type of element of collection.</typeparam>
 	/// <param name="list">List to check.</param>
 	/// <returns>True if the list is empty.</returns>
+	/// <remarks>The method is available for target framework before .NET 9.</remarks>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static bool IsEmpty<T>(this List<T> list) => list.Count <= 0;
 #endif
@@ -431,6 +433,7 @@ public static class ListExtensions
 	/// <typeparam name="T">Type of element of collection.</typeparam>
 	/// <param name="list">List to check.</param>
 	/// <returns>True if the list is not empty.</returns>
+	/// <remarks>The method is available for target framework before .NET 9.</remarks>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static bool IsNotEmpty<T>([NotNullWhen(true)] this List<T>? list) => list is not null && list.Count > 0;
 #endif
@@ -443,6 +446,7 @@ public static class ListExtensions
 	/// <typeparam name="T">Type of element of collection.</typeparam>
 	/// <param name="collection">List to check.</param>
 	/// <returns>True if the list is null or empty.</returns>
+	/// <remarks>The method is available for target framework before .NET 9.</remarks>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static bool IsNullOrEmpty<T>([NotNullWhen(false)] this List<T>? collection) => collection is null || collection.Count <= 0;
 #endif
@@ -456,6 +460,7 @@ public static class ListExtensions
 	/// <param name="list">List.</param>
 	/// <param name="comparer"><see cref="IComparer{T}"/> to check order of elements.</param>
 	/// <returns>True if elements in the list are sorted.</returns>
+	/// <remarks>The method is available for target framework before .NET 9.</remarks>
 	public static bool IsSorted<T>(this List<T> list, IComparer<T> comparer) => IsSorted(list, comparer.Compare);
 #endif
 
@@ -491,6 +496,7 @@ public static class ListExtensions
 	/// <param name="list"><see cref="IList{T}"/>.</param>
 	/// <param name="comparison">Comparison method to check order of elements.</param>
 	/// <returns>True if elements in <see cref="IList{T}"/> are sorted.</returns>
+	/// <remarks>The method is available for target framework before .NET 9.</remarks>
 	public static bool IsSorted<T>(this List<T> list, Comparison<T> comparison) => IsSorted((IList<T>)list, comparison);
 #endif
 
@@ -555,6 +561,7 @@ public static class ListExtensions
 	/// <typeparam name="T">Type of elements.</typeparam>
 	/// <param name="list"><see cref="IList{T}"/>.</param>
 	/// <returns>True if elements in the list are sorted.</returns>
+	/// <remarks>The method is available for target framework before .NET 9.</remarks>
 	public static bool IsSorted<T>(this List<T> list) where T : IComparable<T> => IsSorted((IList<T>)list);
 #endif
 
@@ -617,6 +624,7 @@ public static class ListExtensions
 	/// <typeparam name="T">Type of element.</typeparam>
 	/// <param name="list">The list to be reversed.</param>
 	/// <returns>Reversed <see cref="IList{T}"/>.</returns>
+	/// <remarks>The method is available for target framework before .NET 9.</remarks>
 	public static IList<T> Reverse<T>(this List<T> list) => Reverse((IList<T>)list);
 #endif
 
@@ -748,6 +756,7 @@ public static class ListExtensions
 	/// <param name="index">Index of first element in list to copy.</param>
 	/// <param name="count">Number of elements to copy.</param>
 	/// <returns>Array of copied elements</returns>
+	/// <remarks>The method is available for target framework before .NET 9.</remarks>
 	public static T[] ToArray<T>(this List<T> list, int index, int count) => ToArray((IList<T>)list, index, count);
 #endif
 

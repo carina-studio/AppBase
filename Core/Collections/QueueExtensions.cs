@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+#if !NET9_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+#endif
 
 namespace CarinaStudio.Collections;
 
@@ -16,6 +18,7 @@ public static class QueueExtensions
     /// <typeparam name="T">Type of element of queue.</typeparam>
     /// <param name="queue">Queue to check.</param>
     /// <returns>True if the queue is empty.</returns>
+    /// <remarks>The method is available for target framework before .NET 9.</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsEmpty<T>(this Queue<T> queue) => queue.Count <= 0;
 #endif
@@ -28,6 +31,7 @@ public static class QueueExtensions
     /// <typeparam name="T">Type of element of queue.</typeparam>
     /// <param name="queue">Queue to check.</param>
     /// <returns>True if the queue is not empty.</returns>
+    /// <remarks>The method is available for target framework before .NET 9.</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsNotEmpty<T>([NotNullWhen(true)] Queue<T>? queue) => queue is not null && queue.Count > 0;
 #endif
@@ -40,6 +44,7 @@ public static class QueueExtensions
     /// <typeparam name="T">Type of element of queue.</typeparam>
     /// <param name="queue">Queue to check.</param>
     /// <returns>True if the queue is null or empty.</returns>
+    /// <remarks>The method is available for target framework before .NET 9.</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsNullOrEmpty<T>([NotNullWhen(false)] Queue<T>? queue) => queue is null || queue.Count <= 0;
 #endif

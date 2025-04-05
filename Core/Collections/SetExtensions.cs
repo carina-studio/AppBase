@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
+#if !NET9_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+#endif
 
 namespace CarinaStudio.Collections;
 
@@ -43,8 +45,61 @@ public static class SetExtensions
 	/// <typeparam name="T">Type of element of set.</typeparam>
 	/// <param name="set">Set to check.</param>
 	/// <returns>True if the set is empty.</returns>
+	/// <remarks>The method is available for target framework before .NET 9.</remarks>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static bool IsEmpty<T>(this HashSet<T> set) => set.Count <= 0;
+#endif
+	
+	
+#if !NET9_0_OR_GREATER
+	/// <summary>
+	/// Check whether the given set is empty or not.
+	/// </summary>
+	/// <typeparam name="T">Type of element of set.</typeparam>
+	/// <param name="set">Set to check.</param>
+	/// <returns>True if the set is empty.</returns>
+	/// <remarks>The method is available for target framework before .NET 9.</remarks>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static bool IsEmpty<T>(this SortedSet<T> set) => set.Count <= 0;
+#endif
+	
+	
+#if !NET9_0_OR_GREATER
+	/// <summary>
+	/// Check whether the given set is empty or not.
+	/// </summary>
+	/// <typeparam name="T">Type of element of set.</typeparam>
+	/// <param name="set">Set to check.</param>
+	/// <returns>True if the set is empty.</returns>
+	/// <remarks>The method is available for target framework before .NET 9.</remarks>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static bool IsEmpty<T>(this ISet<T> set) => set.Count <= 0;
+#endif
+	
+	
+#if !NET9_0_OR_GREATER
+	/// <summary>
+	/// Check whether the given set is not empty or not.
+	/// </summary>
+	/// <typeparam name="T">Type of element of set.</typeparam>
+	/// <param name="set">Set to check.</param>
+	/// <returns>True if the set is not empty.</returns>
+	/// <remarks>The method is available for target framework before .NET 9.</remarks>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static bool IsNotEmpty<T>([NotNullWhen(true)] HashSet<T>? set) => set is not null && set.Count > 0;
+#endif
+	
+	
+#if !NET9_0_OR_GREATER
+	/// <summary>
+	/// Check whether the given set is not empty or not.
+	/// </summary>
+	/// <typeparam name="T">Type of element of set.</typeparam>
+	/// <param name="set">Set to check.</param>
+	/// <returns>True if the set is not empty.</returns>
+	/// <remarks>The method is available for target framework before .NET 9.</remarks>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static bool IsNotEmpty<T>([NotNullWhen(true)] SortedSet<T>? set) => set is not null && set.Count > 0;
 #endif
 
 
@@ -55,8 +110,35 @@ public static class SetExtensions
 	/// <typeparam name="T">Type of element of set.</typeparam>
 	/// <param name="set">Set to check.</param>
 	/// <returns>True if the set is not empty.</returns>
+	/// <remarks>The method is available for target framework before .NET 9.</remarks>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static bool IsNotEmpty<T>([NotNullWhen(true)] ISet<T>? set) => set is not null && set.Count > 0;
+#endif
+	
+	
+#if !NET9_0_OR_GREATER
+	/// <summary>
+	/// Check whether given set is null/empty or not.
+	/// </summary>
+	/// <typeparam name="T">Type of element of set.</typeparam>
+	/// <param name="set">Set to check.</param>
+	/// <returns>True if the set is null or empty.</returns>
+	/// <remarks>The method is available for target framework before .NET 9.</remarks>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static bool IsNullOrEmpty<T>([NotNullWhen(false)] HashSet<T>? set) => set is null || set.Count <= 0;
+#endif
+	
+	
+#if !NET9_0_OR_GREATER
+	/// <summary>
+	/// Check whether given set is null/empty or not.
+	/// </summary>
+	/// <typeparam name="T">Type of element of set.</typeparam>
+	/// <param name="set">Set to check.</param>
+	/// <returns>True if the set is null or empty.</returns>
+	/// <remarks>The method is available for target framework before .NET 9.</remarks>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static bool IsNullOrEmpty<T>([NotNullWhen(false)] SortedSet<T>? set) => set is null || set.Count <= 0;
 #endif
 	
 
@@ -67,6 +149,7 @@ public static class SetExtensions
 	/// <typeparam name="T">Type of element of set.</typeparam>
 	/// <param name="set">Set to check.</param>
 	/// <returns>True if the set is null or empty.</returns>
+	/// <remarks>The method is available for target framework before .NET 9.</remarks>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static bool IsNullOrEmpty<T>([NotNullWhen(false)] ISet<T>? set) => set is null || set.Count <= 0;
 #endif
