@@ -117,7 +117,7 @@ public static class DictionaryExtensions
 	/// <returns>True if the dictionary is not empty.</returns>
 	/// <remarks>The method is available for target framework before .NET 9.</remarks>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static bool IsNotEmpty<TKey, TValue>([NotNullWhen(true)] Dictionary<TKey, TValue>? dictionary) where TKey : notnull => dictionary is not null && dictionary.Count > 0;
+	public static bool IsNotEmpty<TKey, TValue>([NotNullWhen(true)] this Dictionary<TKey, TValue>? dictionary) where TKey : notnull => dictionary is not null && dictionary.Count > 0;
 #endif
 
 
@@ -131,7 +131,7 @@ public static class DictionaryExtensions
 	/// <returns>True if the dictionary is not empty.</returns>
 	/// <remarks>The method is available for target framework before .NET 9.</remarks>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static bool IsNotEmpty<TKey, TValue>([NotNullWhen(true)] IDictionary<TKey, TValue>? dictionary) => dictionary is not null && dictionary.Count > 0;
+	public static bool IsNotEmpty<TKey, TValue>([NotNullWhen(true)] this IDictionary<TKey, TValue>? dictionary) => dictionary is not null && dictionary.Count > 0;
 #endif
 	
 	
@@ -145,7 +145,7 @@ public static class DictionaryExtensions
 	/// <returns>True if the dictionary is null or empty.</returns>
 	/// <remarks>The method is available for target framework before .NET 9.</remarks>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static bool IsNullOrEmpty<TKey, TValue>([NotNullWhen(false)] Dictionary<TKey, TValue>? dictionary) where TKey : notnull => dictionary is null || dictionary.Count <= 0;
+	public static bool IsNullOrEmpty<TKey, TValue>([NotNullWhen(false)] this Dictionary<TKey, TValue>? dictionary) where TKey : notnull => dictionary is null || dictionary.Count <= 0;
 #endif
 	
 	
@@ -159,7 +159,7 @@ public static class DictionaryExtensions
 	/// <returns>True if the dictionary is null or empty.</returns>
 	/// <remarks>The method is available for target framework before .NET 9.</remarks>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static bool IsNullOrEmpty<TKey, TValue>([NotNullWhen(false)] IDictionary<TKey, TValue>? dictionary) => dictionary is null || dictionary.Count <= 0;
+	public static bool IsNullOrEmpty<TKey, TValue>([NotNullWhen(false)] this IDictionary<TKey, TValue>? dictionary) => dictionary is null || dictionary.Count <= 0;
 #endif
 	
 

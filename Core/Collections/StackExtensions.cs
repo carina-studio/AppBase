@@ -33,7 +33,7 @@ public static class StackExtensions
     /// <returns>True if the stack is not empty.</returns>
     /// <remarks>The method is available for target framework before .NET 9.</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsNotEmpty<T>([NotNullWhen(true)] Stack<T>? stack) => stack is not null && stack.Count > 0;
+    public static bool IsNotEmpty<T>([NotNullWhen(true)] this Stack<T>? stack) => stack is not null && stack.Count > 0;
 #endif
 
     
@@ -46,7 +46,7 @@ public static class StackExtensions
     /// <returns>True if the stack is null or empty.</returns>
     /// <remarks>The method is available for target framework before .NET 9.</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsNullOrEmpty<T>([NotNullWhen(false)] Stack<T>? stack) => stack is null || stack.Count <= 0;
+    public static bool IsNullOrEmpty<T>([NotNullWhen(false)] this Stack<T>? stack) => stack is null || stack.Count <= 0;
 #endif
 
     

@@ -1,7 +1,8 @@
 using System.Collections.Generic;
+#if !NET9_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Contracts;
 using System.Runtime.CompilerServices;
+#endif
 
 namespace CarinaStudio.Collections;
 
@@ -17,6 +18,7 @@ public static class LinkedListExtensions
     /// <typeparam name="T">Type of element of linked-list.</typeparam>
     /// <param name="list">Linked-list to check.</param>
     /// <returns>True if the linked-list is empty.</returns>
+    /// <remarks>The method is available for target framework before .NET 9.</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsEmpty<T>(this LinkedList<T> list) => list.Count <= 0;
 #endif
@@ -29,8 +31,9 @@ public static class LinkedListExtensions
     /// <typeparam name="T">Type of element of linked-list.</typeparam>
     /// <param name="list">Linked-list to check.</param>
     /// <returns>True if the linked-list is not empty.</returns>
+    /// <remarks>The method is available for target framework before .NET 9.</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsNotEmpty<T>([NotNullWhen(true)] LinkedList<T>? list) => list is not null && list.Count > 0;
+    public static bool IsNotEmpty<T>([NotNullWhen(true)] this LinkedList<T>? list) => list is not null && list.Count > 0;
 #endif
     
     
@@ -41,7 +44,8 @@ public static class LinkedListExtensions
     /// <typeparam name="T">Type of element of linked-list.</typeparam>
     /// <param name="list">Linked-list to check.</param>
     /// <returns>True if the linked-list is null or empty.</returns>
+    /// <remarks>The method is available for target framework before .NET 9.</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsNullOrEmpty<T>([NotNullWhen(false)] LinkedList<T>? list) => list is null || list.Count <= 0;
+    public static bool IsNullOrEmpty<T>([NotNullWhen(false)] this LinkedList<T>? list) => list is null || list.Count <= 0;
 #endif
 }

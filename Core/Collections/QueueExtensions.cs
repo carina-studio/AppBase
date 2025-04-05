@@ -33,7 +33,7 @@ public static class QueueExtensions
     /// <returns>True if the queue is not empty.</returns>
     /// <remarks>The method is available for target framework before .NET 9.</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsNotEmpty<T>([NotNullWhen(true)] Queue<T>? queue) => queue is not null && queue.Count > 0;
+    public static bool IsNotEmpty<T>([NotNullWhen(true)] this Queue<T>? queue) => queue is not null && queue.Count > 0;
 #endif
 
     
@@ -46,7 +46,7 @@ public static class QueueExtensions
     /// <returns>True if the queue is null or empty.</returns>
     /// <remarks>The method is available for target framework before .NET 9.</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsNullOrEmpty<T>([NotNullWhen(false)] Queue<T>? queue) => queue is null || queue.Count <= 0;
+    public static bool IsNullOrEmpty<T>([NotNullWhen(false)] this Queue<T>? queue) => queue is null || queue.Count <= 0;
 #endif
  
     
