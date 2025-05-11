@@ -2,6 +2,7 @@
 .vs
 .vscode
 AppBase.sln.DotSettings.user
+global.json
 obj
 bin
 PublishProfiles
