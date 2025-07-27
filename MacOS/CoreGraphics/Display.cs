@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.InteropServices;
 
 namespace CarinaStudio.MacOS.CoreGraphics;
@@ -52,7 +53,7 @@ public static unsafe class Display
         if (result != CGError.Success)
             throw result.ToException();
         if (displayCount == 0)
-            return [];
+            return Array.Empty<uint>();
         var displays = new uint[displayCount];
         fixed (uint* displaysPtr = displays)
             result = CGGetActiveDisplayList(displayCount, displaysPtr, &displayCount);
@@ -119,7 +120,7 @@ public static unsafe class Display
         if (result != CGError.Success)
             throw result.ToException();
         if (displayCount == 0)
-            return [];
+            return Array.Empty<uint>();
         var displays = new uint[displayCount];
         fixed (uint* displaysPtr = displays)
             result = CGGetDisplaysWithPoint(point, displayCount, displaysPtr, &displayCount);
@@ -141,7 +142,7 @@ public static unsafe class Display
         if (result != CGError.Success)
             throw result.ToException();
         if (displayCount == 0)
-            return [];
+            return Array.Empty<uint>();
         var displays = new uint[displayCount];
         fixed (uint* displaysPtr = displays)
             result = CGGetDisplaysWithRect(rect, displayCount, displaysPtr, &displayCount);
@@ -170,7 +171,7 @@ public static unsafe class Display
         if (result != CGError.Success)
             throw result.ToException();
         if (displayCount == 0)
-            return [];
+            return Array.Empty<uint>();
         var displays = new uint[displayCount];
         fixed (uint* displaysPtr = displays) 
             result = CGGetOnlineDisplayList(displayCount, displaysPtr, &displayCount);

@@ -173,8 +173,8 @@ namespace CarinaStudio.MacOS.CoreFoundation
                 throw new ArgumentException($"Invalid type: {type.Name}.");
             var ctor = GetWrappingConstructor(type);
             if (ctor.GetParameters().Length == 2)
-                return (CFObject)Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, [ cf, ownsInstance ], null).AsNonNull();
-            return (CFObject)Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, [ cf ], null).AsNonNull();
+                return (CFObject)Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object[]{ cf, ownsInstance }, null).AsNonNull();
+            return (CFObject)Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object[]{ cf }, null).AsNonNull();
         }
 
 

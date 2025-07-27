@@ -10,24 +10,24 @@ public static class NativeLibraryHandles
 {
     // Constants.
     static readonly string[] AppKitLibPaths =
-    [
+    {
         "/System/Library/Frameworks/AppKit.framework/AppKit"
-    ];
+    };
     static readonly string[] CoreFoundationLibPaths =
-    [
+    {
         "/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation",
         "/System/Library/Frameworks/ApplicationServices.framework/Frameworks/CoreFoundation.framework/CoreFoundation"
-    ];
+    };
     static readonly string[] CoreGraphicsLibPaths =
-    [
+    {
         "/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics",
         "/System/Library/Frameworks/ApplicationServices.framework/Frameworks/CoreGraphics.framework/CoreGraphics"
-    ];
+    };
     static readonly string[] ImageIOLibPaths =
-    [
+    {
         "/System/Library/Frameworks/ImageIO.framework/ImageIO",
         "/System/Library/Frameworks/ApplicationServices.framework/Frameworks/ImageIO.framework/ImageIO"
-    ];
+    };
     
     
     // Fields.
