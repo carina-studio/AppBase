@@ -130,7 +130,7 @@ public static class AvaloniaApplicationExtensions
 			res = valueT;
 			return true;
 		}
-		res = default;
+		res = null;
 		return false;
 	}
 
@@ -165,7 +165,7 @@ public static class AvaloniaApplicationExtensions
 			res = valueT;
 			return true;
 		}
-		res = default;
+		res = null;
 		return false;
 	}
 }

@@ -7,6 +7,7 @@ namespace CarinaStudio.Threading;
 /// <summary>
 /// <see cref="ScheduledAction"/> which schedules the action with specific <see cref="DispatcherPriority"/>.
 /// </summary>
+[ThreadSafe]
 public class DispatcherScheduledAction : ScheduledAction
 {
     // Fields.
@@ -54,11 +55,13 @@ public class DispatcherScheduledAction : ScheduledAction
 
 
     /// <inheritdoc/>
+    [ThreadSafe]
     protected override bool CancelAction(object token) =>
         ((DispatcherSynchronizationContext)this.SynchronizationContext).CancelDelayed(token);
 
 
     /// <inheritdoc/>
+    [ThreadSafe]
     protected override object PostAction(SendOrPostCallback action, object? state, int delayMillis) =>
         ((DispatcherSynchronizationContext)this.SynchronizationContext).PostDelayed(action, state, this.priority, delayMillis);
 }

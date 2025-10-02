@@ -209,6 +209,7 @@ public abstract class ViewModel : BaseDisposable, IApplicationObject, INotifyPro
 	/// <summary>
 	/// Get <see cref="IApplication"/> which view-model belongs to.
 	/// </summary>
+	[ThreadSafe]
 	public IApplication Application { get; }
 
 
@@ -216,6 +217,7 @@ public abstract class ViewModel : BaseDisposable, IApplicationObject, INotifyPro
 	/// Check whether current thread is the thread which view-model depends on or not.
 	/// </summary>
 	/// <returns>True if current thread is the thread which view-model depends on.</returns>
+	[ThreadSafe]
 	public bool CheckAccess() => Thread.CurrentThread == this.dependencyThread;
 
 
@@ -334,12 +336,14 @@ public abstract class ViewModel : BaseDisposable, IApplicationObject, INotifyPro
 	/// <summary>
 	/// Get unique ID of view-model instance.
 	/// </summary>
+	[ThreadSafe]
 	public int Id { get; }
 
 
 	/// <summary>
 	/// Logger of this instance.
 	/// </summary>
+	[ThreadSafe]
 	protected ILogger Logger { get; }
 
 
@@ -474,6 +478,7 @@ public abstract class ViewModel : BaseDisposable, IApplicationObject, INotifyPro
 	/// <summary>
 	/// Get persistent application state.
 	/// </summary>
+	[ThreadSafe]
 	protected ISettings PersistentState { get; private set; }
 
 
@@ -495,6 +500,7 @@ public abstract class ViewModel : BaseDisposable, IApplicationObject, INotifyPro
 	/// <summary>
 	/// Get application user settings.
 	/// </summary>
+	[ThreadSafe]
 	protected ISettings Settings { get; }
 
 
@@ -542,6 +548,7 @@ public abstract class ViewModel : BaseDisposable, IApplicationObject, INotifyPro
 	/// <summary>
 	/// Get <see cref="SynchronizationContext"/> on thread which view-model depends on.
 	/// </summary>
+	[ThreadSafe]
 	public SynchronizationContext SynchronizationContext { get; }
 
 
@@ -549,6 +556,7 @@ public abstract class ViewModel : BaseDisposable, IApplicationObject, INotifyPro
 	/// Get readable string represents this view-model.
 	/// </summary>
 	/// <returns>String represents this view-model.</returns>
+	[ThreadSafe]
 	public override string ToString() => $"{this.GetType().Name}-{this.Id}";
 
 
@@ -637,5 +645,6 @@ public abstract class ViewModel<TApplication> : ViewModel, IApplicationObject<TA
 	/// <summary>
 	/// Get <see cref="IApplication"/> which view-model belongs to.
 	/// </summary>
+	[ThreadSafe]
 	public new TApplication Application => (TApplication)base.Application;
 }
