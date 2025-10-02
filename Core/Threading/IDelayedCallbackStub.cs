@@ -1,20 +1,19 @@
-namespace CarinaStudio.Threading
+namespace CarinaStudio.Threading;
+
+/// <summary>
+/// Stub of delayed call-back.
+/// </summary>
+internal interface IDelayedCallbackStub
 {
     /// <summary>
-    /// Stub of delayed call-back.
+    /// Perform call-back.
     /// </summary>
-    internal interface IDelayedCallbackStub
-    {
-        /// <summary>
-        /// Perform call-back.
-        /// </summary>
-        void Callback();
+    void Callback();
 
-        
-        /// <summary>
-        /// Cancel call-back.
-        /// </summary>
-        /// <returns>True if call-back has been cancelled.</returns>
-        bool Cancel();
-    }
+    
+    /// <summary>
+    /// Cancel call-back.
+    /// </summary>
+    /// <returns>True if call-back has been cancelled.</returns>
+    bool Cancel();
 }

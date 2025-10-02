@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Contracts;
 using System.Runtime.CompilerServices;
 
 namespace CarinaStudio.Collections;
@@ -32,7 +31,6 @@ public static class DictionaryExtensions
 	/// <typeparam name="TValue">Type of value.</typeparam>
 	/// <param name="dictionary"><see cref="IDictionary{TKey, TValue}"/>.</param>
 	/// <returns>Read-only dictionary.</returns>
-	[Pure]
 	public static IDictionary<TKey, TValue> AsReadOnly<TKey, TValue>(this IDictionary<TKey, TValue> dictionary) where TKey : notnull
 	{
 		if (dictionary.IsReadOnly)

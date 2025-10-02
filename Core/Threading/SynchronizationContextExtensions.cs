@@ -66,6 +66,7 @@ public static class SynchronizationContextExtensions
 	/// <param name="synchronizationContext"><see cref="SynchronizationContext"/>.</param>
 	/// <param name="token">Token returned from <see cref="PostDelayed(SynchronizationContext, SendOrPostCallback, object?, int)"/>.</param>
 	/// <returns>True if call-back cancelled successfully.</returns>
+	[ThreadSafe]
 	public static bool CancelDelayed(this SynchronizationContext synchronizationContext, object token)
 	{
 		if (!DelayedCallbacks.TryGetCallbackStub(token, out var callbackStub)
@@ -88,6 +89,7 @@ public static class SynchronizationContextExtensions
 	/// </summary>
 	/// <param name="synchronizationContext"><see cref="SynchronizationContext"/>.</param>
 	/// <param name="callback">Call-back.</param>
+	[ThreadSafe]
 	public static void Post(this SynchronizationContext synchronizationContext, Action callback) => 
 		synchronizationContext.Post(_ => callback(), null);
 
@@ -99,6 +101,7 @@ public static class SynchronizationContextExtensions
 	/// <param name="callback">Call-back.</param>
 	/// <param name="delayMillis">Delayed time in milliseconds.</param>
 	/// <returns>Token of posted delayed call-back.</returns>
+	[ThreadSafe]
 	public static object PostDelayed(this SynchronizationContext synchronizationContext, Action callback, int delayMillis) => 
 		PostDelayed(synchronizationContext, _ => callback(), null, delayMillis);
 	
@@ -110,6 +113,7 @@ public static class SynchronizationContextExtensions
 	/// <param name="callback">Call-back.</param>
 	/// <param name="delay">Delayed time.</param>
 	/// <returns>Token of posted delayed call-back.</returns>
+	[ThreadSafe]
 	public static object PostDelayed(this SynchronizationContext synchronizationContext, Action callback, TimeSpan delay)
 	{
 		var ms = delay.TotalMilliseconds;
@@ -127,6 +131,7 @@ public static class SynchronizationContextExtensions
 	/// <param name="state">Custom state pass to call-back.</param>
 	/// <param name="delay">Delayed time.</param>
 	/// <returns>Token of posted delayed call-back.</returns>
+	[ThreadSafe]
 	public static object PostDelayed(this SynchronizationContext synchronizationContext, SendOrPostCallback callback, object? state, TimeSpan delay)
 	{
 		var ms = delay.TotalMilliseconds;
@@ -144,6 +149,7 @@ public static class SynchronizationContextExtensions
 	/// <param name="state">Custom state pass to call-back.</param>
 	/// <param name="delayMillis">Delayed time in milliseconds.</param>
 	/// <returns>Token of posted delayed call-back.</returns>
+	[ThreadSafe]
 	public static object PostDelayed(this SynchronizationContext synchronizationContext, SendOrPostCallback callback, object? state, int delayMillis)
 	{
 		// check state
@@ -161,6 +167,7 @@ public static class SynchronizationContextExtensions
 	/// </summary>
 	/// <param name="synchronizationContext"><see cref="SynchronizationContext"/>.</param>
 	/// <param name="callback">Call-back.</param>
+	[ThreadSafe]
 	public static void Send(this SynchronizationContext synchronizationContext, Action callback) => synchronizationContext.Send(_ => callback(), null);
 
 
@@ -172,6 +179,7 @@ public static class SynchronizationContextExtensions
 	/// <typeparam name="R">Type of result.</typeparam>
 	/// <returns>Result of function.</returns>
 #pragma warning disable CS8603
+	[ThreadSafe]
 	public static R Send<R>(this SynchronizationContext synchronizationContext, Func<R> func)
 	{
 		var result = default(R);
@@ -191,6 +199,7 @@ public static class SynchronizationContextExtensions
 	/// <param name="action">Action.</param>
 	/// <param name="cancellationToken">Cancellation token.</param>
 	/// <returns>Task of sending and performing action.</returns>
+	[ThreadSafe]
 	public static Task SendAsync(this SynchronizationContext synchronizationContext, Action action, CancellationToken cancellationToken = default)
 	{
 		if (cancellationToken.IsCancellationRequested)
@@ -234,6 +243,7 @@ public static class SynchronizationContextExtensions
 	/// <param name="asyncAction">Asynchronous action.</param>
 	/// <param name="cancellationToken">Cancellation token.</param>
 	/// <returns>Task of sending and performing action.</returns>
+	[ThreadSafe]
 	public static Task SendAsync(this SynchronizationContext synchronizationContext, Func<Task> asyncAction, CancellationToken cancellationToken = default)
 	{
 		if (cancellationToken.IsCancellationRequested)
@@ -277,6 +287,7 @@ public static class SynchronizationContextExtensions
 	/// <param name="func">Function to generate result.</param>
 	/// <param name="cancellationToken">Cancellation token.</param>
 	/// <returns>Task of sending and performing action.</returns>
+	[ThreadSafe]
 	public static Task<R> SendAsync<R>(this SynchronizationContext synchronizationContext, Func<R> func, CancellationToken cancellationToken = default)
 	{
 		if (cancellationToken.IsCancellationRequested)
@@ -319,6 +330,7 @@ public static class SynchronizationContextExtensions
 	/// <param name="asyncFunc">Asynchronous function to generate result.</param>
 	/// <param name="cancellationToken">Cancellation token.</param>
 	/// <returns>Task of sending and performing action.</returns>
+	[ThreadSafe]
 	public static Task<R> SendAsync<R>(this SynchronizationContext synchronizationContext, Func<Task<R>> asyncFunc, CancellationToken cancellationToken = default)
 	{
 		if (cancellationToken.IsCancellationRequested)

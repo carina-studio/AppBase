@@ -6,6 +6,7 @@ namespace CarinaStudio.Threading;
 /// <summary>
 /// Scheduled action which will be performed by specific <see cref="SynchronizationContext"/>. This is a thread-safe class.
 /// </summary>
+[ThreadSafe]
 public class ScheduledAction : ISynchronizable
 {
 	// Fields.
@@ -53,6 +54,7 @@ public class ScheduledAction : ISynchronizable
 	/// Cancel scheduled execution.
 	/// </summary>
 	/// <returns>True if action has been cancelled.</returns>
+	[ThreadSafe]
 	public bool Cancel()
 	{
 		// ReSharper disable once InconsistentlySynchronizedField
@@ -76,6 +78,7 @@ public class ScheduledAction : ISynchronizable
 	/// </summary>
 	/// <param name="token">Token returned from <see cref="PostAction"/> to identify the posted action.</param>
 	/// <returns>True if action has been cancelled successfully.</returns>
+	[ThreadSafe]
 	protected virtual bool CancelAction(object token) =>
 		this.SynchronizationContext.CancelDelayed(token);
 
@@ -83,6 +86,7 @@ public class ScheduledAction : ISynchronizable
 	/// <summary>
 	/// Execute action on current thread immediately. The scheduled execution will be cancelled.
 	/// </summary>
+	[ThreadSafe]
 	public void Execute()
 	{
 		this.Cancel();
@@ -94,6 +98,7 @@ public class ScheduledAction : ISynchronizable
 
 
 	// Execute action.
+	[ThreadSafe]
 	void ExecuteAction(object? token)
 	{
 		lock (syncLock)
@@ -110,6 +115,7 @@ public class ScheduledAction : ISynchronizable
 	/// Execute action on current thread immediately if execution has been scheduled. The scheduled execution will be cancelled.
 	/// </summary>
 	/// <returns>True if action has been executed.</returns>
+	[ThreadSafe]
 	public bool ExecuteIfScheduled()
 	{
 		if (this.Cancel())
@@ -128,6 +134,7 @@ public class ScheduledAction : ISynchronizable
 	/// Check whether execution has been scheduled or not.
 	/// </summary>
 	// ReSharper disable once InconsistentlySynchronizedField
+	[ThreadSafe]
 	public bool IsScheduled => this.token is not null;
 
 
@@ -138,6 +145,7 @@ public class ScheduledAction : ISynchronizable
 	/// <param name="state">State.</param>
 	/// <param name="delayMillis">Delay time in milliseconds.</param>
 	/// <returns>Token to identify the posted action.</returns>
+	[ThreadSafe]
 	protected virtual object PostAction(SendOrPostCallback action, object? state, int delayMillis) =>
 		this.SynchronizationContext.PostDelayed(action, state, delayMillis);
 
@@ -145,6 +153,7 @@ public class ScheduledAction : ISynchronizable
 	/// <summary>
 	/// Reschedule execution. It will replace the previous scheduling.
 	/// </summary>
+	[ThreadSafe]
 	public void Reschedule() => this.Reschedule(0);
 
 
@@ -152,6 +161,7 @@ public class ScheduledAction : ISynchronizable
 	/// Reschedule execution. It will replace the previous scheduling.
 	/// </summary>
 	/// <param name="delayMillis">Delay time in milliseconds.</param>
+	[ThreadSafe]
 	public void Reschedule(int delayMillis)
 	{
 		using var _ = this.syncLock.EnterScope();
@@ -172,6 +182,7 @@ public class ScheduledAction : ISynchronizable
 	/// Reschedule execution. It will replace the previous scheduling.
 	/// </summary>
 	/// <param name="delay">Delay time.</param>
+	[ThreadSafe]
 	public void Reschedule(TimeSpan delay)
 	{
 		var delayMillis = (long)delay.TotalMilliseconds;
@@ -187,6 +198,7 @@ public class ScheduledAction : ISynchronizable
 	/// <summary>
 	/// Schedule execution. It won't be scheduled again if execution is already scheduled.
 	/// </summary>
+	[ThreadSafe]
 	public void Schedule() => this.Schedule(0);
 
 
@@ -194,6 +206,7 @@ public class ScheduledAction : ISynchronizable
 	/// Schedule execution. It won't be scheduled again if execution is already scheduled.
 	/// </summary>
 	/// <param name="delayMillis">Delay time in milliseconds.</param>
+	[ThreadSafe]
 	public void Schedule(int delayMillis)
 	{
 		using var _ = this.syncLock.EnterScope();
@@ -214,6 +227,7 @@ public class ScheduledAction : ISynchronizable
 	/// Schedule execution. It won't be scheduled again if execution is already scheduled.
 	/// </summary>
 	/// <param name="delay">Delay time.</param>
+	[ThreadSafe]
 	public void Schedule(TimeSpan delay)
     {
 		var delayMillis = (long)delay.TotalMilliseconds;
@@ -229,5 +243,6 @@ public class ScheduledAction : ISynchronizable
 	/// <summary>
 	/// <see cref="SynchronizationContext"/> to perform action.
 	/// </summary>
+	[ThreadSafe]
 	public SynchronizationContext SynchronizationContext { get; }
 }

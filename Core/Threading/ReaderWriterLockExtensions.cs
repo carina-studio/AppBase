@@ -181,6 +181,7 @@ public static class ReaderWriterLockExtensions
     /// <param name="lock"><see cref="ReaderWriterLock"/>.</param>
     /// <param name="timeout">Timeout before reader lock acquired.</param>
     /// <returns>Scope with reader lock acquired.</returns>
+    [ThreadSafe]
     public static ReaderLockScope EnterReadScope(this ReaderWriterLock @lock, int timeout = Timeout.Infinite) => new(@lock, timeout);
     
     
@@ -190,6 +191,7 @@ public static class ReaderWriterLockExtensions
     /// <param name="lock"><see cref="ReaderWriterLock"/>.</param>
     /// <param name="timeout">Timeout before reader lock acquired.</param>
     /// <returns>Scope with reader lock acquired.</returns>
+    [ThreadSafe]
     public static ReaderLockScope EnterReadScope(this ReaderWriterLock @lock, TimeSpan timeout) => new(@lock, ConvertTimeoutToMilliseconds(timeout));
     
     
@@ -199,6 +201,7 @@ public static class ReaderWriterLockExtensions
     /// <param name="lock"><see cref="ReaderWriterLockSlim"/>.</param>
     /// <param name="timeout">Timeout before reader lock acquired.</param>
     /// <returns>Scope with reader lock acquired.</returns>
+    [ThreadSafe]
     public static ReaderLockScopeSlim EnterReadScope(this ReaderWriterLockSlim @lock, int timeout = Timeout.Infinite) => new(@lock, timeout);
     
     
@@ -208,6 +211,7 @@ public static class ReaderWriterLockExtensions
     /// <param name="lock"><see cref="ReaderWriterLockSlim"/>.</param>
     /// <param name="timeout">Timeout before reader lock acquired.</param>
     /// <returns>Scope with reader lock acquired.</returns>
+    [ThreadSafe]
     public static ReaderLockScopeSlim EnterReadScope(this ReaderWriterLockSlim @lock, TimeSpan timeout) => new(@lock, ConvertTimeoutToMilliseconds(timeout));
     
     
@@ -217,6 +221,7 @@ public static class ReaderWriterLockExtensions
     /// <param name="lock"><see cref="ReaderWriterLockSlim"/>.</param>
     /// <param name="timeout">Timeout before upgradeable reader lock acquired.</param>
     /// <returns>Scope with upgradeable reader lock acquired.</returns>
+    [ThreadSafe]
     public static UpgradeableReaderLockScopeSlim EnterUpgradeableReadScope(this ReaderWriterLockSlim @lock, int timeout = Timeout.Infinite) => new(@lock, timeout);
     
     
@@ -226,6 +231,7 @@ public static class ReaderWriterLockExtensions
     /// <param name="lock"><see cref="ReaderWriterLockSlim"/>.</param>
     /// <param name="timeout">Timeout before upgradeable reader lock acquired.</param>
     /// <returns>Scope with upgradeable reader lock acquired.</returns>
+    [ThreadSafe]
     public static UpgradeableReaderLockScopeSlim EnterUpgradeableReadScope(this ReaderWriterLockSlim @lock, TimeSpan timeout) => new(@lock, ConvertTimeoutToMilliseconds(timeout));
     
     
@@ -235,6 +241,7 @@ public static class ReaderWriterLockExtensions
     /// <param name="lock"><see cref="ReaderWriterLock"/>.</param>
     /// <param name="timeout">Timeout before writer lock acquired.</param>
     /// <returns>Scope with writer lock acquired.</returns>
+    [ThreadSafe]
     public static WriterLockScope EnterWriteScope(this ReaderWriterLock @lock, int timeout = Timeout.Infinite) => new(@lock, timeout);
     
     
@@ -244,6 +251,7 @@ public static class ReaderWriterLockExtensions
     /// <param name="lock"><see cref="ReaderWriterLock"/>.</param>
     /// <param name="timeout">Timeout before writer lock acquired.</param>
     /// <returns>Scope with writer lock acquired.</returns>
+    [ThreadSafe]
     public static WriterLockScope EnterWriteScope(this ReaderWriterLock @lock, TimeSpan timeout) => new(@lock, ConvertTimeoutToMilliseconds(timeout));
     
     
@@ -253,6 +261,7 @@ public static class ReaderWriterLockExtensions
     /// <param name="lock"><see cref="ReaderWriterLockSlim"/>.</param>
     /// <param name="timeout">Timeout before writer lock acquired.</param>
     /// <returns>Scope with writer lock acquired.</returns>
+    [ThreadSafe]
     public static WriterLockScopeSlim EnterWriteScope(this ReaderWriterLockSlim @lock, int timeout = Timeout.Infinite) => new(@lock, timeout);
     
     
@@ -262,5 +271,6 @@ public static class ReaderWriterLockExtensions
     /// <param name="lock"><see cref="ReaderWriterLockSlim"/>.</param>
     /// <param name="timeout">Timeout before writer lock acquired.</param>
     /// <returns>Scope with writer lock acquired.</returns>
+    [ThreadSafe]
     public static WriterLockScopeSlim EnterWriteScope(this ReaderWriterLockSlim @lock, TimeSpan timeout) => new(@lock, ConvertTimeoutToMilliseconds(timeout));
 }

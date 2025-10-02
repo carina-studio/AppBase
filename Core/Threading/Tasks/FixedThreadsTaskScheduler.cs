@@ -8,6 +8,7 @@ namespace CarinaStudio.Threading.Tasks;
 /// <summary>
 /// <see cref="TaskScheduler"/> which uses dedicated and fixed execution threads to run tasks. This is a thread-safe class.
 /// </summary>
+[ThreadSafe]
 public class FixedThreadsTaskScheduler : TaskScheduler, IDisposable
 {
 	// Fields.
@@ -49,12 +50,14 @@ public class FixedThreadsTaskScheduler : TaskScheduler, IDisposable
 	/// <summary>
 	/// Get number of threads which are executing tasks.
 	/// </summary>
+	[ThreadSafe]
 	public int BusyThreadCount => this.numberOfBusyThreads;
 
 
 	/// <summary>
 	/// Dispose the instance.
 	/// </summary>
+	[ThreadSafe]
 	public void Dispose()
 	{
 		lock (this.syncLock)
@@ -76,10 +79,12 @@ public class FixedThreadsTaskScheduler : TaskScheduler, IDisposable
 	/// <summary>
 	/// Get number of active execution threads.
 	/// </summary>
+	[ThreadSafe]
 	public int ExecutionThreadCount => this.executionThreads.Count;
 
 
 	// Entry of execution thread.
+	[CalledOnBackgroundThread]
 	void ExecutionThreadProc()
 	{
 		while (true)
@@ -124,12 +129,14 @@ public class FixedThreadsTaskScheduler : TaskScheduler, IDisposable
 
 
 	/// <inheritdoc/>
+	[ThreadSafe]
 	protected override IEnumerable<Task> GetScheduledTasks() => this.scheduledTasks;
 
 
 	/// <summary>
 	/// Check whether current thread is one of execution thread of this scheduler or not.
 	/// </summary>
+	[ThreadSafe]
 	public bool IsExecutionThread
 	{
 		get
@@ -143,10 +150,12 @@ public class FixedThreadsTaskScheduler : TaskScheduler, IDisposable
 	/// <summary>
 	/// Get name of scheduler.
 	/// </summary>
+	[ThreadSafe]
 	public string? Name { get; }
 
 
 	/// <inheritdoc/>
+	[ThreadSafe]
 	protected override void QueueTask(Task task)
 	{
 		lock (this.syncLock)
@@ -175,10 +184,12 @@ public class FixedThreadsTaskScheduler : TaskScheduler, IDisposable
 
 
 	/// <inheritdoc/>
+	[ThreadSafe]
 	public override int MaximumConcurrencyLevel { get; }
 
 
 	/// <inheritdoc/>
+	[ThreadSafe]
 	protected override bool TryDequeue(Task task) => this.syncLock.Lock(() =>
 	{
 		var node = this.scheduledTasks.First;
@@ -196,6 +207,7 @@ public class FixedThreadsTaskScheduler : TaskScheduler, IDisposable
 
 
 	/// <inheritdoc/>
+	[ThreadSafe]
 	protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
 	{
 		if (!this.IsExecutionThread)
