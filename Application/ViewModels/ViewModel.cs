@@ -28,21 +28,13 @@ public abstract class ViewModel : BaseDisposable, IApplicationObject, INotifyPro
 	// Class to wrap resource.
 	class AsyncResourceWrapper(Func<Task> disposeAsync): IAsyncDisposable
 	{
-		public async ValueTask DisposeAsync()
-		{
-			await disposeAsync();
-		}
+		public async ValueTask DisposeAsync() => await disposeAsync();
 	}
 
 
 	// Value holder of observable property.
-	class ObservablePropertyValue<T> : ObservableValue<T>
+	class ObservablePropertyValue<T>(ObservableProperty<T> property) : ObservableValue<T>(property.DefaultValue)
 	{
-		// Constructor.
-		public ObservablePropertyValue(ObservableProperty<T> property) : base(property.DefaultValue)
-		{ }
-
-		// Update value.
 		public void Update(T value) => this.Value = value;
 	}
 	
@@ -61,7 +53,7 @@ public abstract class ViewModel : BaseDisposable, IApplicationObject, INotifyPro
 	// Fields.
 	readonly Thread dependencyThread;
 	List<ViewModel>? ownedViewModels;
-	readonly SortedList<ObservableProperty, object?> propertyValues = new(ObservableProperty.Comparer);
+	SortedList<ObservableProperty, object>? propertyValues;
 	IList<ViewModel>? readOnlyOwnedViewModels;
 	List<object>? resources;
 	List<Task>? waitingNecessaryTasks;
@@ -82,8 +74,10 @@ public abstract class ViewModel : BaseDisposable, IApplicationObject, INotifyPro
 		this.SynchronizationContext = SynchronizationContext.Current ?? throw new InvalidOperationException("No SynchronizationContext on current thread.");
 		this.dependencyThread = Thread.CurrentThread;
 		this.Id = Interlocked.Increment(ref nextId);
+#if !NET10_0_OR_GREATER
 		this.Logger = app.LoggerFactory.CreateLogger($"{this.GetType().Name}-{this.Id}");
 		this.PersistentState = app.PersistentState;
+#endif
 		this.Settings = settings;
 
 		// attach to application
@@ -125,15 +119,10 @@ public abstract class ViewModel : BaseDisposable, IApplicationObject, INotifyPro
 	/// </summary>
 	/// <param name="setupAsync">Asynchronous action to set up resource.</param>
 	/// <param name="disposeAsync">Asynchronous action to dispose resource.</param>
-	protected async void AddResource(Func<Task> setupAsync, Func<Task> disposeAsync)
+	[Obsolete("Use AddResourceAsync instead.")]
+	protected void AddResource(Func<Task> setupAsync, Func<Task> disposeAsync)
 	{
-		this.VerifyAccess();
-		this.VerifyDisposed();
-		await setupAsync();
-		if (this.IsDisposed)
-			await disposeAsync();
-		else
-			this.AddResource(new AsyncResourceWrapper(disposeAsync));
+		_ = AddResourceAsync(setupAsync, disposeAsync);
 	}
 	
 	
@@ -203,6 +192,23 @@ public abstract class ViewModel : BaseDisposable, IApplicationObject, INotifyPro
 			if (resource is not null)
 				resources.Add(resource);
 		}
+	}
+	
+	
+	/// <summary>
+	/// Add resource asynchronously which will be disposed when disposing the view-model.
+	/// </summary>
+	/// <param name="setupAsync">Asynchronous action to set up resource.</param>
+	/// <param name="disposeAsync">Asynchronous action to dispose resource.</param>
+	protected async Task AddResourceAsync(Func<Task> setupAsync, Func<Task> disposeAsync)
+	{
+		this.VerifyAccess();
+		this.VerifyDisposed();
+		await setupAsync();
+		if (this.IsDisposed)
+			await disposeAsync();
+		else
+			this.AddResource(new AsyncResourceWrapper(disposeAsync));
 	}
 
 
@@ -304,7 +310,11 @@ public abstract class ViewModel : BaseDisposable, IApplicationObject, INotifyPro
 	public T GetValue<T>(ObservableProperty<T> property)
 	{
 		this.VerifyAccess();
-		if (this.propertyValues.TryGetValue(property, out var propertyValue) && propertyValue != null)
+		if (!property.OwnerType.IsInstanceOfType(this))
+			throw new ArgumentException($"{this.GetType().Name} is not owner of property '{property.Name}'.");
+		if (this.propertyValues is null)
+			return property.DefaultValue;
+		if (this.propertyValues.TryGetValue(property, out var propertyValue))
 			return ((ObservablePropertyValue<T>)propertyValue).Value;
 		return property.DefaultValue;
 	}
@@ -319,11 +329,15 @@ public abstract class ViewModel : BaseDisposable, IApplicationObject, INotifyPro
 	public IObservable<T> GetValueAsObservable<T>(ObservableProperty<T> property)
 	{
 		this.VerifyAccess();
-		if (this.propertyValues.TryGetValue(property, out var propertyValue) && propertyValue != null)
-			return (ObservablePropertyValue<T>)propertyValue;
 		if (!property.OwnerType.IsInstanceOfType(this))
 			throw new ArgumentException($"{this.GetType().Name} is not owner of property '{property.Name}'.");
-		return new ObservablePropertyValue<T>(property).Also((it) => this.propertyValues[property] = it);
+		if (this.propertyValues is not null && this.propertyValues.TryGetValue(property, out var propertyValue))
+			return (ObservablePropertyValue<T>)propertyValue;
+		return new ObservablePropertyValue<T>(property).Also(it =>
+		{
+			this.propertyValues ??= new(ObservableProperty.Comparer);
+			this.propertyValues[property] = it;
+		});
 	}
 
 
@@ -344,7 +358,18 @@ public abstract class ViewModel : BaseDisposable, IApplicationObject, INotifyPro
 	/// Logger of this instance.
 	/// </summary>
 	[ThreadSafe]
-	protected ILogger Logger { get; }
+	protected ILogger Logger
+	{
+#if NET10_0_OR_GREATER
+		get
+		{
+			field ??= this.Application.LoggerFactory.CreateLogger($"{this.GetType().Name}-{this.Id}");
+			return field;
+		}
+#else
+		get;
+#endif
+	}
 
 
 	// Called when application property changed.
@@ -428,7 +453,13 @@ public abstract class ViewModel : BaseDisposable, IApplicationObject, INotifyPro
 
 
 	// Called when application setting changed.
-	void OnSettingChanged(object? sender, SettingChangedEventArgs e) => this.OnSettingChanged(e);
+	void OnSettingChanged(object? sender, SettingChangedEventArgs e)
+	{
+		if (CheckAccess())
+			this.OnSettingChanged(e);
+		else
+			this.SynchronizationContext.Post(() => this.OnSettingChanged(e));
+	} 
 
 
 	/// <summary>
@@ -440,7 +471,13 @@ public abstract class ViewModel : BaseDisposable, IApplicationObject, INotifyPro
 
 
 	// Called when application setting is changing.
-	void OnSettingChanging(object? sender, SettingChangingEventArgs e) => this.OnSettingChanging(e);
+	void OnSettingChanging(object? sender, SettingChangingEventArgs e)
+	{
+		if (CheckAccess())
+			this.OnSettingChanging(e);
+		else
+			this.SynchronizationContext.Post(() => this.OnSettingChanging(e));
+	}
 
 
 	/// <summary>
@@ -479,7 +516,18 @@ public abstract class ViewModel : BaseDisposable, IApplicationObject, INotifyPro
 	/// Get persistent application state.
 	/// </summary>
 	[ThreadSafe]
-	protected ISettings PersistentState { get; private set; }
+	protected ISettings PersistentState
+	{
+#if NET10_0_OR_GREATER
+		get
+		{
+			field ??= this.Application.PersistentState;
+			return field;
+		}
+#else
+		get;
+#endif
+	}
 
 
 	/// <summary>
@@ -529,7 +577,8 @@ public abstract class ViewModel : BaseDisposable, IApplicationObject, INotifyPro
 
 		// get old value
 		T oldValue = property.DefaultValue;
-		if (this.propertyValues.TryGetValue(property, out var propertyValueObj) && propertyValueObj != null)
+		this.propertyValues ??= new(ObservableProperty.Comparer);
+		if (this.propertyValues.TryGetValue(property, out var propertyValueObj))
 			oldValue = ((ObservablePropertyValue<T>)propertyValueObj).Value;
 
 		// check equality
@@ -540,7 +589,7 @@ public abstract class ViewModel : BaseDisposable, IApplicationObject, INotifyPro
 		if (propertyValueObj != null)
 			((ObservablePropertyValue<T>)propertyValueObj).Update(value);
 		else
-			this.propertyValues[property] = new ObservablePropertyValue<T>(property).Also((it) => it.Update(value));
+			this.propertyValues[property] = new ObservablePropertyValue<T>(property).Also(it => it.Update(value));
 		this.OnPropertyChanged(property, oldValue, value);
 	}
 
