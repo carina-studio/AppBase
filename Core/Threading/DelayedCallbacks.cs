@@ -10,38 +10,24 @@ namespace CarinaStudio.Threading;
 internal static class DelayedCallbacks
 {
     // Node of delayed call-back.
-    class DelayedCallbackNode
+    class DelayedCallbackNode(IDelayedCallbackStub callbackStub, long readyTime)
     {
-        // Fields.
-        public readonly IDelayedCallbackStub CallbackStub;
-        public DelayedCallbackNode? Next;
-        public DelayedCallbackNode? Previous;
-        public readonly long ReadyTime;
-
-        // Constructor.
-        public DelayedCallbackNode(IDelayedCallbackStub callbackStub, long readyTime)
-        {
-            this.CallbackStub = callbackStub;
-            this.ReadyTime = readyTime;
-        }
+        public readonly IDelayedCallbackStub CallbackStub = callbackStub;
+        public volatile DelayedCallbackNode? Next;
+        public volatile DelayedCallbackNode? Previous;
+        public readonly long ReadyTime = readyTime;
     }
     
     
     // Fields.
     static volatile DelayedCallbackNode? DelayedCallbackListHead;
     static readonly object DelayedCallbackSyncLock = new();
-    static readonly Thread DelayedCallbackThread;
-    static readonly Stopwatch DelayedCallbackWatch = new();
-    
-    
-    // Initializer.
-    static DelayedCallbacks()
+    static readonly Thread DelayedCallbackThread = new(DelayedCallbackThreadProc)
     {
-        DelayedCallbackThread = new Thread(DelayedCallbackThreadProc)
-        {
-            IsBackground = true
-        };
-    }
+	    IsBackground = true,
+	    Name = "Delayed call-backs"
+    };
+    static readonly Stopwatch DelayedCallbackWatch = new();
     
     
     // Cancel a delayed call-back.
@@ -116,6 +102,7 @@ internal static class DelayedCallbacks
 	        // call-back
 	        delayedCallbackNode?.CallbackStub.Callback();
         }
+        // ReSharper disable once FunctionNeverReturns
     }
 
 

@@ -1,35 +1,32 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
+﻿using System.Collections.Generic;
 
-namespace CarinaStudio.IO
+namespace CarinaStudio.IO;
+
+/// <summary>
+/// <see cref="IComparer{T}"/> to compare file paths. Case will be ignored on Windows.
+/// </summary>
+public class PathComparer : IComparer<string>
 {
 	/// <summary>
-	/// <see cref="IComparer{T}"/> to compare file paths. Case will be ignored on Windows.
+	/// Default instance.
 	/// </summary>
-	public class PathComparer : IComparer<string>
-	{
-		/// <summary>
-		/// Default instance.
-		/// </summary>
-		public static readonly PathComparer Default = new PathComparer();
+	public static readonly PathComparer Default = new();
 
 
-		// Static fields.
-		static readonly bool ignoreCases = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+	// Static fields.
+	static readonly bool ignoreCases = Platform.IsWindows;
 
 
-		// Constructor.
-		PathComparer()
-		{ }
+	// Constructor.
+	PathComparer()
+	{ }
 
 
-		/// <summary>
-		/// Compare file paths.
-		/// </summary>
-		/// <param name="x">1st file path.</param>
-		/// <param name="y">2nd file path.</param>
-		/// <returns>Comparison result.</returns>
-		public int Compare(string? x, string? y) => string.Compare(x, y, ignoreCases);
-	}
+	/// <summary>
+	/// Compare file paths.
+	/// </summary>
+	/// <param name="x">1st file path.</param>
+	/// <param name="y">2nd file path.</param>
+	/// <returns>Comparison result.</returns>
+	public int Compare(string? x, string? y) => string.Compare(x, y, ignoreCases);
 }
