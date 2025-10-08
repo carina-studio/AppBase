@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace CarinaStudio.Threading;
 
@@ -10,7 +11,7 @@ namespace CarinaStudio.Threading;
 public class ScheduledAction : ISynchronizable
 {
 	// Fields.
-	readonly Action action;
+	readonly object action;
 	volatile object? token;
 	readonly Lock syncLock = new();
 
@@ -25,6 +26,30 @@ public class ScheduledAction : ISynchronizable
 		this.SynchronizationContext = synchronizationContext;
 		this.action = action;
 	}
+	
+	
+	/// <summary>
+	/// Initialize new <see cref="ScheduledAction"/> instance.
+	/// </summary>
+	/// <param name="synchronizationContext"><see cref="SynchronizationContext"/> to perform action.</param>
+	/// <param name="asyncAction">Asynchronous action.</param>
+	public ScheduledAction(SynchronizationContext synchronizationContext, Func<Task> asyncAction)
+	{
+		this.SynchronizationContext = synchronizationContext;
+		this.action = asyncAction;
+	}
+	
+	
+	/// <summary>
+	/// Initialize new <see cref="ScheduledAction"/> instance.
+	/// </summary>
+	/// <param name="synchronizationContext"><see cref="SynchronizationContext"/> to perform action.</param>
+	/// <param name="asyncAction">Asynchronous action.</param>
+	public ScheduledAction(SynchronizationContext synchronizationContext, Func<CancellationToken, Task> asyncAction)
+	{
+		this.SynchronizationContext = synchronizationContext;
+		this.action = asyncAction;
+	}
 
 
 	/// <summary>
@@ -37,6 +62,30 @@ public class ScheduledAction : ISynchronizable
 		this.SynchronizationContext = synchronizable.SynchronizationContext;
 		this.action = action;
 	}
+	
+	
+	/// <summary>
+	/// Initialize new <see cref="ScheduledAction"/> instance.
+	/// </summary>
+	/// <param name="synchronizable"><see cref="ISynchronizable"/> to provide <see cref="SynchronizationContext"/> to perform action.</param>
+	/// <param name="asyncAction">Asynchronous action.</param>
+	public ScheduledAction(ISynchronizable synchronizable, Func<Task> asyncAction)
+	{
+		this.SynchronizationContext = synchronizable.SynchronizationContext;
+		this.action = asyncAction;
+	}
+	
+	
+	/// <summary>
+	/// Initialize new <see cref="ScheduledAction"/> instance.
+	/// </summary>
+	/// <param name="synchronizable"><see cref="ISynchronizable"/> to provide <see cref="SynchronizationContext"/> to perform action.</param>
+	/// <param name="asyncAction">Asynchronous action.</param>
+	public ScheduledAction(ISynchronizable synchronizable, Func<CancellationToken, Task> asyncAction)
+	{
+		this.SynchronizationContext = synchronizable.SynchronizationContext;
+		this.action = asyncAction;
+	}
 
 
 	/// <summary>
@@ -47,6 +96,28 @@ public class ScheduledAction : ISynchronizable
 	{
 		this.SynchronizationContext = SynchronizationContext.Current ?? throw new InvalidOperationException("No SynchronizationContext on current thread.");
 		this.action = action;
+	}
+	
+	
+	/// <summary>
+	/// Initialize new <see cref="ScheduledAction"/> instance with current <see cref="SynchronizationContext"/>.
+	/// </summary>
+	/// <param name="asyncAction">Asynchronous action.</param>
+	public ScheduledAction(Func<Task> asyncAction)
+	{
+		this.SynchronizationContext = SynchronizationContext.Current ?? throw new InvalidOperationException("No SynchronizationContext on current thread.");
+		this.action = asyncAction;
+	}
+	
+	
+	/// <summary>
+	/// Initialize new <see cref="ScheduledAction"/> instance with current <see cref="SynchronizationContext"/>.
+	/// </summary>
+	/// <param name="asyncAction">Asynchronous action.</param>
+	public ScheduledAction(Func<CancellationToken, Task> asyncAction)
+	{
+		this.SynchronizationContext = SynchronizationContext.Current ?? throw new InvalidOperationException("No SynchronizationContext on current thread.");
+		this.action = asyncAction;
 	}
 
 
@@ -81,6 +152,35 @@ public class ScheduledAction : ISynchronizable
 	[ThreadSafe]
 	protected virtual bool CancelAction(object token) =>
 		this.SynchronizationContext.CancelDelayed(token);
+	
+	
+	// Do action.
+	void DoAction()
+	{
+		if (this.action is Action action)
+			action();
+		else if (this.action is Func<Task> taskFunc)
+			taskFunc();
+		else if (this.action is Func<CancellationToken, Task> cancellableTaskFunc)
+			cancellableTaskFunc(CancellationToken.None);
+		else
+			throw new NotImplementedException();
+	}
+	
+	
+	// Do action asynchronously.
+	Task DoActionAsync(CancellationToken cancellationToken)
+	{
+		if (this.action is Func<Task> taskFunc)
+			return taskFunc();
+		if (this.action is Func<CancellationToken, Task> cancellableTaskFunc)
+			return cancellableTaskFunc(cancellationToken);
+		if (this.action is Action action)
+			action();
+		else 
+			throw new NotImplementedException();
+		return Task.CompletedTask;
+	}
 
 
 	/// <summary>
@@ -91,9 +191,9 @@ public class ScheduledAction : ISynchronizable
 	{
 		this.Cancel();
 		if (SynchronizationContext.Current == this.SynchronizationContext)
-			this.action();
+			this.DoAction();
 		else
-			this.SynchronizationContext.Send(_ => this.action(), null);
+			this.SynchronizationContext.Send(_ => this.DoAction(), null);
 	}
 
 
@@ -107,7 +207,53 @@ public class ScheduledAction : ISynchronizable
 				return;
 			this.token = null;
 		}
-		this.action();
+		this.DoAction();
+	}
+
+
+	/// <summary>
+	/// Execute action on current thread asynchronously. The scheduled execution will be cancelled.
+	/// </summary>
+	/// <param name="cancellationToken"><see cref="CancellationToken"/> to cancel the action.</param>
+	/// <returns>Task of execution.</returns>
+	[ThreadSafe]
+	public Task ExecuteAsync(CancellationToken cancellationToken = default) =>
+		this.ExecuteAsyncInternal(false, cancellationToken);
+	
+	
+	/// <summary>
+	/// Execute action on current thread asynchronously if execution has been scheduled. The scheduled execution will be cancelled.
+	/// </summary>
+	/// <returns>Task of execution. The result will be True if action has been executed.</returns>
+	[ThreadSafe]
+	public Task<bool> ExecuteAsyncIfScheduled(CancellationToken cancellationToken = default) =>
+		this.ExecuteAsyncInternal(true, cancellationToken);
+	
+	
+	// Execute action on current thread asynchronously
+	[ThreadSafe]
+	async Task<bool> ExecuteAsyncInternal(bool execIfScheduled, CancellationToken cancellationToken = default)
+	{
+		// check state
+		cancellationToken.ThrowIfCancellationRequested();
+		
+		// cancel scheduled execution
+		if (!this.Cancel() && execIfScheduled)
+			return false;
+		
+		// execute in-place
+		if (SynchronizationContext.Current == this.SynchronizationContext)
+		{
+			await this.DoActionAsync(cancellationToken);
+			return true;
+		}
+
+		// execute asynchronously
+		return await this.SynchronizationContext.SendAsync(async () =>
+		{
+			await this.DoActionAsync(cancellationToken);
+			return true;
+		}, cancellationToken);
 	}
 
 
@@ -121,9 +267,9 @@ public class ScheduledAction : ISynchronizable
 		if (this.Cancel())
 		{
 			if (SynchronizationContext.Current == this.SynchronizationContext)
-				this.action();
+				this.DoAction();
 			else
-				this.SynchronizationContext.Send(_ => this.action(), null);
+				this.SynchronizationContext.Send(_ => this.DoAction(), null);
 			return true;
 		}
 		return false;
@@ -215,7 +361,7 @@ public class ScheduledAction : ISynchronizable
 		object? token = null;
 		token = this.PostAction(_ =>
 		{
-			lock (syncLock) // barrier to make sure that variable 'token' has been assigned
+			using (this.syncLock.EnterScope()) // barrier to make sure that variable 'token' has been assigned
 			{ }
 			this.ExecuteAction(token);
 		}, null, delayMillis);
