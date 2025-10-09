@@ -128,7 +128,7 @@ public class DispatcherSynchronizationContext : SynchronizationContext
                 return UIThreadInstance;
             lock (SyncLock)
             {
-                // ReSharper disable once ConvertIfStatementToNullCoalescingExpression
+                // ReSharper disable once ConvertIfStatementToNullCoalescingAssignment
                 if (UIThreadInstance is null)
                     UIThreadInstance = new(Dispatcher.UIThread);
                 return UIThreadInstance;

@@ -27,7 +27,6 @@ public static class TextLayoutExtensions
     /// </summary>
     /// <param name="textLayout"><see cref="TextLayout"/>.</param>
     /// <returns>True if the text of <see cref="TextLayout"/> is trimmed.</returns>
-    [RequiresUnreferencedCode("Need to access internal field to check text layout.")]
     public static bool IsTextTrimmed(this TextLayout textLayout)
     {
         var textLines = textLayout.TextLines;
@@ -42,7 +41,7 @@ public static class TextLayoutExtensions
             {
                 if (RemainingRunsField is null)
                 {
-                    var type = textLineBreak.GetType().Assembly.GetType(WrappingTextLineBreakTypeName);
+                    var type = Type.GetType(WrappingTextLineBreakTypeName);
                     RemainingRunsField = type?.GetField("_remainingRuns", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
                     if (RemainingRunsField is not null)
                         WrappingTextLineBreakType = type;

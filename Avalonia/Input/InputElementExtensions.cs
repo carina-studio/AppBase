@@ -23,7 +23,7 @@ public static class InputElementExtensions
             return targetElement;
         if (hitElement is not Visual hitVisual)
             return null;
-        return hitVisual.FindAncestor((Visual visual, ref bool interrupted) =>
+        return hitVisual.FindAncestor((visual, ref interrupted) =>
         {
             if (visual is T)
                 return true;

@@ -1,7 +1,11 @@
-﻿using CarinaStudio.Collections;
+﻿#if !NET9_0_OR_GREATER
+using CarinaStudio.Collections;
+#endif
 using System;
+#if !NET9_0_OR_GREATER
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+#endif
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 

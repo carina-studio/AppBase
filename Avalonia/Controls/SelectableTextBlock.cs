@@ -1,6 +1,5 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Documents;
 using Avalonia.Controls.Templates;
 using Avalonia.Data;
 using Avalonia.Media;
@@ -9,7 +8,6 @@ using CarinaStudio.Media.TextFormatting;
 using CarinaStudio.Threading;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 
 namespace CarinaStudio.Controls;
 
@@ -70,7 +68,7 @@ public class SelectableTextBlock : Avalonia.Controls.SelectableTextBlock
                     && (Platform.IsNotMacOS || this.window?.IsActive == true))
                 {
                     var inlines = this.Inlines;
-                    var text = ((ICollection<Inline>?)inlines).IsNotEmpty() ? inlines.Text : this.Text;
+                    var text = inlines.IsNotEmpty() ? inlines.Text : this.Text;
                     if (!string.IsNullOrEmpty(text))
                     {
                         var toolTipText = text.Length <= MaxToolTipLength

@@ -12,8 +12,10 @@ namespace CarinaStudio.Data.Converters;
 public static class EnumConverters
 {
     // Fields.
+#if !NET10_0_OR_GREATER
     static IValueConverter? parsing;
     static IValueConverter? values;
+#endif
 
 
     /// <summary>
@@ -24,8 +26,13 @@ public static class EnumConverters
     {
         get
         {
+#if NET10_0_OR_GREATER
+            field ??= new ParsingConverter();
+            return field;
+#else
             parsing ??= new ParsingConverter();
             return parsing;
+#endif
         }
     }
 
@@ -37,8 +44,13 @@ public static class EnumConverters
     {
         get
         {
+#if NET10_0_OR_GREATER
+            field ??= new ValuesConverter();
+            return field;
+#else
             values ??= new ValuesConverter();
             return values;
+#endif
         }
     }
 
