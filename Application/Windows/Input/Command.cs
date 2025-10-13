@@ -2,159 +2,168 @@
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace CarinaStudio.Windows.Input
+namespace CarinaStudio.Windows.Input;
+
+/// <summary>
+/// Implementation of <see cref="ICommand"/>.
+/// </summary>
+public class Command : BaseCommand
 {
+	// Fields.
+	readonly object? action;
+	Action? asyncActionCompletedCallback;
+	Task? asyncTask;
+	bool isExecutingAsyncAction;
+
+
 	/// <summary>
-	/// Implementation of <see cref="ICommand"/>.
+	/// Initialize new <see cref="Command"/> instance.
 	/// </summary>
-	public class Command : BaseCommand
+	/// <param name="execute">Action to execute command.</param>
+	/// <param name="canExecute"><see cref="IObservable{T}"/> to indicate whether command can be executed or not.</param>
+	public Command(Action execute, IObservable<bool>? canExecute = null) : base(canExecute)
 	{
-		// Fields.
-		readonly Action? action;
-		readonly Func<Task>? asyncAction;
-		bool isExecutingAsyncAction;
-
-
-		/// <summary>
-		/// Initialize new <see cref="Command"/> instance.
-		/// </summary>
-		/// <param name="execute">Action to execute command.</param>
-		/// <param name="canExecute"><see cref="IObservable{T}"/> to indicate whether command can be executed or not.</param>
-		public Command(Action execute, IObservable<bool>? canExecute = null) : base(canExecute)
-		{
-			this.action = execute;
-			this.asyncAction = null;
-		}
-		
-		
-		/// <summary>
-		/// Initialize new <see cref="Command"/> instance.
-		/// </summary>
-		/// <param name="asyncExecute">Asynchronous action to execute command.</param>
-		/// <param name="canExecute"><see cref="IObservable{T}"/> to indicate whether command can be executed or not.</param>
-		public Command(Func<Task> asyncExecute, IObservable<bool>? canExecute = null) : base(canExecute)
-		{
-			this.action = null;
-			this.asyncAction = asyncExecute;
-		}
-
-
-		/// <inheritdoc/>
-		public override bool CanExecute(object? parameter) =>
-			base.CanExecute(parameter) && !this.isExecutingAsyncAction;
-
-
-		/// <summary>
-		/// Execute command.
-		/// </summary>
-		/// <param name="parameter">Parameter.</param>
-		public override async void Execute(object? parameter)
-		{
-			if (!this.CanExecute(parameter))
-				return;
-			if (this.action is not null)
-				this.action();
-			else if (this.asyncAction is not null)
-			{
-				this.isExecutingAsyncAction = true;
-				this.InvalidateCanExecute();
-				try
-				{
-					await this.asyncAction();
-				}
-				finally
-				{
-					this.isExecutingAsyncAction = false;
-					this.InvalidateCanExecute();
-				}
-			}
-		}
+		this.action = execute;
+	}
+	
+	
+	/// <summary>
+	/// Initialize new <see cref="Command"/> instance.
+	/// </summary>
+	/// <param name="asyncExecute">Asynchronous action to execute command.</param>
+	/// <param name="canExecute"><see cref="IObservable{T}"/> to indicate whether command can be executed or not.</param>
+	public Command(Func<Task> asyncExecute, IObservable<bool>? canExecute = null) : base(canExecute)
+	{
+		this.action = asyncExecute;
 	}
 
 
+	/// <inheritdoc/>
+	public override bool CanExecute(object? parameter) =>
+		base.CanExecute(parameter) && !this.isExecutingAsyncAction;
+
+
 	/// <summary>
-	/// Implementation of <see cref="ICommand"/>.
+	/// Execute command.
 	/// </summary>
-	public class Command<TParam> : BaseCommand
+	/// <param name="parameter">Parameter.</param>
+	public override void Execute(object? parameter)
 	{
-		// Fields.
-		readonly Action<TParam>? action;
-		readonly Func<TParam, Task>? asyncAction;
-		bool isExecutingAsyncAction;
-
-
-		/// <summary>
-		/// Initialize new <see cref="Command"/> instance.
-		/// </summary>
-		/// <param name="execute">Action to execute command.</param>
-		/// <param name="canExecute"><see cref="IObservable{T}"/> to indicate whether command can be executed or not.</param>
-		public Command(Action<TParam> execute, IObservable<bool>? canExecute = null) : base(canExecute)
+		if (!this.CanExecute(parameter))
+			return;
+		if (this.action is Action action)
+			action();
+		else if (this.action is Func<Task> asyncAction)
 		{
-			this.action = execute;
-			this.asyncAction = null;
-		}
-		
-		
-		/// <summary>
-		/// Initialize new <see cref="Command"/> instance.
-		/// </summary>
-		/// <param name="asyncExecute">Asynchronous action to execute command.</param>
-		/// <param name="canExecute"><see cref="IObservable{T}"/> to indicate whether command can be executed or not.</param>
-		public Command(Func<TParam, Task> asyncExecute, IObservable<bool>? canExecute = null) : base(canExecute)
-		{
-			this.action = null;
-			this.asyncAction = asyncExecute;
-		}
-
-
-		/// <inheritdoc/>
-		public override bool CanExecute(object? parameter)
-		{
-			if (!base.CanExecute(parameter) || this.isExecutingAsyncAction)
-				return false;
-			var expectedParamType = typeof(TParam);
-			if (expectedParamType.IsValueType)
+			this.isExecutingAsyncAction = true;
+			this.InvalidateCanExecute();
+			this.asyncActionCompletedCallback ??= () =>
 			{
-				if (expectedParamType.IsGenericType && expectedParamType.GetGenericTypeDefinition() == typeof(Nullable<>))
+				this.isExecutingAsyncAction = false;
+				if (this.asyncTask is not null)
 				{
-					if (parameter is null)
-						return true;
-					return expectedParamType.GenericTypeArguments[0].IsInstanceOfType(parameter);
+					var ex = this.asyncTask.Exception;
+					this.asyncTask = null;
+					if (ex is not null)
+						throw ex;
 				}
-				return parameter is TParam;
-			}
-			return parameter is null or TParam;
+				this.InvalidateCanExecute();
+			};
+			this.asyncTask = asyncAction();
+			this.asyncTask.GetAwaiter().OnCompleted(this.asyncActionCompletedCallback);
 		}
+		else
+			throw new NotImplementedException();
+	}
+}
+
+
+/// <summary>
+/// Implementation of <see cref="ICommand"/>.
+/// </summary>
+public class Command<TParam> : BaseCommand
+{
+	// Fields.
+	readonly object? action;
+	Action? asyncActionCompletedCallback;
+	Task? asyncTask;
+	bool isExecutingAsyncAction;
+
+
+	/// <summary>
+	/// Initialize new <see cref="Command"/> instance.
+	/// </summary>
+	/// <param name="execute">Action to execute command.</param>
+	/// <param name="canExecute"><see cref="IObservable{T}"/> to indicate whether command can be executed or not.</param>
+	public Command(Action<TParam> execute, IObservable<bool>? canExecute = null) : base(canExecute)
+	{
+		this.action = execute;
+	}
+	
+	
+	/// <summary>
+	/// Initialize new <see cref="Command"/> instance.
+	/// </summary>
+	/// <param name="asyncExecute">Asynchronous action to execute command.</param>
+	/// <param name="canExecute"><see cref="IObservable{T}"/> to indicate whether command can be executed or not.</param>
+	public Command(Func<TParam, Task> asyncExecute, IObservable<bool>? canExecute = null) : base(canExecute)
+	{
+		this.action = asyncExecute;
+	}
+
+
+	/// <inheritdoc/>
+	public override bool CanExecute(object? parameter)
+	{
+		if (!base.CanExecute(parameter) || this.isExecutingAsyncAction)
+			return false;
+		var expectedParamType = typeof(TParam);
+		if (expectedParamType.IsValueType)
+		{
+			if (expectedParamType.IsGenericType && expectedParamType.GetGenericTypeDefinition() == typeof(Nullable<>))
+			{
+				if (parameter is null)
+					return true;
+				return expectedParamType.GenericTypeArguments[0].IsInstanceOfType(parameter);
+			}
+			return parameter is TParam;
+		}
+		return parameter is null or TParam;
+	}
 
 
 #pragma warning disable CS8600
 #pragma warning disable CS8604
-		/// <summary>
-		/// Execute command.
-		/// </summary>
-		/// <param name="parameter">Parameter.</param>
-		public override async void Execute(object? parameter)
+	/// <summary>
+	/// Execute command.
+	/// </summary>
+	/// <param name="parameter">Parameter.</param>
+	public override void Execute(object? parameter)
+	{
+		if (!this.CanExecute(parameter))
+			return;
+		if (this.action is Action<TParam> action)
+			action((TParam)parameter);
+		else if (this.action is Func<TParam, Task> asyncAction)
 		{
-			if (!this.CanExecute(parameter))
-				return;
-			if (this.action is not null)
-				this.action((TParam)parameter);
-			else if (this.asyncAction is not null)
+			this.isExecutingAsyncAction = true;
+			this.InvalidateCanExecute();
+			this.asyncActionCompletedCallback ??= () =>
 			{
-				this.isExecutingAsyncAction = true;
+				this.isExecutingAsyncAction = false;
+				if (this.asyncTask is not null)
+				{
+					var ex = this.asyncTask.Exception;
+					this.asyncTask = null;
+					if (ex is not null)
+						throw ex;
+				}
 				this.InvalidateCanExecute();
-				try
-				{
-					await this.asyncAction((TParam)parameter);
-				}
-				finally
-				{
-					this.isExecutingAsyncAction = false;
-					this.InvalidateCanExecute();
-				}
-			}
+			};
+			this.asyncTask = asyncAction((TParam)parameter);
+			this.asyncTask.GetAwaiter().OnCompleted(this.asyncActionCompletedCallback);
 		}
+	}
 #pragma warning restore CS8600
 #pragma warning restore CS8604
-	}
 }

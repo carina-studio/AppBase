@@ -11,16 +11,10 @@ namespace CarinaStudio.Windows.Input;
 public class ObservableCommandState<TParameter> : ObservableValue<bool>
 {
 	// Handler for CanExecuteChanged.
-	class CanExecuteChangedHandler
+	class CanExecuteChangedHandler(ObservableCommandState<TParameter> owner)
 	{
 		// Fields.
-		readonly WeakReference<ObservableCommandState<TParameter>> ownerReference;
-
-		// Constructor.
-		public CanExecuteChangedHandler(ObservableCommandState<TParameter> owner)
-		{
-			this.ownerReference = new WeakReference<ObservableCommandState<TParameter>>(owner);
-		}
+		readonly WeakReference<ObservableCommandState<TParameter>> ownerReference = new(owner);
 
 		// Called when CanExecuteChanged.
 		public void OnCanExecuteChanged(object? sender, EventArgs e)
