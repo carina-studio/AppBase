@@ -64,4 +64,10 @@ public class DispatcherScheduledAction : ScheduledAction
     [ThreadSafe]
     protected override object PostAction(SendOrPostCallback action, object? state, int delayMillis) =>
         ((DispatcherSynchronizationContext)this.SynchronizationContext).PostDelayed(action, state, this.priority, delayMillis);
+
+
+    /// <inheritdoc/>
+    [ThreadSafe]
+    protected override void SendAction(SendOrPostCallback action, object? state) =>
+        ((DispatcherSynchronizationContext)this.SynchronizationContext).Send(action, state, this.priority);
 }

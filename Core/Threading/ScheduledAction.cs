@@ -193,7 +193,7 @@ public class ScheduledAction : ISynchronizable
 		if (SynchronizationContext.Current == this.SynchronizationContext)
 			this.DoAction();
 		else
-			this.SynchronizationContext.Send(_ => this.DoAction(), null);
+			this.SendAction(_ => this.DoAction(), null);
 	}
 
 
@@ -232,28 +232,60 @@ public class ScheduledAction : ISynchronizable
 	
 	// Execute action on current thread asynchronously
 	[ThreadSafe]
-	async Task<bool> ExecuteAsyncInternal(bool execIfScheduled, CancellationToken cancellationToken = default)
+	Task<bool> ExecuteAsyncInternal(bool execIfScheduled, CancellationToken cancellationToken = default)
 	{
 		// check state
 		cancellationToken.ThrowIfCancellationRequested();
 		
 		// cancel scheduled execution
 		if (!this.Cancel() && execIfScheduled)
-			return false;
+			return Task.FromResult(false);
 		
 		// execute in-place
 		if (SynchronizationContext.Current == this.SynchronizationContext)
-		{
-			await this.DoActionAsync(cancellationToken);
-			return true;
-		}
+			return this.DoActionAsync(cancellationToken).ContinueWith(_ => true, cancellationToken);
 
 		// execute asynchronously
-		return await this.SynchronizationContext.SendAsync(async () =>
+		CancellationTokenRegistration? ctr = null;
+		object? postToken = null;
+		var taskCompletionSource = new TaskCompletionSource<bool>().Also(taskCompletionSource =>
 		{
-			await this.DoActionAsync(cancellationToken);
-			return true;
-		}, cancellationToken);
+			taskCompletionSource.Task.GetAwaiter().UnsafeOnCompleted(() =>
+			{
+				Thread.MemoryBarrier();
+				ctr?.Dispose();
+			});
+		});
+		ctr = cancellationToken.Register(_ =>
+		{
+			Thread.MemoryBarrier();
+			if (postToken is not null)
+				this.CancelAction(postToken);
+			taskCompletionSource.TrySetCanceled();
+		}, null);
+		if (taskCompletionSource.Task.IsCanceled)
+		{
+			ctr.Value.Dispose();
+			return Task.FromCanceled<bool>(cancellationToken);
+		}
+		Thread.MemoryBarrier();
+		postToken = this.PostAction(_ =>
+		{
+			if (cancellationToken.IsCancellationRequested)
+				return;
+			var task = this.DoActionAsync(cancellationToken);
+			task.GetAwaiter().OnCompleted(() =>
+			{
+				if (task.IsCanceled)
+					taskCompletionSource.TrySetCanceled();
+				else if (task.IsFaulted)
+					taskCompletionSource.TrySetException(task.Exception?.InnerException ?? new Exception("Error occurred while executing the action."));
+				else
+					taskCompletionSource.TrySetResult(true);
+			});
+		}, null, 0);
+		Thread.MemoryBarrier();
+		return taskCompletionSource.Task;
 	}
 
 
@@ -269,11 +301,17 @@ public class ScheduledAction : ISynchronizable
 			if (SynchronizationContext.Current == this.SynchronizationContext)
 				this.DoAction();
 			else
-				this.SynchronizationContext.Send(_ => this.DoAction(), null);
+				this.SendAction(_ => this.DoAction(), null);
 			return true;
 		}
 		return false;
 	}
+
+
+	/// <summary>
+	/// Check whether the action to be executed is asynchronous or not.
+	/// </summary>
+	public bool IsAsynchronous => this.action is not Action;
 
 
 	/// <summary>
@@ -384,6 +422,16 @@ public class ScheduledAction : ISynchronizable
 		else
 			this.Schedule((int)delayMillis);
 	}
+	
+	
+	/// <summary>
+	/// Send action to underlying synchronization context and wait for completion.
+	/// </summary>
+	/// <param name="action">Action.</param>
+	/// <param name="state">State.</param>
+	[ThreadSafe]
+	protected virtual void SendAction(SendOrPostCallback action, object? state) =>
+		this.SynchronizationContext.Send(action, state);
 
 
 	/// <summary>
