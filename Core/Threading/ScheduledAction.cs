@@ -12,6 +12,9 @@ public class ScheduledAction : ISynchronizable
 {
 	// Fields.
 	readonly object action;
+	Action? asyncExecutionCompletedCallback;
+	int executionCounter;
+	readonly bool isReentrantAllowed;
 	volatile object? token;
 	readonly Lock syncLock = new();
 
@@ -21,10 +24,12 @@ public class ScheduledAction : ISynchronizable
 	/// </summary>
 	/// <param name="synchronizationContext"><see cref="SynchronizationContext"/> to perform action.</param>
 	/// <param name="action">Action.</param>
-	public ScheduledAction(SynchronizationContext synchronizationContext, Action action)
+	/// <param name="allowReentrant">True to allow action being reentrant.</param>
+	public ScheduledAction(SynchronizationContext synchronizationContext, Action action, bool allowReentrant = false)
 	{
 		this.SynchronizationContext = synchronizationContext;
 		this.action = action;
+		this.isReentrantAllowed = allowReentrant;
 	}
 	
 	
@@ -33,10 +38,12 @@ public class ScheduledAction : ISynchronizable
 	/// </summary>
 	/// <param name="synchronizationContext"><see cref="SynchronizationContext"/> to perform action.</param>
 	/// <param name="asyncAction">Asynchronous action.</param>
-	public ScheduledAction(SynchronizationContext synchronizationContext, Func<Task> asyncAction)
+	/// <param name="allowReentrant">True to allow action being reentrant.</param>
+	public ScheduledAction(SynchronizationContext synchronizationContext, Func<Task> asyncAction, bool allowReentrant = false)
 	{
 		this.SynchronizationContext = synchronizationContext;
 		this.action = asyncAction;
+		this.isReentrantAllowed = allowReentrant;
 	}
 	
 	
@@ -45,10 +52,12 @@ public class ScheduledAction : ISynchronizable
 	/// </summary>
 	/// <param name="synchronizationContext"><see cref="SynchronizationContext"/> to perform action.</param>
 	/// <param name="asyncAction">Asynchronous action.</param>
-	public ScheduledAction(SynchronizationContext synchronizationContext, Func<CancellationToken, Task> asyncAction)
+	/// <param name="allowReentrant">True to allow action being reentrant.</param>
+	public ScheduledAction(SynchronizationContext synchronizationContext, Func<CancellationToken, Task> asyncAction, bool allowReentrant = false)
 	{
 		this.SynchronizationContext = synchronizationContext;
 		this.action = asyncAction;
+		this.isReentrantAllowed = allowReentrant;
 	}
 
 
@@ -57,10 +66,12 @@ public class ScheduledAction : ISynchronizable
 	/// </summary>
 	/// <param name="synchronizable"><see cref="ISynchronizable"/> to provide <see cref="SynchronizationContext"/> to perform action.</param>
 	/// <param name="action">Action.</param>
-	public ScheduledAction(ISynchronizable synchronizable, Action action)
+	/// <param name="allowReentrant">True to allow action being reentrant.</param>
+	public ScheduledAction(ISynchronizable synchronizable, Action action, bool allowReentrant = false)
 	{
 		this.SynchronizationContext = synchronizable.SynchronizationContext;
 		this.action = action;
+		this.isReentrantAllowed = allowReentrant;
 	}
 	
 	
@@ -69,10 +80,12 @@ public class ScheduledAction : ISynchronizable
 	/// </summary>
 	/// <param name="synchronizable"><see cref="ISynchronizable"/> to provide <see cref="SynchronizationContext"/> to perform action.</param>
 	/// <param name="asyncAction">Asynchronous action.</param>
-	public ScheduledAction(ISynchronizable synchronizable, Func<Task> asyncAction)
+	/// <param name="allowReentrant">True to allow action being reentrant.</param>
+	public ScheduledAction(ISynchronizable synchronizable, Func<Task> asyncAction, bool allowReentrant = false)
 	{
 		this.SynchronizationContext = synchronizable.SynchronizationContext;
 		this.action = asyncAction;
+		this.isReentrantAllowed = allowReentrant;
 	}
 	
 	
@@ -81,10 +94,12 @@ public class ScheduledAction : ISynchronizable
 	/// </summary>
 	/// <param name="synchronizable"><see cref="ISynchronizable"/> to provide <see cref="SynchronizationContext"/> to perform action.</param>
 	/// <param name="asyncAction">Asynchronous action.</param>
-	public ScheduledAction(ISynchronizable synchronizable, Func<CancellationToken, Task> asyncAction)
+	/// <param name="allowReentrant">True to allow action being reentrant.</param>
+	public ScheduledAction(ISynchronizable synchronizable, Func<CancellationToken, Task> asyncAction, bool allowReentrant = false)
 	{
 		this.SynchronizationContext = synchronizable.SynchronizationContext;
 		this.action = asyncAction;
+		this.isReentrantAllowed = allowReentrant;
 	}
 
 
@@ -92,10 +107,12 @@ public class ScheduledAction : ISynchronizable
 	/// Initialize new <see cref="ScheduledAction"/> instance with current <see cref="SynchronizationContext"/>.
 	/// </summary>
 	/// <param name="action">Action.</param>
-	public ScheduledAction(Action action)
+	/// <param name="allowReentrant">True to allow action being reentrant.</param>
+	public ScheduledAction(Action action, bool allowReentrant = false)
 	{
 		this.SynchronizationContext = SynchronizationContext.Current ?? throw new InvalidOperationException("No SynchronizationContext on current thread.");
 		this.action = action;
+		this.isReentrantAllowed = allowReentrant;
 	}
 	
 	
@@ -103,10 +120,12 @@ public class ScheduledAction : ISynchronizable
 	/// Initialize new <see cref="ScheduledAction"/> instance with current <see cref="SynchronizationContext"/>.
 	/// </summary>
 	/// <param name="asyncAction">Asynchronous action.</param>
-	public ScheduledAction(Func<Task> asyncAction)
+	/// <param name="allowReentrant">True to allow action being reentrant.</param>
+	public ScheduledAction(Func<Task> asyncAction, bool allowReentrant = false)
 	{
 		this.SynchronizationContext = SynchronizationContext.Current ?? throw new InvalidOperationException("No SynchronizationContext on current thread.");
 		this.action = asyncAction;
+		this.isReentrantAllowed = allowReentrant;
 	}
 	
 	
@@ -114,10 +133,12 @@ public class ScheduledAction : ISynchronizable
 	/// Initialize new <see cref="ScheduledAction"/> instance with current <see cref="SynchronizationContext"/>.
 	/// </summary>
 	/// <param name="asyncAction">Asynchronous action.</param>
-	public ScheduledAction(Func<CancellationToken, Task> asyncAction)
+	/// <param name="allowReentrant">True to allow action being reentrant.</param>
+	public ScheduledAction(Func<CancellationToken, Task> asyncAction, bool allowReentrant = false)
 	{
 		this.SynchronizationContext = SynchronizationContext.Current ?? throw new InvalidOperationException("No SynchronizationContext on current thread.");
 		this.action = asyncAction;
+		this.isReentrantAllowed = allowReentrant;
 	}
 
 
@@ -155,50 +176,85 @@ public class ScheduledAction : ISynchronizable
 	
 	
 	// Do action.
-	void DoAction()
-	{
-		if (this.action is Action action)
-			action();
-		else if (this.action is Func<Task> taskFunc)
-			taskFunc();
-		else if (this.action is Func<CancellationToken, Task> cancellableTaskFunc)
-			cancellableTaskFunc(CancellationToken.None);
-		else
-			throw new NotImplementedException();
-	}
+	void DoAction() =>
+		_ = this.DoActionAsync(CancellationToken.None);
 	
 	
 	// Do action asynchronously.
 	Task DoActionAsync(CancellationToken cancellationToken)
 	{
+		if (!this.isReentrantAllowed && this.executionCounter > 0)
+			throw new InvalidOperationException("Reentrant is not allowed.");
+		++this.executionCounter;
 		if (this.action is Func<Task> taskFunc)
-			return taskFunc();
+		{
+			try
+			{
+				this.asyncExecutionCompletedCallback ??= this.OnAsyncExecutionCompleted;
+				var task = taskFunc();
+				task.GetAwaiter().OnCompleted(this.asyncExecutionCompletedCallback);
+				return task;
+			}
+			catch
+			{
+				--this.executionCounter;
+				throw;
+			}
+			finally
+			{
+				Thread.MemoryBarrier();
+			}
+		}
 		if (this.action is Func<CancellationToken, Task> cancellableTaskFunc)
-			return cancellableTaskFunc(cancellationToken);
+		{
+			try
+			{
+				this.asyncExecutionCompletedCallback ??= this.OnAsyncExecutionCompleted;
+				var task = cancellableTaskFunc(cancellationToken);
+				task.GetAwaiter().OnCompleted(this.asyncExecutionCompletedCallback);
+				return task;
+			}
+			catch
+			{
+				--this.executionCounter;
+				throw;
+			}
+			finally
+			{
+				Thread.MemoryBarrier();
+			}
+		}
 		if (this.action is Action action)
-			action();
-		else 
+		{
+			try
+			{
+				action();
+			}
+			finally
+			{
+				--this.executionCounter;
+				Thread.MemoryBarrier();
+			}
+			return Task.CompletedTask;
+		}
+		else
+		{
+			--this.executionCounter;
 			throw new NotImplementedException();
-		return Task.CompletedTask;
+		}
 	}
 
 
 	/// <summary>
 	/// Execute action on current thread immediately. The scheduled execution will be cancelled.
 	/// </summary>
+	/// <returns>True if the action has been executed.</returns>
 	[ThreadSafe]
-	public void Execute()
-	{
-		this.Cancel();
-		if (SynchronizationContext.Current == this.SynchronizationContext)
-			this.DoAction();
-		else
-			this.SendAction(_ => this.DoAction(), null);
-	}
+	public bool Execute() =>
+		this.ExecuteInternal(false);
 
 
 	// Execute action.
-	[ThreadSafe]
 	void ExecuteAction(object? token)
 	{
 		lock (syncLock)
@@ -215,9 +271,9 @@ public class ScheduledAction : ISynchronizable
 	/// Execute action on current thread asynchronously. The scheduled execution will be cancelled.
 	/// </summary>
 	/// <param name="cancellationToken"><see cref="CancellationToken"/> to cancel the action.</param>
-	/// <returns>Task of execution.</returns>
+	/// <returns>Task of execution. The result will be True if action has been executed.</returns>
 	[ThreadSafe]
-	public Task ExecuteAsync(CancellationToken cancellationToken = default) =>
+	public Task<bool> ExecuteAsync(CancellationToken cancellationToken = default) =>
 		this.ExecuteAsyncInternal(false, cancellationToken);
 	
 	
@@ -243,7 +299,11 @@ public class ScheduledAction : ISynchronizable
 		
 		// execute in-place
 		if (SynchronizationContext.Current == this.SynchronizationContext)
-			return this.DoActionAsync(cancellationToken).ContinueWith(_ => true, cancellationToken);
+		{
+			if (this.isReentrantAllowed || this.executionCounter == 0)
+				return this.DoActionAsync(cancellationToken).ContinueWith(_ => true, cancellationToken);
+			return Task.FromResult(false);
+		}
 
 		// execute asynchronously
 		CancellationTokenRegistration? ctr = null;
@@ -273,6 +333,11 @@ public class ScheduledAction : ISynchronizable
 		{
 			if (cancellationToken.IsCancellationRequested)
 				return;
+			if (!this.isReentrantAllowed && this.executionCounter > 0)
+			{
+				taskCompletionSource.TrySetResult(false);
+				return;
+			}
 			var task = this.DoActionAsync(cancellationToken);
 			task.GetAwaiter().OnCompleted(() =>
 			{
@@ -294,17 +359,41 @@ public class ScheduledAction : ISynchronizable
 	/// </summary>
 	/// <returns>True if action has been executed.</returns>
 	[ThreadSafe]
-	public bool ExecuteIfScheduled()
+	public bool ExecuteIfScheduled() =>
+		this.ExecuteInternal(true);
+	
+	
+	// Execute action and wait for completion.
+	[ThreadSafe]
+	bool ExecuteInternal(bool execIfScheduled)
 	{
-		if (this.Cancel())
+		if (!this.Cancel() && execIfScheduled)
+			return false;
+		if (SynchronizationContext.Current == this.SynchronizationContext)
 		{
-			if (SynchronizationContext.Current == this.SynchronizationContext)
+			if (this.isReentrantAllowed || this.executionCounter == 0)
+			{
 				this.DoAction();
-			else
-				this.SendAction(_ => this.DoAction(), null);
-			return true;
+				return true;
+			}
+			return false;
 		}
-		return false;
+		else
+		{
+			var result = true;
+			this.SendAction(_ =>
+			{
+				if (this.isReentrantAllowed || this.executionCounter == 0)
+					this.DoAction();
+				else
+				{
+					result = false;
+					Thread.MemoryBarrier();
+				}
+			}, null);
+			Thread.MemoryBarrier();
+			return result;
+		}
 	}
 
 
@@ -315,11 +404,34 @@ public class ScheduledAction : ISynchronizable
 
 
 	/// <summary>
+	/// Check whether the action is currently being executed or not.
+	/// </summary>
+	public bool IsExecuting
+	{
+		get
+		{
+			Thread.MemoryBarrier();
+			return this.executionCounter > 0;
+		}
+	}
+
+
+	/// <summary>
 	/// Check whether execution has been scheduled or not.
 	/// </summary>
 	// ReSharper disable once InconsistentlySynchronizedField
 	[ThreadSafe]
 	public bool IsScheduled => this.token is not null;
+
+
+	// Called when asynchronous execution has been completed.
+	void OnAsyncExecutionCompleted()
+	{
+		--this.executionCounter;
+		if (this.executionCounter < 0)
+			throw new InternalStateCorruptedException();
+		Thread.MemoryBarrier();
+	}
 
 
 	/// <summary>

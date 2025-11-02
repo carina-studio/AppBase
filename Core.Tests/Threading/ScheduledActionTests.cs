@@ -157,6 +157,142 @@ namespace CarinaStudio.Threading
 
 
 		/// <summary>
+		/// Test for reentrant of execution.
+		/// </summary>
+		[Test]
+		public async Task ReentrantTest()
+		{
+			// prepare sync actions
+			var syncContext = new SingleThreadSynchronizationContext();
+			var executionCounter = 0;
+			var maxExecutionCounter = 0;
+			ScheduledAction? syncAction = null;
+			ScheduledAction? reentrantSyncAction = null;
+			syncAction = new(syncContext, () =>
+			{
+				Thread.Sleep(100);
+				Assert.That(Interlocked.Increment(ref executionCounter) == 1);
+				try
+				{
+					Assert.That(syncAction!.IsExecuting);
+					var result = syncAction!.Execute();
+					Assert.That(!result);
+				}
+				finally
+				{
+					Interlocked.Decrement(ref executionCounter);
+				}
+			});
+			reentrantSyncAction = new(syncContext, () =>
+			{
+				Thread.Sleep(100);
+				var counter = Interlocked.Increment(ref executionCounter);
+				try
+				{
+					Assert.That(reentrantSyncAction!.IsExecuting);
+					if (counter == 1)
+					{
+						var result = reentrantSyncAction!.Execute();
+						Assert.That(result);
+					}
+					else
+						Assert.That(counter == 2);
+					if (executionCounter > maxExecutionCounter)
+						Interlocked.Exchange(ref maxExecutionCounter, executionCounter);
+				}
+				finally
+				{
+					Interlocked.Decrement(ref executionCounter);
+				}
+			}, true);
+			
+			// execute sync action
+			var execResult = syncAction.Execute();
+			Assert.That(execResult);
+			Assert.That(!syncAction.IsExecuting);
+			Assert.That(executionCounter == 0);
+			execResult = reentrantSyncAction.Execute();
+			Assert.That(execResult);
+			Assert.That(!reentrantSyncAction.IsExecuting);
+			Assert.That(executionCounter == 0);
+			Assert.That(maxExecutionCounter == 2);
+			maxExecutionCounter = 0;
+			
+			// prepare async actions
+			using var @event = new ManualResetEventSlim();
+			ScheduledAction? asyncAction = null;
+			ScheduledAction? reentrantAsyncAction = null;
+			asyncAction = new(syncContext, async () =>
+			{
+				@event.Set();
+				await Task.Delay(300);
+				Assert.That(Interlocked.Increment(ref executionCounter) == 1);
+				try
+				{
+					Assert.That(asyncAction!.IsExecuting);
+					var result = await asyncAction!.ExecuteAsync();
+					Assert.That(!result);
+				}
+				finally
+				{
+					Interlocked.Decrement(ref executionCounter);
+				}
+			});
+			reentrantAsyncAction = new(syncContext, async () =>
+			{
+				await Task.Delay(300);
+				var counter = Interlocked.Increment(ref executionCounter);
+				try
+				{
+					Assert.That(reentrantAsyncAction!.IsExecuting);
+					if (counter == 1)
+					{
+						@event.Set();
+						var result = await reentrantAsyncAction!.ExecuteAsync();
+						Assert.That(result);
+					}
+					else
+						Assert.That(counter == 2);
+					if (executionCounter > maxExecutionCounter)
+						Interlocked.Exchange(ref maxExecutionCounter, executionCounter);
+				}
+				finally
+				{
+					Interlocked.Decrement(ref executionCounter);
+				}
+			}, true);
+			
+			// execute async action
+			var execTask = asyncAction.ExecuteAsync();
+			Assert.That(@event.Wait(1000));
+			Assert.That(asyncAction.IsExecuting);
+			execResult = await asyncAction.ExecuteAsync();
+			Assert.That(!execResult);
+			Assert.That(asyncAction.IsExecuting);
+			await execTask;
+			Assert.That(!asyncAction.IsExecuting);
+			Assert.That(executionCounter == 0);
+			@event.Reset();
+			execTask = reentrantAsyncAction.ExecuteAsync();
+			Assert.That(@event.Wait(1000));
+			Assert.That(reentrantAsyncAction.IsExecuting);
+			await execTask;
+			Assert.That(!reentrantAsyncAction.IsExecuting);
+			Assert.That(executionCounter == 0);
+			Assert.That(maxExecutionCounter == 2);
+			maxExecutionCounter = 0;
+			@event.Reset();
+			_ = reentrantAsyncAction.ExecuteAsync();
+			await reentrantAsyncAction.ExecuteAsync();
+			Assert.That(!reentrantAsyncAction.IsExecuting);
+			Assert.That(executionCounter == 0);
+			Assert.That(maxExecutionCounter == 2);
+			maxExecutionCounter = 0;
+			@event.Reset();
+		}
+
+
+		/// <summary>
 		/// Test for scheduling execution.
 		/// </summary>
 		[Test]
