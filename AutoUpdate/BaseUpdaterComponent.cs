@@ -1,4 +1,7 @@
 ﻿using CarinaStudio.Threading;
+#if NET9_0_OR_GREATER
+using CarinaStudio.Logging;
+#endif
 using Microsoft.Extensions.Logging;
 using System;
 using System.ComponentModel;
@@ -13,7 +16,7 @@ namespace CarinaStudio.AutoUpdate;
 public abstract class BaseUpdaterComponent : BaseDisposableApplicationObject, IUpdaterComponent
 {
 	// Fields.
-	readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+	readonly CancellationTokenSource cancellationTokenSource = new();
 	double progress = double.NaN;
 	UpdaterComponentState state = UpdaterComponentState.Initializing;
 

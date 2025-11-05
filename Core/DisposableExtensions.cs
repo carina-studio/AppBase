@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
@@ -9,6 +10,82 @@ namespace CarinaStudio;
 /// </summary>
 public static class DisposableExtensions
 {
+	/// <summary>
+	/// Dispose all non-Null <see cref="IDisposable"/>s.
+	/// </summary>
+	/// <param name="disposables"><see cref="IDisposable"/>s.</param>
+	public static void DisposeAll<T>(this IEnumerable<T?> disposables) where T : IDisposable
+	{
+		if (disposables is T?[] array)
+			DisposeAll(array);
+		else if (disposables is IList<T?> list)
+			DisposeAll(list);
+		else
+		{
+			foreach (var disposable in disposables)
+				disposable?.Dispose();
+		}
+	}
+	
+	
+	/// <summary>
+	/// Dispose all non-Null <see cref="IDisposable"/>s.
+	/// </summary>
+	/// <param name="disposables"><see cref="IDisposable"/>s.</param>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static void DisposeAll<T>(this T?[] disposables) where T : IDisposable
+	{
+		for (var i = disposables.Length - 1; i >= 0; i--)
+			disposables[i]?.Dispose();
+	}
+	
+	
+	/// <summary>
+	/// Dispose all non-Null <see cref="IDisposable"/>s.
+	/// </summary>
+	/// <param name="disposables"><see cref="IDisposable"/>s.</param>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static void DisposeAll<T>(this IList<T?> disposables) where T : IDisposable
+	{
+		for (var i = disposables.Count - 1; i >= 0; i--)
+			disposables[i]?.Dispose();
+	}
+
+
+	/// <summary>
+	/// Dispose all non-Null <see cref="IDisposable"/>s and clear the <see cref="ICollection{T}"/>.
+	/// </summary>
+	/// <param name="disposables"><see cref="ICollection{T}"/> contains <see cref="IDisposable"/>s.</param>
+	public static void DisposeAllAndClear<T>(this ICollection<T?> disposables) where T : IDisposable
+	{
+		if (disposables is IList<T?> list)
+			DisposeAllAndClear(list);
+		else if (disposables.Count > 0)
+		{
+			foreach (var disposable in disposables)
+				disposable?.Dispose();
+			disposables.Clear();
+		}
+	}
+	
+	
+	/// <summary>
+	/// Dispose all non-Null <see cref="IDisposable"/>s and clear the <see cref="IList{T}"/>.
+	/// </summary>
+	/// <param name="disposables"><see cref="IList{T}"/> contains <see cref="IDisposable"/>s.</param>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static void DisposeAllAndClear<T>(this IList<T?> disposables) where T : IDisposable
+	{
+		var count = disposables.Count;
+		if (count > 0)
+		{
+			for (var i = count - 1; i >= 0; i--)
+				disposables[i]?.Dispose();
+			disposables.Clear();
+		}
+	}
+	
+	
 	/// <summary>
 	/// Call <see cref="IDisposable.Dispose"/> and return null.
 	/// </summary>

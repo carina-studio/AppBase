@@ -26,7 +26,7 @@ public static class ObservableExtensions
         }
 
         // Whether the call of OnNext should be skipped or not.
-        public bool SkipOnNext = false;
+        public bool SkipOnNext;
 
         // Implementations.
         void IObserver<T>.OnCompleted()

@@ -1,10 +1,15 @@
 ﻿using CarinaStudio.AutoUpdate.Installers;
 using CarinaStudio.AutoUpdate.Resolvers;
 using CarinaStudio.IO;
+#if NET9_0_OR_GREATER
+using CarinaStudio.Logging;
+#endif
 using CarinaStudio.Threading;
 using CarinaStudio.ViewModels;
 using CarinaStudio.Windows.Input;
+#if !NET9_0_OR_GREATER
 using Microsoft.Extensions.Logging;
+#endif
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

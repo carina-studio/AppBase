@@ -1,5 +1,9 @@
 ﻿using CarinaStudio.IO;
+#if NET9_0_OR_GREATER
+using CarinaStudio.Logging;
+#else
 using Microsoft.Extensions.Logging;
+#endif
 using System;
 using System.IO;
 using System.IO.Compression;
