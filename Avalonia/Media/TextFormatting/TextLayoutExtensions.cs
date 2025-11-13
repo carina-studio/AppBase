@@ -14,7 +14,11 @@ public static class TextLayoutExtensions
 {
     // Constants.
     [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicFields | DynamicallyAccessedMemberTypes.PublicFields)]
+#if NET10_0_OR_GREATER
+    const string WrappingTextLineBreakTypeName = "Avalonia.Media.TextFormatting.WrappingTextLineBreak,Avalonia.Base";
+#else
     const string WrappingTextLineBreakTypeName = "Avalonia.Media.TextFormatting.WrappingTextLineBreak";
+#endif
     
     
     // Fields.
