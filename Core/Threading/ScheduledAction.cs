@@ -257,13 +257,14 @@ public class ScheduledAction : ISynchronizable
 	// Execute action.
 	void ExecuteAction(object? token)
 	{
-		lock (syncLock)
+		using (this.syncLock.EnterScope())
 		{
-			if (token != this.token)
+			if (!ReferenceEquals(token, this.token))
 				return;
 			this.token = null;
 		}
-		this.DoAction();
+		if (this.isReentrantAllowed || this.executionCounter == 0)
+			this.DoAction();
 	}
 
 

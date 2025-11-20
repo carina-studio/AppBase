@@ -273,6 +273,14 @@ namespace CarinaStudio.Threading
 			Assert.That(!asyncAction.IsExecuting);
 			Assert.That(executionCounter == 0);
 			@event.Reset();
+			execTask = asyncAction.ExecuteAsync();
+			Assert.That(@event.Wait(1000));
+			Assert.That(asyncAction.IsExecuting);
+			asyncAction.Schedule(1);
+			await execTask;
+			Assert.That(!asyncAction.IsExecuting);
+			Assert.That(executionCounter == 0);
+			@event.Reset();
 			execTask = reentrantAsyncAction.ExecuteAsync();
 			Assert.That(@event.Wait(1000));
 			Assert.That(reentrantAsyncAction.IsExecuting);
