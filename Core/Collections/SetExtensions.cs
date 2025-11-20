@@ -24,18 +24,21 @@ public static class SetExtensions
 	}
 
 
+#if !NET10_0_OR_GREATER
 	/// <summary>
 	/// Make <see cref="ISet{T}"/> as read-only.
 	/// </summary>
 	/// <typeparam name="T">Type of element.</typeparam>
 	/// <param name="set"><see cref="ISet{T}"/>.</param>
 	/// <returns>Read-only <see cref="ISet{T}"/>.</returns>
+	/// <remarks>The method is available for target framework before .NET 10.</remarks>
 	public static ISet<T> AsReadOnly<T>(this ISet<T> set)
 	{
 		if (set.IsReadOnly)
 			return set;
 		return new ReadOnlySet<T>(set);
 	}
+#endif
 	
 	
 #if !NET9_0_OR_GREATER

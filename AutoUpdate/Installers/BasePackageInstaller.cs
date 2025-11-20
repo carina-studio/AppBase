@@ -1,4 +1,6 @@
-﻿using CarinaStudio.Collections;
+﻿#if !NET10_0_OR_GREATER
+using CarinaStudio.Collections;
+#endif
 using CarinaStudio.IO;
 using CarinaStudio.Threading;
 using System;
@@ -24,11 +26,7 @@ namespace CarinaStudio.AutoUpdate.Installers
 		/// <param name="app">Application.</param>
 		protected BasePackageInstaller(IApplication app) : base(app)
 		{
-#if NET10_0_OR_GREATER
-			this.InstalledFilePaths = SetExtensions.AsReadOnly(installedFilePaths);
-#else
 			this.InstalledFilePaths = installedFilePaths.AsReadOnly();
-#endif
 		}
 
 
