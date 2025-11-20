@@ -1,8 +1,9 @@
 ﻿using CarinaStudio.Threading;
 #if NET9_0_OR_GREATER
 using CarinaStudio.Logging;
-#endif
+#else
 using Microsoft.Extensions.Logging;
+#endif
 using System;
 using System.ComponentModel;
 using System.Threading;
@@ -26,11 +27,7 @@ public abstract class BaseUpdaterComponent : BaseDisposableApplicationObject, IU
 	/// </summary>
 	/// <param name="app">Application.</param>
 	protected BaseUpdaterComponent(IApplication app) : base(app)
-	{ 
-#if !NET10_0_OR_GREATER
-		this.Logger = app.LoggerFactory.CreateLogger(this.GetType().Name);
-#endif
-	}
+	{ }
 
 
 	/// <summary>
@@ -97,24 +94,6 @@ public abstract class BaseUpdaterComponent : BaseDisposableApplicationObject, IU
 	/// Get <see cref="Exception"/> occurred when performing operation.
 	/// </summary>
 	public Exception? Exception { get; private set; }
-
-
-	/// <summary>
-	/// Get logger.
-	/// </summary>
-	[ThreadSafe]
-	protected ILogger Logger
-	{
-#if NET10_0_OR_GREATER
-		get
-		{
-			field ??= this.Application.LoggerFactory.CreateLogger(this.GetType().Name);
-			return field;
-		}
-#else
-		get;
-#endif
-	}
 
 
 	/// <summary>

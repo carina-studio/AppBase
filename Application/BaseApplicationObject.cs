@@ -1,5 +1,6 @@
 ﻿using CarinaStudio.Configuration;
 using CarinaStudio.Threading;
+using Microsoft.Extensions.Logging;
 using System.Threading;
 
 namespace CarinaStudio;
@@ -9,6 +10,12 @@ namespace CarinaStudio;
 /// </summary>
 public abstract class BaseApplicationObject : IApplicationObject
 {
+    // Fields.
+#if !NET10_0_OR_GREATER
+    ILogger? logger;
+#endif
+    
+    
     /// <summary>
     /// Initialize new <see cref="BaseApplicationObject"/> instance.
     /// </summary>
@@ -27,6 +34,35 @@ public abstract class BaseApplicationObject : IApplicationObject
     /// <inheritdoc/>.
     [ThreadSafe]
     public bool CheckAccess() => this.Application.CheckAccess();
+
+
+    /// <summary>
+    /// Logger of this instance.
+    /// </summary>
+    [ThreadSafe]
+    protected ILogger Logger
+    {
+#if NET10_0_OR_GREATER
+        get
+        {
+            field ??= this.Application.LoggerFactory.CreateLogger(this.LoggerCategoryName);
+            return field;
+        }
+#else
+        get
+        {
+            this.logger ??= this.Application.LoggerFactory.CreateLogger(this.LoggerCategoryName);
+            return this.logger;
+        }
+#endif
+    }
+    
+    
+    /// <summary>
+    /// Get name of category for logger.
+    /// </summary>
+    [ThreadSafe]
+    protected virtual string LoggerCategoryName => this.GetType().Name;
 
 
     /// <summary>

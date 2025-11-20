@@ -10,6 +10,12 @@ namespace CarinaStudio.Controls;
 /// </summary>
 public class ApplicationWindow : Window, IApplicationObject
 {
+	// Fields.
+#if !NET10_0_OR_GREATER
+	ILogger? logger;
+#endif
+	
+	
 	/// <summary>
 	/// Initialize new <see cref="ApplicationWindow"/> instance.
 	/// </summary>
@@ -18,7 +24,6 @@ public class ApplicationWindow : Window, IApplicationObject
 		// create logger
 #if !NET10_0_OR_GREATER
 		this.Application = CarinaStudio.Application.Current;
-		this.Logger = this.Application.LoggerFactory.CreateLogger(this.GetType().Name);
 #endif
 	}
 
@@ -50,13 +55,24 @@ public class ApplicationWindow : Window, IApplicationObject
 #if NET10_0_OR_GREATER
 		get
 		{
-			field ??= this.Application.LoggerFactory.CreateLogger(this.GetType().Name);
+			field ??= this.Application.LoggerFactory.CreateLogger(this.LoggerCategoryName);
 			return field;
 		}
 #else
-		get;
+		get
+		{
+			this.logger ??= this.Application.LoggerFactory.CreateLogger(this.LoggerCategoryName);
+			return this.logger;
+		}
 #endif
 	}
+	
+	
+	/// <summary>
+	/// Get name of category for logger.
+	/// </summary>
+	[ThreadSafe]
+	protected virtual string LoggerCategoryName => this.GetType().Name;
 
 
 	/// <summary>

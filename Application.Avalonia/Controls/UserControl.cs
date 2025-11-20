@@ -13,9 +13,7 @@ public abstract class UserControl : Avalonia.Controls.UserControl, IApplicationO
 {
     // Fields.
 #if !NET10_0_OR_GREATER
-    volatile IApplication? app;
-    volatile ILogger? logger;
-    readonly Lock syncLock = new();
+    ILogger? logger;
 #endif
 
 
@@ -25,6 +23,7 @@ public abstract class UserControl : Avalonia.Controls.UserControl, IApplicationO
     protected UserControl()
     {
 #if !NET10_0_OR_GREATER
+        this.Application = Avalonia.Application.Current as IApplication ?? throw new NotSupportedException("Application instance doesn't implement IApplication interface.");
         this.SynchronizationContext = this.Application.SynchronizationContext as DispatcherSynchronizationContext ?? DispatcherSynchronizationContext.UIThread;
 #endif
     }
@@ -34,18 +33,15 @@ public abstract class UserControl : Avalonia.Controls.UserControl, IApplicationO
     [ThreadSafe]
     public IApplication Application
     {
+#if NET10_0_OR_GREATER
         get
         {
-#if NET10_0_OR_GREATER
             field ??= Avalonia.Application.Current as IApplication ?? throw new NotSupportedException("Application instance doesn't implement IApplication interface.");
             return field;
-#else
-            if (this.app != null)
-                return this.app;
-            this.app = Avalonia.Application.Current as IApplication ?? throw new NotSupportedException("Application instance doesn't implement IApplication interface.");
-            return this.app;
-#endif
         }
+#else
+        get;
+#endif
     }
 
 
@@ -58,21 +54,21 @@ public abstract class UserControl : Avalonia.Controls.UserControl, IApplicationO
         get
         {
 #if NET10_0_OR_GREATER
-            field ??= this.Application.LoggerFactory.CreateLogger(this.GetType().Name);
+            field ??= this.Application.LoggerFactory.CreateLogger(this.LoggerCategoryName);
             return field;
 #else
-            if (this.logger != null)
-                return this.logger;
-            lock (syncLock)
-            {
-                if (this.logger != null)
-                    return this.logger;
-                this.logger = this.Application.LoggerFactory.CreateLogger(this.GetType().Name);
-            }
+            this.logger ??= this.Application.LoggerFactory.CreateLogger(this.LoggerCategoryName);
             return this.logger;
 #endif
         }
     }
+    
+    
+    /// <summary>
+    /// Get name of category for logger.
+    /// </summary>
+    [ThreadSafe]
+    protected virtual string LoggerCategoryName => this.GetType().Name;
 
 
     /// <summary>

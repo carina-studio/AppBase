@@ -52,9 +52,14 @@ public abstract class ViewModel : BaseDisposable, IApplicationObject, INotifyPro
 
 	// Fields.
 	readonly Thread dependencyThread;
+#if !NET10_0_OR_GREATER
+	ILogger? logger;
+#endif
 	List<ViewModel>? ownedViewModels;
 	SortedList<ObservableProperty, object>? propertyValues;
+#if !NET10_0_OR_GREATER
 	IList<ViewModel>? readOnlyOwnedViewModels;
+#endif
 	List<object>? resources;
 	List<Task>? waitingNecessaryTasks;
 
@@ -75,7 +80,6 @@ public abstract class ViewModel : BaseDisposable, IApplicationObject, INotifyPro
 		this.dependencyThread = Thread.CurrentThread;
 		this.Id = Interlocked.Increment(ref nextId);
 #if !NET10_0_OR_GREATER
-		this.Logger = app.LoggerFactory.CreateLogger($"{this.GetType().Name}-{this.Id}");
 		this.PersistentState = app.PersistentState;
 #endif
 		this.Settings = settings;
@@ -363,13 +367,24 @@ public abstract class ViewModel : BaseDisposable, IApplicationObject, INotifyPro
 #if NET10_0_OR_GREATER
 		get
 		{
-			field ??= this.Application.LoggerFactory.CreateLogger($"{this.GetType().Name}-{this.Id}");
+			field ??= this.Application.LoggerFactory.CreateLogger(this.LoggerCategoryName);
 			return field;
 		}
 #else
-		get;
+		get
+		{
+			this.logger ??= this.Application.LoggerFactory.CreateLogger(this.LoggerCategoryName);
+			return this.logger;
+		}
 #endif
 	}
+
+
+	/// <summary>
+	/// Get name of category for logger.
+	/// </summary>
+	[ThreadSafe]
+	protected virtual string LoggerCategoryName => $"{this.GetType().Name}-{this.Id}";
 
 
 	// Called when application property changed.
@@ -496,8 +511,13 @@ public abstract class ViewModel : BaseDisposable, IApplicationObject, INotifyPro
 		get
 		{
 			this.ownedViewModels ??= new();
+#if NET10_0_OR_GREATER
+			field ??= this.ownedViewModels.AsReadOnly();
+			return field;
+#else
 			this.readOnlyOwnedViewModels ??= this.ownedViewModels.AsReadOnly();
 			return this.readOnlyOwnedViewModels;
+#endif
 		}
 	}
 

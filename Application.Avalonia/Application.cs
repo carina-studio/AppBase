@@ -20,6 +20,9 @@ namespace CarinaStudio;
 public abstract class Application : Avalonia.Application, IAvaloniaApplication
 {
 	// Fields.
+#if !NET10_0_OR_GREATER
+	ILogger? logger;
+#endif
 	PropertyChangedEventHandler? propertyChangedHandlers;
 #if !NET10_0_OR_GREATER
 	readonly string? rootPrivateDirPath;
@@ -100,6 +103,35 @@ public abstract class Application : Avalonia.Application, IAvaloniaApplication
 	/// </summary>
 	[ThreadSafe]
 	public abstract bool IsShutdownStarted { get; }
+	
+	
+	/// <summary>
+	/// Logger of this instance.
+	/// </summary>
+	[ThreadSafe]
+	protected ILogger Logger
+	{
+#if NET10_0_OR_GREATER
+		get
+		{
+			field ??= this.LoggerFactory.CreateLogger(this.LoggerCategoryName);
+			return field;
+		}
+#else
+        get
+        {
+            this.logger ??= this.LoggerFactory.CreateLogger(this.LoggerCategoryName);
+            return this.logger;
+        }
+#endif
+	}
+	
+	
+	/// <summary>
+	/// Get name of category for logger.
+	/// </summary>
+	[ThreadSafe]
+	protected virtual string LoggerCategoryName => this.GetType().Name;
 
 
 	/// <summary>
