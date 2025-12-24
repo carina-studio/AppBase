@@ -201,8 +201,7 @@ public class JsonPackageResolver : BasePackageResolver
 				}
 			}
 		}, cancellationToken);
-		if (cancellationToken.IsCancellationRequested)
-			throw new TaskCanceledException();
+		cancellationToken.ThrowIfCancellationRequested();
 
 		// save result
 		this.ApplicationName = appName;

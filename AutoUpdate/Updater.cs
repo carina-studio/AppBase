@@ -32,7 +32,7 @@ public class Updater : BaseDisposableApplicationObject, INotifyPropertyChanged
 	IPackageResolver? packageResolver;
 	double progress = double.NaN;
 	UpdaterState state = UpdaterState.Initializing;
-	readonly object waitingSyncLock = new();
+	List<TaskCompletionSource>? waitingTaskCompletionSources;
 
 
 	/// <summary>
@@ -207,9 +207,13 @@ public class Updater : BaseDisposableApplicationObject, INotifyPropertyChanged
 			this.ChangeState(UpdaterState.Failed);
 		}
 
-		// release waiting lock
-		lock (this.waitingSyncLock)
-			Monitor.PulseAll(this.waitingSyncLock);
+		// complete waiting tasks
+		if (this.waitingTaskCompletionSources is not null)
+		{
+			foreach (var taskCompletionSource in this.waitingTaskCompletionSources)
+				taskCompletionSource.TrySetResult();
+			this.waitingTaskCompletionSources = null;
+		}
 	}
 
 
@@ -357,9 +361,13 @@ public class Updater : BaseDisposableApplicationObject, INotifyPropertyChanged
 		// cancel updating
 		this.cancellationTokenSource.Cancel();
 
-		// release waiting lock
-		lock (this.waitingSyncLock)
-			Monitor.PulseAll(this.waitingSyncLock);
+		// complete waiting tasks
+		if (disposing && this.waitingTaskCompletionSources is not null)
+		{
+			foreach (var taskCompletionSource in this.waitingTaskCompletionSources)
+				taskCompletionSource.TrySetCanceled();
+			this.waitingTaskCompletionSources = null;
+		}
 	}
 
 
@@ -424,7 +432,7 @@ public class Updater : BaseDisposableApplicationObject, INotifyPropertyChanged
 					if (this.cancellationTokenSource.IsCancellationRequested)
 					{
 						this.logger.LogWarning("Downloading has been cancelled");
-						throw new TaskCanceledException();
+						throw new OperationCanceledException();
 					}
 					if (getResponseTask.Wait(1000))
 						break;
@@ -436,7 +444,7 @@ public class Updater : BaseDisposableApplicationObject, INotifyPropertyChanged
 				if (this.cancellationTokenSource.IsCancellationRequested)
 				{
 					this.logger.LogWarning("Downloading has been cancelled");
-					throw new TaskCanceledException();
+					throw new OperationCanceledException();
 				}
 
 				// get package size
@@ -472,7 +480,7 @@ public class Updater : BaseDisposableApplicationObject, INotifyPropertyChanged
 					if (this.cancellationTokenSource.IsCancellationRequested)
 					{
 						this.logger.LogWarning("Downloading has been cancelled");
-						throw new TaskCanceledException();
+						throw new OperationCanceledException();
 					}
 					readCount = downloadStream.Read(buffer, 0, buffer.Length);
 				}
@@ -812,23 +820,24 @@ public class Updater : BaseDisposableApplicationObject, INotifyPropertyChanged
 		// start
 		if (!this.Start())
 			return false;
-
+		
+		// cancellation check
+		if (cancellationToken.IsCancellationRequested)
+			return false;
+		
 		// wait for complete
-		await Task.Run(() =>
+		var taskCompletionSource = new TaskCompletionSource();
+		this.waitingTaskCompletionSources ??= new();
+		this.waitingTaskCompletionSources.Add(taskCompletionSource);
+		await using var _ = cancellationToken.Register(() =>
 		{
-			while (!cancellationToken.IsCancellationRequested)
+			this.SynchronizationContext.Post(() =>
 			{
-				if (!this.IsUpdating)
-					return;
-				lock (this.waitingSyncLock)
-				{
-					if (this.IsUpdating)
-						Monitor.Wait(this.waitingSyncLock, 1000);
-				}
-			}
-		}, CancellationToken.None);
-		if (this.IsUpdating)
-			throw new TaskCanceledException();
+				this.waitingTaskCompletionSources?.Remove(taskCompletionSource);
+				taskCompletionSource.TrySetCanceled();
+			});
+		});
+		await taskCompletionSource.Task;
 		return true;
 	}
 

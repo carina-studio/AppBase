@@ -68,8 +68,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 				var xmlDocument = new XmlDocument().Also(it => it.Load(streamReader));
 
 				// cancellation check
-				if (cancellationToken.IsCancellationRequested)
-					throw new TaskCanceledException();
+				cancellationToken.ThrowIfCancellationRequested();
 
 				// find root node
 				var rootNode = xmlDocument.Let(it =>
@@ -202,8 +201,7 @@ namespace CarinaStudio.AutoUpdate.Resolvers
 					}
 				}
 			}, cancellationToken);
-			if (cancellationToken.IsCancellationRequested)
-				throw new TaskCanceledException();
+			cancellationToken.ThrowIfCancellationRequested();
 
 			// save result
 			this.ApplicationName = appName;

@@ -559,7 +559,7 @@ public abstract class UpdatingSession : ViewModel
 							
 							// cancellation check
 							if (cancellationTokenSource.IsCancellationRequested)
-								throw new TaskCanceledException();
+								throw new OperationCanceledException();
 
 							// run apple script
 							using var process = Process.Start(new ProcessStartInfo

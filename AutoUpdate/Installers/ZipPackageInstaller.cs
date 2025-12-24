@@ -74,8 +74,7 @@ public class ZipPackageInstaller : BasePackageInstaller
 				// load XML
 				using var reader = new StreamReader(Path.Combine(targetRootDirectory, "Contents", "Info.plist"), Encoding.UTF8);
 				var xmlDocument = new XmlDocument().Also(it => it.Load(reader));
-				if (cancellationToken.IsCancellationRequested)
-					throw new TaskCanceledException();
+				cancellationToken.ThrowIfCancellationRequested();
 
 				// parse
 				var plistNode = xmlDocument.FirstChild;
@@ -166,7 +165,7 @@ public class ZipPackageInstaller : BasePackageInstaller
 		if (cancellationToken.IsCancellationRequested)
 		{
 			this.Logger.LogWarning("Installation has been cancelled");
-			throw new TaskCanceledException();
+			throw new OperationCanceledException();
 		}
 
 		// create target directory
@@ -191,7 +190,7 @@ public class ZipPackageInstaller : BasePackageInstaller
 		if (cancellationToken.IsCancellationRequested)
 		{
 			this.Logger.LogWarning("Installation has been cancelled");
-			throw new TaskCanceledException();
+			throw new OperationCanceledException();
 		}
 
 		// extract files
@@ -271,7 +270,7 @@ public class ZipPackageInstaller : BasePackageInstaller
 				if (cancellationToken.IsCancellationRequested)
 				{
 					this.Logger.LogWarning("Installation has been cancelled");
-					throw new TaskCanceledException();
+					throw new OperationCanceledException();
 				}
 			}
 			this.ReportInstalledFilePath(targetFileName);
@@ -279,7 +278,7 @@ public class ZipPackageInstaller : BasePackageInstaller
 			if (cancellationToken.IsCancellationRequested)
 			{
 				this.Logger.LogWarning("Installation has been cancelled");
-				throw new TaskCanceledException();
+				throw new OperationCanceledException();
 			}
 		}
 		
