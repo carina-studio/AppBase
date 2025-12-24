@@ -17,7 +17,7 @@ public class MemorySettings : ISettings
     readonly Lock valuesLock = new();
     EventHandler<SettingChangedEventArgs>? settingChanged;
     EventHandler<SettingChangingEventArgs>? settingChanging;
-    readonly Dictionary<SettingKey, object> values = new Dictionary<SettingKey, object>();
+    readonly Dictionary<SettingKey, object> values = new();
 
 
     /// <summary>

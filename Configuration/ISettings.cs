@@ -3,6 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+#if NET9_0_OR_GREATER
+using System.Runtime.CompilerServices;
+#endif
 
 namespace CarinaStudio.Configuration;
 
@@ -12,6 +15,82 @@ namespace CarinaStudio.Configuration;
 [ThreadSafe]
 public interface ISettings
 {
+#if NET9_0_OR_GREATER
+	/// <summary>
+	/// Get setting value as type specified by key, or get default value.
+	/// </summary>
+	/// <param name="key">Key of setting.</param>
+	/// <returns>Setting value, or default value.</returns>
+	[ThreadSafe]
+	[OverloadResolutionPriority(0)]
+	public object GetValueOrDefault(SettingKey key)
+	{
+		var rawValue = this.GetRawValue(key);
+		if (rawValue != null)
+		{
+			var targetType = key.ValueType;
+			if (targetType.IsInstanceOfType(rawValue))
+				return rawValue;
+			if (rawValue is IConvertible convertible)
+			{
+				try
+				{
+					if (targetType == typeof(bool))
+						return convertible.ToBoolean(null);
+					if (targetType == typeof(int))
+						return convertible.ToInt32(null);
+					if (targetType == typeof(long))
+						return convertible.ToInt64(null);
+					if (targetType == typeof(double))
+						return convertible.ToDouble(null);
+					if (targetType.IsEnum)
+					{
+						if (rawValue is string strValue)
+						{
+							Enum.TryParse(targetType, strValue, false, out var enumValue);
+							return enumValue ?? key.DefaultValue;
+						}
+						return key.DefaultValue;
+					}
+					if (targetType == typeof(string))
+						return convertible.ToString(null);
+					if (targetType == typeof(sbyte))
+						return convertible.ToSByte(null);
+					if (targetType == typeof(short))
+						return convertible.ToInt16(null);
+					if (targetType == typeof(ushort))
+						return convertible.ToUInt16(null);
+					if (targetType == typeof(uint))
+						return convertible.ToUInt16(null);
+					if (targetType == typeof(ulong))
+						return convertible.ToUInt64(null);
+					if (targetType == typeof(float))
+						return convertible.ToSingle(null);
+				}
+				// ReSharper disable once EmptyGeneralCatchClause
+				catch
+				{ }
+			}
+		}
+		return key.DefaultValue;
+	}
+#endif
+	
+	
+#if NET9_0_OR_GREATER
+	/// <summary>
+	/// Get setting value as type specified by key, or get default value.
+	/// </summary>
+	/// <typeparam name="T">Type of value.</typeparam>
+	/// <param name="key">Key of setting.</param>
+	/// <returns>Setting value, or default value.</returns>
+	[ThreadSafe]
+	[OverloadResolutionPriority(1)]
+	public T GetValueOrDefault<T>(SettingKey<T> key) => 
+		(T)this.GetValueOrDefault((SettingKey)key);
+#endif
+
+	
 	/// <summary>
 	/// Get raw value stored in settings no matter what type of value specified by key.
 	/// </summary>
@@ -55,9 +134,27 @@ public interface ISettings
 	/// </summary>
 	/// <param name="key">Key of setting.</param>
 	/// <param name="value">New value.</param>
-	[Obsolete("Try using generic SetValue() instead, unless you don't know the type of value.")]
 	[ThreadSafe]
+#if NET9_0_OR_GREATER
+	[OverloadResolutionPriority(0)]
+#else
+	[Obsolete("Try using generic SetValue() instead, unless you don't know the type of value.")]
+#endif
 	void SetValue(SettingKey key, object value);
+	
+	
+#if NET9_0_OR_GREATER
+	/// <summary>
+	/// Set value of setting.
+	/// </summary>
+	/// <typeparam name="T">Type of value.</typeparam>
+	/// <param name="key">Key of setting.</param>
+	/// <param name="value">New value.</param>
+	[ThreadSafe]
+	[OverloadResolutionPriority(1)]
+	void SetValue<T>(SettingKey<T> key, T value) where T : notnull=> 
+		this.SetValue((SettingKey)key, value);
+#endif
 
 
 	/// <summary>
@@ -73,6 +170,7 @@ public interface ISettings
 /// </summary>
 public static class SettingsExtensions
 {
+#if !NET9_0_OR_GREATER
 	/// <summary>
 	/// Get setting value as type specified by key, or get default value.
 	/// </summary>
@@ -134,8 +232,10 @@ public static class SettingsExtensions
 		}
 		return key.DefaultValue;
 	}
+#endif
 
 
+#if !NET9_0_OR_GREATER
 #pragma warning disable CS0618
 	/// <summary>
 	/// Get setting value as type specified by key, or get default value.
@@ -148,6 +248,7 @@ public static class SettingsExtensions
 	public static T GetValueOrDefault<T>(this ISettings? settings, SettingKey<T> key) => 
 		(T)settings.GetValueOrDefault((SettingKey)key);
 #pragma warning restore CS0618
+#endif
 
 
 	/// <summary>
@@ -194,6 +295,7 @@ public static class SettingsExtensions
 	}
 
 
+#if !NET9_0_OR_GREATER
 #pragma warning disable CS8604, CS0618
 	/// <summary>
 	/// Set value of setting.
@@ -206,6 +308,7 @@ public static class SettingsExtensions
 	public static void SetValue<T>(this ISettings settings, SettingKey<T> key, T value) => 
 		settings.SetValue(key, value);
 #pragma warning restore CS8604, CS0618
+#endif
 
 
 	/// <summary>
