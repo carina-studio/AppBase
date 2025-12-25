@@ -19,6 +19,17 @@ public class HttpResponseStreamProvider : BaseDisposable, IStreamProvider
     // Fields.
     readonly HttpClient client;
     readonly Func<HttpRequestMessage> requestProvider;
+
+
+    /// <summary>
+    /// Initialize new <see cref="HttpResponseStreamProvider"/> instance.
+    /// <param name="request"><see cref="HttpRequestMessage"/>.</param>
+    /// <param name="timeout">Timeout of getting HTTP response.</param>
+    /// <param name="messageHandler">The HTTP handler stack to use for sending requests.</param>
+    /// <param name="maxResponseContentBufferSize">Maximum buffer size for response content.</param>
+    /// </summary>
+    public HttpResponseStreamProvider(HttpRequestMessage request, TimeSpan? timeout = null, HttpMessageHandler? messageHandler = null, long? maxResponseContentBufferSize = null) :
+        this(() => request, timeout, messageHandler, maxResponseContentBufferSize) { }
     
     
     /// <summary>
