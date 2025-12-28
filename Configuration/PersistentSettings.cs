@@ -1,5 +1,7 @@
 ﻿using CarinaStudio.Collections;
+using CarinaStudio.IO;
 using CarinaStudio.Threading;
+using CarinaStudio.Threading.Tasks;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -15,6 +17,18 @@ namespace CarinaStudio.Configuration;
 [ThreadSafe]
 public abstract class PersistentSettings : ISettings
 {
+    // Control of file lock.
+    class FileLock : ReaderWriterLockSlim
+    {
+        public int ReferenceCount;
+    }
+    
+    
+    // Static fields.
+    readonly IDictionary<string, FileLock> fileLockMap = new Dictionary<string, FileLock>(PathEqualityComparer.Default);
+    readonly TaskFactory ioTaskFactory = new FixedThreadsTaskFactory(1);
+    
+    
     // Fields.
     readonly Lock eventLock = new();
     readonly Lock valuesLock = new();
@@ -32,6 +46,14 @@ public abstract class PersistentSettings : ISettings
     protected PersistentSettings(ISettingsSerializer serializer)
     {
         this.serializer = serializer;
+    }
+
+
+    // Copy all values.
+    IDictionary<SettingKey, object> CopyValues()
+    {
+        using var _ = this.valuesLock.EnterScope();
+        return new Dictionary<SettingKey, object>(this.values);
     }
 
 
@@ -94,29 +116,56 @@ public abstract class PersistentSettings : ISettings
     /// </summary>
     /// <param name="fileName">Name of file to load settings from.</param>
     [ThreadSafe]
+    [CalledOnBackgroundThread]
     public void Load(string fileName)
     {
         var retryCount = 0;
-        while (true)
+        var fileLock = this.fileLockMap.Lock(map =>
         {
-            try
+            if (!map.TryGetValue(fileName, out var fileLock))
             {
-                if (!File.Exists(fileName))
+                fileLock = new();
+                map[fileName] = fileLock;
+            }
+            ++fileLock.ReferenceCount;
+            return fileLock;
+        });
+        try
+        {
+            while (true)
+            {
+                using var _ = fileLock.EnterReadScope();
+                try
                 {
-                    this.ResetValues();
+                    if (!System.IO.File.Exists(fileName))
+                    {
+                        this.ResetValues();
+                        break;
+                    }
+                    using var fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read);
+                    this.Load(fileStream);
                     break;
                 }
-                using var fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read);
-                this.Load(fileStream);
-                break;
+                catch
+                {
+                    ++retryCount;
+                    if (retryCount > 10)
+                        throw;
+                    Thread.Sleep(500);
+                }
             }
-            catch
+        }
+        finally
+        {
+            this.fileLockMap.Lock(map =>
             {
-                ++retryCount;
-                if (retryCount > 10)
-                    throw;
-                Thread.Sleep(500);
-            }
+                --fileLock.ReferenceCount;
+                if (fileLock.ReferenceCount <= 0)
+                {
+                    fileLock.Dispose();
+                    map.Remove(fileName);
+                }
+            });
         }
     }
 
@@ -126,6 +175,7 @@ public abstract class PersistentSettings : ISettings
     /// </summary>
     /// <param name="stream"><see cref="Stream"/> to load settings from.</param>
     [ThreadSafe]
+    [CalledOnBackgroundThread]
     public void Load(Stream stream)
     {
         // load to memory first
@@ -133,7 +183,7 @@ public abstract class PersistentSettings : ISettings
         {
             MemoryStream _ => stream,
             UnmanagedMemoryStream _ => stream,
-            _ => new MemoryStream().Also((memoryStream) =>
+            _ => new MemoryStream().Also(memoryStream =>
             {
                 stream.CopyTo(memoryStream);
                 memoryStream.Position = 0;
@@ -167,7 +217,8 @@ public abstract class PersistentSettings : ISettings
     /// <param name="fileName">Name of file to load settings from.</param>
     /// <returns><see cref="Task"/> of asynchronous operation.</returns>
     [ThreadSafe]
-    public async Task LoadAsync(string fileName) => await Task.Run(() => this.Load(fileName));
+    public Task LoadAsync(string fileName) => 
+        ioTaskFactory.StartNew(() => this.Load(fileName));
 
 
     /// <summary>
@@ -176,7 +227,8 @@ public abstract class PersistentSettings : ISettings
     /// <param name="stream"><see cref="Stream"/> to load settings from.</param>
     /// <returns><see cref="Task"/> of asynchronous operation.</returns>
     [ThreadSafe]
-    public async Task LoadAsync(Stream stream) => await Task.Run(() => this.Load(stream));
+    public Task LoadAsync(Stream stream) => 
+        Task.Run(() => this.Load(stream));
 
 
     /// <summary>
@@ -240,45 +292,75 @@ public abstract class PersistentSettings : ISettings
     /// </summary>
     /// <param name="fileName">Name of file to save settings.</param>
     [ThreadSafe]
-    public void Save(string fileName)
+    [CalledOnBackgroundThread]
+    public void Save(string fileName) =>
+        this.Save(fileName, this.CopyValues());
+    
+    
+    // Save settings to file synchronously.
+    [ThreadSafe]
+    [CalledOnBackgroundThread]
+    void Save(string fileName, IDictionary<SettingKey, object> values)
     {
-        // backup file
-        try
-        {
-            if (File.Exists(fileName))
-                File.Copy(fileName, fileName + ".backup", true);
-        }
-        // ReSharper disable once EmptyGeneralCatchClause
-        catch
-        { }
-
         // save to memory first
-        Dictionary<SettingKey, object> values;
-        lock (valuesLock)
-        {
-            values = new Dictionary<SettingKey, object>(this.values);
-        }
         using var memoryStream = new MemoryStream();
         this.serializer.Serialize(memoryStream, values, new SettingsMetadata(this.Version, this.lastModifiedTime));
 
         // write to file
-        var retryCount = 0;
-        var data = memoryStream.ToArray();
-        while (true)
+        var fileLock = this.fileLockMap.Lock(map =>
         {
+            if (!map.TryGetValue(fileName, out var fileLock))
+            {
+                fileLock = new();
+                map[fileName] = fileLock;
+            }
+            ++fileLock.ReferenceCount;
+            return fileLock;
+        });
+        try
+        {
+            // backup file
             try
             {
-                using var fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write);
-                fileStream.Write(data);
-                break;
+                if (System.IO.File.Exists(fileName))
+                    System.IO.File.Copy(fileName, fileName + ".backup", true);
             }
+            // ReSharper disable once EmptyGeneralCatchClause
             catch
+            { }
+            
+            // write to file
+            var retryCount = 0;
+            var data = memoryStream.ToArray();
+            while (true)
             {
-                ++retryCount;
-                if (retryCount > 10)
-                    throw;
-                Thread.Sleep(500);
+                using var _ = fileLock.EnterWriteScope();
+                try
+                {
+                    using var fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write);
+                    fileStream.Write(data);
+                    break;
+                }
+                catch
+                {
+                    ++retryCount;
+                    if (retryCount > 10)
+                        throw;
+                    Thread.Sleep(500);
+                }
             }
+        }
+        finally
+        {
+            this.fileLockMap.Lock(map =>
+            {
+                --fileLock.ReferenceCount;
+                if (fileLock.ReferenceCount <= 0)
+                {
+                    fileLock.Dispose();
+                    map.Remove(fileName);
+                }
+            });
         }
     }
 
@@ -288,33 +370,48 @@ public abstract class PersistentSettings : ISettings
     /// </summary>
     /// <param name="stream"><see cref="Stream"/> to save settings.</param>
     [ThreadSafe]
-    public void Save(Stream stream)
-    {
-        Dictionary<SettingKey, object> values;
-        lock (valuesLock)
-        {
-            values = new Dictionary<SettingKey, object>(this.values);
-        }
+    [CalledOnBackgroundThread]
+    public void Save(Stream stream) =>
+        this.Save(stream, this.CopyValues());
+    
+    
+    // Save settings to given stream synchronously.
+    [ThreadSafe]
+    [CalledOnBackgroundThread]
+    void Save(Stream stream, IDictionary<SettingKey, object> values) =>
         this.serializer.Serialize(stream, values, new SettingsMetadata(this.Version, this.lastModifiedTime));
-    }
 
 
     /// <summary>
     /// Save settings to file asynchronously.
     /// </summary>
     /// <param name="fileName">Name of file to save settings.</param>
+    /// <param name="cancellationToken"><see cref="CancellationToken"/> to cancel saving.</param>
     /// <returns><see cref="Task"/> of asynchronous operation.</returns>
     [ThreadSafe]
-    public async Task SaveAsync(string fileName) => await Task.Run(() => this.Save(fileName));
+    public Task SaveAsync(string fileName, CancellationToken cancellationToken = default)
+    {
+        if (cancellationToken.IsCancellationRequested)
+            return Task.FromCanceled(cancellationToken);
+        var values = this.CopyValues();
+        return ioTaskFactory.StartNew(() => this.Save(fileName, values), cancellationToken);
+    }
 
 
     /// <summary>
     /// Save settings to given stream asynchronously.
     /// </summary>
     /// <param name="stream"><see cref="Stream"/> to save settings.</param>
+    /// <param name="cancellationToken"><see cref="CancellationToken"/> to cancel saving.</param>
     /// <returns><see cref="Task"/> of asynchronous operation.</returns>
     [ThreadSafe]
-    public async Task SaveAsync(Stream stream) => await Task.Run(() => this.Save(stream));
+    public Task SaveAsync(Stream stream, CancellationToken cancellationToken = default)
+    {
+        if (cancellationToken.IsCancellationRequested)
+            return Task.FromCanceled(cancellationToken);
+        var values = this.CopyValues();
+        return Task.Run(() => this.Save(stream, values), cancellationToken);
+    }
 
 
     /// <summary>
