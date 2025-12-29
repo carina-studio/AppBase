@@ -138,6 +138,39 @@ namespace CarinaStudio.MacOS.CoreFoundation
 
 
         /// <summary>
+        /// Get static object from export of native library.
+        /// </summary>
+        /// <param name="libraryHandle">Handle of native library.</param>
+        /// <param name="name">Name of exported symbol.</param>
+        /// <typeparam name="T">Type of object.</typeparam>
+        /// <returns>Static object from export of native library, or Null if symbol not found or type mismatched.</returns>
+        public static T? FromExport<T>(IntPtr libraryHandle, string name) where T : CFObject
+        {
+            if (NativeLibrary.TryGetExport(libraryHandle, name, out var symbolAddress) && FromHandle<T>(*(IntPtr*)symbolAddress) is { } obj)
+            {
+                obj.IsDefaultInstance = true;
+                return obj;
+            }
+            return null;
+        }
+
+
+        /// <summary>
+        /// Get static object from export of native library.
+        /// </summary>
+        /// <param name="field">Field that holds the object.</param>
+        /// <param name="libraryHandle">Handle of native library.</param>
+        /// <param name="name">Name of exported symbol.</param>
+        /// <typeparam name="T">Type of object.</typeparam>
+        /// <returns>Static object from export of native library, or Null if symbol not found or type mismatched.</returns>
+        public static T? FromExport<T>(ref T? field, IntPtr libraryHandle, string name) where T : CFObject
+        {
+            field ??= FromExport<T>(libraryHandle, name);
+            return field;
+        }
+
+
+        /// <summary>
         /// Wrap a native object.
         /// </summary>
         /// <param name="cf">Handle of instance.</param>
@@ -154,8 +187,8 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// <param name="ownsInstance">True to owns the native object.</param>
         /// <typeparam name="T">Target type.</typeparam>
         /// <returns>Wrapped object.</returns>
-        public static T FromHandle<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(IntPtr cf, bool ownsInstance = false) where T : CFObject =>
-            (T)FromHandle(typeof(T), cf, ownsInstance);
+        public static T? FromHandle<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(IntPtr cf, bool ownsInstance = false) where T : CFObject =>
+            (T?)FromHandle(typeof(T), cf, ownsInstance);
 
 
         /// <summary>
@@ -165,8 +198,10 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// <param name="cf">Handle of instance.</param>
         /// <param name="ownsInstance">True to owns the native object.</param>
         /// <returns>Wrapped object.</returns>
-        public static CFObject FromHandle([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] Type type, IntPtr cf, bool ownsInstance = false)
+        public static CFObject? FromHandle([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] Type type, IntPtr cf, bool ownsInstance = false)
         {
+            if (cf == IntPtr.Zero)
+                return null;
             if (type == typeof(CFObject))
                 return new CFObject(cf, ownsInstance);
             if (!typeof(CFObject).IsAssignableFrom(type))
@@ -280,7 +315,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         public T Retain<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>() where T : CFObject
         {
             this.VerifyReleased();
-            return FromHandle<T>(Retain(this.handle), true);
+            return FromHandle<T>(Retain(this.handle), true).AsNonNull();
         }
 
 

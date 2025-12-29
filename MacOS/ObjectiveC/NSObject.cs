@@ -24,14 +24,9 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
 
 
     // Descriptor of stub of objc_msgSend function.
-    class SendMessageStubInfo : NativeMethodInfo
+    class SendMessageStubInfo(MethodInfo stub, Type[] paramTypes, Type? returnType) : NativeMethodInfo(paramTypes, returnType)
     {
-        // Constructor.
-        public SendMessageStubInfo(MethodInfo stub, Type[] paramTypes, Type? returnType) : base(paramTypes, returnType) =>
-            this.Stub = stub;
-
-        // Stub.
-        public MethodInfo Stub { get; }
+        public MethodInfo Stub { get; } = stub;
     }
 
 
@@ -150,6 +145,39 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <inheritdoc/>
     public override bool Equals(object? obj) =>
         obj is NSObject nsObj && this.Equals(nsObj);
+
+
+    /// <summary>
+    /// Get static object from export of native library.
+    /// </summary>
+    /// <param name="libraryHandle">Handle of native library.</param>
+    /// <param name="name">Name of exported symbol.</param>
+    /// <typeparam name="T">Type of object.</typeparam>
+    /// <returns>Static object from export of native library, or Null if symbol not found or type mismatched.</returns>
+    public static T? FromExport<T>(IntPtr libraryHandle, string name) where T : NSObject
+    {
+        if (NativeLibrary.TryGetExport(libraryHandle, name, out var symbolAddress) && FromHandle<T>(*(IntPtr*)symbolAddress) is { } obj)
+        {
+            obj.IsDefaultInstance = true;
+            return obj;
+        }
+        return null;
+    }
+
+
+    /// <summary>
+    /// Get static object from export of native library.
+    /// </summary>
+    /// <param name="field">Field that holds the object.</param>
+    /// <param name="libraryHandle">Handle of native library.</param>
+    /// <param name="name">Name of exported symbol.</param>
+    /// <typeparam name="T">Type of object.</typeparam>
+    /// <returns>Static object from export of native library, or Null if symbol not found or type mismatched.</returns>
+    public static T? FromExport<T>(ref T? field, IntPtr libraryHandle, string name) where T : NSObject
+    {
+        field ??= FromExport<T>(libraryHandle, name);
+        return field;
+    }
     
 
     /// <summary>
@@ -195,8 +223,8 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
             return new NSObject(handle, ownsInstance);
         var ctor = GetWrappingConstructor(type);
         if (ctor.GetParameters().Length == 2)
-            return (NSObject)Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ handle, ownsInstance }, null).AsNonNull();
-        return (NSObject)Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ Class.GetClass(handle), handle, ownsInstance }, null).AsNonNull();
+            return (NSObject)Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, [ handle, ownsInstance ], null).AsNonNull();
+        return (NSObject)Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, [ Class.GetClass(handle), handle, ownsInstance ], null).AsNonNull();
     }
     
     
@@ -560,8 +588,8 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
                 return (T)new NSObject(this.@class, newHandle, true);
             var ctor = GetWrappingConstructor(typeof(T));
             if (ctor.GetParameters().Length == 2)
-                return (T)Activator.CreateInstance(typeof(T), BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ newHandle, true }, null).AsNonNull();
-            return (T)Activator.CreateInstance(typeof(T), BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ this.@class, newHandle, true }, null).AsNonNull();
+                return (T)Activator.CreateInstance(typeof(T), BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, [ newHandle, true ], null).AsNonNull();
+            return (T)Activator.CreateInstance(typeof(T), BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, [ this.@class, newHandle, true ], null).AsNonNull();
         }
         catch
         {
@@ -600,8 +628,8 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
                 return new NSObject(newHandle, true);
             var ctor = GetWrappingConstructor(type);
             if (ctor.GetParameters().Length == 2)
-                return (NSObject)Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ newHandle, true }, null).AsNonNull();
-            return (NSObject)Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new object?[]{ Class.GetClass(newHandle), newHandle, true }, null).AsNonNull();
+                return (NSObject)Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, [ newHandle, true ], null).AsNonNull();
+            return (NSObject)Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, [ Class.GetClass(newHandle), newHandle, true ], null).AsNonNull();
         }
         catch
         {
@@ -820,7 +848,7 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
         else if (nativeArg is double doubleValue)
             ((delegate*unmanaged<IntPtr, IntPtr, double, void>)msgSendFunc)(obj, sel.Handle, doubleValue);
         else
-            SendMessageCore(msgSendFunc, obj, sel, null, new object?[] { arg });
+            SendMessageCore(msgSendFunc, obj, sel, null, [ arg ]);
     }
 #if NET7_0_OR_GREATER
     [RequiresDynamicCode(SendMessageRdcMessage)]
@@ -896,7 +924,7 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
             }
 
             // create new stub
-            var stubMethod = new DynamicMethod($"SendMessageStub@{argCount}", nativeReturnType, new Type[]{ typeof(nint), typeof(nint), typeof(nint), typeof(object[]) }, typeof(NSObject).Module, false);
+            var stubMethod = new DynamicMethod($"SendMessageStub@{argCount}", nativeReturnType, [ typeof(nint), typeof(nint), typeof(nint), typeof(object[]) ], typeof(NSObject).Module, false);
             stubMethod.GetILGenerator(256).Let(ilGen =>
             {
                 // load obj and sel
@@ -944,7 +972,7 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
         // send message
         try
         {
-            var nativeReturnValue = stubInfo.Stub.Invoke(null, new object[]{ (IntPtr)msgSendFunc, obj, sel.Handle, nativeArgs });
+            var nativeReturnValue = stubInfo.Stub.Invoke(null, [ (IntPtr)msgSendFunc, obj, sel.Handle, nativeArgs ]);
             if (returnType is null)
                 return null;
             if (nativeReturnValue is null)
