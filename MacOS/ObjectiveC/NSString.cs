@@ -64,9 +64,9 @@ public class NSString : NSObject, IComparable<NSString>, IEquatable<NSString>
 
 
     // Constructor.
-    NSString(IntPtr handle, bool ownsInstance) : base(handle, ownsInstance) =>
+    internal NSString(IntPtr handle, bool ownsInstance) : base(handle, ownsInstance) =>
         this.VerifyClass(NSStringClass!);
-    NSString(Class cls, IntPtr handle, bool ownsInstance) : base(cls, handle, ownsInstance)
+    internal NSString(Class cls, IntPtr handle, bool ownsInstance) : base(cls, handle, ownsInstance)
     { }
 
 
