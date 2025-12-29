@@ -191,7 +191,7 @@ public class NSFont : NSObject
 #if NET7_0_OR_GREATER
     [RequiresDynamicCode(CallMethodRdcMessage)]
 #endif
-    public static NSFont GetPreferredFont(TextStyle style, NSObject? options = null)
+    public static NSFont GetPreferredFont(TextStyle style, NSDictionary? options = null)
     {
         GetPreferredFontSelector ??= Selector.FromName("preferredFontForTextStyle:options:");
         var handle = SendMessage<IntPtr>(NSFontClass!.Handle, GetPreferredFontSelector, style, options);

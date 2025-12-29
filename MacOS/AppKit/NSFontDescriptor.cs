@@ -56,7 +56,7 @@ public class NSFontDescriptor : NSObject
         public static AttributeName Family => FromExport(ref _Family, NativeLibraryHandles.AppKit, "NSFontFamilyAttribute").AsNonNull();
         
         /// <summary>
-        /// An array of dictionaries representing non-default font feature settings. The type of value is <see cref="NSArray{T}"/> of NSDictionary.
+        /// An array of dictionaries representing non-default font feature settings. The type of value is <see cref="NSArray{NSDictionary}"/>.
         /// </summary>
         public static AttributeName FeatureSettings => FromExport(ref _FeatureSettings, NativeLibraryHandles.AppKit, "NSFontFeatureSettingsAttribute").AsNonNull();
         
@@ -81,12 +81,12 @@ public class NSFontDescriptor : NSObject
         public static AttributeName Size => FromExport(ref _Size, NativeLibraryHandles.AppKit, "NSFontSizeAttribute").AsNonNull();
         
         /// <summary>
-        /// A dictionary that fully describes the font traits. The type of object is NSDictionary.
+        /// A dictionary that fully describes the font traits. The type of object is <see cref="NSDictionary"/>.
         /// </summary>
         public static AttributeName Traits => FromExport(ref _Traits, NativeLibraryHandles.AppKit, "NSFontTraitsAttribute").AsNonNull();
         
         /// <summary>
-        /// A dictionary that describes the font’s variation axis. The type of object is NSDictionary.
+        /// A dictionary that describes the font’s variation axis. The type of object is <see cref="NSDictionary"/>.
         /// </summary>
         public static AttributeName Variation => FromExport(ref _Variation, NativeLibraryHandles.AppKit, "NSFontVariationAttribute").AsNonNull();
         
@@ -139,7 +139,7 @@ public class NSFontDescriptor : NSObject
 #if NET7_0_OR_GREATER
     [RequiresDynamicCode(CallMethodRdcMessage)]
 #endif
-    public T? GetNSObject<T>(AttributeName attribute) where T : NSObject
+    public T? GetObject<T>(AttributeName attribute) where T : NSObject
     {
         ObjectForKeySelector ??= Selector.FromName("objectForKey:");
         return FromHandle<T>(this.SendMessage<IntPtr>(ObjectForKeySelector, attribute));
