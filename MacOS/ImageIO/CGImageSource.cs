@@ -63,8 +63,8 @@ public unsafe class CGImageSource : CFObject
     /// <summary>
     /// Create primary image.
     /// </summary>
-    /// <returns>Image.</returns>
-    public CGImage CreateImage()
+    /// <returns>Created image, or Null if error occurred.</returns>
+    public CGImage? CreateImage()
     {
         this.VerifyReleased();
         return FromHandle<CGImage>(CGImageSourceCreateImageAtIndex(this.Handle, CGImageSourceGetPrimaryImageIndex(this.Handle), IntPtr.Zero), true);
@@ -75,13 +75,13 @@ public unsafe class CGImageSource : CFObject
     /// Create image.
     /// </summary>
     /// <param name="index">Index of image.</param>
-    /// <returns>Image.</returns>
-    public CGImage CreateImage(int index)
+    /// <returns>Created image, or Null if error occurred.</returns>
+    public CGImage? CreateImage(int index)
     {
         this.VerifyReleased();
         if (index < 0 || index >= this.ImageCount)
             throw new ArgumentOutOfRangeException(nameof(index));
-        return CFObject.FromHandle<CGImage>(CGImageSourceCreateImageAtIndex(this.Handle, (nuint)index, IntPtr.Zero), true);
+        return FromHandle<CGImage>(CGImageSourceCreateImageAtIndex(this.Handle, (nuint)index, IntPtr.Zero), true);
     }
 
 
@@ -102,7 +102,7 @@ public unsafe class CGImageSource : CFObject
         }
         catch
         {
-            CFObject.Release(handle);
+            Release(handle);
             throw;
         }
     }
@@ -125,7 +125,7 @@ public unsafe class CGImageSource : CFObject
         }
         catch
         {
-            CFObject.Release(handle);
+            Release(handle);
             throw;
         }
     }
@@ -147,7 +147,7 @@ public unsafe class CGImageSource : CFObject
         }
         catch
         {
-            CFObject.Release(handle);
+            Release(handle);
             throw;
         }
     }

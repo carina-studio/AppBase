@@ -28,20 +28,13 @@ public unsafe class CGDataProvider : CFObject
 
 
     // Info of direct access.
-    class DirectAccessInfo
+    class DirectAccessInfo(byte[] data, int offset, int size)
     {
-        public readonly byte[] Data;
-        public readonly GCHandle DataHandle;
-        public readonly int Offset;
-        public readonly int Size;
-
-        public DirectAccessInfo(byte[] data, int offset, int size)
-        {
-            this.Data = data;
-            this.DataHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
-            this.Offset = offset;
-            this.Size = size;
-        }
+        // Fields.
+        public readonly byte[] Data = data;
+        public readonly GCHandle DataHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
+        public readonly int Offset = offset;
+        public readonly int Size = size;
 
         public void Release()
         {
@@ -199,6 +192,6 @@ public unsafe class CGDataProvider : CFObject
         var handle = CGDataProviderCopyData(this.Handle);
         if (handle == IntPtr.Zero)
             throw new InvalidOperationException("Unable to copy data from data provider.");
-        return CFObject.FromHandle<CFData>(handle, true);
+        return FromHandle<CFData>(handle, true).AsNonNull();
     }
 }

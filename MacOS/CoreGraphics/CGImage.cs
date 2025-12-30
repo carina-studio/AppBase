@@ -262,7 +262,7 @@ public unsafe class CGImage : CFObject
         {
             this.VerifyReleased();
             var handle = CGImageGetColorSpace(this.Handle);
-            return handle != IntPtr.Zero ? CFObject.FromHandle<CGColorSpace>(handle, false) : null;
+            return handle != IntPtr.Zero ? FromHandle<CGColorSpace>(handle, false) : null;
         }
     }
 
@@ -275,10 +275,10 @@ public unsafe class CGImage : CFObject
         get
         {
             this.VerifyReleased();
-            return this.dataProvider ?? CFObject.FromHandle<CGDataProvider>(CGImageGetDataProvider(this.Handle), false).Also(it =>
+            return this.dataProvider ?? FromHandle<CGDataProvider>(CGImageGetDataProvider(this.Handle), false).Also(it =>
             {
                 this.dataProvider = it;
-            });
+            }).AsNonNull();
         }
     }
 
@@ -287,8 +287,8 @@ public unsafe class CGImage : CFObject
     /// Create <see cref="CGImage"/> from data.
     /// </summary>
     /// <param name="data">Data.</param>
-    /// <returns><see cref="CGImage"/>.</returns>
-    public static CGImage FromData(CFData data)
+    /// <returns><see cref="CGImage"/>, or Null if error occurred.</returns>
+    public static CGImage? FromData(CFData data)
     {
         using var imageSource = ImageIO.CGImageSource.FromData(data);
         return imageSource.CreateImage();
@@ -299,8 +299,8 @@ public unsafe class CGImage : CFObject
     /// Create <see cref="CGImage"/> from file.
     /// </summary>
     /// <param name="fileName">File name.</param>
-    /// <returns><see cref="CGImage"/>.</returns>
-    public static CGImage FromFile(string fileName)
+    /// <returns><see cref="CGImage"/>, or Null if error occurred.</returns>
+    public static CGImage? FromFile(string fileName)
     {
         using var imageSource = ImageIO.CGImageSource.FromFile(fileName);
         return imageSource.CreateImage();
@@ -311,8 +311,8 @@ public unsafe class CGImage : CFObject
     /// Create <see cref="CGImage"/> from data.
     /// </summary>
     /// <param name="stream">Stream.</param>
-    /// <returns><see cref="CGImage"/>.</returns>
-    public static CGImage FromStream(Stream stream)
+    /// <returns><see cref="CGImage"/>, or Null if error occurred.</returns>
+    public static CGImage? FromStream(Stream stream)
     {
         using var data = CFData.FromStream(stream);
         return FromData(data);

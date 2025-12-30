@@ -225,7 +225,7 @@ public unsafe class CGColorSpace : CFObject
             if (sHandle == IntPtr.Zero)
                 return null;
             using var s = FromHandle<CFString>(sHandle, true);
-            return s.ToString();
+            return s?.ToString();
         }
     }
 
@@ -249,8 +249,8 @@ public unsafe class CGColorSpace : CFObject
     /// <summary>
     /// Copy color space as ICC profile.
     /// </summary>
-    /// <returns><see cref="CFData"/> contains ICC profile.</returns>
-    public CFData ToIccProfile()
+    /// <returns><see cref="CFData"/> contains ICC profile, or Null if the color space does not have an ICC data profile.</returns>
+    public CFData? ToIccProfile()
     {
         this.VerifyReleased();
         return FromHandle<CFData>(CGColorSpaceCopyICCData(this.Handle), true);
