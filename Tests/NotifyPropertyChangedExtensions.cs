@@ -19,6 +19,7 @@ namespace CarinaStudio.Tests
 		/// <param name="timeout">Timeout in milliseconds.</param>
 		/// <param name="cancellationToken">Cancellation token to cancel waiting.</param>
 		/// <returns>True if value of property has been changed to target value before cancellation or timeout.</returns>
+		[Obsolete("Use CarinaStudio.ComponentModel.NotifyPropertyChangedExtensions.WaitForPropertyChangeAsync().")]
 		public static async Task<bool> WaitForPropertyAsync(this INotifyPropertyChanged obj, string propertyName, object? targetValue, int timeout = Timeout.Infinite, CancellationToken? cancellationToken = null)
 		{
 			// check property value
