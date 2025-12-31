@@ -13,7 +13,6 @@ AppBase has been uploaded to **NuGet**, you can find it on:
 - [https://www.nuget.org/packages/CarinaStudio.AppBase.Configuration/](https://www.nuget.org/packages/CarinaStudio.AppBase.Configuration/)
 - [https://www.nuget.org/packages/CarinaStudio.AppBase.Application/](https://www.nuget.org/packages/CarinaStudio.AppBase.Application/)
 - [https://www.nuget.org/packages/CarinaStudio.AppBase.Avalonia/](https://www.nuget.org/packages/CarinaStudio.AppBase.Avalonia/)
-- [https://www.nuget.org/packages/CarinaStudio.AppBase.Application.Android/](https://www.nuget.org/packages/CarinaStudio.AppBase.Application.Android/)
 - [https://www.nuget.org/packages/CarinaStudio.AppBase.Application.Avalonia/](https://www.nuget.org/packages/CarinaStudio.AppBase.Application.Avalonia/)
 - [https://www.nuget.org/packages/CarinaStudio.AppBase.AutoUpdate/](https://www.nuget.org/packages/CarinaStudio.AppBase.AutoUpdate/)
 - [https://www.nuget.org/packages/CarinaStudio.AppBase.MacOS/](https://www.nuget.org/packages/CarinaStudio.AppBase.MacOS/)
@@ -25,7 +24,6 @@ Install-Package CarinaStudio.AppBase.Core
 Install-Package CarinaStudio.AppBase.Configuration
 Install-Package CarinaStudio.AppBase.Application
 Install-Package CarinaStudio.AppBase.Avalonia
-Install-Package CarinaStudio.AppBase.Application.Android
 Install-Package CarinaStudio.AppBase.Application.Avalonia
 Install-Package CarinaStudio.AppBase.AutoUpdate
 Install-Package CarinaStudio.AppBase.MacOS
