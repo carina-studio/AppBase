@@ -50,16 +50,6 @@
             "**/bin/**",
             "**/obj/**"
           ],
-          "src": "../Application.Android"
-        },
-        {
-          "files": [
-            "**/*.csproj"
-          ],
-          "exclude": [
-            "**/bin/**",
-            "**/obj/**"
-          ],
           "src": "../Application.Avalonia"
         },
         {
@@ -134,7 +124,7 @@
     "dest": "_site",
     "globalMetadata": {
       "_appFaviconPath": "images/favicon.ico",
-      "_appFooter": "©2021-2025 Carina Studio&nbsp;|&nbsp;Logo icon made by <a href=\"https://www.freepik.com\" title=\"Freepik\">Freepik</a> from <a href=\"https://www.flaticon.com/\" title=\"Flaticon\">www.flaticon.com</a>",
+      "_appFooter": "©2021-2026 Carina Studio&nbsp;|&nbsp;Logo icon made by <a href=\"https://www.freepik.com\" title=\"Freepik\">Freepik</a> from <a href=\"https://www.flaticon.com/\" title=\"Flaticon\">www.flaticon.com</a>",
       "_appLogoPath": "images/logo.svg",
       "_appTitle": "AppBase"
     },

@@ -32,7 +32,6 @@ dotnet pack Core -c Release -o Packages
 dotnet pack Configuration -c Release -o Packages
 dotnet pack Avalonia -c Release -o Packages
 dotnet pack Application -c Release -o Packages
-dotnet pack Application.Android -c Release -o Packages "-p:AndroidSdkDirectory=%ANDROID_SDK_DIR%" "-p:JavaSdkDirectory=%JDK_DIR%"
 dotnet pack Application.Avalonia -c Release -o Packages
 dotnet pack AutoUpdate -c Release -o Packages
 dotnet pack MacOS -c Release -o Packages
