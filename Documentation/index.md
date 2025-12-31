@@ -4,7 +4,7 @@
 [![](https://img.shields.io/github/release-date-pre/carina-studio/AppBase)](https://github.com/carina-studio/AppBase/releases) 
 
 # 👋Introduction of AppBase 
-**AppBase** is a set of libraries designed for .NET based application. Currently there are 9 packages providing the following functions:
+**AppBase** is a set of libraries designed for .NET based application. There are 8 packages providing the following functions:
 
 📦**CarinaStudio.AppBase.Core**
 - Extensions for ```System.Object``` to make your code more elegant and clear. ([Learn more](articles/object_extensions.md))
@@ -28,10 +28,6 @@
 - ```IApplication``` to provide abstract interface to application instance no matter what UI framework you use.
 - ```ViewModel``` to provide base implementation of view-model including observable properties, logger, etc.
 
-📦**CarinaStudio.AppBase.Android**
-- Implementation of ```IApplication``` based-on ```Android.App.Application```.
-- Implementation of ```ISettings``` based-on ```Android.Content.SharedPreferences```.
-
 📦**CarinaStudio.AppBase.Avalonia**
 - Extended controls such as ```LinkTextBlock```, ```DateTimeTextBox``` for Avalonia application.
 - ```ProgressRing``` to show operation progress.
@@ -51,7 +47,6 @@
 📦**CarinaStudio.AppBase.Tests**
 - Provide random functions like generating random string or creating file with random name.
 - ```EventMonitor<T>``` to monitor and track event raising.
-- ```INotifyPropertyChanged.WaitForPropertyAsync()``` to wait for specfic property to be given value.
 
 # 📥Install to your project
 AppBase has been uploaded to **NuGet**, you can find it on:
@@ -59,7 +54,6 @@ AppBase has been uploaded to **NuGet**, you can find it on:
 - [https://www.nuget.org/packages/CarinaStudio.AppBase.Configuration/](https://www.nuget.org/packages/CarinaStudio.AppBase.Configuration/)
 - [https://www.nuget.org/packages/CarinaStudio.AppBase.Application/](https://www.nuget.org/packages/CarinaStudio.AppBase.Application/)
 - [https://www.nuget.org/packages/CarinaStudio.AppBase.Avalonia/](https://www.nuget.org/packages/CarinaStudio.AppBase.Avalonia/)
-- [https://www.nuget.org/packages/CarinaStudio.AppBase.Application.Android/](https://www.nuget.org/packages/CarinaStudio.AppBase.Application.Android/)
 - [https://www.nuget.org/packages/CarinaStudio.AppBase.Application.Avalonia/](https://www.nuget.org/packages/CarinaStudio.AppBase.Application.Avalonia/)
 - [https://www.nuget.org/packages/CarinaStudio.AppBase.AutoUpdate/](https://www.nuget.org/packages/CarinaStudio.AppBase.AutoUpdate/)
 - [https://www.nuget.org/packages/CarinaStudio.AppBase.MacOS/](https://www.nuget.org/packages/CarinaStudio.AppBase.MacOS/)
@@ -71,7 +65,6 @@ Install-Package CarinaStudio.AppBase.Core
 Install-Package CarinaStudio.AppBase.Configuration
 Install-Package CarinaStudio.AppBase.Application
 Install-Package CarinaStudio.AppBase.Avalonia
-Install-Package CarinaStudio.AppBase.Application.Android
 Install-Package CarinaStudio.AppBase.Application.Avalonia
 Install-Package CarinaStudio.AppBase.AutoUpdate
 Install-Package CarinaStudio.AppBase.MacOS

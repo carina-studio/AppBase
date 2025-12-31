@@ -41,7 +41,9 @@ Represents an action which can be executed by specific ```SynchronizationContext
 
 * ```Cancel()``` to cancel scheduled execution.
 * ```Execute()``` to cancel scheduled execution and execute immediately.
+* ```ExecuteAsync()``` to cancel scheduled execution and execute asynchronously.
 * ```ExecuteIfScheduled()``` to execute immediately if it has been scheduled (scheduled execution will be cancelled).
+* ```ExecuteAsyncIfScheduled()``` to execute asynchronously if it has been scheduled (scheduled execution will be cancelled).
 * ```Reschedule()``` to override scheduled execution.
 
 The class is designed to help you to eliminate unnecessary action execution to improve performance.
@@ -69,3 +71,15 @@ protected override void OnWindowClosing()
     ...
 }
 ```
+
+## Asynchronous Action
+Starting from v2.2 you can pass an asynchronous action, which returns ```Task```, to ```ScheduledAction```.
+There are 2 type of asynchronous actions supported by ```ScheduledAction```:
+- ```Func<Task>```
+- ```Func<CancellationToken, Task>```
+
+To execute the asynchronous action and wait for its completion you can call ```ExecuteAsync()``` or ```ExecuteAsyncIfScheduled()```. To check whether the action is being executed you can use ```IsExecuting``` property.
+
+## Reentrant of Action
+By default, the action hosted by ```ScheduledAction``` cannot be reentrant, which means that you will get ```False``` from ```Execute()```/```ExecuteAsync()``` if the action is not completed yet.
+To enable reentrant of action, you can set ```allowReentrant``` to ```True``` when constructing ```ScheduledAction``` instance.
