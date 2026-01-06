@@ -170,7 +170,17 @@ public interface ISettings
 /// </summary>
 public static class SettingsExtensions
 {
-#if !NET9_0_OR_GREATER
+#if NET9_0_OR_GREATER
+	/// <summary>
+	/// Get setting value as type specified by key, or get default value.
+	/// </summary>
+	/// <param name="settings"><see cref="ISettings"/>. The reference can be Null.</param>
+	/// <param name="key">Key of setting.</param>
+	/// <returns>Setting value, or default value.</returns>
+	[ThreadSafe]
+	[OverloadResolutionPriority(0)]
+	public static object GetValueOrDefault(this ISettings? settings, SettingKey key) => settings?.GetValueOrDefault(key) ?? key.DefaultValue;
+#else
 	/// <summary>
 	/// Get setting value as type specified by key, or get default value.
 	/// </summary>
@@ -235,7 +245,18 @@ public static class SettingsExtensions
 #endif
 
 
-#if !NET9_0_OR_GREATER
+#if NET9_0_OR_GREATER
+	/// <summary>
+	/// Get setting value as type specified by key, or get default value.
+	/// </summary>
+	/// <typeparam name="T">Type of value.</typeparam>
+	/// <param name="settings"><see cref="ISettings"/>. The reference can be Null.</param>
+	/// <param name="key">Key of setting.</param>
+	/// <returns>Setting value, or default value.</returns>
+	[ThreadSafe]
+	[OverloadResolutionPriority(1)]
+	public static T GetValueOrDefault<T>(this ISettings? settings, SettingKey<T> key) => settings is not null ? settings.GetValueOrDefault(key) : key.DefaultValue;
+#else
 #pragma warning disable CS0618
 	/// <summary>
 	/// Get setting value as type specified by key, or get default value.
@@ -295,7 +316,17 @@ public static class SettingsExtensions
 	}
 
 
-#if !NET9_0_OR_GREATER
+#if NET9_0_OR_GREATER
+	/// <summary>
+	/// Set value of setting.
+	/// </summary>
+	/// <typeparam name="T">Type of value.</typeparam>
+	/// <param name="settings"><see cref="ISettings"/>.</param>
+	/// <param name="key">Key of setting.</param>
+	/// <param name="value">New value.</param>
+	[ThreadSafe]
+	public static void SetValue<T>(this ISettings settings, SettingKey<T> key, T value) where T : notnull => settings.SetValue(key, value);
+#else
 #pragma warning disable CS8604, CS0618
 	/// <summary>
 	/// Set value of setting.
@@ -321,7 +352,11 @@ public static class SettingsExtensions
 	public static bool ToggleValue(this ISettings settings, SettingKey<bool> key)
 	{
 		var value = !settings.GetValueOrDefault(key);
+#if NET9_0_OR_GREATER
+		settings.SetValue(key, value);
+#else
 		settings.SetValue<bool>(key, value);
+#endif
 		return value;
 	}
 
