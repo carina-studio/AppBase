@@ -50,7 +50,7 @@ namespace CarinaStudio.Configuration
 #pragma warning disable CS0618
 				settings.SetValue(key, value);
 				Assert.AreNotEqual(value, key.DefaultValue, "Test value should be different from default value.");
-				Assert.AreEqual(value, ((ISettings)settings).GetValueOrDefault(key), "Value should be same as set one.");
+				Assert.AreEqual(value, settings.GetValueOrDefault(key), "Value should be same as set one.");
 #pragma warning restore CS0618
 			}
 
@@ -61,7 +61,7 @@ namespace CarinaStudio.Configuration
 #pragma warning disable CS0618
 			Assert.IsFalse(settings.IsOnUpgradeCalled, "Setting upgrading should not be called.");
 			foreach (var key in TestSettings.AllKeys)
-				Assert.AreEqual(key.DefaultValue, ((ISettings)settings).GetValueOrDefault(key), "Value should be same as default value.");
+				Assert.AreEqual(key.DefaultValue, settings.GetValueOrDefault(key), "Value should be same as default value.");
 
 			// modify values
 			foreach (var keyValue in TestSettings.TestValues)
@@ -77,7 +77,7 @@ namespace CarinaStudio.Configuration
 			// check values
 			Assert.IsFalse(settings.IsOnUpgradeCalled, "Setting upgrading should not be called.");
 			foreach (var keyValue in TestSettings.TestValues)
-				Assert.AreEqual(keyValue.Value, ((ISettings)settings).GetValueOrDefault(keyValue.Key), "Value should be same as value before saving.");
+				Assert.AreEqual(keyValue.Value, settings.GetValueOrDefault(keyValue.Key), "Value should be same as value before saving.");
 #pragma warning restore CS0618
 		}
 
@@ -106,7 +106,7 @@ namespace CarinaStudio.Configuration
 				var value = keyValue.Value;
 				settings.SetValue(key, value);
 				Assert.AreNotEqual(value, key.DefaultValue, "Test value should be different from default value.");
-				Assert.AreEqual(value, ((ISettings)settings).GetValueOrDefault(key), "Value should be same as set one.");
+				Assert.AreEqual(value, settings.GetValueOrDefault(key), "Value should be same as set one.");
 			}
 #pragma warning restore CS0618
 
@@ -118,7 +118,7 @@ namespace CarinaStudio.Configuration
 #pragma warning disable CS0618
 			Assert.IsFalse(settings.IsOnUpgradeCalled, "Setting upgrading should not be called.");
 			foreach (var key in TestSettings.AllKeys)
-				Assert.AreEqual(key.DefaultValue, ((ISettings)settings).GetValueOrDefault(key), "Value should be same as default value.");
+				Assert.AreEqual(key.DefaultValue, settings.GetValueOrDefault(key), "Value should be same as default value.");
 
 			// modify values
 			foreach (var keyValue in TestSettings.TestValues)
@@ -141,7 +141,7 @@ namespace CarinaStudio.Configuration
 #pragma warning disable CS0618
 			Assert.IsFalse(settings.IsOnUpgradeCalled, "Setting upgrading should not be called.");
 			foreach (var keyValue in TestSettings.TestValues)
-				Assert.AreEqual(keyValue.Value, ((ISettings)settings).GetValueOrDefault(keyValue.Key), "Value should be same as value before saving.");
+				Assert.AreEqual(keyValue.Value, settings.GetValueOrDefault(keyValue.Key), "Value should be same as value before saving.");
 #pragma warning restore CS0618
 		}
 
