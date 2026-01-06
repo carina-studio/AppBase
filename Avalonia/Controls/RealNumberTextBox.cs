@@ -34,7 +34,9 @@ public class RealNumberTextBox : ValueTextBox<double>
     /// Initialize new <see cref="RealNumberTextBox"/> instance.
     /// </summary>
     public RealNumberTextBox()
-    { }
+    {
+        this.PseudoClasses.Set(":realNumberTextBox", true);
+    }
 
 
     /// <summary>
