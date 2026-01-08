@@ -47,6 +47,7 @@ public class JsonPackageResolver : BasePackageResolver
 
 		// parse package manifest
 		var appName = (string?)null;
+		var packageInformationalVersion = (string?)null;
 		var packageVersion = (Version?)null;
 		var pageUri = (Uri?)null;
 		var packageUri = (Uri?)null;
@@ -85,6 +86,13 @@ public class JsonPackageResolver : BasePackageResolver
 			{
 				_ = Version.TryParse(jsonValue.GetString().AsNonNull(), out packageVersion);
 			}
+			
+			// get informational version
+			if (rootObject.TryGetProperty("InformationalVersion", out jsonValue)
+			    && jsonValue.ValueKind == JsonValueKind.String)
+			{
+				packageInformationalVersion = jsonValue.GetString();
+			}
 
 			// get page URI
 			if (rootObject.TryGetProperty("PageUri", out jsonValue)
@@ -96,11 +104,11 @@ public class JsonPackageResolver : BasePackageResolver
 			// check platform
 			var osName = Global.Run(() =>
 			{
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				if (Platform.IsWindows)
 					return nameof(OSPlatform.Windows);
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+				if (Platform.IsLinux)
 					return nameof(OSPlatform.Linux);
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+				if (Platform.IsMacOS)
 					return nameof(OSPlatform.OSX);
 				return "";
 			});
@@ -143,20 +151,20 @@ public class JsonPackageResolver : BasePackageResolver
 				var runtimeVersion = hasRuntimeProperty && jsonValue.ValueKind == JsonValueKind.String
 					? (Version.TryParse(jsonValue.GetString(), out var version) ? version : null)
 					: null;
-				var isRuntimeMatched = runtimeVersion == null || (installedRuntimeVersion != null && runtimeVersion <= installedRuntimeVersion);
+				var isRuntimeMatched = runtimeVersion is null || (installedRuntimeVersion is not null && runtimeVersion <= installedRuntimeVersion);
 
 				// check base version
 				var hasTargetBaseVersion = jsonPackageElement.TryGetProperty("BaseVersion", out jsonValue);
 				var targetBaseVersion = hasTargetBaseVersion && jsonValue.ValueKind == JsonValueKind.String
 					? (Version.TryParse(jsonValue.GetString(), out version) ? version : null)
 					: null;
-				if (targetBaseVersion != null && targetBaseVersion != this.appVersion)
+				if (targetBaseVersion is not null && targetBaseVersion != this.appVersion)
 					continue;
 
 				// select package
 				if (!hasOsProperty && !hasArchProperty && !hasRuntimeProperty)
 				{
-					if (genericBaseVersion == null || targetBaseVersion != null)
+					if (genericBaseVersion is null || targetBaseVersion is not null)
 					{
 						genericPackageUri = uri;
 						genericBaseVersion = targetBaseVersion;
@@ -170,12 +178,12 @@ public class JsonPackageResolver : BasePackageResolver
 				}
 				else if (isOsMatched && isArchMatched && isRuntimeMatched)
 				{
-					if (this.SelfContainedPackageOnly && runtimeVersion != null)
+					if (this.SelfContainedPackageOnly && runtimeVersion is not null)
 						continue;
-					if (runtimeVersion == null)
+					if (runtimeVersion is null)
 					{
 						if (!isWindows7 
-							&& (selfContainedBaseVersion == null || targetBaseVersion != null))
+							&& (selfContainedBaseVersion is null || targetBaseVersion is not null))
 						{
 							selfContainedPackageUri = uri;
 							selfContainedBaseVersion = targetBaseVersion;
@@ -187,7 +195,7 @@ public class JsonPackageResolver : BasePackageResolver
 								selfContainedSha512 = jsonValue.GetString();
 						}
 					}
-					else if (baseVersion == null || targetBaseVersion != null)
+					else if (baseVersion is null || targetBaseVersion is not null)
 					{
 						packageUri = uri;
 						baseVersion = targetBaseVersion;
@@ -206,22 +214,23 @@ public class JsonPackageResolver : BasePackageResolver
 		// save result
 		this.ApplicationName = appName;
 		this.PageUri = pageUri;
+		this.PackageInformationalVersion = packageInformationalVersion;
 		this.PackageVersion = packageVersion;
-		if (packageUri != null)
+		if (packageUri is not null)
 		{
 			this.PackageUri = packageUri;
 			this.MD5 = md5;
 			this.SHA256 = sha256;
 			this.SHA512 = sha512;
 		}
-		else if (selfContainedPackageUri != null)
+		else if (selfContainedPackageUri is not null)
 		{
 			this.PackageUri = selfContainedPackageUri;
 			this.MD5 = selfContainedMd5;
 			this.SHA256 = selfContainedSha256;
 			this.SHA512 = selfContainedSha512;
 		}
-		else if (genericPackageUri != null)
+		else if (genericPackageUri is not null)
 		{
 			this.PackageUri = genericPackageUri;
 			this.MD5 = genericMd5;

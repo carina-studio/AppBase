@@ -717,6 +717,12 @@ public abstract class UpdatingSession : ViewModel
 	/// Get state of internal <see cref="Updater"/>.
 	/// </summary>
 	protected UpdaterState UpdaterState => this.updater.State;
+	
+	
+	/// <summary>
+	/// Get informational version of application which is updating to.
+	/// </summary>
+	protected string? UpdatingInformationalVersion => this.updater.PackageResolver?.PackageInformationalVersion;
 
 
 	/// <summary>

@@ -12,6 +12,7 @@ public abstract class BasePackageResolver : BaseUpdaterComponent, IPackageResolv
 	// Fields.
 	string? applicationName;
 	string? md5;
+	string? packageInformationalVersion;
 	Uri? packageUri;
 	Version? packageVersion;
 	Uri? pageUri;
@@ -59,6 +60,23 @@ public abstract class BasePackageResolver : BaseUpdaterComponent, IPackageResolv
 				return;
 			this.md5 = value;
 			this.OnPropertyChanged(nameof(MD5));
+		}
+	}
+
+
+	/// <summary>
+	/// Get or set resolved informational version of update package.
+	/// </summary>
+	public string? PackageInformationalVersion
+	{
+		get => this.packageInformationalVersion;
+		protected set
+		{
+			this.VerifyAccess();
+			if (this.packageInformationalVersion == value)
+				return;
+			this.packageInformationalVersion = value;
+			this.OnPropertyChanged(nameof(PackageInformationalVersion));
 		}
 	}
 
