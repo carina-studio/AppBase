@@ -15,6 +15,7 @@ public class FilePackageResolver : BasePackageResolver
     // Fields.
     readonly string? appName;
     readonly string packageFilePath;
+    readonly string? packageInformationalVersion;
     readonly Version? packageVersion;
 
 
@@ -25,10 +26,12 @@ public class FilePackageResolver : BasePackageResolver
     /// <param name="packageFilePath">Path of package file.</param>
     /// <param name="appName">Application name.</param>
     /// <param name="packageVersion">Version of package.</param>
-    public FilePackageResolver(IApplication app, string packageFilePath, string? appName = null, Version? packageVersion = null) : base(app)
+    /// <param name="packageInformationalVersion">Informational version of package.</param>
+    public FilePackageResolver(IApplication app, string packageFilePath, string? appName = null, Version? packageVersion = null, string? packageInformationalVersion = null) : base(app)
     {
         this.appName = appName;
         this.packageFilePath = packageFilePath;
+        this.packageInformationalVersion = packageInformationalVersion;
         this.packageVersion = packageVersion;
         base.Source = new MemoryStreamProvider([], false);
     }
@@ -49,6 +52,7 @@ public class FilePackageResolver : BasePackageResolver
             _ => new Uri($"file://{this.packageFilePath}"),
         };
         this.PackageVersion = this.packageVersion;
+        this.PackageInformationalVersion = this.packageInformationalVersion;
         return Task.CompletedTask;
     }
 
