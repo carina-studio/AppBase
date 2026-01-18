@@ -61,6 +61,44 @@ class SynchronizationContextExtensionsTests
 
 
 	/// <summary>
+	/// Test for posting asynchronous call-back.
+	/// </summary>
+	[Test]
+	public void PostAsyncCallbackTest()
+	{
+		// prepare
+		var syncContext = new SingleThreadSynchronizationContext();
+		
+		// post call-back
+		{
+			var tcs = new TaskCompletionSource();
+			syncContext.Post(async () =>
+			{
+				await Task.Delay(500);
+				tcs.TrySetResult();
+			});
+			Assert.That(tcs.Task.Wait(TimeSpan.FromMilliseconds(3000)), "The task should be completed.");
+		}
+		
+		// post call-back with exception
+		{
+			var tcs = new TaskCompletionSource();
+			syncContext.Post(async () =>
+			{
+				await Task.Delay(500);
+				throw new Exception("Test");
+			}, task =>
+			{
+				Assert.That(task.IsFaulted);
+				Assert.That(task.Exception?.InnerException?.Message == "Test");
+				tcs.TrySetResult();
+			});
+			Assert.That(tcs.Task.Wait(TimeSpan.FromMilliseconds(3000)), "The task should be completed.");
+		}
+	}
+
+
+	/// <summary>
 	/// Test for using PostDelayed().
 	/// </summary>
 	[Test]
@@ -140,6 +178,20 @@ class SynchronizationContextExtensionsTests
 
 		// cancel delayed call-back after disposing sync context
 		Assert.That(!singleThreadSyncContext.CancelDelayed(postToken));
+		
+		// post asynchronous call-back with delay
+		{
+			var tcs = new TaskCompletionSource();
+			postTime = stopWatch.ElapsedMilliseconds;
+			syncContext.PostDelayed(async () =>
+			{
+				var elapsedTime = stopWatch.ElapsedMilliseconds - postTime;
+				Assert.That(elapsedTime >= 1000 && elapsedTime <= 1500);
+				await Task.Delay(500);
+				tcs.TrySetResult();
+			}, 1000);
+			Assert.That(tcs.Task.Wait(TimeSpan.FromMilliseconds(30000)), "The task should be completed.");
+		}
 	}
 
 

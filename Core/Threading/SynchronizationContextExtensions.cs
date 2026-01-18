@@ -90,8 +90,29 @@ public static class SynchronizationContextExtensions
 	/// <param name="synchronizationContext"><see cref="SynchronizationContext"/>.</param>
 	/// <param name="callback">Call-back.</param>
 	[ThreadSafe]
-	public static void Post(this SynchronizationContext synchronizationContext, Action callback) => 
-		synchronizationContext.Post(_ => callback(), null);
+	public static void Post(this SynchronizationContext synchronizationContext, Action callback) =>
+		synchronizationContext.Post(WrapCallback(callback), null);
+
+
+	/// <summary>
+	/// Post call-back.
+	/// </summary>
+	/// <param name="synchronizationContext"><see cref="SynchronizationContext"/>.</param>
+	/// <param name="callback">Asynchronous call-back.</param>
+	[ThreadSafe]
+	public static void Post(this SynchronizationContext synchronizationContext, Func<Task> callback) =>
+		synchronizationContext.Post(WrapCallback(callback), null);
+	
+	
+	/// <summary>
+	/// Post call-back.
+	/// </summary>
+	/// <param name="synchronizationContext"><see cref="SynchronizationContext"/>.</param>
+	/// <param name="callback">Asynchronous call-back.</param>
+	/// <param name="completion">Method to be called when asynchronous call-back completed.</param>
+	[ThreadSafe]
+	internal static void Post(this SynchronizationContext synchronizationContext, Func<Task> callback, Action<Task> completion) =>
+		synchronizationContext.Post(WrapCallback(callback, completion), null);
 
 
 	/// <summary>
@@ -102,10 +123,35 @@ public static class SynchronizationContextExtensions
 	/// <param name="delayMillis">Delayed time in milliseconds.</param>
 	/// <returns>Token of posted delayed call-back.</returns>
 	[ThreadSafe]
-	public static object PostDelayed(this SynchronizationContext synchronizationContext, Action callback, int delayMillis) => 
-		PostDelayed(synchronizationContext, _ => callback(), null, delayMillis);
+	public static object PostDelayed(this SynchronizationContext synchronizationContext, Action callback, int delayMillis) =>
+		synchronizationContext.PostDelayed(WrapCallback(callback), null, delayMillis);
 	
 	
+	/// <summary>
+	/// Post delayed call-back.
+	/// </summary>
+	/// <param name="synchronizationContext"><see cref="SynchronizationContext"/>.</param>
+	/// <param name="callback">Asynchronous call-back.</param>
+	/// <param name="delayMillis">Delayed time in milliseconds.</param>
+	/// <returns>Token of posted delayed call-back.</returns>
+	[ThreadSafe]
+	public static object PostDelayed(this SynchronizationContext synchronizationContext, Func<Task> callback, int delayMillis) =>
+		synchronizationContext.PostDelayed(WrapCallback(callback), null, delayMillis);
+	
+	
+	/// <summary>
+	/// Post delayed call-back.
+	/// </summary>
+	/// <param name="synchronizationContext"><see cref="SynchronizationContext"/>.</param>
+	/// <param name="callback">Asynchronous call-back.</param>
+	/// <param name="completion">Method to be called when asynchronous call-back completed.</param>
+	/// <param name="delayMillis">Delayed time in milliseconds.</param>
+	/// <returns>Token of posted delayed call-back.</returns>
+	[ThreadSafe]
+	internal static object PostDelayed(this SynchronizationContext synchronizationContext, Func<Task> callback, Action<Task> completion, int delayMillis) =>
+		synchronizationContext.PostDelayed(WrapCallback(callback, completion), null, delayMillis);
+
+
 	/// <summary>
 	/// Post delayed call-back.
 	/// </summary>
@@ -118,7 +164,24 @@ public static class SynchronizationContextExtensions
 	{
 		var ms = delay.TotalMilliseconds;
 		if (ms <= int.MaxValue)
-			return PostDelayed(synchronizationContext, _ => callback(), null, (int)ms);
+			return synchronizationContext.PostDelayed(WrapCallback(callback), null, (int)ms);
+		throw new ArgumentException("The delayed time in milliseconds cannot be greater than Int32.MaxValue.");
+	}
+	
+	
+	/// <summary>
+	/// Post delayed call-back.
+	/// </summary>
+	/// <param name="synchronizationContext"><see cref="SynchronizationContext"/>.</param>
+	/// <param name="callback">Asynchronous call-back.</param>
+	/// <param name="delay">Delayed time.</param>
+	/// <returns>Token of posted delayed call-back.</returns>
+	[ThreadSafe]
+	public static object PostDelayed(this SynchronizationContext synchronizationContext, Func<Task> callback, TimeSpan delay)
+	{
+		var ms = delay.TotalMilliseconds;
+		if (ms <= int.MaxValue)
+			return synchronizationContext.PostDelayed(WrapCallback(callback), null, (int)ms);
 		throw new ArgumentException("The delayed time in milliseconds cannot be greater than Int32.MaxValue.");
 	}
 
@@ -136,7 +199,7 @@ public static class SynchronizationContextExtensions
 	{
 		var ms = delay.TotalMilliseconds;
 		if (ms <= int.MaxValue)
-			return PostDelayed(synchronizationContext, callback, state, (int)ms);
+			return synchronizationContext.PostDelayed(callback, state, (int)ms);
 		throw new ArgumentException("The delayed time in milliseconds cannot be greater than Int32.MaxValue.");
 	}
 
@@ -364,4 +427,31 @@ public static class SynchronizationContextExtensions
 		});
 		return taskCompletionSource.Task;
 	}
+	
+	
+	// Wrap call-back with Task as SendOrPostCallback.
+	static SendOrPostCallback WrapCallback(Action callback) =>
+		_ => callback();
+
+
+	// Wrap call-back with Task as SendOrPostCallback.
+	static SendOrPostCallback WrapCallback(Func<Task> callback, Action<Task>? completion = null) =>
+		_ =>
+		{
+			var task = callback();
+			if (!task.IsCompleted)
+			{
+				task.GetAwaiter().OnCompleted(() =>
+				{
+					if (completion is not null)
+						completion(task);
+					else if (task.IsFaulted)
+						throw task.Exception?.InnerException!;
+				});
+			}
+			else if (completion is not null)
+				completion(task);
+			else if (task.IsFaulted)
+				throw task.Exception?.InnerException!;
+		};
 }
