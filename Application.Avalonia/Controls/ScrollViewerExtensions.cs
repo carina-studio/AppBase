@@ -158,10 +158,13 @@ public static class ScrollViewerExtensions
 	    var offsetY = Math.Max(0, Math.Min(offset.Y, extent.Height - viewportSize.Height));
 	    var diffX = (offsetX - currentOffset.X);
 	    var diffY = (offsetY - currentOffset.Y);
-	    if (Math.Abs(diffX) < Double.Epsilon * 2 && Math.Abs(diffY) < double.Epsilon * 2)
-		    return false;
-	    
-	    // cancel previous scrolling
+        if (Math.Abs(diffX) < Double.Epsilon * 2 && Math.Abs(diffY) < double.Epsilon * 2)
+        {
+            onCompleted?.Invoke();
+            return true;
+        }
+
+        // cancel previous scrolling
         if (SmoothScrollingAnimators.TryGetValue(scrollViewer, out var prevAnimator))
             prevAnimator.Cancel();
         SmoothScrollingTargetOffsets.Remove(scrollViewer);
