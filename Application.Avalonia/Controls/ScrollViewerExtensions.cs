@@ -37,7 +37,7 @@ public static class ScrollViewerExtensions
 	/// <param name="visual"><see cref="Visual"/> inside <see cref="ScrollViewer"/>.</param>
 	/// <returns>True if visual has been scrolled into view.</returns>
 	public static bool ScrollIntoView(this ScrollViewer scrollViewer, Visual visual) =>
-		ScrollIntoView(scrollViewer, visual, TimeSpan.Zero, null, false);
+		ScrollIntoView(scrollViewer, visual, TimeSpan.Zero, null, false, null, null);
 	
 	
 	/// <summary>
@@ -48,11 +48,11 @@ public static class ScrollViewerExtensions
 	/// <param name="scrollToCenter">True to try scrolling <see cref="Visual"/> to center of viewport.</param>
 	/// <returns>True if visual has been scrolled into view.</returns>
 	public static bool ScrollIntoView(this ScrollViewer scrollViewer, Visual visual, bool scrollToCenter) =>
-		ScrollIntoView(scrollViewer, visual, TimeSpan.Zero, null, scrollToCenter);
+		ScrollIntoView(scrollViewer, visual, TimeSpan.Zero, null, scrollToCenter, null, null);
 	
 	
 	// Scroll given visual into viewport of ScrollViewer.
-    static bool ScrollIntoView(ScrollViewer scrollViewer, Visual visual, TimeSpan duration, Func<double, double>? interpolator, bool scrollToCenter)
+    static bool ScrollIntoView(ScrollViewer scrollViewer, Visual visual, TimeSpan duration, Func<double, double>? interpolator, bool scrollToCenter, Action? onCompleted, Action? onCancelled)
     {
         // check parameter
         if (scrollViewer == visual)
@@ -139,12 +139,12 @@ public static class ScrollViewerExtensions
         });
         
         // scroll to content
-        return ScrollTo(scrollViewer, new(newOffsetX, newOffsetY), duration, interpolator);
+        return ScrollTo(scrollViewer, new(newOffsetX, newOffsetY), duration, interpolator, onCompleted, onCancelled);
     }
     
     
     // Scroll to given offset.
-    static bool ScrollTo(ScrollViewer scrollViewer, Vector offset, TimeSpan duration, Func<double, double>? interpolator)
+    static bool ScrollTo(ScrollViewer scrollViewer, Vector offset, TimeSpan duration, Func<double, double>? interpolator, Action? onCompleted, Action? onCancelled)
     {
 	    // get top level
 	    if (TopLevel.GetTopLevel(scrollViewer) is not { } topLevel)
@@ -187,6 +187,7 @@ public static class ScrollViewerExtensions
                     scrollViewer.RemoveHandler(InputElement.PointerPressedEvent, OnPointerPressed);
                     scrollViewer.RemoveHandler(InputElement.PointerWheelChangedEvent, OnPointerWheelChanged);
                     viewportChangedObserverToken.Dispose();
+                    onCancelled?.Invoke();
                 };
                 it.Completed += (_, _) =>
                 {
@@ -199,6 +200,7 @@ public static class ScrollViewerExtensions
                     scrollViewer.RemoveHandler(InputElement.PointerPressedEvent, OnPointerPressed);
                     scrollViewer.RemoveHandler(InputElement.PointerWheelChangedEvent, OnPointerWheelChanged);
                     viewportChangedObserverToken.Dispose();
+                    onCompleted?.Invoke();
                 };
                 it.Duration = duration;
                 it.Interpolator = interpolator ?? Interpolators.Default;
@@ -211,7 +213,10 @@ public static class ScrollViewerExtensions
             animator.Start();
         }
         else
+        {
             scrollViewer.Offset = new(offsetX, offsetY);
+            onCompleted?.Invoke();
+        }
         return true;
     }
     
@@ -225,8 +230,24 @@ public static class ScrollViewerExtensions
     /// <param name="interpolator">Interpolator of smooth scrolling.</param>
     /// <param name="scrollToCenter">True to scroll content to center of viewport.</param>
     /// <returns>True if smooth scrolling starts successfully.</returns>
-    public static bool SmoothScrollIntoView(this ScrollViewer scrollViewer, Visual visual, TimeSpan duration, Func<double, double>? interpolator = null, bool scrollToCenter = true) =>
-	    ScrollIntoView(scrollViewer, visual, duration, interpolator, scrollToCenter);
+    public static bool SmoothScrollIntoView(this ScrollViewer scrollViewer, Visual visual, TimeSpan duration, Func<double, double>? interpolator, bool scrollToCenter) =>
+	    ScrollIntoView(scrollViewer, visual, duration, interpolator, scrollToCenter, null, null);
+    
+    
+    /// <summary>
+    /// Scroll given <see cref="Visual"/> smoothly into viewport of <see cref="ScrollViewer"/>.
+    /// </summary>
+    /// <param name="scrollViewer"><see cref="ScrollViewer"/>.</param>
+    /// <param name="visual"><see cref="Visual"/>.</param>
+    /// <param name="duration">Duration of smooth scrolling.</param>
+    /// <param name="interpolator">Interpolator of smooth scrolling.</param>
+    /// <param name="scrollToCenter">True to scroll content to center of viewport.</param>
+    /// <param name="onCompleted">Function to be called when scrolling completed.</param>
+    /// <param name="onCancelled">Function to be called when scrolling cancelled.</param>
+    /// <returns>True if smooth scrolling starts successfully.</returns>
+    // ReSharper disable once MethodOverloadWithOptionalParameter
+    public static bool SmoothScrollIntoView(this ScrollViewer scrollViewer, Visual visual, TimeSpan duration, Func<double, double>? interpolator = null, bool scrollToCenter = true, Action? onCompleted = null, Action? onCancelled = null) =>
+        ScrollIntoView(scrollViewer, visual, duration, interpolator, scrollToCenter, onCompleted, onCancelled);
 
 
     /// <summary>
@@ -237,8 +258,23 @@ public static class ScrollViewerExtensions
     /// <param name="duration">Duration of smooth scrolling.</param>
     /// <param name="interpolator">Interpolator of smooth scrolling.</param>
     /// <returns>True if smooth scrolling starts successfully.</returns>
-    public static bool SmoothScrollTo(this ScrollViewer scrollViewer, Vector offset, TimeSpan duration, Func<double, double>? interpolator = null) =>
-	    ScrollTo(scrollViewer, offset, duration, interpolator);
+    public static bool SmoothScrollTo(this ScrollViewer scrollViewer, Vector offset, TimeSpan duration, Func<double, double>? interpolator) =>
+	    ScrollTo(scrollViewer, offset, duration, interpolator, null, null);
+    
+    
+    /// <summary>
+    /// Scroll <see cref="ScrollViewer"/> to given offset smoothly.
+    /// </summary>
+    /// <param name="scrollViewer"><see cref="ScrollViewer"/>.</param>
+    /// <param name="offset">Target offset.</param>
+    /// <param name="duration">Duration of smooth scrolling.</param>
+    /// <param name="interpolator">Interpolator of smooth scrolling.</param>
+    /// <param name="onCompleted">Function to be called when scrolling completed.</param>
+    /// <param name="onCancelled">Function to be called when scrolling cancelled.</param>
+    /// <returns>True if smooth scrolling starts successfully.</returns>
+    // ReSharper disable once MethodOverloadWithOptionalParameter
+    public static bool SmoothScrollTo(this ScrollViewer scrollViewer, Vector offset, TimeSpan duration, Func<double, double>? interpolator = null, Action? onCompleted = null, Action? onCancelled = null) =>
+        ScrollTo(scrollViewer, offset, duration, interpolator, onCompleted, onCancelled);
     
     
     /// <summary>
