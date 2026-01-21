@@ -123,6 +123,18 @@
 				<abControls:LinkTextBlock Text="Disabled"/>
 			</StackPanel>
 			<Separator/>
+			
+			<!-- ListBox -->
+			<TextBlock Classes="Header1" Text="ListBox"/>
+			<Grid ColumnDefinitions="Auto,Auto" HorizontalAlignment="Left">
+				<ListBox Width="200" Name="listBox1" SelectionMode="Multiple">
+				</ListBox>
+				<StackPanel Grid.Column="1" Margin="5,0,0,0">
+					<Button Command="{Binding $parent[Window].SwapListBoxItems}" Content="Swap items" HorizontalAlignment="Stretch"/>
+					<Button Command="{Binding $parent[Window].CheckFocusingOfListBoxItem}" Content="Check focus" Margin="0,5,0,0" HorizontalAlignment="Stretch"/>
+				</StackPanel>
+			</Grid>
+			<Separator/>
 
 			<!-- IPAddressTextBox -->
 			<TextBlock Classes="Header1" Text="IPAddressTextBox"/>
