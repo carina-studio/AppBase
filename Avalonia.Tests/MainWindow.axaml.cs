@@ -1,15 +1,15 @@
-using System.Net;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Shapes;
 using Avalonia.Markup.Xaml;
-using Avalonia.Media;
 using Avalonia.Threading;
+using CarinaStudio.Collections;
 using CarinaStudio.Controls;
 using CarinaStudio.Input.Platform;
 using CarinaStudio.Threading;
 using System;
 using System.Diagnostics;
+using System.Net;
+using System.Threading.Tasks;
 
 namespace CarinaStudio
 {
@@ -45,10 +45,31 @@ namespace CarinaStudio
             startTime = this.stopwatch.ElapsedMilliseconds;
             this.scheduledAction.Schedule(5566);
             //this.scheduledAction.Cancel();
+
+            this.Get<ListBox>("listBox1").ItemsSource = new ObservableList<string>
+            {
+                "Item 1",
+                "Item 2",
+                "Item 3",
+                "Item 4"
+            };
         }
 
 
-        public async void ClipboardTest()
+        public void CheckFocusingOfListBoxItem()
+        {
+            var listBox = this.Get<ListBox>("listBox1");
+            listBox.FocusSelectedItem();
+#if NET10_0_OR_GREATER
+            var focused = listBox.IsSelectedItemFocused;
+#else
+            var focused = listBox.IsSelectedItemFocused();
+#endif
+            Debug.WriteLine($"Focus on selected item: {focused}");
+        }
+
+
+        public async Task ClipboardTest()
         {
             var clipboard = this.Clipboard!;
             var data = new byte[] { 128 };
@@ -124,7 +145,12 @@ namespace CarinaStudio
         public void SetTimeSpanToTimeSpanTextBox() =>
             this.FindControl<TimeSpanTextBox>("timeSpanTextBox3")?.Let(it => it.Value = DateTime.Now - new DateTime(1970, 1, 1));
 
+        
         public void SetUriToUriTextBox() =>
             this.FindControl<UriTextBox>("uriTextBox4")?.Let(it => it.Object = new Uri("https://github.com/"));
+
+
+        public void SwapListBoxItems() =>
+            this.Find<ListBox>("listBox1")?.TryMoveItem<string>(0, 1, scrollIntoView: false);
     }
 }
