@@ -15,7 +15,7 @@ public class PathEqualityComparer : IEqualityComparer<string>
 
 
 	// Static fields.
-	static readonly bool ignoreCases = Platform.IsWindows;
+	static readonly bool ignoreCases = Platform.IsWindows || Platform.IsMacOS;
 
 
 	// Constructor.
