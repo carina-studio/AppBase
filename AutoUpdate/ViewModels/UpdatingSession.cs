@@ -139,6 +139,7 @@ public abstract class UpdatingSession : ViewModel
 	string? applicationDirectoryPath;
 	readonly MutableObservableBoolean canCancelUpdating = new();
 	readonly MutableObservableBoolean canStartUpdating = new(true);
+	bool keepUnrelatedFiles = true;
 	IStreamProvider? packageManifestSource;
 	CancellationTokenSource? refreshAppIconCancellationTokenSource;
 	bool selfContainedPackageOnly;
@@ -377,6 +378,26 @@ public abstract class UpdatingSession : ViewModel
 	/// Check whether downloaded update package is being verified or not.
 	/// </summary>
 	public bool IsVerifyingPackage => this.GetValue(IsVerifyingPackageProperty);
+	
+	
+	/// <summary>
+	/// Get or set whether the unrelated files in the target directory should be kept after the installation or not.
+	/// </summary>
+	public bool KeepUnrelatedFiles
+	{
+		get => this.keepUnrelatedFiles;
+		set
+		{
+			this.VerifyAccess();
+			this.VerifyDisposed();
+			if (this.updater.State != UpdaterState.Initializing)
+				throw new InvalidOperationException();
+			if (this.keepUnrelatedFiles == value)
+				return;
+			this.keepUnrelatedFiles = value;
+			this.OnPropertyChanged(nameof(KeepUnrelatedFiles));
+		}
+	}
 
 
 	/// <summary>
@@ -673,7 +694,10 @@ public abstract class UpdatingSession : ViewModel
 
 		// prepare updater
 		this.updater.ApplicationDirectoryPath = applicationDirectoryPath;
-		this.updater.PackageInstaller = new ZipPackageInstaller(this.Application);
+		this.updater.PackageInstaller = new ZipPackageInstaller(this.Application)
+		{
+			KeepUnrelatedFiles = this.keepUnrelatedFiles
+		};
 		this.updater.PackageResolver = this.CreatePackageResolver(this.packageManifestSource).Also(it =>
 		{
 			it.SelfContainedPackageOnly = this.selfContainedPackageOnly;
