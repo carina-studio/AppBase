@@ -39,15 +39,14 @@ public class ZipPackageInstaller : BasePackageInstaller
 
 
 	// Get path of application icon file.
-	async Task<AppIconInfo?> GetMacOSApplicationIconAsync(CancellationToken cancellationToken)
+	async Task<AppIconInfo?> GetMacOSApplicationIconAsync(string directory, CancellationToken cancellationToken)
 	{
 		// check state
-		var targetRootDirectory = this.TargetDirectoryPath.AsNonNull();
-		if (!targetRootDirectory.EndsWith(".app") && !targetRootDirectory.EndsWith(".app/")) 
+		if (!directory.EndsWith(".app") && !directory.EndsWith(".app/")) 
 			return null;
 		
 		// check resource directory
-		var resDirectory = Path.Combine(targetRootDirectory, "Contents", "Resources");
+		var resDirectory = Path.Combine(directory, "Contents", "Resources");
 		var isResDirectoryExists = await Task.Run(() =>
 		{
 			try
@@ -72,7 +71,7 @@ public class ZipPackageInstaller : BasePackageInstaller
 			try
 			{
 				// load XML
-				using var reader = new StreamReader(Path.Combine(targetRootDirectory, "Contents", "Info.plist"), Encoding.UTF8);
+				using var reader = new StreamReader(Path.Combine(directory, "Contents", "Info.plist"), Encoding.UTF8);
 				var xmlDocument = new XmlDocument().Also(it => it.Load(reader));
 				cancellationToken.ThrowIfCancellationRequested();
 
@@ -169,6 +168,7 @@ public class ZipPackageInstaller : BasePackageInstaller
 		}
 
 		// create target directory
+		string? backedUpRootDirectory = null;
 		var targetRootDirectory = this.TargetDirectoryPath.AsNonNull();
 		this.Logger.LogDebug("Install to {targetRootDirectory}", targetRootDirectory);
 		if (File.Exists(targetRootDirectory))
@@ -178,127 +178,171 @@ public class ZipPackageInstaller : BasePackageInstaller
 			this.Logger.LogDebug("Create {targetRootDirectory}", targetRootDirectory);
 			Directory.CreateDirectory(targetRootDirectory);
 		}
-		
-		// get original application icon on macOS
-		var originalAppIconInfo = Platform.IsMacOS
-			? await GetMacOSApplicationIconAsync(cancellationToken)
-			: null;
-		if (originalAppIconInfo is not null)
-			this.Logger.LogDebug("Original application icon: '{path}'", originalAppIconInfo.FilePath);
-
-		// cancellation check
-		if (cancellationToken.IsCancellationRequested)
+		else if (!this.KeepUnrelatedFiles)
 		{
-			this.Logger.LogWarning("Installation has been cancelled");
-			throw new OperationCanceledException();
-		}
-
-		// extract files
-		var entryCount = zipArchive.Entries.Count;
-		var extractedEntryCount = 0;
-		var targetRootDirectoryName = Path.GetFileName(targetRootDirectory);
-		var isTargetRootDirAnAppBundle = Platform.IsMacOS && targetRootDirectoryName.EndsWith(".app");
-		if (isTargetRootDirAnAppBundle)
-			this.Logger.LogDebug("Target root directory is an application bundle");
-		this.ReportProgress(0);
-		foreach (var zipEntry in zipArchive.Entries)
-		{
-			var zipEntryPath = zipEntry.FullName.Let(it => Path.DirectorySeparatorChar switch
+			backedUpRootDirectory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+			this.Logger.LogDebug("Move {targetRootDirectory} to {tempDirectory}", targetRootDirectory, backedUpRootDirectory);
+			try
 			{
-				'\\' => it.Replace('/', '\\'),
-				'/' => it.Replace('\\', '/'),
-				_ => it,
-			});
-			if (isTargetRootDirAnAppBundle)
-			{
-				var zipEntryPathSegments = zipEntryPath.Split('/');
-				if (zipEntryPathSegments[0].EndsWith(".app"))
-				{
-					if (zipEntryPathSegments.Length == 1)
-						continue;
-					zipEntryPath = zipEntryPath[(zipEntryPathSegments[0].Length + 1)..];
-					if (string.IsNullOrEmpty(zipEntryPath))
-						continue;
-				}
+				await this.CopyDirectoryAsync(targetRootDirectory, backedUpRootDirectory, cancellationToken);
+				Directory.Delete(targetRootDirectory, true);
 			}
-			var targetFileName = Path.Combine(targetRootDirectory, zipEntryPath);
-			var targetDirectory = Path.GetDirectoryName(targetFileName);
-			if (targetDirectory != null)
-			{
-				this.Logger.LogTrace("Create directory '{targetDirectory}'", targetRootDirectory);
-				Directory.CreateDirectory(targetDirectory);
-			}
-			if (zipEntryPath.EndsWith(Path.DirectorySeparatorChar))
-				continue;
-			var retryCount = 10;
-			while (true)
+			catch
 			{
 				try
 				{
-					if (!this.OnInstallingFile(targetFileName))
+					Directory.Delete(backedUpRootDirectory, true);
+				}
+				catch
+				{ /* best effort */ }
+				throw;
+			}
+			this.Logger.LogDebug("Create {targetRootDirectory}", targetRootDirectory);
+			Directory.CreateDirectory(targetRootDirectory);
+		}
+		
+		// install package
+		try
+		{
+			// get original application icon on macOS
+			var originalAppIconInfo = Platform.IsMacOS
+				? await GetMacOSApplicationIconAsync(backedUpRootDirectory ?? targetRootDirectory, cancellationToken)
+				: null;
+			if (originalAppIconInfo is not null)
+				this.Logger.LogDebug("Original application icon: '{path}'", originalAppIconInfo.FilePath);
+
+			// cancellation check
+			if (cancellationToken.IsCancellationRequested)
+			{
+				this.Logger.LogWarning("Installation has been cancelled");
+				throw new OperationCanceledException();
+			}
+
+			// extract files
+			var entryCount = zipArchive.Entries.Count;
+			var extractedEntryCount = 0;
+			var targetRootDirectoryName = Path.GetFileName(targetRootDirectory);
+			var isTargetRootDirAnAppBundle = Platform.IsMacOS && targetRootDirectoryName.EndsWith(".app");
+			if (isTargetRootDirAnAppBundle)
+				this.Logger.LogDebug("Target root directory is an application bundle");
+			this.ReportProgress(0);
+			foreach (var zipEntry in zipArchive.Entries)
+			{
+				var zipEntryPath = zipEntry.FullName.Let(it => Path.DirectorySeparatorChar switch
+				{
+					'\\' => it.Replace('/', '\\'),
+					'/' => it.Replace('\\', '/'),
+					_ => it,
+				});
+				if (isTargetRootDirAnAppBundle)
+				{
+					var zipEntryPathSegments = zipEntryPath.Split('/');
+					if (zipEntryPathSegments[0].EndsWith(".app"))
 					{
-						retryCount = 0;
-						throw new Exception($"Installation of '{targetFileName}' was interrupted");
+						if (zipEntryPathSegments.Length == 1)
+							continue;
+						zipEntryPath = zipEntryPath[(zipEntryPathSegments[0].Length + 1)..];
+						if (string.IsNullOrEmpty(zipEntryPath))
+							continue;
 					}
-					if (File.Exists(targetFileName))
+				}
+				var targetFileName = Path.Combine(targetRootDirectory, zipEntryPath);
+				var targetDirectory = Path.GetDirectoryName(targetFileName);
+				if (targetDirectory != null)
+				{
+					this.Logger.LogTrace("Create directory '{targetDirectory}'", targetRootDirectory);
+					Directory.CreateDirectory(targetDirectory);
+				}
+				if (zipEntryPath.EndsWith(Path.DirectorySeparatorChar))
+					continue;
+				var retryCount = 10;
+				while (true)
+				{
+					try
 					{
-						this.Logger.LogTrace("Delete file '{targetFileName}'", targetFileName);
-						File.Delete(targetFileName);
-					}
-					this.Logger.LogTrace("Install file '{zipEntryPath}' to '{targetFileName}'", zipEntryPath, targetFileName);
+						if (!this.OnInstallingFile(targetFileName))
+						{
+							retryCount = 0;
+							throw new Exception($"Installation of '{targetFileName}' was interrupted");
+						}
+						if (File.Exists(targetFileName))
+						{
+							this.Logger.LogTrace("Delete file '{targetFileName}'", targetFileName);
+							File.Delete(targetFileName);
+						}
+						this.Logger.LogTrace("Install file '{zipEntryPath}' to '{targetFileName}'", zipEntryPath, targetFileName);
 #if NET10_0_OR_GREATER
 					await zipEntry.ExtractToFileAsync(targetFileName, false, cancellationToken);
 #else
-					zipEntry.ExtractToFile(targetFileName, false);
+						zipEntry.ExtractToFile(targetFileName, false);
 #endif
-					break;
-				}
-				catch (Exception ex)
-				{
-					if (retryCount > 0)
-					{
-						--retryCount;
-						this.Logger.LogError(ex, "Unable to install file '{zipEntryPath}' to '{targetFileName}', try again", zipEntryPath, targetFileName);
-						Thread.Sleep(500);
+						break;
 					}
-					else
+					catch (Exception ex)
 					{
-						this.Logger.LogError(ex, "Unable to install file '{zipEntryPath}' to '{targetFileName}'", zipEntryPath, targetFileName);
-						throw;
+						if (retryCount > 0)
+						{
+							--retryCount;
+							this.Logger.LogError(ex, "Unable to install file '{zipEntryPath}' to '{targetFileName}', try again", zipEntryPath, targetFileName);
+							Thread.Sleep(500);
+						}
+						else
+						{
+							this.Logger.LogError(ex, "Unable to install file '{zipEntryPath}' to '{targetFileName}'", zipEntryPath, targetFileName);
+							throw;
+						}
+					}
+					if (cancellationToken.IsCancellationRequested)
+					{
+						this.Logger.LogWarning("Installation has been cancelled");
+						throw new OperationCanceledException();
 					}
 				}
+				this.ReportInstalledFilePath(targetFileName);
+				this.ReportProgress((double)(++extractedEntryCount) / entryCount);
 				if (cancellationToken.IsCancellationRequested)
 				{
 					this.Logger.LogWarning("Installation has been cancelled");
 					throw new OperationCanceledException();
 				}
 			}
-			this.ReportInstalledFilePath(targetFileName);
-			this.ReportProgress((double)(++extractedEntryCount) / entryCount);
-			if (cancellationToken.IsCancellationRequested)
+
+			// check whether application icon has been updated or not
+			if (Platform.IsMacOS)
 			{
-				this.Logger.LogWarning("Installation has been cancelled");
-				throw new OperationCanceledException();
-			}
-		}
-		
-		// check whether application icon has been updated or not
-		if (Platform.IsMacOS)
-		{
-			var newAppIconInfo = await GetMacOSApplicationIconAsync(cancellationToken);
-			this.Logger.LogDebug("New application icon: '{path}'", newAppIconInfo?.FilePath);
-			if (newAppIconInfo is not null)
-			{
-				if (originalAppIconInfo is not null)
+				var newAppIconInfo = await GetMacOSApplicationIconAsync(targetRootDirectory, cancellationToken);
+				this.Logger.LogDebug("New application icon: '{path}'", newAppIconInfo?.FilePath);
+				if (newAppIconInfo is not null)
 				{
-					this.isAppIconUpdated = !PathEqualityComparer.Default.Equals(originalAppIconInfo.FilePath, newAppIconInfo.FilePath)
-					                        || originalAppIconInfo.FileHashCode != newAppIconInfo.FileHashCode;
+					if (originalAppIconInfo is not null)
+					{
+						this.isAppIconUpdated = !PathEqualityComparer.Default.Equals(originalAppIconInfo.FilePath, newAppIconInfo.FilePath)
+						                        || originalAppIconInfo.FileHashCode != newAppIconInfo.FileHashCode;
+					}
+					else
+						this.isAppIconUpdated = true;
 				}
-				else
+				else if (originalAppIconInfo is not null)
 					this.isAppIconUpdated = true;
 			}
-			else if (originalAppIconInfo is not null)
-				this.isAppIconUpdated = true;
+		}
+		catch (Exception ex)
+		{
+			if (backedUpRootDirectory is not null && ex is not OperationCanceledException)
+				await this.CopyDirectoryAsync(backedUpRootDirectory, targetRootDirectory, CancellationToken.None /* should not be cancelled */);
+			throw;
+		}
+		finally
+		{
+			if (backedUpRootDirectory is not null)
+			{
+				try
+				{
+					Directory.Delete(backedUpRootDirectory, true);
+				}
+				catch
+				{ /* best effort */ }
+			}
 		}
 	}, cancellationToken);
 }
