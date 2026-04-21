@@ -5,6 +5,7 @@ using CarinaStudio.Logging;
 using Microsoft.Extensions.Logging;
 #endif
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Security.Cryptography;
@@ -304,6 +305,27 @@ public class ZipPackageInstaller : BasePackageInstaller
 				{
 					this.Logger.LogWarning("Installation has been cancelled");
 					throw new OperationCanceledException();
+				}
+			}
+
+			// strip quarantine attributes on macOS
+			if (Platform.IsMacOS)
+			{
+				this.Logger.LogDebug("Strip quarantine attributes from '{targetRootDirectory}'", targetRootDirectory);
+				try
+				{
+					using var process = Process.Start(new ProcessStartInfo("xattr")
+					{
+						ArgumentList = { "-cr", targetRootDirectory },
+						CreateNoWindow = true,
+						UseShellExecute = false,
+					});
+					if (process is not null)
+						await process.WaitForExitAsync(cancellationToken);
+				}
+				catch (Exception ex)
+				{
+					this.Logger.LogWarning(ex, "Failed to strip quarantine attributes from '{targetRootDirectory}'", targetRootDirectory);
 				}
 			}
 
