@@ -4,12 +4,10 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using CarinaStudio.Collections;
 using CarinaStudio.Controls;
-using CarinaStudio.Input.Platform;
 using CarinaStudio.Threading;
 using System;
 using System.Diagnostics;
 using System.Net;
-using System.Threading.Tasks;
 
 namespace CarinaStudio
 {
@@ -69,16 +67,6 @@ namespace CarinaStudio
         }
 
 
-        public async Task ClipboardTest()
-        {
-            var clipboard = this.Clipboard!;
-            var data = new byte[] { 128 };
-            await clipboard.SetTextAndDataAsync("Text", "CustomDataFormat", data);
-            var dataAndText = await clipboard.GetDataOrTextAsync("CustomDataFormat");
-            var textAndData = await clipboard.GetTextOrDataAsync("CustomDataFormat");
-        }
-
-
         public DateTime? DateTimeValue
         {
             get => this.dateTimeValue;
@@ -101,7 +89,7 @@ namespace CarinaStudio
         }
 
 
-        string LongText => this.GetValue(LongTextProperty);
+        public string LongText => this.GetValue(LongTextProperty);
 
 
         public void RefreshLongText()

@@ -1,7 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Interactivity;
+using Avalonia.Input.Platform;
 using CarinaStudio.Threading;
 using System;
 using System.Text;
@@ -74,7 +74,7 @@ public abstract class ValueTextBox : TextBox
 		{
 			TopLevel.GetTopLevel(this)?.Clipboard?.LetAsync(async clipboard =>
 			{
-				this.OnPastingFromClipboard(await clipboard.GetTextAsync());
+				this.OnPastingFromClipboard(await clipboard.TryGetTextAsync());
 			});
 			e.Handled = true;
 		};
@@ -153,7 +153,7 @@ public abstract class ValueTextBox : TextBox
 
 
 	/// <inheritdoc/>
-	protected override void OnLostFocus(RoutedEventArgs e)
+	protected override void OnLosingFocus(FocusChangingEventArgs e)
 	{
 		if (this.GetValue(CoerceValueWhenLostFocusProperty))
 		{
@@ -166,7 +166,7 @@ public abstract class ValueTextBox : TextBox
 					this.SetValue(ValueProperty, this.lastValidValue);
 			}
 		}
-		base.OnLostFocus(e);
+		base.OnLosingFocus(e);
 	}
 	
 	

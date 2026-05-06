@@ -1,6 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Input.Platform;
 using CarinaStudio.Threading;
 using System;
 using System.Text;
@@ -45,7 +46,7 @@ public abstract class ObjectTextBox : TextBox
 		{
 			TopLevel.GetTopLevel(this)?.Clipboard?.LetAsync(async clipboard =>
 			{
-				this.OnPastingFromClipboard(await clipboard.GetTextAsync());
+				this.OnPastingFromClipboard(await clipboard.TryGetTextAsync());
 			});
 			e.Handled = true;
 		};

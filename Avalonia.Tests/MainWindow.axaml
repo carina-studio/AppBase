@@ -7,6 +7,7 @@
 		xmlns:sys="using:System"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="CarinaStudio.MainWindow"
+        Name="window"
         Title="Avalonia.Tests">
 	
 	<Window.Resources>
@@ -46,32 +47,27 @@
 	<ScrollViewer Margin="10">
 		<StackPanel>
 
-			<!-- Clipboard -->
-			<TextBlock Classes="Header1" Text="Clipboard"/>
-			<Button Command="{Binding $parent[Window].ClipboardTest}" Content="Test" HorizontalAlignment="Left"/>
-			<Separator/>
-
 			<!-- DateTimeTextBox -->
 			<TextBlock Classes="Header1" Text="DateTimeTextBox"/>
 			<abControls:DateTimeTextBox Name="dateTimeTextBox1" DefaultValue="{x:Static sys:DateTime.Now}" HorizontalAlignment="Left" IsNullValueAllowed="False" Width="300"/>
 			<TextBlock Classes="Footer" Text="{Binding #dateTimeTextBox1.Value, StringFormat={}Value: {0}}"/>
 			<Separator Classes="Small"/>
 
-			<abControls:DateTimeTextBox Name="dateTimeTextBox2" HorizontalAlignment="Left" IsNullValueAllowed="True" Watermark="Null value allowed" Width="300"/>
+			<abControls:DateTimeTextBox Name="dateTimeTextBox2" HorizontalAlignment="Left" IsNullValueAllowed="True" PlaceholderText="Null value allowed" Width="300"/>
 			<TextBlock Classes="Footer" Text="{Binding #dateTimeTextBox2.Value, StringFormat={}Value: {0}}"/>
 			<Separator Classes="Small"/>
 
 			<StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
 				<abControls:DateTimeTextBox Name="dateTimeTextBox3" HorizontalAlignment="Left" Width="300"/>
 				<Separator Classes="Small"/>
-				<Button Command="{Binding $parent[Window].SetDateTimeToDateTimeTextBox}" Content="Set to current time"/>
+				<Button Command="{Binding #window.SetDateTimeToDateTimeTextBox}" Content="Set to current time"/>
 			</StackPanel>
 			<Separator Classes="Small"/>
 			
 			<StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
-				<abControls:DateTimeTextBox Name="dateTimeTextBox4" HorizontalAlignment="Left" Value="{Binding $parent[Window].DateTimeValue, Mode=TwoWay}" Width="300"/>
+				<abControls:DateTimeTextBox Name="dateTimeTextBox4" HorizontalAlignment="Left" Value="{Binding #window.DateTimeValue, Mode=TwoWay}" Width="300"/>
 				<Separator Classes="Small"/>
-				<Button Command="{Binding $parent[Window].SetDateTimeToDateTimeValue}" Content="Set to current time through binding"/>
+				<Button Command="{Binding #window.SetDateTimeToDateTimeValue}" Content="Set to current time through binding"/>
 			</StackPanel>
 			<Separator/>
 
@@ -79,7 +75,7 @@
 			<TextBlock Classes="Header1" Text="FormattedString"/>
 			<TextBlock>
 				<TextBlock.Text>
-					<Binding Path="String">
+					<Binding x:DataType="cs:FormattedString" Path="String">
 						<Binding.Source>
 							<cs:FormattedString Format="{DynamicResource String/StringFormat}" Arg1="{DynamicResource String/Hello}" Arg2="{DynamicResource String/World}" Arg9="Unused"/>
 						</Binding.Source>
@@ -101,15 +97,15 @@
 			<TextBlock Classes="Footer" Text="{Binding #integerTextBox1.Value, StringFormat={}Value: {0}}"/>
 			<Separator Classes="Small"/>
 			
-			<abControls:IntegerTextBox Name="integerTextBox2" HorizontalAlignment="Left" IsNullValueAllowed="False" Maximum="10" Minimum="-10" Watermark="Range: [-10, 10]" Width="300"/>
+			<abControls:IntegerTextBox Name="integerTextBox2" HorizontalAlignment="Left" IsNullValueAllowed="False" Maximum="10" Minimum="-10" PlaceholderText="Range: [-10, 10]" Width="300"/>
 			<TextBlock Classes="Footer" Text="{Binding #integerTextBox2.Value, StringFormat={}Value: {0}}"/>
 			<Separator Classes="Small"/>
 
-			<abControls:IntegerTextBox Name="integerTextBox3" HorizontalAlignment="Left" IsNullValueAllowed="True" Watermark="Null value allowed" Width="300"/>
+			<abControls:IntegerTextBox Name="integerTextBox3" HorizontalAlignment="Left" IsNullValueAllowed="True" PlaceholderText="Null value allowed" Width="300"/>
 			<TextBlock Classes="Footer" Text="{Binding #integerTextBox3.Value, StringFormat={}Value: {0}}"/>
 			<Separator Classes="Small"/>
 			
-			<abControls:IntegerTextBox Name="integerTextBox4" HorizontalAlignment="Left" IsNullValueAllowed="True" Maximum="10" Minimum="-10" Watermark="Range: [-10, 10], Nullable" Width="300"/>
+			<abControls:IntegerTextBox Name="integerTextBox4" HorizontalAlignment="Left" IsNullValueAllowed="True" Maximum="10" Minimum="-10" PlaceholderText="Range: [-10, 10], Nullable" Width="300"/>
 			<TextBlock Classes="Footer" Text="{Binding #integerTextBox4.Value, StringFormat={}Value: {0}}"/>
 			<Separator/>
 
@@ -118,7 +114,7 @@
 			<StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
 				<abControls:LinkTextBlock Text="Google" Uri="https://google.com/"/>
 				<Separator Classes="Small"/>
-				<abControls:LinkTextBlock Command="{Binding $parent[Window].ExecuteLinkTextBlockCommand}" CommandParameter="{Binding $self}" Text="Execute command"/>
+				<abControls:LinkTextBlock Command="{Binding #window.ExecuteLinkTextBlockCommand}" CommandParameter="{Binding $self}" Text="Execute command"/>
 				<Separator Classes="Small"/>
 				<abControls:LinkTextBlock Text="Disabled"/>
 			</StackPanel>
@@ -130,8 +126,8 @@
 				<ListBox Width="200" Name="listBox1" SelectionMode="Multiple">
 				</ListBox>
 				<StackPanel Grid.Column="1" Margin="5,0,0,0">
-					<Button Command="{Binding $parent[Window].SwapListBoxItems}" Content="Swap items" HorizontalAlignment="Stretch"/>
-					<Button Command="{Binding $parent[Window].CheckFocusingOfListBoxItem}" Content="Check focus" Margin="0,5,0,0" HorizontalAlignment="Stretch"/>
+					<Button Command="{Binding #window.SwapListBoxItems}" Content="Swap items" HorizontalAlignment="Stretch"/>
+					<Button Command="{Binding #window.CheckFocusingOfListBoxItem}" Content="Check focus" Margin="0,5,0,0" HorizontalAlignment="Stretch"/>
 				</StackPanel>
 			</Grid>
 			<Separator/>
@@ -142,21 +138,21 @@
 			<TextBlock Classes="Footer" Text="{Binding #ipAddressTextBox1.Object, StringFormat={}IP address: {0}}"/>
 			<Separator Classes="Small"/>
 
-			<abControls:IPAddressTextBox Name="ipAddressTextBox2" HorizontalAlignment="Left" IPv4Only="True" Watermark="IPv4 only" Width="300"/>
+			<abControls:IPAddressTextBox Name="ipAddressTextBox2" HorizontalAlignment="Left" IPv4Only="True" PlaceholderText="IPv4 only" Width="300"/>
 			<TextBlock Classes="Footer" Text="{Binding #ipAddressTextBox2.Object, StringFormat={}IP address: {0}}"/>
 			<Separator Classes="Small"/>
 
 			<StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
 				<abControls:IPAddressTextBox Name="ipAddressTextBox3" HorizontalAlignment="Left" Width="300"/>
 				<Separator Classes="Small"/>
-				<Button Command="{Binding $parent[Window].SetIPAddressToIPAddressTextBox}" Content="Set IP address"/>
+				<Button Command="{Binding #window.SetIPAddressToIPAddressTextBox}" Content="Set IP address"/>
 			</StackPanel>
 			<Separator Classes="Small"/>
 			
 			<StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
-				<abControls:IPAddressTextBox Name="ipAddressTextBox4" HorizontalAlignment="Left" Object="{Binding $parent[Window].IPAddressObject, Mode=TwoWay}" Width="300"/>
+				<abControls:IPAddressTextBox Name="ipAddressTextBox4" HorizontalAlignment="Left" Object="{Binding #window.IPAddressObject, Mode=TwoWay}" Width="300"/>
 				<Separator Classes="Small"/>
-				<Button Command="{Binding $parent[Window].SetIPAddressToIPAddressObject}" Content="Set IP address through binding"/>
+				<Button Command="{Binding #window.SetIPAddressToIPAddressObject}" Content="Set IP address through binding"/>
 			</StackPanel>
 			<Separator/>
 
@@ -171,7 +167,7 @@
 			<StackPanel Height="50" HorizontalAlignment="Left" Orientation="Horizontal">
 				<abControls:ProgressRing Name="progressRing2" Width="50"/>
 				<Separator Classes="Small"/>
-				<Button Content="Increase" Command="{Binding $parent[Window].IncreateProgressRingValue}" VerticalAlignment="Center"/>
+				<Button Content="Increase" Command="{Binding #window.IncreateProgressRingValue}" VerticalAlignment="Center"/>
 			</StackPanel>
 			<Separator Classes="Small"/>
 			<abControls:ProgressRing Background="Green" BorderBrush="DarkGreen" Foreground="Yellow" Height="50" HorizontalAlignment="Left" IsIndeterminate="True" RingBorderThickness="2" RingThickness="10" Value="66" Width="70"/>
@@ -183,15 +179,15 @@
 			<TextBlock Classes="Footer" Text="{Binding #realNumberTextBox1.Value, StringFormat={}Value: {0}}"/>
 			<Separator Classes="Small"/>
 			
-			<abControls:RealNumberTextBox Name="realNumberTextBox2" HorizontalAlignment="Left" IsNullValueAllowed="False" Maximum="10" Minimum="-10" Watermark="Range: [-10, 10]" Width="300"/>
+			<abControls:RealNumberTextBox Name="realNumberTextBox2" HorizontalAlignment="Left" IsNullValueAllowed="False" Maximum="10" Minimum="-10" PlaceholderText="Range: [-10, 10]" Width="300"/>
 			<TextBlock Classes="Footer" Text="{Binding #realNumberTextBox2.Value, StringFormat={}Value: {0}}"/>
 			<Separator Classes="Small"/>
 
-			<abControls:RealNumberTextBox Name="realNumberTextBox3" HorizontalAlignment="Left" IsNullValueAllowed="True" Watermark="Null value allowed" Width="300"/>
+			<abControls:RealNumberTextBox Name="realNumberTextBox3" HorizontalAlignment="Left" IsNullValueAllowed="True" PlaceholderText="Null value allowed" Width="300"/>
 			<TextBlock Classes="Footer" Text="{Binding #realNumberTextBox3.Value, StringFormat={}Value: {0}}"/>
 			<Separator Classes="Small"/>
 			
-			<abControls:RealNumberTextBox Name="realNumberTextBox4" HorizontalAlignment="Left" IsNullValueAllowed="True" Maximum="10" Minimum="-10" Watermark="Range: [-10, 10], Nullable" Width="300"/>
+			<abControls:RealNumberTextBox Name="realNumberTextBox4" HorizontalAlignment="Left" IsNullValueAllowed="True" Maximum="10" Minimum="-10" PlaceholderText="Range: [-10, 10], Nullable" Width="300"/>
 			<TextBlock Classes="Footer" Text="{Binding #realNumberTextBox4.Value, StringFormat={}Value: {0}}"/>
 			<Separator/>
 
@@ -199,7 +195,7 @@
 			<TextBlock Classes="Header1" Text="SelectableTextBlock"/>
 			<abControls:SelectableTextBlock HorizontalAlignment="Left" Text="TextBlock with loooooooog text"/>
 			<abControls:SelectableTextBlock HorizontalAlignment="Left" Text="TextBlock with loooooooog text" Width="180"/>
-			<abControls:SelectableTextBlock HorizontalAlignment="Left" Text="{Binding $parent[Window].LongText}" Width="180"/>
+			<abControls:SelectableTextBlock HorizontalAlignment="Left" Text="{Binding #window.LongText}" Width="180"/>
 			<abControls:SelectableTextBlock HorizontalAlignment="Left" Width="200">
 				<Bold>RichTextBlock</Bold>
 				<Run>With</Run>
@@ -208,7 +204,7 @@
 				<Run>This is the second line</Run-->
 				<abControls:SelectableTextBlock.ToolTipTemplate>
 					<DataTemplate>
-						<StackPanel>
+						<StackPanel x:DataType="sys:String">
 							<TextBlock Foreground="Cyan" Text="Custom ToolTipTemplate"/>
 							<TextBlock FontSize="20" FontStyle="Italic" FontWeight="Bold" Text="{Binding}"/>
 						</StackPanel>
@@ -228,7 +224,7 @@
 			<abControls:TextBlock HorizontalAlignment="Left" Margin="0,5,0,5" Text="TextBlock with long long long text" TextWrapping="Wrap" Width="150"/>
 			<abControls:TextBlock HorizontalAlignment="Left" Text="TextBlock with loooooooog text" Width="180">
 				<abControls:TextBlock.ToolTipTemplate>
-					<DataTemplate>
+					<DataTemplate x:DataType="sys:String">
 						<StackPanel>
 							<TextBlock Foreground="Cyan" Text="Custom ToolTipTemplate"/>
 							<TextBlock FontSize="20" FontStyle="Italic" FontWeight="Bold" Text="{Binding}"/>
@@ -236,14 +232,14 @@
 					</DataTemplate>
 				</abControls:TextBlock.ToolTipTemplate>
 			</abControls:TextBlock>
-			<abControls:TextBlock HorizontalAlignment="Left" Margin="0,5,0,5" MaxLines="3" Text="{Binding $parent[Window].LongText}" TextWrapping="Wrap" Width="180"/>
-			<abControls:TextBlock HorizontalAlignment="Left" Text="{Binding $parent[Window].LongText}" Width="180"/>
+			<abControls:TextBlock HorizontalAlignment="Left" Margin="0,5,0,5" MaxLines="3" Text="{Binding #window.LongText}" TextWrapping="Wrap" Width="180"/>
+			<abControls:TextBlock HorizontalAlignment="Left" Text="{Binding #window.LongText}" Width="180"/>
 			<abControls:TextBlock HorizontalAlignment="Left" Text="(Without ToolTip) TextBlock with loooooooog text" ShowToolTipWhenTextTrimmed="False" Width="180"/>
 			<Panel HorizontalAlignment="Left">
 				<Border BorderBrush="Red" BorderThickness="1" IsVisible="{Binding #multiLineTextBlock.IsMultiLineText}"/>
 				<abControls:TextBlock Name="multiLineTextBlock" Margin="1" Text="The border will be visible if text inside the TextBlock is multi-line" TextWrapping="Wrap" Width="100"/>
 			</Panel>
-			<Button Content="Refresh long text" Command="{Binding $parent[Window].RefreshLongText}" Margin="0,5,0,5"/>
+			<Button Content="Refresh long text" Command="{Binding #window.RefreshLongText}" Margin="0,5,0,5"/>
 			<Separator Classes="Small"/>
 
 			<!-- TimeSpanTextBox -->
@@ -252,14 +248,14 @@
 			<TextBlock Classes="Footer" Text="{Binding #timeSpanTextBox1.Value, StringFormat={}Value: {0}}"/>
 			<Separator Classes="Small"/>
 
-			<abControls:TimeSpanTextBox Name="timeSpanTextBox2" HorizontalAlignment="Left" IsNullValueAllowed="True" Watermark="Null value allowed" Width="300"/>
+			<abControls:TimeSpanTextBox Name="timeSpanTextBox2" HorizontalAlignment="Left" IsNullValueAllowed="True" PlaceholderText="Null value allowed" Width="300"/>
 			<TextBlock Classes="Footer" Text="{Binding #timeSpanTextBox2.Value, StringFormat={}Value: {0}}"/>
 			<Separator Classes="Small"/>
 
 			<StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
 				<abControls:TimeSpanTextBox Name="timeSpanTextBox3" HorizontalAlignment="Left" Width="300"/>
 				<Separator Classes="Small"/>
-				<Button Command="{Binding $parent[Window].SetTimeSpanToTimeSpanTextBox}" Content="Set to time span from 1970/1/1"/>
+				<Button Command="{Binding #window.SetTimeSpanToTimeSpanTextBox}" Content="Set to time span from 1970/1/1"/>
 			</StackPanel>
 			<Separator/>
 			
@@ -269,18 +265,18 @@
 			<TextBlock Classes="Footer" Text="{Binding #uriTextBox1.Object, StringFormat={}URI: {0}}"/>
 			<Separator Classes="Small"/>
 
-			<abControls:UriTextBox Name="uriTextBox2" DefaultUriScheme="https" HorizontalAlignment="Left" Watermark="Default scheme: https" Width="300"/>
+			<abControls:UriTextBox Name="uriTextBox2" DefaultUriScheme="https" HorizontalAlignment="Left" PlaceholderText="Default scheme: https" Width="300"/>
 			<TextBlock Classes="Footer" Text="{Binding #uriTextBox2.Object, StringFormat={}URI: {0}}"/>
 			<Separator Classes="Small"/>
 
-			<abControls:UriTextBox Name="uriTextBox3" HorizontalAlignment="Left" UriKind="Relative" Watermark="Relative URI" Width="300"/>
+			<abControls:UriTextBox Name="uriTextBox3" HorizontalAlignment="Left" UriKind="Relative" PlaceholderText="Relative URI" Width="300"/>
 			<TextBlock Classes="Footer" Text="{Binding #uriTextBox3.Object, StringFormat={}URI: {0}}"/>
 			<Separator Classes="Small"/>
 
 			<StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
 				<abControls:UriTextBox Name="uriTextBox4" HorizontalAlignment="Left" Width="300"/>
 				<Separator Classes="Small"/>
-				<Button Command="{Binding $parent[Window].SetUriToUriTextBox}" Content="Set URI"/>
+				<Button Command="{Binding #window.SetUriToUriTextBox}" Content="Set URI"/>
 			</StackPanel>
 
 		</StackPanel>

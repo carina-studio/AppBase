@@ -6,6 +6,7 @@
 		xmlns:sys="using:System"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="CarinaStudio.MainWindow"
+        Name="window"
 		Height="600"
 		Icon="/AppIcon.ico"
         Title="Application.Avalonia.Tests"
@@ -16,12 +17,12 @@
 	</Window.Resources>
 
 	<StackPanel Name="stackPanel" Orientation="Vertical">
-		<Button Command="{Binding $parent[Window].TestCommand}" Content="Test"/>
+		<Button Command="{Binding #window.TestCommand}" Content="Test"/>
 		<StackPanel Orientation="Horizontal">
 			<TextBlock Text="HasDialogs: " VerticalAlignment="Center"/>
-			<TextBlock Text="{Binding $parent[Window].HasDialogs}" VerticalAlignment="Center"/>
+			<TextBlock Text="{Binding #window.HasDialogs}" VerticalAlignment="Center"/>
 		</StackPanel>
-		<controls:LinkTextBlock Command="{Binding $parent[Window].Test}" Margin="5" Text="Test"/>
+		<controls:LinkTextBlock Command="{Binding #window.Test}" Margin="5" Text="Test"/>
 
 		<Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Left" Margin="5" Width="300">
 			<Rectangle Name="rect" Fill="Blue" Height="25" HorizontalAlignment="Left" Width="30">

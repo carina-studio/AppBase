@@ -44,9 +44,6 @@ namespace CarinaStudio
                 it.Margin = new(5);
             });
             this.Get<Panel>("stackPanel").Children.Add(this.textBlock);
-#if DEBUG
-            this.AttachDevTools();
-#endif
         }
 
         private void InitializeComponent()

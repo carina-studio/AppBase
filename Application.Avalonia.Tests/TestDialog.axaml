@@ -4,6 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="300"
         x:Class="CarinaStudio.TestDialog"
+        Name="dialog"
 		CanResize="False"
         SizeToContent="Height"
         Title="TestDialog"
@@ -11,7 +12,7 @@
 		WindowStartupLocation="CenterOwner">
     
     <StackPanel>
-        <Button Name="generateResultButton" Command="{Binding $parent[Window].GenerateResult}" Content="Generate result" HorizontalAlignment="Left" Margin="5"/>
+        <Button Name="generateResultButton" Command="{Binding #dialog.GenerateResult}" Content="Generate result" HorizontalAlignment="Left" Margin="5"/>
         <Border BorderBrush="Blue" BorderThickness="2" Height="200"/>
     </StackPanel>
 
