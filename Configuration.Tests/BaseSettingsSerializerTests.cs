@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using System;
 using System.IO;
 
 namespace CarinaStudio.Configuration
@@ -18,7 +19,9 @@ namespace CarinaStudio.Configuration
 		/// <param name="testFileName">File name for testing.</param>
 		protected BaseSettingsSerializerTests(string testFileName)
 		{
-			this.testFileName = testFileName;
+			// prepend a per-process unique prefix so that parallel TFM runs of the
+			// same test do not race on a shared temp file path
+			this.testFileName = $"{Guid.NewGuid():N}-{testFileName}";
 		}
 
 
