@@ -24,6 +24,13 @@ public abstract class PersistentSettings : ISettings
     }
     
     
+    // Constants.
+    const int MaxFileReadingRetryCount = 10;
+    const int MaxFileWritingRetryCount = 10;
+    const int FileReadingRetryDelay = 500;
+    const int FileWritingRetryDelay = 500;
+    
+    
     // Static fields.
     readonly IDictionary<string, FileLock> fileLockMap = new Dictionary<string, FileLock>(PathEqualityComparer.Default);
     readonly TaskFactory ioTaskFactory = new FixedThreadsTaskFactory(1);
@@ -33,6 +40,7 @@ public abstract class PersistentSettings : ISettings
     readonly Lock eventLock = new();
     readonly Lock valuesLock = new();
     DateTime lastModifiedTime = DateTime.Now;
+    readonly HashSet<SettingKey> resetKeys = new();
     readonly ISettingsSerializer serializer;
     EventHandler<SettingChangedEventArgs>? settingChanged;
     EventHandler<SettingChangingEventArgs>? settingChanging;
@@ -49,11 +57,35 @@ public abstract class PersistentSettings : ISettings
     }
 
 
-    // Copy all values.
-    IDictionary<SettingKey, object> CopyValues()
+    // Combine given values with existing values in the stream.
+    [ThreadSafe]
+    [CalledOnBackgroundThread]
+    IDictionary<SettingKey, object> CombineValues(Stream stream, IDictionary<SettingKey, object> values, ISet<SettingKey> resetKeys)
+    {
+        if (!stream.CanRead)
+            throw new ArgumentException("Cannot keep unknown keys with stream that does not support reading.");
+        if (!stream.CanSeek)
+            throw new ArgumentException("Cannot keep unknown keys with stream that does not support seeking.");
+        var position = stream.Position;
+        this.serializer.Deserialize(stream, out var existingValues, out _);
+        stream.Seek(position, SeekOrigin.Begin);
+        foreach (var key in resetKeys)
+            existingValues.Remove(key);
+        foreach (var value in values)
+        {
+            existingValues.Remove(value.Key); // to make sure that the key will be overwritten
+            existingValues.Add(value.Key, value.Value);
+        }
+        return existingValues;
+    }
+    
+    
+    // Copy all values and reset keys.
+    void CopyValuesAndResetKeys(out IDictionary<SettingKey, object> values, out ISet<SettingKey> resetKeys)
     {
         using var _ = this.valuesLock.EnterScope();
-        return new Dictionary<SettingKey, object>(this.values);
+        values = new Dictionary<SettingKey, object>(this.values);
+        resetKeys = new HashSet<SettingKey>(this.resetKeys);
     }
 
 
@@ -66,13 +98,16 @@ public abstract class PersistentSettings : ISettings
     {
         this.serializer = serializer;
         if (template is PersistentSettings persistentSettings)
+        {
+            this.resetKeys.AddAll(persistentSettings.resetKeys);
             this.values.AddAll(persistentSettings.values);
+        }
         else
         {
             foreach (var key in template.Keys)
             {
                 var value = template.GetRawValue(key);
-                if (value != null)
+                if (value is not null)
                     this.values[key] = value;
             }
         }
@@ -149,9 +184,9 @@ public abstract class PersistentSettings : ISettings
                 catch
                 {
                     ++retryCount;
-                    if (retryCount > 10)
+                    if (retryCount > MaxFileReadingRetryCount)
                         throw;
-                    Thread.Sleep(500);
+                    Thread.Sleep(FileReadingRetryDelay);
                 }
             }
         }
@@ -194,7 +229,7 @@ public abstract class PersistentSettings : ISettings
         this.serializer.Deserialize(memoryStream, out var values, out var metadata);
 
         // override current values
-        var keysNeedToReset = this.values.Keys.Except(values.Keys);
+        var keysNeedToReset = this.values.Keys.Except(values.Keys).ToArray();
 #pragma warning disable CS0618
         foreach (var keyValue in values)
             this.SetValue(keyValue.Key, keyValue.Value);
@@ -237,8 +272,8 @@ public abstract class PersistentSettings : ISettings
     /// <param name="oldVersion">Old version to upgrade from.</param>
     [ThreadSafe]
     protected abstract void OnUpgrade(int oldVersion);
-
-
+    
+    
 #pragma warning disable CS0618
     /// <summary>
     /// Reset setting to default value.
@@ -294,19 +329,28 @@ public abstract class PersistentSettings : ISettings
     [ThreadSafe]
     [CalledOnBackgroundThread]
     public void Save(string fileName) =>
-        this.Save(fileName, this.CopyValues());
-    
-    
+        this.Save(fileName, false);
+
+
+    /// <summary>
+    /// Save settings to file synchronously.
+    /// </summary>
+    /// <param name="fileName">Name of file to save settings.</param>
+    /// <param name="keepUnknownKeys">True to keep unknown keys in the file. The reset values will still override existing values in the file.</param>
+    [ThreadSafe]
+    [CalledOnBackgroundThread]
+    public void Save(string fileName, bool keepUnknownKeys)
+    {
+        this.CopyValuesAndResetKeys(out var values, out var resetKeys);
+        this.Save(fileName, values, resetKeys, keepUnknownKeys);
+    }
+
+
     // Save settings to file synchronously.
     [ThreadSafe]
     [CalledOnBackgroundThread]
-    void Save(string fileName, IDictionary<SettingKey, object> values)
+    void Save(string fileName, IDictionary<SettingKey, object> values, ISet<SettingKey> resetKeys, bool keepUnknownKeys)
     {
-        // save to memory first
-        using var memoryStream = new MemoryStream();
-        this.serializer.Serialize(memoryStream, values, new SettingsMetadata(this.Version, this.lastModifiedTime));
-
-        // write to file
         var fileLock = this.fileLockMap.Lock(map =>
         {
             if (!map.TryGetValue(fileName, out var fileLock))
@@ -317,41 +361,97 @@ public abstract class PersistentSettings : ISettings
             ++fileLock.ReferenceCount;
             return fileLock;
         });
+        var isFileLockHeld = false;
         try
         {
             // backup file
+            var isFileExisting = System.IO.File.Exists(fileName);
             try
             {
-                if (System.IO.File.Exists(fileName))
+                if (isFileExisting)
                     System.IO.File.Copy(fileName, fileName + ".backup", true);
             }
-            // ReSharper disable once EmptyGeneralCatchClause
             catch
-            { }
-            
-            // write to file
-            var retryCount = 0;
-            var data = memoryStream.ToArray();
+            { /* best effort */ }
+
+            // read existing values to combine (release lock between retries, KEEP on success)
+            var valuesToWrite = values;
+            if (keepUnknownKeys && isFileExisting)
+            {
+                var readRetryCount = 0;
+                while (true)
+                {
+                    fileLock.EnterWriteLock();
+                    isFileLockHeld = true;
+                    try
+                    {
+                        using var readStream = new FileStream(fileName, FileMode.Open, FileAccess.Read);
+                        valuesToWrite = this.CombineValues(readStream, values, resetKeys);
+                        break; // keep file lock held and pass it to writing block
+                    }
+                    catch
+                    {
+                        fileLock.ExitWriteLock();
+                        isFileLockHeld = false;
+                        ++readRetryCount;
+                        if (readRetryCount > MaxFileReadingRetryCount)
+                            throw;
+                        Thread.Sleep(FileReadingRetryDelay);
+                    }
+                }
+            }
+
+            // serialize to memory (file is untouched if this throws)
+            byte[] dataToWrite;
+            try
+            {
+                using var memoryStream = new MemoryStream();
+                this.serializer.Serialize(memoryStream, valuesToWrite, new SettingsMetadata(this.Version, this.lastModifiedTime));
+                dataToWrite = memoryStream.ToArray();
+            }
+            catch
+            {
+                if (isFileLockHeld)
+                {
+                    fileLock.ExitWriteLock();
+                    isFileLockHeld = false;
+                }
+                throw;
+            }
+
+            // write to file (reuse held lock on first attempt, re-acquire on retries)
+            var writeRetryCount = 0;
             while (true)
             {
-                using var _ = fileLock.EnterWriteScope();
+                if (!isFileLockHeld)
+                {
+                    fileLock.EnterWriteLock();
+                    isFileLockHeld = true;
+                }
                 try
                 {
                     using var fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write);
-                    fileStream.Write(data);
+                    fileStream.Write(dataToWrite);
                     break;
                 }
                 catch
                 {
-                    ++retryCount;
-                    if (retryCount > 10)
+                    if (isFileLockHeld)
+                    {
+                        fileLock.ExitWriteLock();
+                        isFileLockHeld = false;
+                    }
+                    ++writeRetryCount;
+                    if (writeRetryCount > MaxFileWritingRetryCount)
                         throw;
-                    Thread.Sleep(500);
+                    Thread.Sleep(FileWritingRetryDelay);
                 }
             }
         }
         finally
         {
+            if (isFileLockHeld)
+                fileLock.ExitWriteLock();
             this.fileLockMap.Lock(map =>
             {
                 --fileLock.ReferenceCount;
@@ -363,8 +463,8 @@ public abstract class PersistentSettings : ISettings
             });
         }
     }
-
-
+    
+    
     /// <summary>
     /// Save settings to given stream synchronously.
     /// </summary>
@@ -372,14 +472,35 @@ public abstract class PersistentSettings : ISettings
     [ThreadSafe]
     [CalledOnBackgroundThread]
     public void Save(Stream stream) =>
-        this.Save(stream, this.CopyValues());
+        this.Save(stream, false);
+
+
+    /// <summary>
+    /// Save settings to given stream synchronously.
+    /// </summary>
+    /// <param name="stream"><see cref="Stream"/> to save settings.</param>
+    /// <param name="keepUnknownKeys">True to keep unknown keys in the stream. The reset values will still override existing values in the stream.</param>
+    [ThreadSafe]
+    [CalledOnBackgroundThread]
+    public void Save(Stream stream, bool keepUnknownKeys)
+    {
+        this.CopyValuesAndResetKeys(out var values, out var resetKeys);
+        this.Save(stream, values, resetKeys, keepUnknownKeys);
+    }
     
     
     // Save settings to given stream synchronously.
     [ThreadSafe]
     [CalledOnBackgroundThread]
-    void Save(Stream stream, IDictionary<SettingKey, object> values) =>
-        this.serializer.Serialize(stream, values, new SettingsMetadata(this.Version, this.lastModifiedTime));
+    void Save(Stream stream, IDictionary<SettingKey, object> values, ISet<SettingKey> resetKeys, bool keepUnknownKeys)
+    {
+        if (keepUnknownKeys)
+        {
+            values = this.CombineValues(stream, values, resetKeys);
+            stream.SetLength(stream.Position);
+        }
+        this.serializer.Serialize(stream, values, new SettingsMetadata(this.Version, this.lastModifiedTime));   
+    }
 
 
     /// <summary>
@@ -389,12 +510,24 @@ public abstract class PersistentSettings : ISettings
     /// <param name="cancellationToken"><see cref="CancellationToken"/> to cancel saving.</param>
     /// <returns><see cref="Task"/> of asynchronous operation.</returns>
     [ThreadSafe]
-    public Task SaveAsync(string fileName, CancellationToken cancellationToken = default)
+    public Task SaveAsync(string fileName, CancellationToken cancellationToken = default) =>
+        this.SaveAsync(fileName, false, cancellationToken);
+
+
+    /// <summary>
+    /// Save settings to file asynchronously.
+    /// </summary>
+    /// <param name="fileName">Name of file to save settings.</param>
+    /// <param name="keepUnknownKeys">True to keep unknown keys in the file. The reset values will still override existing values in the file.</param>
+    /// <param name="cancellationToken"><see cref="CancellationToken"/> to cancel saving.</param>
+    /// <returns><see cref="Task"/> of asynchronous operation.</returns>
+    [ThreadSafe]
+    public Task SaveAsync(string fileName, bool keepUnknownKeys, CancellationToken cancellationToken = default)
     {
         if (cancellationToken.IsCancellationRequested)
             return Task.FromCanceled(cancellationToken);
-        var values = this.CopyValues();
-        return ioTaskFactory.StartNew(() => this.Save(fileName, values), cancellationToken);
+        this.CopyValuesAndResetKeys(out var values, out var resetKeys);
+        return ioTaskFactory.StartNew(() => this.Save(fileName, values, resetKeys, keepUnknownKeys), cancellationToken);
     }
 
 
@@ -405,15 +538,27 @@ public abstract class PersistentSettings : ISettings
     /// <param name="cancellationToken"><see cref="CancellationToken"/> to cancel saving.</param>
     /// <returns><see cref="Task"/> of asynchronous operation.</returns>
     [ThreadSafe]
-    public Task SaveAsync(Stream stream, CancellationToken cancellationToken = default)
+    public Task SaveAsync(Stream stream, CancellationToken cancellationToken = default) =>
+        this.SaveAsync(stream, false, cancellationToken);
+
+
+    /// <summary>
+    /// Save settings to given stream asynchronously.
+    /// </summary>
+    /// <param name="stream"><see cref="Stream"/> to save settings.</param>
+    /// <param name="keepUnknownKeys">True to keep unknown keys in the stream. The reset values will still override existing values in the stream.</param>
+    /// <param name="cancellationToken"><see cref="CancellationToken"/> to cancel saving.</param>
+    /// <returns><see cref="Task"/> of asynchronous operation.</returns>
+    [ThreadSafe]
+    public Task SaveAsync(Stream stream, bool keepUnknownKeys, CancellationToken cancellationToken = default)
     {
         if (cancellationToken.IsCancellationRequested)
             return Task.FromCanceled(cancellationToken);
-        var values = this.CopyValues();
-        return Task.Run(() => this.Save(stream, values), cancellationToken);
+        this.CopyValuesAndResetKeys(out var values, out var resetKeys);
+        return Task.Run(() => this.Save(stream, values, resetKeys, keepUnknownKeys), cancellationToken);
     }
-
-
+    
+    
     /// <summary>
     /// Set value of setting.
     /// </summary>
@@ -424,30 +569,35 @@ public abstract class PersistentSettings : ISettings
     public void SetValue(SettingKey key, object value)
     {
         // check value
-        if (value == null)
+        if (value is null)
             throw new ArgumentNullException(nameof(value));
         if (!key.ValueType.IsInstanceOfType(value))
             throw new ArgumentException($"Value {value} is not {key.ValueType.Name}.");
 
         // check previous value
-        var prevValue = this.GetRawValue(key) ?? key.DefaultValue;
-        var valueChanged = !prevValue.Equals(value);
+        var defaultValue = key.DefaultValue;
+        var prevValue = this.GetRawValue(key);
+        var valueChanged = !value.Equals(prevValue ?? defaultValue);
 
         // raise event
         if (valueChanged)
         {
             lock (eventLock)
-                this.settingChanging?.Invoke(this, new SettingChangingEventArgs(key, prevValue, value));
+                this.settingChanging?.Invoke(this, new SettingChangingEventArgs(key, prevValue ?? defaultValue, value));
         }
 
         // update value
         lock (valuesLock)
         {
-            if (valueChanged && !prevValue.Equals(this.GetRawValue(key) ?? key.DefaultValue))
+            if (valueChanged && !(prevValue ?? defaultValue).Equals(this.GetRawValue(key) ?? defaultValue))
                 return;
-            this.values.Remove(key); // need to remove current key first to ensure that key will be updated
-            if (!value.Equals(key.DefaultValue))
-                this.values[key] = value;
+            var isDefaultValue = value.Equals(defaultValue);
+            this.resetKeys.Remove(key); // always remove first to make sure that the key will be updated
+            this.values.Remove(key); // always remove first to make sure that the key will be updated
+            if (isDefaultValue)
+                this.resetKeys.Add(key);
+            else
+                this.values.Add(key, value);
             if (valueChanged)
                 this.lastModifiedTime = DateTime.Now;
         }
@@ -456,7 +606,7 @@ public abstract class PersistentSettings : ISettings
         if (valueChanged)
         {
             lock (eventLock)
-                this.settingChanged?.Invoke(this, new SettingChangedEventArgs(key, prevValue, value));
+                this.settingChanged?.Invoke(this, new SettingChangedEventArgs(key, prevValue ?? defaultValue, value));
         }
     }
 
