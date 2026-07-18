@@ -140,5 +140,13 @@ namespace CarinaStudio
 
         public void SwapListBoxItems() =>
             this.Find<ListBox>("listBox1")?.TryMoveItem<string>(0, 1, scrollIntoView: false);
+
+
+        public void ToggleMacOSThickTitleBar()
+        {
+#if NET10_0_OR_GREATER
+            this.IsMacOSThickTitleBarEnabled = !this.IsMacOSThickTitleBarEnabled;
+#endif
+        }
     }
 }

@@ -50,6 +50,7 @@ After a code change is confirmed, check whether the change affects the architect
 ### General
 
 - Nullable reference types are enabled (`#nullable enable`) everywhere.
+- Compare native handles against `IntPtr.Zero` explicitly (`handle == IntPtr.Zero`), not `default`.
 - Unsafe blocks are allowed globally (set in `Directory.Build.props`).
 - All public async methods return `Task` or `ValueTask`; UI-thread operations use the application's dispatcher.
 - Root namespace: `CarinaStudio` (or `CarinaStudio.<Module>` for platform-specific projects).
@@ -64,6 +65,7 @@ After a code change is confirmed, check whether the change affects the architect
 - Companion types for an interface (`Extensions`, enums) go in separate files in the same folder.
 - Inner types within a class/file are ordered **alphabetically** by name.
 - Members within a type (enum values, properties, methods) are also ordered **alphabetically**. Exception: struct fields with `[StructLayout(LayoutKind.Sequential)]` must preserve their memory-layout order.
+- `extension` blocks (C# 14 extension members) are placed **first** in the containing class, before all other members; they are not sorted with other members. Members inside an `extension` block are ordered alphabetically.
 
 ### Interfaces and Extensions
 

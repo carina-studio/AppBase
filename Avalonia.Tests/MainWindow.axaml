@@ -278,6 +278,11 @@
 				<Separator Classes="Small"/>
 				<Button Command="{Binding #window.SetUriToUriTextBox}" Content="Set URI"/>
 			</StackPanel>
+			<Separator/>
+
+			<!-- Window -->
+			<TextBlock Classes="Header1" Text="Window"/>
+			<Button Command="{Binding #window.ToggleMacOSThickTitleBar}" Content="Toggle thick title bar (macOS, .NET 10+)" HorizontalAlignment="Left"/>
 
 		</StackPanel>
 	</ScrollViewer>
