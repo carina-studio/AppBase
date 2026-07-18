@@ -40,7 +40,7 @@ public class NSWindow : NSResponder
     /// <summary>
     /// OrderingMode.
     /// </summary>
-    public enum OrderingMode : int
+    public enum OrderingMode
     {
         Above = 1,
         Below = -1,
@@ -87,6 +87,9 @@ public class NSWindow : NSResponder
     static Property? SubtitleProperty;
     static Selector? StandardWindowButtonSelector;
     static Property? TitleProperty;
+    static Selector? ToggleToolbarShownSelector;
+    static Property? ToolbarProperty;
+    static Property? ToolbarStyleProperty;
 
 
     // Static initializer.
@@ -179,7 +182,7 @@ public class NSWindow : NSResponder
     public void Close()
     {
         CloseSelector ??= Selector.FromName("close");
-        this.SendMessage(CloseSelector!);
+        this.SendMessage(CloseSelector);
     }
 
 
@@ -253,9 +256,7 @@ public class NSWindow : NSResponder
     public void MakeKeyAndOrderFront()
     {
         MakeKeyAndOrderFrontSelector ??= Selector.FromName("makeKeyAndOrderFront:");
-#pragma warning disable IL3050
         this.SendMessage(MakeKeyAndOrderFrontSelector, this);
-#pragma warning restore IL3050
     }
 
 
@@ -268,7 +269,7 @@ public class NSWindow : NSResponder
     public void Order(OrderingMode place, int otherWin)
     {
         OrderRelativeToSelector ??= Selector.FromName("order:relativeTo:");
-        this.SendMessage(OrderRelativeToSelector!, place, otherWin);
+        this.SendMessage(OrderRelativeToSelector, place, otherWin);
     }
 
 
@@ -278,9 +279,7 @@ public class NSWindow : NSResponder
     public void OrderBack(NSObject? sender = null)
     {
         OrderBackSelector ??= Selector.FromName("orderBack:");
-#pragma warning disable IL3050
-        this.SendMessage(OrderBackSelector!, sender);
-#pragma warning restore IL3050
+        this.SendMessage(OrderBackSelector, sender);
     }
 
 
@@ -290,9 +289,7 @@ public class NSWindow : NSResponder
     public void OrderFront(NSObject? sender = null)
     {
         OrderFrontSelector ??= Selector.FromName("orderFront:");
-#pragma warning disable IL3050
-        this.SendMessage(OrderFrontSelector!, sender);
-#pragma warning restore IL3050
+        this.SendMessage(OrderFrontSelector, sender);
     }
 
 
@@ -302,7 +299,7 @@ public class NSWindow : NSResponder
     public void OrderFrontRegardless()
     {
         OrderFrontRegardlessSelector ??= Selector.FromName("orderFrontRegardless");
-        this.SendMessage(OrderFrontRegardlessSelector!);
+        this.SendMessage(OrderFrontRegardlessSelector);
     }
 
 
@@ -312,9 +309,7 @@ public class NSWindow : NSResponder
     public void OrderOut(NSObject? sender = null)
     {
         OrderOutSelector ??= Selector.FromName("orderOut:");
-#pragma warning disable IL3050
-        this.SendMessage(OrderOutSelector!, sender);
-#pragma warning restore IL3050
+        this.SendMessage(OrderOutSelector, sender);
     }
 
 
@@ -354,7 +349,7 @@ public class NSWindow : NSResponder
         {
             this.VerifyReleased();
             SubtitleProperty ??= NSWindowClass!.GetProperty("subtitle").AsNonNull();
-            using var s = new NSString(value ?? "");
+            using var s = new NSString(value);
             this.SetProperty(SubtitleProperty, s);
         }
     }
@@ -369,7 +364,7 @@ public class NSWindow : NSResponder
         get
         {
             TitleProperty ??= NSWindowClass!.GetProperty("title").AsNonNull();
-            var handle = this.GetIntPtrProperty(TitleProperty!);
+            var handle = this.GetIntPtrProperty(TitleProperty);
             if (handle == default)
                 return "";
             return FromHandle<NSString>(handle, false)!.ToString();
@@ -381,8 +376,55 @@ public class NSWindow : NSResponder
         {
             this.VerifyReleased();
             TitleProperty ??= NSWindowClass!.GetProperty("title").AsNonNull();
-            using var s = new NSString(value ?? "");
-            this.SetProperty(TitleProperty!, s);
+            using var s = new NSString(value);
+            this.SetProperty(TitleProperty, s);
+        }
+    }
+
+
+    /// <summary>
+    /// Toggle visibility of toolbar of window.
+    /// </summary>
+    /// <param name="sender">Sender.</param>
+    public void ToggleToolbarShown(NSObject? sender = null)
+    {
+        ToggleToolbarShownSelector ??= Selector.FromName("toggleToolbarShown:");
+        this.SendMessage(ToggleToolbarShownSelector, sender);
+    }
+
+
+    /// <summary>
+    /// Get or set toolbar of window.
+    /// </summary>
+    public NSToolbar? Toolbar
+    {
+        get
+        {
+            ToolbarProperty ??= NSWindowClass!.GetProperty("toolbar").AsNonNull();
+            return this.GetNSObjectProperty<NSToolbar>(ToolbarProperty);
+        }
+        set
+        {
+            ToolbarProperty ??= NSWindowClass!.GetProperty("toolbar").AsNonNull();
+            this.SetProperty(ToolbarProperty, (NSObject?)value);
+        }
+    }
+
+
+    /// <summary>
+    /// Get or set the way of window to display its toolbar. Only works on macOS 11.0 and later.
+    /// </summary>
+    public NSWindowToolbarStyle ToolbarStyle
+    {
+        get
+        {
+            ToolbarStyleProperty ??= NSWindowClass!.GetProperty("toolbarStyle").AsNonNull();
+            return (NSWindowToolbarStyle)this.GetInt32Property(ToolbarStyleProperty);
+        }
+        set
+        {
+            ToolbarStyleProperty ??= NSWindowClass!.GetProperty("toolbarStyle").AsNonNull();
+            this.SetProperty(ToolbarStyleProperty, (int)value);
         }
     }
 }
