@@ -1,6 +1,5 @@
 using CarinaStudio.MacOS.ObjectiveC;
 using System;
-using System.Diagnostics.CodeAnalysis;
 
 namespace CarinaStudio.MacOS.AppKit;
 
@@ -29,9 +28,6 @@ public class NSImageView : NSControl
     /// Initialize new <see cref="NSImageView"/> instance.
     /// </summary>
     /// <param name="frame">Frame.</param>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallConstructorRdcMessage)]
-#endif
     public NSImageView(NSRect frame) : base(NSImageViewClass!.Allocate(), frame)
     { }
 

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Runtime.InteropServices;
 
 namespace CarinaStudio.MacOS.Ffi;
@@ -56,45 +55,25 @@ static unsafe class FfiTypeDescriptors
             if (StructureDescriptors.TryGetValue(type, out var existingDescriptor))
                 return (FfiType*)existingDescriptor;
 
-            // collect fields in layout order
-#pragma warning disable IL2070
-            var fields = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-#pragma warning restore IL2070
-            if (fields.Length == 0)
-                throw new NotSupportedException($"Cannot create libffi type for structure without instance field: {type.Name}.");
-            Array.Sort(fields, (l, r) =>
-                ((long)Marshal.OffsetOf(type, l.Name)).CompareTo((long)Marshal.OffsetOf(type, r.Name)));
-
             // count elements including expanded fixed-size arrays
+            var layout = NativeStructureLayout.Get(type);
             var elementCount = 0;
-            foreach (var field in fields)
-            {
-                if (field.FieldType.IsArray)
-                {
-                    var marshalAsAttr = field.GetCustomAttribute<MarshalAsAttribute>();
-                    if (marshalAsAttr is null || marshalAsAttr.Value != UnmanagedType.ByValArray || marshalAsAttr.SizeConst <= 0)
-                        throw new NotSupportedException($"Array field without fixed size is unsupported: {type.Name}.{field.Name}.");
-                    elementCount += marshalAsAttr.SizeConst;
-                }
-                else
-                    ++elementCount;
-            }
+            foreach (var fieldLayout in layout.Fields)
+                elementCount += fieldLayout.ArrayLength > 0 ? fieldLayout.ArrayLength : 1;
 
             // build descriptor
             var elements = (FfiType**)NativeMemory.Alloc((nuint)(elementCount + 1), (nuint)sizeof(FfiType*));
             var elementIndex = 0;
-            foreach (var field in fields)
+            foreach (var fieldLayout in layout.Fields)
             {
-                var fieldType = field.FieldType;
-                if (fieldType.IsArray)
+                var elementFfiType = Get(fieldLayout.ElementType);
+                if (fieldLayout.ArrayLength > 0)
                 {
-                    var elementFfiType = Get(fieldType.GetElementType()!);
-                    var arrayLength = field.GetCustomAttribute<MarshalAsAttribute>()!.SizeConst;
-                    for (var i = arrayLength; i > 0; --i)
+                    for (var i = fieldLayout.ArrayLength; i > 0; --i)
                         elements[elementIndex++] = elementFfiType;
                 }
                 else
-                    elements[elementIndex++] = Get(fieldType);
+                    elements[elementIndex++] = elementFfiType;
             }
             elements[elementIndex] = null;
             var descriptor = (FfiType*)NativeMemory.AllocZeroed((nuint)sizeof(FfiType));

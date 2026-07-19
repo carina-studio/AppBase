@@ -1,6 +1,5 @@
 using CarinaStudio.MacOS.ObjectiveC;
 using System;
-using System.Diagnostics.CodeAnalysis;
 
 namespace CarinaStudio.MacOS.AppKit;
 
@@ -33,9 +32,6 @@ public class NSToolbar : NSObject
     /// <summary>
     /// Initialize new <see cref="NSToolbar"/> instance.
     /// </summary>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallConstructorRdcMessage)]
-#endif
     public NSToolbar() : this(Initialize(NSToolbarClass!.Allocate()), true)
     { }
 
@@ -44,9 +40,6 @@ public class NSToolbar : NSObject
     /// Initialize new <see cref="NSToolbar"/> instance.
     /// </summary>
     /// <param name="identifier">Identifier of toolbar.</param>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallConstructorRdcMessage)]
-#endif
     public NSToolbar(string identifier) : this(Initialize(NSToolbarClass!.Allocate(), identifier), true)
     { }
 
@@ -148,9 +141,6 @@ public class NSToolbar : NSObject
 
 
     // Initialize allocated instance with identifier.
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallMethodRdcMessage)]
-#endif
     static IntPtr Initialize(IntPtr obj, string identifier)
     {
         InitWithIdentifierSelector ??= Selector.FromName("initWithIdentifier:");

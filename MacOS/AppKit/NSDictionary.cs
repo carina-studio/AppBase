@@ -1,9 +1,7 @@
 using CarinaStudio.MacOS.CoreFoundation;
 using CarinaStudio.MacOS.ObjectiveC;
 using System;
-#if NET7_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
-#endif
 
 namespace CarinaStudio.MacOS.AppKit;
 
@@ -36,9 +34,6 @@ public class NSDictionary : NSObject
     /// </summary>
     public NSArray<NSObject> AllKeys
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get
         {
             AllKeysSelector ??= Selector.FromName("allKeys");
@@ -52,9 +47,6 @@ public class NSDictionary : NSObject
     /// </summary>
     public NSArray<NSObject> AllObjects
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get
         {
             AllValuesSelector ??= Selector.FromName("allValues");
@@ -68,9 +60,6 @@ public class NSDictionary : NSObject
     /// </summary>
     public int Count
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get
         {
             CountProperty ??= NSDictionaryClass!.GetProperty("count").AsNonNull();
@@ -82,10 +71,7 @@ public class NSDictionary : NSObject
     /// <summary>
     /// Returns the value associated with a given key.
     /// </summary>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallMethodRdcMessage)]
-#endif
-    public T? GetCFObject<T>(NSObject aKey) where T : CFObject
+    public T? GetCFObject<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(NSObject aKey) where T : CFObject
     {
         ObjectForKeySelector ??= Selector.FromName("objectForKey:");
         return this.SendMessage<T?>(ObjectForKeySelector, aKey);
@@ -95,9 +81,6 @@ public class NSDictionary : NSObject
     /// <summary>
     /// Provides an enumerator to access the keys in the dictionary.
     /// </summary>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallMethodRdcMessage)]
-#endif
     public NSEnumerator GetKeyEnumerator()
     {
         KeyEnumeratorSelector ??= Selector.FromName("keyEnumerator");
@@ -108,10 +91,7 @@ public class NSDictionary : NSObject
     /// <summary>
     /// Returns the value associated with a given key.
     /// </summary>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallMethodRdcMessage)]
-#endif
-    public T? GetObject<T>(NSObject aKey) where T : NSObject
+    public T? GetObject<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(NSObject aKey) where T : NSObject
     {
         ObjectForKeySelector ??= Selector.FromName("objectForKey:");
         return this.SendMessage<T?>(ObjectForKeySelector, aKey);
@@ -121,9 +101,6 @@ public class NSDictionary : NSObject
     /// <summary>
     /// Returns an enumerator object that lets you access each value in the dictionary.
     /// </summary>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallMethodRdcMessage)]
-#endif
     public NSEnumerator GetObjectEnumerator()
     {
         ObjectEnumeratorSelector ??= Selector.FromName("objectEnumerator");

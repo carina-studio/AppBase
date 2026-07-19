@@ -92,12 +92,6 @@ namespace CarinaStudio.MacOS.ObjectiveC
             [MarshalAs(UnmanagedType.LPStr)]
             public string? Value;
         }
-        
-        
-        // Constants.
-        const string DefineMethodRdcMessage = "Dynamic code generation is required for defining method of NSObject.";
-        const string DefinePropertyRdcMessage = "Dynamic code generation is required for defining property of NSObject.";
-        const string DefineVariableRdcMessage = "Dynamic code generation is required for defining variable of NSObject.";
 
 
         // Static fields.
@@ -182,9 +176,6 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="name">Name of class.</param>
         /// <param name="defining">Action to define members of class.</param>
         /// <returns>New defined class.</returns>
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode("Dynamic code generation is required for defining class.")]
-#endif
         public static Class DefineClass(string name, Action<Class> defining) =>
             DefineClass(GetClass("NSObject"), name, defining);
         
@@ -196,9 +187,6 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="name">Name of class.</param>
         /// <param name="defining">Action to define members of class.</param>
         /// <returns>New defined class.</returns>
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode("Dynamic code generation is required for defining class.")]
-#endif
         public static Class DefineClass(Class? superClass, string name, Action<Class> defining)
         {
             // allocate class
@@ -258,9 +246,6 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="name">Name of variable.</param>
         /// <param name="elementCount">Number of element is value is an array.</param>
         /// <returns>Descriptor of instance variable.</returns>
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(DefineVariableRdcMessage)]
-#endif
         public Variable DefineInstanceVariable<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.NonPublicFields)] T>(string name, int elementCount = 1) =>
             this.DefineInstanceVariable(name, typeof(T), elementCount);
 
@@ -272,9 +257,6 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="type">Type of variable.</param>
         /// <param name="elementCount">Number of element is value is an array.</param>
         /// <returns>Descriptor of instance variable.</returns>
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(DefineVariableRdcMessage)]
-#endif
         public Variable DefineInstanceVariable(string name, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.NonPublicFields)] Type type, int elementCount = 1)
         {
             this.VerifyRegistered();
@@ -328,9 +310,6 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(DefineMethodRdcMessage)]
-#endif
         public void DefineMethod(string name, Action<IntPtr, Selector> implementation) =>
             this.DefineMethodCore(Selector.FromName(name), implementation, false);
 
@@ -340,9 +319,6 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(DefineMethodRdcMessage)]
-#endif
         public void DefineMethod(Selector name, Action<IntPtr, Selector> implementation) =>
             this.DefineMethodCore(name, implementation, false);
         
@@ -352,9 +328,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(DefineMethodRdcMessage)]
-#endif
+        /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the implementation must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
         public void DefineMethod<R>(string name, Func<IntPtr, Selector, R> implementation) =>
             this.DefineMethodCore(Selector.FromName(name), implementation, false);
 
@@ -364,9 +338,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(DefineMethodRdcMessage)]
-#endif
+        /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the implementation must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
         public void DefineMethod<R>(Selector name, Func<IntPtr, Selector, R> implementation) =>
             this.DefineMethodCore(name, implementation, false);
 
@@ -376,9 +348,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(DefineMethodRdcMessage)]
-#endif
+        /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the implementation must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
         public void DefineMethod<TArg1>(string name, Action<IntPtr, Selector, TArg1> implementation) =>
             this.DefineMethodCore(Selector.FromName(name), implementation, false);
 
@@ -388,9 +358,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(DefineMethodRdcMessage)]
-#endif
+        /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the implementation must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
         public void DefineMethod<TArg1>(Selector name, Action<IntPtr, Selector, TArg1> implementation) =>
             this.DefineMethodCore(name, implementation, false);
 
@@ -400,9 +368,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(DefineMethodRdcMessage)]
-#endif
+        /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the implementation must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
         public void DefineMethod<TArg1, R>(string name, Func<IntPtr, Selector, TArg1, R> implementation) =>
             this.DefineMethodCore(Selector.FromName(name), implementation, false);
 
@@ -412,9 +378,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(DefineMethodRdcMessage)]
-#endif
+        /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the implementation must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
         public void DefineMethod<TArg1, R>(Selector name, Func<IntPtr, Selector, TArg1, R> implementation) =>
             this.DefineMethodCore(name, implementation, false);
 
@@ -424,9 +388,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(DefineMethodRdcMessage)]
-#endif
+        /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the implementation must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
         public void DefineMethod<TArg1, TArg2>(string name, Action<IntPtr, Selector, TArg1, TArg2> implementation) =>
             this.DefineMethodCore(Selector.FromName(name), implementation, false);
 
@@ -436,9 +398,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(DefineMethodRdcMessage)]
-#endif
+        /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the implementation must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
         public void DefineMethod<TArg1, TArg2>(Selector name, Action<IntPtr, Selector, TArg1, TArg2> implementation) =>
             this.DefineMethodCore(name, implementation, false);
 
@@ -448,9 +408,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(DefineMethodRdcMessage)]
-#endif
+        /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the implementation must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
         public void DefineMethod<TArg1, TArg2, R>(string name, Func<IntPtr, Selector, TArg1, TArg2, R> implementation) =>
             this.DefineMethodCore(Selector.FromName(name), implementation, false);
 
@@ -460,9 +418,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(DefineMethodRdcMessage)]
-#endif
+        /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the implementation must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
         public void DefineMethod<TArg1, TArg2, R>(Selector name, Func<IntPtr, Selector, TArg1, TArg2, R> implementation) =>
             this.DefineMethodCore(name, implementation, false);
 
@@ -472,9 +428,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(DefineMethodRdcMessage)]
-#endif
+        /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the implementation must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
         public void DefineMethod<TArg1, TArg2, TArg3>(string name, Action<IntPtr, Selector, TArg1, TArg2, TArg3> implementation) =>
             this.DefineMethodCore(Selector.FromName(name), implementation, false);
 
@@ -484,9 +438,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(DefineMethodRdcMessage)]
-#endif
+        /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the implementation must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
         public void DefineMethod<TArg1, TArg2, TArg3>(Selector name, Action<IntPtr, Selector, TArg1, TArg2, TArg3> implementation) =>
             this.DefineMethodCore(name, implementation, false);
 
@@ -496,9 +448,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(DefineMethodRdcMessage)]
-#endif
+        /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the implementation must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
         public void DefineMethod<TArg1, TArg2, TArg3, R>(string name, Func<IntPtr, Selector, TArg1, TArg2, TArg3, R> implementation) =>
             this.DefineMethodCore(Selector.FromName(name), implementation, false);
 
@@ -508,9 +458,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(DefineMethodRdcMessage)]
-#endif
+        /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the implementation must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
         public void DefineMethod<TArg1, TArg2, TArg3, R>(Selector name, Func<IntPtr, Selector, TArg1, TArg2, TArg3, R> implementation) =>
             this.DefineMethodCore(name, implementation, false);
 
@@ -520,9 +468,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(DefineMethodRdcMessage)]
-#endif
+        /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the implementation must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
         public void DefineMethod<TArg1, TArg2, TArg3, TArg4>(string name, Action<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4> implementation) =>
             this.DefineMethodCore(Selector.FromName(name), implementation, false);
 
@@ -532,9 +478,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(DefineMethodRdcMessage)]
-#endif
+        /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the implementation must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
         public void DefineMethod<TArg1, TArg2, TArg3, TArg4>(Selector name, Action<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4> implementation) =>
             this.DefineMethodCore(name, implementation, false);
 
@@ -544,9 +488,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(DefineMethodRdcMessage)]
-#endif
+        /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the implementation must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
         public void DefineMethod<TArg1, TArg2, TArg3, TArg4, R>(string name, Func<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4, R> implementation) =>
             this.DefineMethodCore(Selector.FromName(name), implementation, false);
 
@@ -556,9 +498,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(DefineMethodRdcMessage)]
-#endif
+        /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the implementation must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
         public void DefineMethod<TArg1, TArg2, TArg3, TArg4, R>(Selector name, Func<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4, R> implementation) =>
             this.DefineMethodCore(name, implementation, false);
 
@@ -568,9 +508,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(DefineMethodRdcMessage)]
-#endif
+        /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the implementation must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
         public void DefineMethod<TArg1, TArg2, TArg3, TArg4, TArg5>(string name, Action<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4, TArg5> implementation) =>
             this.DefineMethodCore(Selector.FromName(name), implementation, false);
 
@@ -580,9 +518,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(DefineMethodRdcMessage)]
-#endif
+        /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the implementation must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
         public void DefineMethod<TArg1, TArg2, TArg3, TArg4, TArg5>(Selector name, Action<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4, TArg5> implementation) =>
             this.DefineMethodCore(name, implementation, false);
 
@@ -592,9 +528,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(DefineMethodRdcMessage)]
-#endif
+        /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the implementation must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
         public void DefineMethod<TArg1, TArg2, TArg3, TArg4, TArg5, R>(string name, Func<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4, TArg5, R> implementation) =>
             this.DefineMethodCore(Selector.FromName(name), implementation, false);
 
@@ -604,9 +538,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(DefineMethodRdcMessage)]
-#endif
+        /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the implementation must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
         public void DefineMethod<TArg1, TArg2, TArg3, TArg4, TArg5, R>(Selector name, Func<IntPtr, Selector, TArg1, TArg2, TArg3, TArg4, TArg5, R> implementation) =>
             this.DefineMethodCore(name, implementation, false);
         
@@ -616,22 +548,12 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// </summary>
         /// <param name="name">Name of method.</param>
         /// <param name="implementation">Implementation.</param>
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(DefineMethodRdcMessage)]
-#endif
+        /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the implementation must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
         public void DefineMethod(Selector name, Delegate implementation) =>
             this.DefineMethodCore(name, implementation, true);
 
 
         // Define method.
-#if NET6_0_OR_GREATER
-        [DynamicDependency(nameof(NativeTypeConversion.FromNativeParameter), typeof(NativeTypeConversion))]
-        [DynamicDependency(nameof(NativeTypeConversion.ToNativeParameter), typeof(NativeTypeConversion))]
-        [DynamicDependency(nameof(Type.GetTypeFromHandle), typeof(Type))]
-#endif
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(DefineMethodRdcMessage)]
-#endif
         void DefineMethodCore(Selector name, Delegate impl, bool verifyImpl)
         {
             // verify implementation
@@ -690,9 +612,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="setter">Implementation of setter.</param>
         /// <typeparam name="T">Type of property value.</typeparam>
         /// <returns>Descriptor of added property.</returns>
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(DefinePropertyRdcMessage)]
-#endif
+        /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the implementation must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
         public Property DefineProperty<T>(string name, Func<IntPtr, Selector, T> getter, Action<IntPtr, Selector, T>? setter = null) where T : struct
         {
             // check state
@@ -1034,6 +954,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
 
 
         // Entry of methods defined through DefineMethod, called by libffi closure.
+        [UnconditionalSuppressMessage("Trimming", "IL2062", Justification = "Structure types used with native methods are expected to have fields preserved by caller.")]
         [UnmanagedCallersOnly]
         static void InvokeMethodImpl(void* cif, void* returnBuffer, void** args, void* userData)
         {
@@ -1151,9 +1072,6 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="obj">Handle of instance.</param>
         /// <param name="clrObj">Bound CLR object.</param>
         /// <returns>True if CLR object found.</returns>
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(NSObject.GetVariableRdcMessage)]
-#endif
         public bool TryGetClrObject<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(IntPtr obj, [NotNullWhen(true)] out T? clrObj)
         {
             clrObj = default;
@@ -1180,9 +1098,6 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <param name="obj">Handle of instance.</param>
         /// <param name="clrObj">CLR object to bind.</param>
         /// <returns>True if CLR object has been bound successfully.</returns>
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(NSObject.GetVariableRdcMessage)]
-#endif
         public bool TrySetClrObject(IntPtr obj, object? clrObj)
         {
             if (this.clrObjectHandleVar == null
@@ -1273,7 +1188,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
                     *(double*)returnBuffer = doubleValue;
                     break;
                 case ValueType:
-                    Marshal.StructureToPtr(nativeValue, (IntPtr)returnBuffer, false);
+                    NativeStructureLayout.Get(nativeValue.GetType()).Write(nativeValue, (byte*)returnBuffer);
                     break;
                 default:
                     throw new NotSupportedException($"Cannot convert {nativeValue.GetType().Name} to native return value.");

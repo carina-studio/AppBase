@@ -4,7 +4,6 @@ using CarinaStudio.MacOS.ObjectiveC;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 
 namespace CarinaStudio.MacOS.AppKit;
 
@@ -65,9 +64,6 @@ public class NSColorSpace : NSObject
     /// </summary>
     public static NSColorSpace AdobeRGB1998
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColorSpace("adobeRGB1998ColorSpace");
     }
 
@@ -107,9 +103,6 @@ public class NSColorSpace : NSObject
     /// </summary>
     public static NSColorSpace DeviceRGB
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColorSpace("deviceRGBColorSpace");
     }
 
@@ -119,9 +112,6 @@ public class NSColorSpace : NSObject
     /// </summary>
     public static NSColorSpace DeviceGray
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColorSpace("deviceGrayColorSpace");
     }
 
@@ -131,9 +121,6 @@ public class NSColorSpace : NSObject
     /// </summary>
     public static NSColorSpace DeviceCMYK
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColorSpace("deviceCMYKColorSpace");
     }
 
@@ -143,9 +130,6 @@ public class NSColorSpace : NSObject
     /// </summary>
     public static NSColorSpace DisplayP3
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColorSpace("displayP3ColorSpace");
     }
 
@@ -155,9 +139,6 @@ public class NSColorSpace : NSObject
     /// </summary>
     public static NSColorSpace ExtendedGenericGamma22Gray
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColorSpace("extendedGenericGamma22GrayColorSpace");
     }
 
@@ -167,9 +148,6 @@ public class NSColorSpace : NSObject
     /// </summary>
     public static NSColorSpace ExtendedSRGB
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColorSpace("extendedSRGBColorSpace");
     }
 
@@ -179,9 +157,6 @@ public class NSColorSpace : NSObject
     /// </summary>
     /// <param name="colorSpace"><see cref="CGColorSpace"/>.</param>
     /// <returns>Color space.</returns>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallMethodRdcMessage)]
-#endif
     public static NSColorSpace FromCGColorSpace(CGColorSpace colorSpace)
     {
         if (colorSpace.IsReleased)
@@ -197,9 +172,6 @@ public class NSColorSpace : NSObject
     /// </summary>
     /// <param name="iccProfile">Data contains ICC profile.</param>
     /// <returns>Color space.</returns>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallMethodRdcMessage)]
-#endif
     public static NSColorSpace FromIccProfile(CFData iccProfile)
     {
         if (iccProfile.IsReleased)
@@ -215,9 +187,6 @@ public class NSColorSpace : NSObject
     /// </summary>
     public static NSColorSpace GenericCMYK
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColorSpace("genericCMYKColorSpace");
     }
 
@@ -227,9 +196,6 @@ public class NSColorSpace : NSObject
     /// </summary>
     public static NSColorSpace GenericGamma22Gray
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColorSpace("genericGamma22GrayColorSpace");
     }
 
@@ -239,9 +205,6 @@ public class NSColorSpace : NSObject
     /// </summary>
     public static NSColorSpace GenericGray
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColorSpace("genericGrayColorSpace");
     }
 
@@ -251,9 +214,6 @@ public class NSColorSpace : NSObject
     /// </summary>
     public static NSColorSpace GenericRGB
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColorSpace("genericRGBColorSpace");
     }
 
@@ -263,9 +223,6 @@ public class NSColorSpace : NSObject
     /// </summary>
     /// <param name="model">Color model.</param>
     /// <returns>Available color spaces.</returns>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallMethodRdcMessage)]
-#endif
     public static NSColorSpace[] GetAvailableColorSpaces(Model model)
     {
         AvailableColorSpacesSelector ??= Selector.FromName("availableColorSpacesWithModel:");
@@ -281,9 +238,6 @@ public class NSColorSpace : NSObject
 
 
     // Get color space with given name.
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallMethodRdcMessage)]
-#endif
     static NSColorSpace GetNamedColorSpace(string name)
     {
         if (NamedColorSpaces.TryGetValue(name, out var colorSpace))
@@ -348,9 +302,6 @@ public class NSColorSpace : NSObject
     /// </summary>
     public static NSColorSpace SRGB
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColorSpace("sRGBColorSpace");
     }
 

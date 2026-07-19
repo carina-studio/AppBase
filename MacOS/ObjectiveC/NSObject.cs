@@ -43,17 +43,6 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     [DllImport(NativeLibraryNames.ObjectiveC)]
     static extern void object_setInstanceVariable(IntPtr obj, string name, void* value);
     //static readonly void* object_setIvar;
-    
-    
-    // Constants.
-    internal const string CallConstructorRdcMessage = "Dynamic code generation is required for calling specific constructor of NSObject.";
-    internal const string CallMethodRdcMessage = "Dynamic code generation is required for calling specific method of NSObject.";
-    internal const string CreateArrayRdcMessage = "Dynamic code generation is required for creating array instance.";
-    internal const string GetPropertyRdcMessage = "Dynamic code generation is required for getting property of NSObject.";
-    internal const string GetVariableRdcMessage = "Dynamic code generation is required for getting variable of NSObject.";
-    internal const string SendMessageRdcMessage = "Dynamic code generation is required for sending message to NSObject with specific parameters.";
-    internal const string SetPropertyRdcMessage = "Dynamic code generation is required for setting specific property of NSObject.";
-    internal const string SetVariableRdcMessage = "Dynamic code generation is required for setting variable of NSObject.";
 
 
     // Static fields.
@@ -165,7 +154,7 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <param name="name">Name of exported symbol.</param>
     /// <typeparam name="T">Type of object.</typeparam>
     /// <returns>Static object from export of native library, or Null if symbol not found or type mismatched.</returns>
-    public static T? FromExport<T>(IntPtr libraryHandle, string name) where T : NSObject
+    public static T? FromExport<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(IntPtr libraryHandle, string name) where T : NSObject
     {
         if (NativeLibrary.TryGetExport(libraryHandle, name, out var symbolAddress) && FromHandle<T>(*(IntPtr*)symbolAddress) is { } obj)
         {
@@ -184,7 +173,7 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <param name="name">Name of exported symbol.</param>
     /// <typeparam name="T">Type of object.</typeparam>
     /// <returns>Static object from export of native library, or Null if symbol not found or type mismatched.</returns>
-    public static T? FromExport<T>(ref T? field, IntPtr libraryHandle, string name) where T : NSObject
+    public static T? FromExport<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(ref T? field, IntPtr libraryHandle, string name) where T : NSObject
     {
         field ??= FromExport<T>(libraryHandle, name);
         return field;
@@ -350,9 +339,6 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// </summary>
     /// <param name="property">Property.</param>
     /// <returns>Value.</returns>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
     public T GetProperty<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(Property property)
     {
         if (!property.Class.IsAssignableFrom(this.Class))
@@ -382,9 +368,6 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <param name="ivar">Descriptor of instance variable.</param>
     /// <typeparam name="T">Type of variable.</typeparam>
     /// <returns>Value of variable.</returns>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CreateArrayRdcMessage)]
-#endif
     public T GetVariable<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.NonPublicConstructors)]T>(Variable ivar)
     {
         this.VerifyReleased();
@@ -401,9 +384,6 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <param name="ivar">Descriptor of instance variable.</param>
     /// <typeparam name="T">Type of variable.</typeparam>
     /// <returns>Value of variable.</returns>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CreateArrayRdcMessage)]
-#endif
     public static T GetVariable<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(IntPtr obj, Variable ivar) =>
         (T)GetVariable(obj, ivar, typeof(T));
 #pragma warning restore CS8600
@@ -417,9 +397,6 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <param name="ivar">Descriptor of instance variable.</param>
     /// <param name="targetType">Type of value of instance variable.</param>
     /// <returns>Value of variable.</returns>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CreateArrayRdcMessage)]
-#endif
     public static object? GetVariable(IntPtr obj, Variable ivar, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.NonPublicConstructors)] Type targetType)
     {
         VerifyHandle(obj);
@@ -434,7 +411,9 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
             var elementType = targetType.GetElementType()!;
             var elementSize = NativeTypeConversion.GetNativeValueSize(elementType);
             var count = (ivar.Size / elementSize);
-            var array = Array.CreateInstance(elementType, count);
+#pragma warning disable IL3050
+            var array = Array.CreateInstance(elementType, count); // element types of variables are expected to be referenced by caller
+#pragma warning restore IL3050
             var elementPtr = (byte*)outValue;
             for (var i = 0; i < count; ++i)
             {
@@ -663,9 +642,7 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// </summary>
     /// <param name="selector">Selector.</param>
     /// <param name="arg">Argument.</param>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(SendMessageRdcMessage)]
-#endif
+    /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the method must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
     public void SendMessage(Selector selector, object? arg) =>
         SendMessageCore(objc_msgSend, this.Handle, selector, arg);
 
@@ -675,9 +652,7 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// </summary>
     /// <param name="selector">Selector.</param>
     /// <param name="args">Arguments.</param>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(SendMessageRdcMessage)]
-#endif
+    /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the method must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
     public void SendMessage(Selector selector, params object?[] args)
     {
         switch (args.Length)
@@ -710,9 +685,7 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <param name="obj">Handle of instance.</param>
     /// <param name="selector">Selector.</param>
     /// <param name="arg">Argument.</param>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(SendMessageRdcMessage)]
-#endif
+    /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the method must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
     public static void SendMessage(IntPtr obj, Selector selector, object? arg) =>
         SendMessageCore(objc_msgSend, obj, selector, arg);
 
@@ -723,9 +696,7 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <param name="obj">Handle of instance.</param>
     /// <param name="selector">Selector.</param>
     /// <param name="args">Arguments.</param>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(SendMessageRdcMessage)]
-#endif
+    /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the method must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
     public static void SendMessage(IntPtr obj, Selector selector, params object?[] args)
     {
         switch (args.Length)
@@ -751,9 +722,7 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <param name="selector">Selector.</param>
     /// <typeparam name="T">Type of returned value.</typeparam>
     /// <returns>Result.</returns>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(SendMessageRdcMessage)]
-#endif
+    /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the method must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
     public T SendMessage<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(Selector selector) =>
         (T)SendMessageCore(objc_msgSend, this.Handle, selector, typeof(T));
 #pragma warning restore CS8600
@@ -769,9 +738,7 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <param name="args">Arguments.</param>
     /// <typeparam name="T">Type of returned value.</typeparam>
     /// <returns>Result.</returns>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(SendMessageRdcMessage)]
-#endif
+    /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the method must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
     public T SendMessage<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(Selector selector, params object?[] args)
     {
         if (args.Length == 0)
@@ -791,9 +758,7 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <param name="selector">Selector.</param>
     /// <typeparam name="T">Type of returned value.</typeparam>
     /// <returns>Result.</returns>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(SendMessageRdcMessage)]
-#endif
+    /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the method must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
     public static T SendMessage<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(IntPtr obj, Selector selector) =>
         (T)SendMessageCore(objc_msgSend, obj, selector, typeof(T));
 #pragma warning restore CS8600
@@ -810,9 +775,7 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <param name="args">Arguments.</param>
     /// <typeparam name="T">Type of returned value.</typeparam>
     /// <returns>Result.</returns>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(SendMessageRdcMessage)]
-#endif
+    /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the method must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
     public static T SendMessage<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(IntPtr obj, Selector selector, params object?[] args)
     {
         if (args.Length == 0)
@@ -824,9 +787,6 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
 
 
     // Send message for testing purpose
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(SendMessageRdcMessage)]
-#endif
     internal static object? SendMessageCore(IntPtr obj, Selector sel, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] Type? returnType, params object?[] args) =>
         SendMessageCore(objc_msgSend, obj, sel, returnType, args);
 
@@ -839,9 +799,6 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
         VerifyHandle(obj);
         ((delegate*unmanaged<IntPtr, IntPtr, void>)msgSendFunc)(obj, sel.Handle);
     }
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(SendMessageRdcMessage)]
-#endif
     static void SendMessageCore(void* msgSendFunc, IntPtr obj, Selector sel, object? arg) // optimize for property setter
     {
         VerifyHandle(obj);
@@ -861,9 +818,6 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
         else
             SendMessageCore(msgSendFunc, obj, sel, null, [ arg ]);
     }
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(SendMessageRdcMessage)]
-#endif
     static object? SendMessageCore(void* msgSendFunc, IntPtr obj, Selector sel, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] Type returnType) // optimize for property getter
     {
         var nativeReturnType = NativeTypeConversion.ToNativeType(returnType);
@@ -889,9 +843,7 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
             return NativeTypeConversion.FromNativeParameter(((delegate*unmanaged<IntPtr, IntPtr, double>)msgSendFunc)(obj, sel.Handle), returnType);
         return SendMessageCore(msgSendFunc, obj, sel, returnType, Array.Empty<object?>());
     }
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(SendMessageRdcMessage)]
-#endif
+    [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "Structure types used with native methods are expected to have fields preserved by caller.")]
     static object? SendMessageCore(void* msgSendFunc, IntPtr obj, Selector sel, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] Type? returnType, params object?[] args)
     {
         // check parameter
@@ -986,9 +938,10 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
                 }
                 catch (ArgumentException) // structure with non-blittable field cannot be pinned
                 {
-                    var buffer = Marshal.AllocHGlobal(Marshal.SizeOf(nativeArg));
+                    var layout = NativeStructureLayout.Get(nativeArg.GetType());
+                    var buffer = Marshal.AllocHGlobal(layout.Size);
                     marshalledArgBuffers[i] = buffer;
-                    Marshal.StructureToPtr(nativeArg, buffer, false);
+                    layout.Write(nativeArg, (byte*)buffer);
                     argPtrs[i + 2] = (void*)buffer;
                 }
             }
@@ -1062,9 +1015,7 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// </summary>
     /// <param name="selector">Selector.</param>
     /// <param name="arg">Argument.</param>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(SendMessageRdcMessage)]
-#endif
+    /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the method must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
     public void SendMessageToSuper(Selector selector, object? arg)
     {
         this.VerifyReleased();
@@ -1081,9 +1032,7 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// </summary>
     /// <param name="selector">Selector.</param>
     /// <param name="args">Arguments.</param>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(SendMessageRdcMessage)]
-#endif
+    /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the method must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
     public void SendMessageToSuper(Selector selector, params object?[] args)
     {
         this.VerifyReleased();
@@ -1114,9 +1063,7 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <param name="selector">Selector.</param>
     /// <typeparam name="T">Type of returned value.</typeparam>
     /// <returns>Result.</returns>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(SendMessageRdcMessage)]
-#endif
+    /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the method must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
     public T SendMessageToSuper<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(Selector selector)
     {
         this.VerifyReleased();
@@ -1139,9 +1086,7 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <param name="args">Arguments.</param>
     /// <typeparam name="T">Type of returned value.</typeparam>
     /// <returns>Result.</returns>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(SendMessageRdcMessage)]
-#endif
+    /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the method must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
     public T SendMessageToSuper<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(Selector selector, params object?[] args)
     {
         this.VerifyReleased();
@@ -1178,9 +1123,7 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <param name="obj">Handle of instance.</param>
     /// <param name="selector">Selector.</param>
     /// <param name="arg">Argument.</param>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(SendMessageRdcMessage)]
-#endif
+    /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the method must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
     public static void SendMessageToSuper(IntPtr obj, Selector selector, object? arg)
     {
         var superClass = Class.GetClass(obj).SuperClass;
@@ -1197,9 +1140,7 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <param name="obj">Handle of instance.</param>
     /// <param name="selector">Selector.</param>
     /// <param name="args">Arguments.</param>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(SendMessageRdcMessage)]
-#endif
+    /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the method must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
     public static void SendMessageToSuper(IntPtr obj, Selector selector, params object?[] args)
     {
         var superClass = Class.GetClass(obj).SuperClass;
@@ -1219,9 +1160,7 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <param name="selector">Selector.</param>
     /// <typeparam name="T">Type of returned value.</typeparam>
     /// <returns>Result.</returns>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(SendMessageRdcMessage)]
-#endif
+    /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the method must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
     public static T SendMessageToSuper<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(IntPtr obj, Selector selector)
     {
         var superClass = Class.GetClass(obj).SuperClass;
@@ -1244,9 +1183,7 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <param name="args">Arguments.</param>
     /// <typeparam name="T">Type of returned value.</typeparam>
     /// <returns>Result.</returns>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(SendMessageRdcMessage)]
-#endif
+    /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the method must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
     public static T SendMessageToSuper<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(IntPtr obj, Selector selector, params object?[] args)
     {
         var superClass = Class.GetClass(obj).SuperClass;
@@ -1384,9 +1321,6 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <param name="property">Property.</param>
     /// <param name="value">Value.</param>
     /// <typeparam name="T">Type of property.</typeparam>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(SetPropertyRdcMessage)]
-#endif
     public void SetProperty<T>(Property property, T? value)
     {
         if (!property.Class.IsAssignableFrom(this.Class))
@@ -1402,9 +1336,6 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// </summary>
     /// <param name="ivar">Instance variable.</param>
     /// <param name="value">Value.</param>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(SetVariableRdcMessage)]
-#endif
     public void SetVariable(Variable ivar, object? value)
     {
         this.VerifyReleased();
@@ -1418,9 +1349,6 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <param name="obj">Handle of instance.</param>
     /// <param name="ivar">Instance variable.</param>
     /// <param name="value">Value.</param>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(SetVariableRdcMessage)]
-#endif
     public static void SetVariable(IntPtr obj, Variable ivar, object? value)
     {
         VerifyHandle(obj);

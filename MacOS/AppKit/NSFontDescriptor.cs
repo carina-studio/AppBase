@@ -1,9 +1,7 @@
 using CarinaStudio.MacOS.CoreFoundation;
 using CarinaStudio.MacOS.ObjectiveC;
 using System;
-#if NET7_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
-#endif
 
 namespace CarinaStudio.MacOS.AppKit;
 
@@ -123,10 +121,7 @@ public class NSFontDescriptor : NSObject
     /// <summary>
     /// Returns the font attribute specified by the given key.
     /// </summary>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallMethodRdcMessage)]
-#endif
-    public T? GetCFObject<T>(AttributeName attribute) where T : CFObject
+    public T? GetCFObject<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(AttributeName attribute) where T : CFObject
     {
         ObjectForKeySelector ??= Selector.FromName("objectForKey:");
         return CFObject.FromHandle<T>(this.SendMessage<IntPtr>(ObjectForKeySelector, attribute));
@@ -136,10 +131,7 @@ public class NSFontDescriptor : NSObject
     /// <summary>
     /// Returns the font attribute specified by the given key.
     /// </summary>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallMethodRdcMessage)]
-#endif
-    public T? GetObject<T>(AttributeName attribute) where T : NSObject
+    public T? GetObject<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(AttributeName attribute) where T : NSObject
     {
         ObjectForKeySelector ??= Selector.FromName("objectForKey:");
         return FromHandle<T>(this.SendMessage<IntPtr>(ObjectForKeySelector, attribute));

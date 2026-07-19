@@ -144,7 +144,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// <param name="name">Name of exported symbol.</param>
         /// <typeparam name="T">Type of object.</typeparam>
         /// <returns>Static object from export of native library, or Null if symbol not found or type mismatched.</returns>
-        public static T? FromExport<T>(IntPtr libraryHandle, string name) where T : CFObject
+        public static T? FromExport<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(IntPtr libraryHandle, string name) where T : CFObject
         {
             if (NativeLibrary.TryGetExport(libraryHandle, name, out var symbolAddress) && FromHandle<T>(*(IntPtr*)symbolAddress) is { } obj)
             {
@@ -163,7 +163,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// <param name="name">Name of exported symbol.</param>
         /// <typeparam name="T">Type of object.</typeparam>
         /// <returns>Static object from export of native library, or Null if symbol not found or type mismatched.</returns>
-        public static T? FromExport<T>(ref T? field, IntPtr libraryHandle, string name) where T : CFObject
+        public static T? FromExport<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(ref T? field, IntPtr libraryHandle, string name) where T : CFObject
         {
             field ??= FromExport<T>(libraryHandle, name);
             return field;

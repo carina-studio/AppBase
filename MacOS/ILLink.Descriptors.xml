@@ -1,0 +1,15 @@
+<!-- Preserve fields of structure types so that native layout can be computed through reflection under trimming/NativeAOT. -->
+<linker>
+  <assembly fullname="CarinaStudio.AppBase.MacOS">
+    <type fullname="CarinaStudio.MacOS.AppKit.NSEdgeInsets" preserve="fields" />
+    <type fullname="CarinaStudio.MacOS.AppKit.NSPoint" preserve="fields" />
+    <type fullname="CarinaStudio.MacOS.AppKit.NSRect" preserve="fields" />
+    <type fullname="CarinaStudio.MacOS.AppKit.NSSize" preserve="fields" />
+    <type fullname="CarinaStudio.MacOS.CoreFoundation.CFRange" preserve="fields" />
+    <type fullname="CarinaStudio.MacOS.CoreGraphics.CGPoint" preserve="fields" />
+    <type fullname="CarinaStudio.MacOS.CoreGraphics.CGRect" preserve="fields" />
+    <type fullname="CarinaStudio.MacOS.CoreGraphics.CGSize" preserve="fields" />
+    <type fullname="CarinaStudio.MacOS.CoreGraphics.PixelSize" preserve="fields" />
+    <type fullname="CarinaStudio.MacOS.ObjectiveC.NSRange" preserve="fields" />
+  </assembly>
+</linker>

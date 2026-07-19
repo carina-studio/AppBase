@@ -1,7 +1,6 @@
 using CarinaStudio.MacOS.CoreGraphics;
 using CarinaStudio.MacOS.ObjectiveC;
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
 namespace CarinaStudio.MacOS.AppKit;
@@ -41,9 +40,6 @@ public class NSImage : NSObject
     /// </summary>
     /// <param name="fileName">File name.</param>
     /// <returns><see cref="NSImage"/>.</returns>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallMethodRdcMessage)]
-#endif
     public static NSImage FromFile(string fileName)
     {
         if (string.IsNullOrWhiteSpace(fileName))
@@ -60,9 +56,6 @@ public class NSImage : NSObject
     /// </summary>
     /// <param name="image"><see cref="CGImage"/>.</param>
     /// <returns><see cref="NSImage"/>.</returns>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallMethodRdcMessage)]
-#endif
     public static NSImage FromCGImage(CGImage image)
     {
         if (image.IsReleased)
@@ -79,9 +72,6 @@ public class NSImage : NSObject
     /// <param name="image"><see cref="CGImage"/>.</param>
     /// <param name="size">Size.</param>
     /// <returns><see cref="NSImage"/>.</returns>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallMethodRdcMessage)]
-#endif
     public static NSImage FromCGImage(CGImage image, NSSize size)
     {
         if (image.IsReleased)
@@ -99,9 +89,6 @@ public class NSImage : NSObject
     /// </summary>
     /// <param name="data">Data.</param>
     /// <returns><see cref="NSImage"/>.</returns>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallMethodRdcMessage)]
-#endif
     public static NSImage FromData(CoreFoundation.CFData data)
     {
         if (data.IsReleased)
@@ -119,9 +106,6 @@ public class NSImage : NSObject
     /// </summary>
     /// <param name="stream">Stream.</param>
     /// <returns><see cref="NSImage"/>.</returns>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallMethodRdcMessage)]
-#endif
     public static NSImage FromStream(Stream stream)
     {
         InitWithDataSelector ??= Selector.FromName("initWithData:");
@@ -151,17 +135,11 @@ public class NSImage : NSObject
     /// </summary>
     public NSSize Size
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get 
         {
             SizeProperty ??= NSImageClass!.GetProperty("size").AsNonNull();
             return this.GetProperty<NSSize>(SizeProperty);
         }
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(SetPropertyRdcMessage)]
-#endif
         set 
         {
             SizeProperty ??= NSImageClass!.GetProperty("size").AsNonNull();

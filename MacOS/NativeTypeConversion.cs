@@ -16,9 +16,6 @@ public static class NativeTypeConversion
     /// <summary>
     /// Convert from native parameter to CLR parameter.
     /// </summary>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode("Dynamic code generation is required for checking native type.")]
-#endif
     public static object? FromNativeParameter(object nativeValue, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] Type targetType)
     {
         if (IsNativeType(targetType))
@@ -64,9 +61,7 @@ public static class NativeTypeConversion
     /// <summary>
     /// Convert from native value to CLR value.
     /// </summary>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode("Dynamic code generation is required for converting to CLR value type.")]
-#endif
+    [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "Structure types used with native methods are expected to have fields preserved by caller.")]
     public static unsafe object? FromNativeValue(byte* valuePtr, int valueCount, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] Type targetType, out int consumedBytes)
     {
         if (valueCount < 1)
@@ -149,10 +144,11 @@ public static class NativeTypeConversion
             }
             try
             {
-                consumedBytes = Marshal.SizeOf(targetType);
+                var layout = NativeStructureLayout.Get(targetType);
+                consumedBytes = layout.Size;
                 if (valueCount < consumedBytes)
                     throw new ArgumentException("Insufficient native values for conversion.");
-                return Marshal.PtrToStructure((IntPtr)valuePtr, targetType);
+                return layout.Read(valuePtr);
             }
             catch (Exception ex)
             {
@@ -187,14 +183,8 @@ public static class NativeTypeConversion
     /// <summary>
     /// Convert from Objective-C type encoding.
     /// </summary>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode("Dynamic code generation is required for creating Objective-C type encoding.")]
-#endif
     public static Type FromTypeEncoding(string typeEncoding, out int elementCount) =>
         FromTypeEncoding(typeEncoding.AsSpan(), out elementCount, out var _);
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode("Dynamic code generation is required for creating Objective-C type encoding.")]
-#endif
     static Type FromTypeEncoding(ReadOnlySpan<char> typeEncoding, out int elementCount, out int consumedChars)
     {
         elementCount = 1;
@@ -265,7 +255,9 @@ public static class NativeTypeConversion
                     if (subIndex + consumedChars > typeEncodingLength || typeEncoding[subIndex + consumedChars] != ']')
                         goto default;
                     consumedChars += subIndex + 1;
-                    return elementType.MakeArrayType();
+#pragma warning disable IL3050
+                    return elementType.MakeArrayType(); // array types parsed from type encoding are expected to be referenced by caller
+#pragma warning restore IL3050
                 }
             case '{': // structure
                 {
@@ -290,8 +282,8 @@ public static class NativeTypeConversion
                     {
                         var fieldType = FromTypeEncoding(typeEncoding.Slice(subIndex), out elementCount, out consumedChars);
                         var fieldSize = fieldType.IsArray
-                            ? elementCount > 0 ? (elementCount * Marshal.SizeOf(fieldType.GetElementType()!)) : IntPtr.Size
-                            : Marshal.SizeOf(fieldType);
+                            ? elementCount > 0 ? (elementCount * GetNativeValueSize(fieldType.GetElementType()!)) : IntPtr.Size
+                            : GetNativeValueSize(fieldType);
                         if (remainingInSlot >= fieldSize)
                         {
                             remainingInSlot -= fieldSize;
@@ -342,9 +334,9 @@ public static class NativeTypeConversion
                     {
                         var fieldType = FromTypeEncoding(typeEncoding.Slice(subIndex), out elementCount, out consumedChars);
                         if (fieldType.IsArray)
-                            maxFieldSize = Math.Max(maxFieldSize, elementCount > 0 ? (Marshal.SizeOf(fieldType.GetElementType()!)) : IntPtr.Size);
+                            maxFieldSize = Math.Max(maxFieldSize, elementCount > 0 ? (GetNativeValueSize(fieldType.GetElementType()!)) : IntPtr.Size);
                         else
-                            maxFieldSize = Math.Max(maxFieldSize, Marshal.SizeOf(fieldType));
+                            maxFieldSize = Math.Max(maxFieldSize, GetNativeValueSize(fieldType));
                         subIndex += consumedChars;
                         if (subIndex >= typeEncodingLength)
                             goto default;
@@ -390,9 +382,6 @@ public static class NativeTypeConversion
     /// <summary>
     /// Get size of native value in bytes.
     /// </summary>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode("Dynamic code generation is required for checking native type.")]
-#endif
     public static int GetNativeValueSize(Type type)
     {
         type = ToNativeType(type);
@@ -413,7 +402,7 @@ public static class NativeTypeConversion
         if (type == typeof(nint))
             return IntPtr.Size;
         if (type.IsValueType)
-            return Marshal.SizeOf(type);
+            return NativeStructureLayout.Get(type).Size;
         throw new NotSupportedException($"Cannot get size of native type: {type.Name}.");
     }
 
@@ -421,9 +410,6 @@ public static class NativeTypeConversion
     /// <summary>
     /// Check whether given type is the native type or not.
     /// </summary>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode("Dynamic code generation is required for checking native type.")]
-#endif
     public static bool IsNativeType(Type type)
     {
         if (!type.IsValueType)
@@ -448,7 +434,7 @@ public static class NativeTypeConversion
             || type == typeof(ulong)
             || Global.RunOrDefault(() =>
             {
-                Marshal.SizeOf(type);
+                NativeStructureLayout.Get(type);
                 return true;
             }, false);
     }
@@ -457,9 +443,6 @@ public static class NativeTypeConversion
     /// <summary>
     /// Convert from CLR parameter to native parameter.
     /// </summary>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode("Dynamic code generation is required for checking native type.")]
-#endif
     public static object ToNativeParameter(object? value)
     {
         if (value is null)
@@ -491,9 +474,6 @@ public static class NativeTypeConversion
     /// <summary>
     /// Convert from CLR object to native value.
     /// </summary>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode("Dynamic code generation is required for converting from CLR value type.")]
-#endif
     public static unsafe int ToNativeValue(object? obj, byte* valuePtr)
     {
         obj?.GetType().Let(t =>
@@ -592,9 +572,9 @@ public static class NativeTypeConversion
         {
             try
             {
-                var size = Marshal.SizeOf(obj);
-                Marshal.StructureToPtr(obj, (IntPtr)valuePtr, false);
-                return size;
+                var layout = NativeStructureLayout.Get(obj.GetType());
+                layout.Write(obj, valuePtr);
+                return layout.Size;
             }
             catch (Exception ex)
             {
@@ -623,9 +603,6 @@ public static class NativeTypeConversion
     /// <summary>
     /// Convert to corresponding native type.
     /// </summary>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode("Dynamic code generation is required for checking native type.")]
-#endif
     public static Type ToNativeType(Type type)
     {
         if (IsNativeType(type))
@@ -650,15 +627,18 @@ public static class NativeTypeConversion
     /// </summary>
     public static string ToTypeEncoding(object obj)
     {
+#pragma warning disable IL2067, IL2072
         if (obj is Type type)
             return ToTypeEncoding(type);
         if (obj is Array array)
             return ToTypeEncoding(obj.GetType(), array.GetLength(0));
         return ToTypeEncoding(obj.GetType());
+#pragma warning restore IL2067, IL2072
     }
     /// <summary>
     /// Convert to Objective-C type encoding.
     /// </summary>
+    [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "Structure types used with native methods are expected to have fields preserved by caller.")]
     public static string ToTypeEncoding([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.NonPublicFields)] Type type, int elementCount = 1)
     {
         var isArray = type.IsArray;

@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
 
 namespace CarinaStudio.MacOS.ObjectiveC;
 
@@ -37,9 +36,6 @@ public class NSEnumerator: NSObject
     /// </summary>
     public NSArray<NSObject> AllObjects
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => this.GetProperty<NSArray<NSObject>>(AllObjsProperty!);
     }
 

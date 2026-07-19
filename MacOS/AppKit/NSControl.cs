@@ -1,6 +1,5 @@
 using CarinaStudio.MacOS.ObjectiveC;
 using System;
-using System.Diagnostics.CodeAnalysis;
 
 namespace CarinaStudio.MacOS.AppKit;
 
@@ -28,9 +27,6 @@ public class NSControl : NSView
     /// </summary>
     /// <param name="handle">Handle of allocated instance.</param>
     /// <param name="frame">Frame.</param>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallConstructorRdcMessage)]
-#endif
     protected NSControl(IntPtr handle, NSRect frame) : base(handle, frame)
     { }
 

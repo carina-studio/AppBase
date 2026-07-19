@@ -1,8 +1,5 @@
 using CarinaStudio.MacOS.ObjectiveC;
 using System;
-#if NET7_0_OR_GREATER
-using System.Diagnostics.CodeAnalysis;
-#endif
 
 namespace CarinaStudio.MacOS.AppKit;
 
@@ -126,9 +123,6 @@ public class NSFont : NSObject
     /// </summary>
     public NSString? DisplayName
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get
         {
             DisplayNameProperty ??= NSFontClass!.GetProperty("displayName").AsNonNull();
@@ -142,9 +136,6 @@ public class NSFont : NSObject
     /// </summary>
     public NSString? FamilyName
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get
         {
             FamilyNameProperty ??= NSFontClass!.GetProperty("familyName").AsNonNull();
@@ -158,9 +149,6 @@ public class NSFont : NSObject
     /// </summary>
     public NSFontDescriptor FontDescriptor
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get
         {
             FontDescriptorProperty ??= NSFontClass!.GetProperty("fontDescriptor").AsNonNull();
@@ -174,9 +162,6 @@ public class NSFont : NSObject
     /// </summary>
     public NSString FontName
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get
         {
             FontNameProperty ??= NSFontClass!.GetProperty("fontName").AsNonNull();
@@ -188,9 +173,6 @@ public class NSFont : NSObject
     /// <summary>
     /// Returns the font associated with the text style.
     /// </summary>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallMethodRdcMessage)]
-#endif
     public static NSFont GetPreferredFont(TextStyle style, NSDictionary? options = null)
     {
         GetPreferredFontSelector ??= Selector.FromName("preferredFontForTextStyle:options:");
@@ -204,9 +186,6 @@ public class NSFont : NSObject
     /// </summary>
     public static float LabelFontSize
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get
         {
             LabelFontSizeSelector ??= Selector.FromName("labelFontSize");
@@ -220,9 +199,6 @@ public class NSFont : NSObject
     /// </summary>
     public float PointSize
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get
         {
             PointSizeProperty ??= NSFontClass!.GetProperty("pointSize").AsNonNull();
@@ -236,9 +212,6 @@ public class NSFont : NSObject
     /// </summary>
     public static float SmallSystemFontSize
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get
         {
             SmallSystemFontSizeSelector ??= Selector.FromName("smallSystemFontSize");
@@ -252,9 +225,6 @@ public class NSFont : NSObject
     /// </summary>
     public static float SystemFontSize
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get
         {
             SystemFontSizeSelector ??= Selector.FromName("systemFontSize");

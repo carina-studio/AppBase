@@ -1,6 +1,5 @@
 using CarinaStudio.MacOS.ObjectiveC;
 using System;
-using System.Diagnostics.CodeAnalysis;
 
 namespace CarinaStudio.MacOS.AppKit;
 
@@ -108,9 +107,6 @@ public class NSWindow : NSResponder
     /// <param name="style">Style.</param>
     /// <param name="backingStoreType">How the drawing done in the window is buffered by the window device</param>
     /// <param name="defer">True to create the window device until the window is moved onscreen.</param>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallConstructorRdcMessage)]
-#endif
     public NSWindow(NSRect contentRect, StyleMask style, BackingStoreType backingStoreType, bool defer) : this(Initialize(NSWindowClass!.Allocate(), contentRect, style, backingStoreType, defer), true)
     { }
 
@@ -123,9 +119,6 @@ public class NSWindow : NSResponder
     /// <param name="backingStoreType">How the drawing done in the window is buffered by the window device</param>
     /// <param name="defer">True to create the window device until the window is moved onscreen.</param>
     /// <param name="screen">The screen on which the window is positioned.</param>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallConstructorRdcMessage)]
-#endif
     public NSWindow(NSRect contentRect, StyleMask style, BackingStoreType backingStoreType, bool defer, NSObject? screen) : this(Initialize(NSWindowClass!.Allocate(), contentRect, style, backingStoreType, defer, screen), true)
     { }
 
@@ -226,9 +219,6 @@ public class NSWindow : NSResponder
     /// Initialize allocated instance.
     /// </summary>
     /// <returns>Handle of initialized instance</returns>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallMethodRdcMessage)]
-#endif
     protected static IntPtr Initialize(IntPtr obj, NSRect contentRect, StyleMask style, BackingStoreType backingStoreType, bool defer)
     {
         InitWithRectSelector ??= Selector.FromName("initWithContentRect:styleMask:backing:defer:");
@@ -240,9 +230,6 @@ public class NSWindow : NSResponder
     /// Initialize allocated instance.
     /// </summary>
     /// <returns>Handle of initialized instance</returns>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallMethodRdcMessage)]
-#endif
     protected static IntPtr Initialize(IntPtr obj, NSRect contentRect, StyleMask style, BackingStoreType backingStoreType, bool defer, NSObject? screen)
     {
         InitWithRectAndScreenSelector ??= Selector.FromName("initWithContentRect:styleMask:backing:defer:screen:");
@@ -263,9 +250,6 @@ public class NSWindow : NSResponder
     /// <summary>
     /// Move the window to the back of its level in the screen list.
     /// </summary>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallMethodRdcMessage)]
-#endif
     public void Order(OrderingMode place, int otherWin)
     {
         OrderRelativeToSelector ??= Selector.FromName("order:relativeTo:");
@@ -318,9 +302,6 @@ public class NSWindow : NSResponder
     /// </summary>
     /// <param name="button">Type of button.</param>
     /// <returns><see cref="NSControl"/> of button.</returns>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallMethodRdcMessage)]
-#endif
     public NSControl? StandardWindowButton(ButtonType button)
     {
         StandardWindowButtonSelector ??= Selector.FromName("standardWindowButton:");
@@ -342,9 +323,6 @@ public class NSWindow : NSResponder
                 return "";
             return FromHandle<NSString>(handle, false)!.ToString();
         }
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(SetPropertyRdcMessage)]
-#endif
         set
         {
             this.VerifyReleased();
@@ -369,9 +347,6 @@ public class NSWindow : NSResponder
                 return "";
             return FromHandle<NSString>(handle, false)!.ToString();
         }
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(SetPropertyRdcMessage)]
-#endif
         set
         {
             this.VerifyReleased();

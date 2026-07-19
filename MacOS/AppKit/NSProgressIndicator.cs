@@ -1,6 +1,5 @@
 using CarinaStudio.MacOS.ObjectiveC;
 using System;
-using System.Diagnostics.CodeAnalysis;
 
 namespace CarinaStudio.MacOS.AppKit;
 
@@ -37,9 +36,6 @@ public class NSProgressIndicator : NSView
     /// Initialize new <see cref="NSProgressIndicator"/> instance.
     /// </summary>
     /// <param name="frame">Frame.</param>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallConstructorRdcMessage)]
-#endif
     public NSProgressIndicator(NSRect frame) : base(NSProgressIndicatorClass!.Allocate(), frame)
     { }
 
@@ -111,9 +107,6 @@ public class NSProgressIndicator : NSView
     /// Increment the value of progress indicator.
     /// </summary>
     /// <param name="delta">Value to increment.</param>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallMethodRdcMessage)]
-#endif
     public void Increment(double delta)
     {
         IncrementBySelector ??= Selector.FromName("incrementBy:");
@@ -197,9 +190,6 @@ public class NSProgressIndicator : NSView
     /// Start animation of indeterminate progress indicator.
     /// </summary>
     /// <param name="sender">Sender.</param>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallMethodRdcMessage)]
-#endif
     public void StartAnimation(NSObject? sender = null) 
     {
         StartAnimationSelector ??= Selector.FromName("startAnimation:");
@@ -211,9 +201,6 @@ public class NSProgressIndicator : NSView
     /// Stop animation of indeterminate progress indicator.
     /// </summary>
     /// <param name="sender">Sender.</param>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallMethodRdcMessage)]
-#endif
     public void StopAnimation(NSObject? sender = null)
     {
         StopAnimationSelector ??= Selector.FromName("stopAnimation:");

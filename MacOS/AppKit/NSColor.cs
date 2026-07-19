@@ -2,7 +2,6 @@ using CarinaStudio.MacOS.ObjectiveC;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 
 namespace CarinaStudio.MacOS.AppKit;
 
@@ -99,9 +98,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor AlternateSelectedControl
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("alternateSelectedControlColor");
     }
 
@@ -111,9 +107,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor AlternateSelectedControlText
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("alternateSelectedControlTextColor");
     }
 
@@ -123,9 +116,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor Black
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("blackColor");
     }
 
@@ -136,9 +126,6 @@ public class NSColor : NSObject
     /// <param name="fraction">The amount of the color to blend with this color.</param>
     /// <param name="color">The color to blend with this color.</param>
     /// <returns>Blended color, or Null if the colors can’t be converted.</returns>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallMethodRdcMessage)]
-#endif
     public NSColor? BlendWith(double fraction, NSColor color)
     {
         BlendedSelector ??= Selector.FromName("blendedColorWithFraction:ofColor:");
@@ -151,9 +138,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor Blue
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("blueColor");
     }
 
@@ -182,9 +166,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor Brown
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("brownColor");
     }
 
@@ -194,9 +175,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor Clear
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("clearColor");
     }
 
@@ -242,9 +220,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor Control
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("controlColor");
     }
 
@@ -254,9 +229,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor ControlBackground
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("controlBackgroundColor");
     }
 
@@ -266,9 +238,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor ControlDarkShadow
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("controlDarkShadowColor");
     }
 
@@ -278,9 +247,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor ControlHighlight
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("controlHighlightColor");
     }
 
@@ -290,9 +256,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor ControlLightHighlight
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("controlLightHighlightColor");
     }
 
@@ -302,9 +265,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor ControlShadow
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("controlShadowColor");
     }
 
@@ -314,9 +274,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor ControlText
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("controlTextColor");
     }
 
@@ -327,9 +284,6 @@ public class NSColor : NSObject
     /// <param name="colorSpace">Color space</param>
     /// <param name="components">Color components.</param>
     /// <returns>Color.</returns>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallMethodRdcMessage)]
-#endif
     public unsafe static NSColor Create(NSColorSpace colorSpace, params double[] components)
     {
         var componentCount = components.Length;
@@ -368,9 +322,6 @@ public class NSColor : NSObject
     /// <param name="i">Intensity (Brightness).</param>
     /// <param name="a">Alpha.</param>
     /// <returns>Color.</returns>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallMethodRdcMessage)]
-#endif
     public static NSColor CreateHSI(NSColorSpace colorSpace, double h, double s, double i, double a = 1.0)
     {
         if (colorSpace.ColorSpaceModel != NSColorSpace.Model.RGB)
@@ -390,9 +341,6 @@ public class NSColor : NSObject
     /// <param name="b">Blue.</param>
     /// <param name="a">Alpha.</param>
     /// <returns>Color.</returns>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallMethodRdcMessage)]
-#endif
     public unsafe static NSColor CreateRGBA(NSColorSpace colorSpace, double r, double g, double b, double a = 1.0)
     {
         if (colorSpace.ColorSpaceModel != NSColorSpace.Model.RGB)
@@ -412,9 +360,6 @@ public class NSColor : NSObject
     /// <param name="b">Blue.</param>
     /// <param name="a">Alpha.</param>
     /// <returns>Color.</returns>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallMethodRdcMessage)]
-#endif
     public static NSColor CreateWithSRGB(double r, double g, double b, double a = 1.0)
     {
         ColorWithSrgbSelector ??= Selector.FromName("colorWithSRGBRed:green:blue:alpha:");
@@ -430,9 +375,6 @@ public class NSColor : NSObject
     /// <param name="b">Blue.</param>
     /// <param name="a">Alpha.</param>
     /// <returns>Color.</returns>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallMethodRdcMessage)]
-#endif
     public static NSColor CreateWithDisplayP3(double r, double g, double b, double a = 1.0)
     {
         ColorWithDisplayP3Selector ??= Selector.FromName("colorWithDisplayP3Red:green:blue:alpha:");
@@ -445,9 +387,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor Cyan
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("cyanColor");
     }
 
@@ -457,9 +396,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor DarkGray
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("darkGrayColor");
     }
 
@@ -469,17 +405,11 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor DisabledControlText
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("disabledControlTextColor");
     }
 
 
     // Get color with given name.
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallMethodRdcMessage)]
-#endif
     static NSColor GetNamedColor(string name)
     {
         if (NamedColors.TryGetValue(name, out var color))
@@ -498,9 +428,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor Gray
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("grayColor");
     }
 
@@ -510,9 +437,6 @@ public class NSColor : NSObject
     /// </summary>
     public unsafe (double, double) Grayscale
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get
         {
             if (this.isDynamic)
@@ -532,9 +456,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor Green
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("greenColor");
     }
 
@@ -563,9 +484,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor Grid
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("gridColor");
     }
 
@@ -575,9 +493,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor Header
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("headerColor");
     }
 
@@ -587,9 +502,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor HeaderText
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("headerTextColor");
     }
 
@@ -599,9 +511,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor Highlight
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("highlightColor");
     }
 
@@ -611,9 +520,6 @@ public class NSColor : NSObject
     /// </summary>
     /// <param name="level">The level, range is [0.0, 1.0].</param>
     /// <returns>Color object, or Null if the colors can’t be converted.</returns>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallMethodRdcMessage)]
-#endif
     public NSColor? HighlightWith(double level)
     {
         HighlightSelector ??= Selector.FromName("highlightWithLevel:");
@@ -626,9 +532,6 @@ public class NSColor : NSObject
     /// </summary>
     public unsafe (double, double, double, double) HSI
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get
         {
             if (this.isDynamic)
@@ -684,9 +587,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor KeyboardFocusIndicator
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("keyboardFocusIndicatorColor");
     }
 
@@ -696,9 +596,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor Knob
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("knobColor");
     }
 
@@ -708,9 +605,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor Label
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("labelColor");
     }
 
@@ -720,9 +614,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor LightGray
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("lightGrayColor");
     }
 
@@ -732,9 +623,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor Magenta
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("magentaColor");
     }
 
@@ -744,9 +632,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor Orange
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("orangeColor");
     }
 
@@ -756,9 +641,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor Purple
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("purpleColor");
     }
 
@@ -768,9 +650,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor QuaternaryLabel
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("quaternaryLabelColor");
     }
 
@@ -780,9 +659,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor Red
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("redColor");
     }
 
@@ -830,9 +706,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor ScrollBar
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("scrollBarColor");
     }
 
@@ -842,9 +715,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor ScrubberTexturedBackground
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("scrubberTexturedBackgroundColor");
     }
 
@@ -854,9 +724,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor SecondaryLabel
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("secondaryLabelColor");
     }
 
@@ -866,9 +733,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor SecondarySelectedControl
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("secondarySelectedControlColor");
     }
 
@@ -878,9 +742,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor SelectedControl
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("selectedControlColor");
     }
 
@@ -890,9 +751,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor SelectedControlText
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("selectedControlTextColor");
     }
 
@@ -902,9 +760,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor SelectedKnob
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("selectedKnobColor");
     }
 
@@ -914,9 +769,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor SelectedMenuItem
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("selectedMenuItemColor");
     }
 
@@ -926,9 +778,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor SelectedMenuItemText
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("selectedMenuItemTextColor");
     }
 
@@ -938,9 +787,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor SelectedText
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("selectedTextColor");
     }
 
@@ -950,9 +796,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor SelectedTextBackground
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("selectedTextBackgroundColor");
     }
 
@@ -962,9 +805,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor Shadow
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("shadowColor");
     }
 
@@ -974,9 +814,6 @@ public class NSColor : NSObject
     /// </summary>
     /// <param name="level">The level, range is [0.0, 1.0].</param>
     /// <returns>Color object, or Null if the colors can’t be converted.</returns>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallMethodRdcMessage)]
-#endif
     public NSColor? ShadowWith(double level)
     {
         ShadowSelector ??= Selector.FromName("shadowWithLevel:");
@@ -989,9 +826,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor TertiaryLabel
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("tertiaryLabelColor");
     }
 
@@ -1001,9 +835,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor TextBackground
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("textBackgroundColor");
     }
 
@@ -1013,9 +844,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor Text
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("textColor");
     }
 
@@ -1062,9 +890,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor UnderPageBackground
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("underPageBackgroundColor");
     }
 
@@ -1074,9 +899,6 @@ public class NSColor : NSObject
     /// </summary>
     /// <param name="colorSpace">Color space.</param>
     /// <returns>Color object with color space, or Null if conversion is not possible.</returns>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallMethodRdcMessage)]
-#endif
     public NSColor? UseColorSpace(NSColorSpace colorSpace)
     {
         UsingColorSpaceSelector ??= Selector.FromName("colorUsingColorSpace:");
@@ -1089,9 +911,6 @@ public class NSColor : NSObject
     /// </summary>
     /// <param name="type">Color type.</param>
     /// <returns>A compatible color object, or Null if a compatible color object is not available.</returns>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallMethodRdcMessage)]
-#endif
     public NSColor? UseType(ColorType type)
     {
         UsingTypeSelector ??= Selector.FromName("colorUsingType:");
@@ -1104,9 +923,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor White
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("whiteColor");
     }
 
@@ -1116,9 +932,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor WindowBackground
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("windowBackgroundColor");
     }
 
@@ -1128,9 +941,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor WindowFrame
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("windowFrameColor");
     }
 
@@ -1140,9 +950,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor WindowFrameText
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("windowFrameTextColor");
     }
 
@@ -1152,9 +959,6 @@ public class NSColor : NSObject
     /// </summary>
     /// <param name="alpha">Alpha component.</param>
     /// <returns>Color.</returns>
-#if NET7_0_OR_GREATER
-    [RequiresDynamicCode(CallMethodRdcMessage)]
-#endif
     public NSColor WithAlphaComponent(double alpha)
     {
         WithAlphaSelector ??= Selector.FromName("colorWithAlphaComponent:");
@@ -1167,9 +971,6 @@ public class NSColor : NSObject
     /// </summary>
     public static NSColor Yellow
     {
-#if NET7_0_OR_GREATER
-        [RequiresDynamicCode(GetPropertyRdcMessage)]
-#endif
         get => GetNamedColor("yellowColor");
     }
 }

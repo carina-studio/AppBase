@@ -36,7 +36,7 @@ Core
 - **Shared properties**: [`Directory.Build.props`](Directory.Build.props) — version, authors, Avalonia version, AOT settings
 - **Target frameworks**: `net6.0` through `net10.0` (Android projects: `net8.0-android` through `net10.0-android`)
 - **Language**: C# with `LangVersion=preview`
-- **AOT**: All projects are `IsAotCompatible=true` except `MacOS` (uses P/Invoke in ways incompatible with AOT)
+- **AOT**: All projects are `IsAotCompatible=true`
 - **Packaging scripts**: [`BuildPackages.bat`](BuildPackages.bat) / [`BuildPackages.sh`](BuildPackages.sh)
 
 ## Workflow
@@ -77,7 +77,7 @@ After a code change is confirmed, check whether the change affects the architect
 
 - Suppress `CA1416` only when calling APIs annotated with `[SupportedOSPlatform]` by the .NET runtime.
 - Custom P/Invoke definitions do **not** carry that annotation and do not require CA1416 suppression at their call sites.
-- `MacOS` project is excluded from AOT (`IsAotCompatible=false`) due to Objective-C runtime interop.
+- `MacOS` project achieves AOT compatibility by dispatching Objective-C runtime interop through libffi instead of dynamic code generation.
 
 ## Testing
 
