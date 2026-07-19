@@ -23,6 +23,10 @@ public static class NativeLibraryNames
     [Obsolete("The path to Core Graphics may be different between macOS, use NativeLibraryHandles.CoreGraphics instead.")]
     public const string CoreGraphics = "/System/Library/Frameworks/ApplicationServices.framework/Frameworks/CoreGraphics.framework/CoreGraphics";
     /// <summary>
+    /// libffi.
+    /// </summary>
+    public const string Ffi = "/usr/lib/libffi.dylib";
+    /// <summary>
     /// Image I/O.
     /// </summary>
     [Obsolete("The path to ImageIO may be different between macOS, use NativeLibraryHandles.ImageIO instead.")]

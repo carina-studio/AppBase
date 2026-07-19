@@ -1,10 +1,10 @@
+using CarinaStudio.MacOS.Ffi;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
-using System.Reflection.Emit;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -23,16 +23,20 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     }
 
 
-    // Descriptor of stub of objc_msgSend function.
-    class SendMessageStubInfo(MethodInfo stub, Type[] paramTypes, Type? returnType) : NativeMethodInfo(paramTypes, returnType)
+    // Descriptor of libffi call interface for sending message with specific signature.
+    class SendMessageCifInfo(IntPtr cif, Type[] paramTypes, Type? returnType, nuint returnSize, bool isStructureReturned) : NativeMethodInfo(paramTypes, returnType)
     {
-        public MethodInfo Stub { get; } = stub;
+        public readonly IntPtr Cif = cif;
+        public readonly bool IsStructureReturned = isStructureReturned;
+        public readonly nuint ReturnSize = returnSize;
     }
 
 
     // Native symbols.
     static readonly void* objc_msgSend;
+    static readonly void* objc_msgSend_stret; // exists on x64 only
     static readonly void* objc_msgSendSuper;
+    static readonly void* objc_msgSendSuper_stret; // exists on x64 only
     [DllImport(NativeLibraryNames.ObjectiveC)]
     static extern IntPtr object_getInstanceVariable(IntPtr obj, string name, out void* outValue);
     //static readonly void* object_getIvar;
@@ -56,7 +60,7 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     static readonly Selector? InitSelector;
     static readonly Selector? ReleaseSelector;
     static readonly Selector? RetainSelector;
-    static readonly IDictionary<int, List<SendMessageStubInfo>> SendMessageStubs = new Dictionary<int, List<SendMessageStubInfo>>();
+    static readonly IDictionary<int, List<SendMessageCifInfo>> SendMessageCifs = new Dictionary<int, List<SendMessageCifInfo>>();
     static readonly IDictionary<Type, ConstructorInfo> WrappingConstructors = new ConcurrentDictionary<Type, ConstructorInfo>();
     
 
@@ -78,6 +82,13 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
         {
             objc_msgSend = (void*)NativeLibrary.GetExport(libHandle, nameof(objc_msgSend));
             objc_msgSendSuper = (void*)NativeLibrary.GetExport(libHandle, nameof(objc_msgSendSuper));
+            if (RuntimeInformation.ProcessArchitecture == Architecture.X64)
+            {
+                NativeLibrary.TryGetExport(libHandle, nameof(objc_msgSend_stret), out var stretPtr);
+                objc_msgSend_stret = (void*)stretPtr;
+                NativeLibrary.TryGetExport(libHandle, nameof(objc_msgSendSuper_stret), out stretPtr);
+                objc_msgSendSuper_stret = (void*)stretPtr;
+            }
             //object_getIvar = (void*)NativeLibrary.GetExport(libHandle, nameof(object_getIvar));
             //object_setIvar = (void*)NativeLibrary.GetExport(libHandle, nameof(object_setIvar));
             if (objc_msgSend is null)
@@ -899,82 +910,96 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
             }
         });
 
-        // find or create stub
-        var stubInfo = SendMessageStubs.Lock(stubs =>
+        // find or create call interface
+        var cifInfo = SendMessageCifs.Lock(cifs =>
         {
-            // find existing stub
-            var argCount = args.Length;
-            if (stubs.TryGetValue(argCount, out List<SendMessageStubInfo>? stubInfoList))
+            // find existing call interface
+            if (cifs.TryGetValue(argCount, out List<SendMessageCifInfo>? cifInfoList))
             {
-                for (var i = stubInfoList.Count - 1; i >= 0; --i)
+                for (var i = cifInfoList.Count - 1; i >= 0; --i)
                 {
-                    var candidateStubInfo = (SendMessageStubInfo?)stubInfoList[i];
-                    var candidateArgTypes = candidateStubInfo!.ParameterTypes;
+                    var candidateCifInfo = (SendMessageCifInfo?)cifInfoList[i];
+                    var candidateArgTypes = candidateCifInfo!.ParameterTypes;
                     for (var j = argCount - 1; j >= 0; --j)
                     {
                         if (candidateArgTypes[j] != nativeArgTypes[j])
                         {
-                            candidateStubInfo = null;
+                            candidateCifInfo = null;
                             break;
                         }
                     }
-                    if (candidateStubInfo is not null && candidateStubInfo.ReturnType == nativeReturnType)
-                        return candidateStubInfo;
+                    if (candidateCifInfo is not null && candidateCifInfo.ReturnType == nativeReturnType)
+                        return candidateCifInfo;
                 }
             }
 
-            // create new stub
-            var stubMethod = new DynamicMethod($"SendMessageStub@{argCount}", nativeReturnType, [ typeof(nint), typeof(nint), typeof(nint), typeof(object[]) ], typeof(NSObject).Module, false);
-            stubMethod.GetILGenerator(256).Let(ilGen =>
+            // create new call interface with leading receiver and selector parameters
+            var fullNativeArgTypes = new Type[argCount + 2];
+            fullNativeArgTypes[0] = typeof(nint);
+            fullNativeArgTypes[1] = typeof(nint);
+            Array.Copy(nativeArgTypes, 0, fullNativeArgTypes, 2, argCount);
+            var cif = LibFfi.CreateCif(nativeReturnType, fullNativeArgTypes, out var returnSize, out var isStructureReturned);
+            var cifInfo = new SendMessageCifInfo(cif, nativeArgTypes, nativeReturnType, returnSize, isStructureReturned);
+            if (cifInfoList is null)
             {
-                // load obj and sel
-                ilGen.Emit(OpCodes.Ldarg_1);
-                ilGen.Emit(OpCodes.Ldarg_2);
-
-                // expand args
-                for (var i = 0; i < argCount; ++i)
-                {
-                    // load args
-                    ilGen.Emit(OpCodes.Ldarg_3);
-
-                    // get args[i]
-                    ilGen.Emit(OpCodes.Ldc_I4, i);
-                    ilGen.Emit(OpCodes.Ldelem, typeof(object));
-
-                    // unbox for value type
-                    if (typeof(ValueType).IsAssignableFrom(nativeArgTypes[i]))
-                        ilGen.Emit(OpCodes.Unbox_Any, nativeArgTypes[i]);
-                }
-
-                // load function pointer
-                ilGen.Emit(OpCodes.Ldarg_0);
-
-                // call obj_msgSend
-                var fullNativeArgTypes = new Type[argCount + 2];
-                fullNativeArgTypes[0] = typeof(nint);
-                fullNativeArgTypes[1] = typeof(nint);
-                Array.Copy(nativeArgTypes, 0, fullNativeArgTypes, 2, argCount);
-                ilGen.EmitCalli(OpCodes.Calli, CallingConvention.StdCall, nativeReturnType, fullNativeArgTypes);
-
-                // complete
-                ilGen.Emit(OpCodes.Ret);
-            });
-            var stubInfo = new SendMessageStubInfo(stubMethod, nativeArgTypes, nativeReturnType);
-            if (stubInfoList is null)
-            {
-                stubInfoList = new();
-                SendMessageStubs.Add(argCount, stubInfoList);
+                cifInfoList = new();
+                cifs.Add(argCount, cifInfoList);
             }
-            stubInfoList.Add(stubInfo);
-            return stubInfo;
+            cifInfoList.Add(cifInfo);
+            return cifInfo;
         });
 
+        // select function to send message. objc_msgSend[Super]_stret must be used on x64 to return structure larger than 16 bytes.
+        var func = msgSendFunc;
+        if (objc_msgSend_stret is not null && cifInfo.IsStructureReturned && cifInfo.ReturnSize > 16)
+        {
+            if (msgSendFunc == objc_msgSend)
+                func = objc_msgSend_stret;
+            else if (msgSendFunc == objc_msgSendSuper && objc_msgSendSuper_stret is not null)
+                func = objc_msgSendSuper_stret;
+        }
+
         // send message
+        var pinnedArgHandles = argCount > 0 ? new GCHandle[argCount] : Array.Empty<GCHandle>();
+        var marshalledArgBuffers = argCount > 0 ? new IntPtr[argCount] : Array.Empty<IntPtr>();
+        var argPtrs = stackalloc void*[argCount + 2];
+        var selHandle = sel.Handle;
+        argPtrs[0] = &obj;
+        argPtrs[1] = &selHandle;
+        var returnBufferSize = (int)cifInfo.ReturnSize;
+        if (returnBufferSize < sizeof(ulong))
+            returnBufferSize = sizeof(ulong); // libffi widens small integral return values to full ffi_arg
+        var returnBuffer = stackalloc ulong[(returnBufferSize + sizeof(ulong) - 1) / sizeof(ulong)];
         try
         {
-            var nativeReturnValue = stubInfo.Stub.Invoke(null, [ (IntPtr)msgSendFunc, obj, sel.Handle, nativeArgs ]);
+            // pin or marshal arguments
+            for (var i = 0; i < argCount; ++i)
+            {
+                var nativeArg = nativeArgs[i];
+                if (nativeArg is bool boolValue) // Objective-C BOOL is signed char
+                    nativeArg = (sbyte)(boolValue ? 1 : 0);
+                try
+                {
+                    var pinnedArgHandle = GCHandle.Alloc(nativeArg, GCHandleType.Pinned);
+                    pinnedArgHandles[i] = pinnedArgHandle;
+                    argPtrs[i + 2] = (void*)pinnedArgHandle.AddrOfPinnedObject();
+                }
+                catch (ArgumentException) // structure with non-blittable field cannot be pinned
+                {
+                    var buffer = Marshal.AllocHGlobal(Marshal.SizeOf(nativeArg));
+                    marshalledArgBuffers[i] = buffer;
+                    Marshal.StructureToPtr(nativeArg, buffer, false);
+                    argPtrs[i + 2] = (void*)buffer;
+                }
+            }
+
+            // call
+            LibFfi.Call(cifInfo.Cif, func, returnBuffer, argPtrs);
+
+            // convert return value
             if (returnType is null)
                 return null;
+            var nativeReturnValue = NativeTypeConversion.FromNativeValue((byte*)returnBuffer, returnBufferSize, nativeReturnType!, out _);
             if (nativeReturnValue is null)
             {
                 if (returnType.IsValueType)
@@ -987,7 +1012,7 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
         {
             for (var i = argCount - 1; i >= 0; --i)
             {
-                if (nativeArgs[i] is GCHandle gcHandle 
+                if (nativeArgs[i] is GCHandle gcHandle
                     && args[i] is not GCHandle
                     && gcHandle != default)
                 {
@@ -995,6 +1020,16 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
                 }
             }
             throw;
+        }
+        finally
+        {
+            for (var i = argCount - 1; i >= 0; --i)
+            {
+                if (pinnedArgHandles[i].IsAllocated)
+                    pinnedArgHandles[i].Free();
+                if (marshalledArgBuffers[i] != IntPtr.Zero)
+                    Marshal.FreeHGlobal(marshalledArgBuffers[i]);
+            }
         }
     }
 #pragma warning restore CS8600
