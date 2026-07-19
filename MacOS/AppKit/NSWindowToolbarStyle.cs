@@ -5,7 +5,7 @@ namespace CarinaStudio.MacOS.AppKit;
 /// <summary>
 /// NSWindowToolbarStyle.
 /// </summary>
-public enum NSWindowToolbarStyle : int
+public enum NSWindowToolbarStyle
 {
     Automatic = 0,
     Expanded = 1,

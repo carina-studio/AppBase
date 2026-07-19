@@ -12,7 +12,7 @@ public class NSLayoutConstraint : NSObject
     /// <summary>
     /// Attribute.
     /// </summary>
-    public enum Attribute : int
+    public enum Attribute
     {
         NotAnAttribute = 0,
         Left = 1,
@@ -41,7 +41,7 @@ public class NSLayoutConstraint : NSObject
     /// <summary>
     /// Relation.
     /// </summary>
-    public enum Relation : int
+    public enum Relation
     {
         LessThanOrEqual = -1,
         Equal = 0,

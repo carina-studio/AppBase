@@ -12,7 +12,7 @@ public class NSView : NSResponder
     /// <summary>
     /// BackgroundStyle.
     /// </summary>
-    public enum BackgroundStyle : int
+    public enum BackgroundStyle
     {
         Normal = 0,
         Emphasized = 1,

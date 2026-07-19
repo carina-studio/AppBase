@@ -66,6 +66,16 @@ public class NSWindow : NSResponder
         FullScreen = 0x1 << 14,
         FullSizeContentView = 0x1 << 15,
     }
+
+
+    /// <summary>
+    /// Appearance of the window’s title bar area.
+    /// </summary>
+    public enum TitleAppearance
+    {
+        Visible = 0,
+        Hidden = 1,
+    }
 #pragma warning restore CS1591
 
 
@@ -86,6 +96,7 @@ public class NSWindow : NSResponder
     static Property? SubtitleProperty;
     static Selector? StandardWindowButtonSelector;
     static Property? TitleProperty;
+    static Property? TitleVisibilityProperty;
     static Selector? ToggleToolbarShownSelector;
     static Property? ToolbarProperty;
     static Property? ToolbarStyleProperty;
@@ -353,6 +364,24 @@ public class NSWindow : NSResponder
             TitleProperty ??= NSWindowClass!.GetProperty("title").AsNonNull();
             using var s = new NSString(value);
             this.SetProperty(TitleProperty, s);
+        }
+    }
+
+
+    /// <summary>
+    /// Get or set the visibility of the window’s title and title bar buttons.
+    /// </summary>
+    public TitleAppearance TitleVisibility
+    {
+        get
+        {
+            TitleVisibilityProperty ??= NSWindowClass!.GetProperty("titleVisibility").AsNonNull();
+            return this.GetProperty<TitleAppearance>(TitleVisibilityProperty);
+        }
+        set
+        {
+            TitleVisibilityProperty ??= NSWindowClass!.GetProperty("titleVisibility").AsNonNull();
+            this.SetProperty(TitleVisibilityProperty, value);
         }
     }
 
