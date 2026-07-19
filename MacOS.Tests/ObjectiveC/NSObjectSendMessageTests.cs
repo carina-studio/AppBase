@@ -10,6 +10,35 @@ namespace CarinaStudio.MacOS.ObjectiveC
     public class NSObjectSendMessageTests
     {
         /// <summary>
+        /// Test for method defined at runtime which passes and returns structure of floating-point values.
+        /// </summary>
+        [Test]
+        public void DefinedMethodWithStructureTest()
+        {
+            this.VerifyPlatform();
+            var insetRectSelector = Selector.FromName("insetRect:by:");
+            var cls = Class.DefineClass("Test_NSObjectSendMessageTests", cls =>
+            {
+                cls.DefineMethod<CGRect, double, CGRect>(insetRectSelector, (_, _, rect, inset) =>
+                    new CGRect(rect.Origin.X + inset, rect.Origin.Y + inset, rect.Size.Width - inset * 2, rect.Size.Height - inset * 2));
+            });
+            var instance = NSObject.Initialize(cls.Allocate());
+            try
+            {
+                var result = NSObject.SendMessage<CGRect>(instance, insetRectSelector, new CGRect(10, 20, 100, 50), 5.0);
+                Assert.That(result.Origin.X, Is.EqualTo(15));
+                Assert.That(result.Origin.Y, Is.EqualTo(25));
+                Assert.That(result.Size.Width, Is.EqualTo(90));
+                Assert.That(result.Size.Height, Is.EqualTo(40));
+            }
+            finally
+            {
+                NSObject.Release(instance);
+            }
+        }
+
+
+        /// <summary>
         /// Test for sending message with boolean and numeric arguments and return values.
         /// </summary>
         [Test]

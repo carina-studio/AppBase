@@ -9,6 +9,9 @@ static unsafe class LibFfi
     // Size of native ffi_cif structure in bytes. Allocated with margin to cover extra fields defined by specific architectures.
     const int CifSize = 64;
 
+    // Size of native ffi_closure structure in bytes. Allocated with margin to cover per-architecture layouts.
+    const int ClosureSize = 128;
+
     // Type code of structure defined by libffi (FFI_TYPE_STRUCT).
     public const ushort StructureTypeCode = 13;
 
@@ -80,9 +83,33 @@ static unsafe class LibFfi
     }
 
 
+    // Create closure which calls given dispatcher function when created native code pointer is invoked. Returned closure and code pointer are expected to be kept for process lifetime.
+    public static void* CreateClosure(IntPtr cif, void* dispatcher, IntPtr userData, out void* codePointer)
+    {
+        void* code;
+        var closure = ffi_closure_alloc(ClosureSize, &code);
+        if (closure is null)
+            throw new OutOfMemoryException("Unable to allocate libffi closure.");
+        var status = ffi_prep_closure_loc(closure, cif, dispatcher, (void*)userData, code);
+        if (status != FfiStatus.Ok)
+        {
+            ffi_closure_free(closure);
+            throw new NotSupportedException($"Unable to prepare libffi closure, result: {status}.");
+        }
+        codePointer = code;
+        return closure;
+    }
+
+
     // Native symbols.
     [DllImport(NativeLibraryNames.Ffi)]
     static extern void ffi_call(IntPtr cif, void* fn, void* rvalue, void** avalue);
     [DllImport(NativeLibraryNames.Ffi)]
+    static extern void* ffi_closure_alloc(nuint size, void** code);
+    [DllImport(NativeLibraryNames.Ffi)]
+    static extern void ffi_closure_free(void* closure);
+    [DllImport(NativeLibraryNames.Ffi)]
     static extern FfiStatus ffi_prep_cif(IntPtr cif, int abi, uint nargs, FfiType* rtype, FfiType** atypes);
+    [DllImport(NativeLibraryNames.Ffi)]
+    static extern FfiStatus ffi_prep_closure_loc(void* closure, IntPtr cif, void* fun, void* userData, void* codeLoc);
 }

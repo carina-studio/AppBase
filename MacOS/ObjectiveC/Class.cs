@@ -1,12 +1,10 @@
+using CarinaStudio.MacOS.Ffi;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Reflection;
-using System.Reflection.Emit;
 using System.Runtime.InteropServices;
-using System.Threading;
 
 namespace CarinaStudio.MacOS.ObjectiveC
 {
@@ -19,7 +17,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         [DllImport(NativeLibraryNames.ObjectiveC)]
         static extern bool class_addIvar(IntPtr cls, string name, nuint size, byte alignment, string types);
         [DllImport(NativeLibraryNames.ObjectiveC)]
-        static extern bool class_addMethod(IntPtr cls, IntPtr name, [MarshalAs(UnmanagedType.FunctionPtr)] Delegate imp, string types);
+        static extern bool class_addMethod(IntPtr cls, IntPtr name, IntPtr imp, string types);
         [DllImport(NativeLibraryNames.ObjectiveC)]
         static extern bool class_addProperty(IntPtr cls, string name, [MarshalAs(UnmanagedType.LPArray)] PropertyAttribute[] attributes, uint attributeCount);
         [DllImport(NativeLibraryNames.ObjectiveC)]
@@ -74,6 +72,17 @@ namespace CarinaStudio.MacOS.ObjectiveC
         static extern bool protocol_isEqual(IntPtr proto, IntPtr other);
 
 
+        // Context of method implementation which is dispatched through libffi closure.
+        class MethodImplContext(Delegate impl, string label, Type[] nativeParamTypes, Type? nativeReturnType, Type[] paramTypes)
+        {
+            public readonly Delegate Implementation = impl;
+            public readonly string Label = label;
+            public readonly Type[] NativeParameterTypes = nativeParamTypes;
+            public readonly Type? NativeReturnType = nativeReturnType;
+            public readonly Type[] ParameterTypes = paramTypes;
+        }
+
+
         // Attribute of property.
         [StructLayout(LayoutKind.Sequential)]
         struct PropertyAttribute
@@ -97,8 +106,6 @@ namespace CarinaStudio.MacOS.ObjectiveC
         static readonly IDictionary<string, Class> CachedClassesByName = new ConcurrentDictionary<string, Class>();
         static readonly IDictionary<IntPtr, Class> CachedProtocolsByHandle = new ConcurrentDictionary<IntPtr, Class>();
         static readonly IDictionary<string, Class> CachedProtocolsByName = new ConcurrentDictionary<string, Class>();
-        static volatile ModuleBuilder? NativeBridgeModule;
-        static readonly Lock syncLock = new();
 
 
         // Fields.
@@ -112,7 +119,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         internal Variable? clrObjectHandleVar;
         bool isRegistered;
         volatile bool isRootClass;
-        readonly IList<Delegate> nativeBridgeMethods;
+        readonly IList<object> nativeBridgeMethods;
         volatile Class? superClass;
 
 
@@ -131,7 +138,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
             this.Handle = handle;
             this.IsProtocol = isProtocol;
             this.Name = name;
-            this.nativeBridgeMethods = isCustomDefined ? new List<Delegate>() : Array.Empty<Delegate>();
+            this.nativeBridgeMethods = isCustomDefined ? new List<object>() : Array.Empty<object>();
         }
 
 
@@ -653,117 +660,25 @@ namespace CarinaStudio.MacOS.ObjectiveC
             });
             var nativeReturnType = returnType != null ? NativeTypeConversion.ToNativeType(returnType) : null;
 
-            // create bridge assembly
-            if (NativeBridgeModule == null)
+            // create libffi closure to dispatch calls to implementation
+            var cif = LibFfi.CreateCif(nativeReturnType, nativeParamTypes, out _, out _);
+            var context = new MethodImplContext(impl, $"{this.Name}.{name.Name}", nativeParamTypes, nativeReturnType, paramTypes);
+            var contextHandle = GCHandle.Alloc(context); // keep context alive for process lifetime
+            void* closureCode;
+            try
             {
-                lock (syncLock)
-                {
-                    NativeBridgeModule = NativeBridgeModule ?? AssemblyBuilder.DefineDynamicAssembly(new AssemblyName("CarinaStudio.AppBase.MacOS.NativeBridge"), AssemblyBuilderAccess.RunAndCollect).Let(it =>
-                    {
-                        NativeBridgeModule = it.DefineDynamicModule("Class");
-                        return NativeBridgeModule;
-                    });
-                }
+                LibFfi.CreateClosure(cif, (delegate* unmanaged<void*, void*, void**, void*, void>)&InvokeMethodImpl, GCHandle.ToIntPtr(contextHandle), out closureCode);
+            }
+            catch
+            {
+                contextHandle.Free();
+                throw;
             }
 
-            // create bridge type
-            var bridgeTypeBuilder = NativeBridgeModule.DefineType($"CarinaStudio.MacOS.NativeBridge.{this.Name}-{name.Name}");
-            var implField = bridgeTypeBuilder.DefineField("impl", typeof(Delegate), FieldAttributes.Private);
-            bridgeTypeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, new Type[]{ typeof(Delegate) }).Let(ctor =>
-            {
-                ctor.GetILGenerator().Let(ilGen =>
-                {
-                    ilGen.Emit(OpCodes.Ldarg_0);
-                    ilGen.Emit(OpCodes.Ldarg_1);
-                    ilGen.Emit(OpCodes.Stfld, implField);
-                    ilGen.Emit(OpCodes.Ret);
-                });
-            });
-
-            // create bridge method
-            var getTypeFromHandleMethod = typeof(Type).GetMethod(nameof(Type.GetTypeFromHandle), BindingFlags.Public | BindingFlags.Static).AsNonNull();
-#pragma warning disable IL2111
-            var fromNativeParamMethod = typeof(NativeTypeConversion).GetMethod(nameof(NativeTypeConversion.FromNativeParameter), BindingFlags.Public | BindingFlags.Static, new Type[]{ typeof(object), typeof(Type) }).AsNonNull();
-#pragma warning restore IL2111
-            var toNativeParamMethod = typeof(NativeTypeConversion).GetMethod(nameof(NativeTypeConversion.ToNativeParameter), BindingFlags.Public | BindingFlags.Static, new Type[]{ typeof(object) }).AsNonNull();
-            bridgeTypeBuilder.DefineMethod("Invoke", MethodAttributes.Public, nativeReturnType, nativeParamTypes).Also(it =>
-            {
-                it.GetILGenerator().Let(ilGen => // (object this, IntPtr self, IntPtr cmd, parameters...)
-                {
-                    // load this.impl for calling later
-                    ilGen.Emit(OpCodes.Ldarg_0);
-                    ilGen.Emit(OpCodes.Ldfld, implField);
-
-                    // load self
-                    ilGen.Emit(OpCodes.Ldarg_1);
-
-                    // load Selector.FromHandle(cmd);
-                    ilGen.Emit(OpCodes.Ldarg_2);
-                    ilGen.EmitCall(OpCodes.Call, typeof(Selector).GetMethod(nameof(Selector.FromHandle), BindingFlags.Public | BindingFlags.Static).AsNonNull(), null);
-
-                    // foreach (var arg in parameters)
-                    //     load NativeTypeConversion.FromNativeValue(arg);
-                    for (var i = 2; i < paramCount; ++i)
-                    {
-                        // load argument
-                        ilGen.Emit(OpCodes.Ldarg, (short)(i + 1));
-
-                        // convert to CLR type if needed
-                        if (!NativeTypeConversion.IsNativeType(paramTypes[i]))
-                        {
-                            if (typeof(ValueType).IsAssignableFrom(nativeParamTypes[i]))
-                                ilGen.Emit(OpCodes.Box, nativeParamTypes[i]);
-                            ilGen.Emit(OpCodes.Ldtoken, paramTypes[i]);
-                            ilGen.EmitCall(OpCodes.Call, getTypeFromHandleMethod, null);
-                            ilGen.EmitCall(OpCodes.Call, fromNativeParamMethod, null);
-                            if (typeof(ValueType).IsAssignableFrom(paramTypes[i]))
-                                ilGen.Emit(OpCodes.Unbox_Any, paramTypes[i]);
-                        }
-                    }
-
-                    // this.impl.Invoke(...);
-                    ilGen.EmitCall(OpCodes.Call, invokeMethod, null);
-                    
-                    // convert return value to native type
-                    if (nativeReturnType != null)
-                    {
-                        if (typeof(ValueType).IsAssignableFrom(returnType))
-                            ilGen.Emit(OpCodes.Box, returnType);
-                        ilGen.EmitCall(OpCodes.Call, toNativeParamMethod, null);
-                        if (typeof(ValueType).IsAssignableFrom(nativeReturnType))
-                            ilGen.Emit(OpCodes.Unbox_Any, nativeReturnType);
-                    }
-
-                    // complete
-                    ilGen.Emit(OpCodes.Ret);
-                });
-            });
-            var bridgeType = bridgeTypeBuilder.CreateType().AsNonNull();
-
-            // create delegate type for bridge
-#pragma warning disable IL2026
-#pragma warning disable IL2111
-            var bridgeDelegateType = NativeBridgeModule.DefineType($"{bridgeTypeBuilder.Name}-Delegate", TypeAttributes.AnsiClass | TypeAttributes.AutoClass | TypeAttributes.Class | TypeAttributes.Public | TypeAttributes.Sealed, typeof(MulticastDelegate)).Also(delegateClass =>
-            {
-                delegateClass.DefineConstructor(MethodAttributes.HideBySig | MethodAttributes.Public | MethodAttributes.RTSpecialName, CallingConventions.Standard, new Type[]{ typeof(object), typeof(IntPtr) }).SetImplementationFlags(MethodImplAttributes.Runtime | MethodImplAttributes.Managed);
-                delegateClass.DefineMethod("Invoke", MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Public | MethodAttributes.Virtual, CallingConventions.Standard, nativeReturnType, nativeParamTypes).SetImplementationFlags(MethodImplAttributes.Runtime | MethodImplAttributes.Managed);
-            }).CreateTypeInfo().AsNonNull();
-#pragma warning restore IL2026
-#pragma warning restore IL2111
-
-            // create bridge object
-#pragma warning disable IL2072
-            var bridgeObject = Activator.CreateInstance(bridgeType, new object?[] { impl }).AsNonNull();
-#pragma warning restore IL2072
-
-            // create delegate to bridge method
-#pragma warning disable IL2075
-            var bridgeMethod = bridgeType.GetMethod("Invoke", BindingFlags.Instance | BindingFlags.Public).AsNonNull();
-#pragma warning restore IL2075
-            var bridgeMethodDelegate = bridgeMethod.CreateDelegate(bridgeDelegateType, bridgeObject);
-            if (!class_addMethod(this.Handle, name.Handle, bridgeMethodDelegate, ""))
+            // add method
+            if (!class_addMethod(this.Handle, name.Handle, (IntPtr)closureCode, ""))
                 throw new Exception($"Failed to add method '{name}' to '{this.Name}'.");
-            this.nativeBridgeMethods.Add(bridgeMethodDelegate); // keep delegate to prevent bridge object collecting by GC
+            this.nativeBridgeMethods.Add(context);
         }
 
 
@@ -1118,6 +1033,43 @@ namespace CarinaStudio.MacOS.ObjectiveC
             class_respondsToSelector(this.Handle, name.Handle);
 
 
+        // Entry of methods defined through DefineMethod, called by libffi closure.
+        [UnmanagedCallersOnly]
+        static void InvokeMethodImpl(void* cif, void* returnBuffer, void** args, void* userData)
+        {
+            MethodImplContext? context = null;
+            try
+            {
+                // get context
+                context = (MethodImplContext)GCHandle.FromIntPtr((IntPtr)userData).Target.AsNonNull();
+                var paramTypes = context.ParameterTypes;
+                var nativeParamTypes = context.NativeParameterTypes;
+                var paramCount = paramTypes.Length;
+
+                // convert arguments
+                var implArgs = new object?[paramCount];
+                implArgs[0] = *(IntPtr*)args[0];
+                implArgs[1] = Selector.FromHandle(*(IntPtr*)args[1]);
+                for (var i = 2; i < paramCount; ++i)
+                {
+                    var nativeValue = NativeTypeConversion.FromNativeValue((byte*)args[i], NativeTypeConversion.GetNativeValueSize(nativeParamTypes[i]), nativeParamTypes[i], out _);
+                    implArgs[i] = nativeValue is not null ? NativeTypeConversion.FromNativeParameter(nativeValue, paramTypes[i]) : null;
+                }
+
+                // invoke implementation
+                var result = context.Implementation.DynamicInvoke(implArgs);
+
+                // convert return value
+                if (context.NativeReturnType is not null)
+                    WriteNativeReturnValue(NativeTypeConversion.ToNativeParameter(result), returnBuffer);
+            }
+            catch (Exception ex)
+            {
+                Environment.FailFast($"Unhandled exception in implementation of '{context?.Label}'.", ex);
+            }
+        }
+
+
         /// <summary>
         /// Check whether instances of given class can be casted to this class or not.
         /// </summary>
@@ -1270,6 +1222,62 @@ namespace CarinaStudio.MacOS.ObjectiveC
         {
             if (this.isRegistered)
                 throw new InvalidOperationException($"Cannot define member of class '{this.Name}' after registering to Objective-C runtime.");
+        }
+
+
+        // Write native value returned from method implementation into return buffer of libffi closure.
+        static void WriteNativeReturnValue(object nativeValue, void* returnBuffer)
+        {
+            if (nativeValue is Enum)
+                nativeValue = Convert.ChangeType(nativeValue, Enum.GetUnderlyingType(nativeValue.GetType()));
+            switch (nativeValue)
+            {
+                // integral values narrower than ffi_arg must be widened to full ffi_arg
+                case bool boolValue: // Objective-C BOOL is signed char
+                    *(long*)returnBuffer = boolValue ? 1 : 0;
+                    break;
+                case sbyte sbyteValue:
+                    *(long*)returnBuffer = sbyteValue;
+                    break;
+                case short shortValue:
+                    *(long*)returnBuffer = shortValue;
+                    break;
+                case int intValue:
+                    *(long*)returnBuffer = intValue;
+                    break;
+                case byte byteValue:
+                    *(ulong*)returnBuffer = byteValue;
+                    break;
+                case ushort ushortValue:
+                    *(ulong*)returnBuffer = ushortValue;
+                    break;
+                case char charValue:
+                    *(ulong*)returnBuffer = charValue;
+                    break;
+                case uint uintValue:
+                    *(ulong*)returnBuffer = uintValue;
+                    break;
+                case long longValue:
+                    *(long*)returnBuffer = longValue;
+                    break;
+                case ulong ulongValue:
+                    *(ulong*)returnBuffer = ulongValue;
+                    break;
+                case nint nintValue:
+                    *(nint*)returnBuffer = nintValue;
+                    break;
+                case float floatValue:
+                    *(float*)returnBuffer = floatValue;
+                    break;
+                case double doubleValue:
+                    *(double*)returnBuffer = doubleValue;
+                    break;
+                case ValueType:
+                    Marshal.StructureToPtr(nativeValue, (IntPtr)returnBuffer, false);
+                    break;
+                default:
+                    throw new NotSupportedException($"Cannot convert {nativeValue.GetType().Name} to native return value.");
+            }
         }
     }
 }
