@@ -10,6 +10,22 @@ public class NSView : NSResponder
 {
 #pragma warning disable CS1591
     /// <summary>
+    /// AutoresizingMaskOptions.
+    /// </summary>
+    [Flags]
+    public enum AutoresizingMaskOptions : uint
+    {
+        NotSizable = 0,
+        MinXMargin = 0x1,
+        WidthSizable = 0x2,
+        MaxXMargin = 0x4,
+        MinYMargin = 0x8,
+        HeightSizable = 0x10,
+        MaxYMargin = 0x20,
+    }
+
+
+    /// <summary>
     /// BackgroundStyle.
     /// </summary>
     public enum BackgroundStyle
@@ -26,7 +42,9 @@ public class NSView : NSResponder
     static Selector? AddConstraintSelector;
     static Selector? AddConstraintsSelector;
     static Selector? AddSubViewSelector;
+    static Selector? AddTrackingAreaSelector;
     static Property? AppearanceProperty;
+    static Selector? AutoresizingMaskSelector;
     static Selector? BottomAnchorSelector;
     static Property? BoundsProperty;
     static Property? BoundsRotationProperty;
@@ -49,14 +67,17 @@ public class NSView : NSResponder
     static Selector? LayoutSelector;
     static Selector? LeadingAnchorSelector;
     static Selector? LeftAnchorSelector;
+    static Property? NeedsDisplayProperty;
     static Property? NeedsLayoutProperty;
     static readonly Class? NSViewClass;
     static Selector? RemoveConstraintSelector;
     static Selector? RemoveConstraintsSelector;
     static Selector? RemoveFromSuperViewSelector;
+    static Selector? RemoveTrackingAreaSelector;
     static Selector? RightAnchorSelector;
     static Selector? SafeAreaInsetsSelector;
     static Selector? SafeAreaRectSelector;
+    static Selector? SetAutoresizingMaskSelector;
     static Selector? SetTranslatesAutoresizingMaskIntoConstraintsSelector;
     static Selector? SubViewsSelector;
     static Selector? SuperViewSelector;
@@ -201,25 +222,54 @@ public class NSView : NSResponder
         AddSubViewSelector ??= Selector.FromName("addSubview:");
         this.SendMessage(AddSubViewSelector, view, place, otherView);
     }
-    
+
+
+    /// <summary>
+    /// Add given tracking area to view.
+    /// </summary>
+    /// <param name="trackingArea">Tracking area.</param>
+    public void AddTrackingArea(NSTrackingArea trackingArea)
+    {
+        AddTrackingAreaSelector ??= Selector.FromName("addTrackingArea:");
+        this.SendMessage(AddTrackingAreaSelector, trackingArea);
+    }
+
 
     /// <summary>
     /// Get or set appearance of view.
     /// </summary>
     public NSAppearance? Appearance
     {
-        get 
+        get
         {
             AppearanceProperty ??= NSViewClass!.GetProperty("appearance").AsNonNull();
             return this.GetNSObjectProperty<NSAppearance>(AppearanceProperty!);
         }
-        set 
+        set
         {
             AppearanceProperty ??= NSViewClass!.GetProperty("appearance").AsNonNull();
             this.SetProperty(AppearanceProperty, (NSObject?)value);
         }
     }
-    
+
+
+    /// <summary>
+    /// Get or set options of resizing view automatically when frame of its super-view changes.
+    /// </summary>
+    public AutoresizingMaskOptions AutoresizingMask
+    {
+        get
+        {
+            AutoresizingMaskSelector ??= Selector.FromName("autoresizingMask");
+            return this.SendMessage<AutoresizingMaskOptions>(AutoresizingMaskSelector);
+        }
+        set
+        {
+            SetAutoresizingMaskSelector ??= Selector.FromName("setAutoresizingMask:");
+            this.SendMessage(SetAutoresizingMaskSelector, value);
+        }
+    }
+
 
     /// <summary>
     /// Get layout anchor representing the bottom edge of the view’s frame.
@@ -540,6 +590,24 @@ public class NSView : NSResponder
 
 
     /// <summary>
+    /// Get or set whether the view needs to be redrawn before being displayed.
+    /// </summary>
+    public bool NeedsDisplay
+    {
+        get
+        {
+            NeedsDisplayProperty ??= NSViewClass!.GetProperty("needsDisplay").AsNonNull();
+            return this.GetBooleanProperty(NeedsDisplayProperty);
+        }
+        set
+        {
+            NeedsDisplayProperty ??= NSViewClass!.GetProperty("needsDisplay").AsNonNull();
+            this.SetProperty(NeedsDisplayProperty, value);
+        }
+    }
+
+
+    /// <summary>
     /// Get or set whether the view needs a layout pass before it can be drawn.
     /// </summary>
     public bool NeedsLayout
@@ -598,6 +666,17 @@ public class NSView : NSResponder
     {
         RemoveFromSuperViewSelector ??= Selector.FromName("removeFromSuperview");
         this.SendMessage(RemoveFromSuperViewSelector);
+    }
+
+
+    /// <summary>
+    /// Remove given tracking area from view.
+    /// </summary>
+    /// <param name="trackingArea">Tracking area added by <see cref="AddTrackingArea"/>.</param>
+    public void RemoveTrackingArea(NSTrackingArea trackingArea)
+    {
+        RemoveTrackingAreaSelector ??= Selector.FromName("removeTrackingArea:");
+        this.SendMessage(RemoveTrackingAreaSelector, trackingArea);
     }
 
 

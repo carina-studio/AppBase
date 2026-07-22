@@ -84,6 +84,8 @@ public class NSWindow : NSResponder
     static Selector? CloseSelector;
     static Property? ContentViewProperty;
     static Property? DelegateProperty;
+    static NSString? DidEnterFullScreenNotificationName;
+    static NSString? DidExitFullScreenNotificationName;
     static Selector? InitWithRectAndScreenSelector;
     static Selector? InitWithRectSelector;
     static Selector? MakeKeyAndOrderFrontSelector;
@@ -93,13 +95,18 @@ public class NSWindow : NSResponder
     static Selector? OrderFrontSelector;
     static Selector? OrderOutSelector;
     static Selector? OrderRelativeToSelector;
+    static Selector? SetStyleMaskSelector;
     static Property? SubtitleProperty;
+    static Selector? StandardWindowButtonForStyleSelector;
     static Selector? StandardWindowButtonSelector;
+    static Selector? StyleMaskSelector;
     static Property? TitleProperty;
     static Property? TitleVisibilityProperty;
     static Selector? ToggleToolbarShownSelector;
     static Property? ToolbarProperty;
     static Property? ToolbarStyleProperty;
+    static NSString? WillEnterFullScreenNotificationName;
+    static NSString? WillExitFullScreenNotificationName;
 
 
     // Static initializer.
@@ -213,15 +220,41 @@ public class NSWindow : NSResponder
     /// </summary>
     public NSObject? Delegate
     {
-        get 
+        get
         {
             DelegateProperty ??= NSWindowClass!.GetProperty("delegate").AsNonNull();
             return this.GetNSObjectProperty<NSObject>(DelegateProperty);
         }
-        set 
+        set
         {
             DelegateProperty ??= NSWindowClass!.GetProperty("delegate").AsNonNull();
             this.SetProperty(DelegateProperty, value);
+        }
+    }
+
+
+    /// <summary>
+    /// Get name of notification posted when window entered full-screen mode.
+    /// </summary>
+    public static NSString DidEnterFullScreenNotification
+    {
+        get
+        {
+            DidEnterFullScreenNotificationName ??= new NSString("NSWindowDidEnterFullScreenNotification");
+            return DidEnterFullScreenNotificationName;
+        }
+    }
+
+
+    /// <summary>
+    /// Get name of notification posted when window exited full-screen mode.
+    /// </summary>
+    public static NSString DidExitFullScreenNotification
+    {
+        get
+        {
+            DidExitFullScreenNotificationName ??= new NSString("NSWindowDidExitFullScreenNotification");
+            return DidExitFullScreenNotificationName;
         }
     }
 
@@ -318,7 +351,38 @@ public class NSWindow : NSResponder
         StandardWindowButtonSelector ??= Selector.FromName("standardWindowButton:");
         return this.SendMessage<NSControl?>(StandardWindowButtonSelector, button);
     }
-    
+
+
+    /// <summary>
+    /// Create a new standard button for window with given style.
+    /// </summary>
+    /// <param name="button">Type of button.</param>
+    /// <param name="style">Style of window.</param>
+    /// <returns><see cref="NSControl"/> of button.</returns>
+    public static NSControl? StandardWindowButton(ButtonType button, StyleMask style)
+    {
+        StandardWindowButtonForStyleSelector ??= Selector.FromName("standardWindowButton:forStyleMask:");
+        return SendMessage<NSControl?>(NSWindowClass!.Handle, StandardWindowButtonForStyleSelector, button, style);
+    }
+
+
+    /// <summary>
+    /// Get or set style of window.
+    /// </summary>
+    public StyleMask Style
+    {
+        get
+        {
+            StyleMaskSelector ??= Selector.FromName("styleMask");
+            return this.SendMessage<StyleMask>(StyleMaskSelector);
+        }
+        set
+        {
+            SetStyleMaskSelector ??= Selector.FromName("setStyleMask:");
+            this.SendMessage(SetStyleMaskSelector, value);
+        }
+    }
+
 
     /// <summary>
     /// Get or set subtitle of window.
@@ -429,6 +493,32 @@ public class NSWindow : NSResponder
         {
             ToolbarStyleProperty ??= NSWindowClass!.GetProperty("toolbarStyle").AsNonNull();
             this.SetProperty(ToolbarStyleProperty, (int)value);
+        }
+    }
+
+
+    /// <summary>
+    /// Get name of notification posted when window is about to enter full-screen mode.
+    /// </summary>
+    public static NSString WillEnterFullScreenNotification
+    {
+        get
+        {
+            WillEnterFullScreenNotificationName ??= new NSString("NSWindowWillEnterFullScreenNotification");
+            return WillEnterFullScreenNotificationName;
+        }
+    }
+
+
+    /// <summary>
+    /// Get name of notification posted when window is about to exit full-screen mode.
+    /// </summary>
+    public static NSString WillExitFullScreenNotification
+    {
+        get
+        {
+            WillExitFullScreenNotificationName ??= new NSString("NSWindowWillExitFullScreenNotification");
+            return WillExitFullScreenNotificationName;
         }
     }
 }
