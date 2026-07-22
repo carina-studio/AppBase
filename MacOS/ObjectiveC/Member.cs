@@ -131,11 +131,17 @@ namespace CarinaStudio.MacOS.ObjectiveC
     {
         // Native symbols.
         [DllImport(NativeLibraryNames.ObjectiveC)]
+        static extern IntPtr class_getInstanceVariable(IntPtr cls, string name);
+        [DllImport(NativeLibraryNames.ObjectiveC)]
+        static extern nint ivar_getOffset(IntPtr v);
+        [DllImport(NativeLibraryNames.ObjectiveC)]
         static extern sbyte* ivar_getTypeEncoding(IntPtr v);
 
 
         // Fields.
         int elementCount;
+        volatile bool isOffsetGotten;
+        nint offset;
         int size;
         volatile Type? type;
 
@@ -158,6 +164,25 @@ namespace CarinaStudio.MacOS.ObjectiveC
                 if (this.type == null)
                     _ = this.Type;
                 return this.elementCount;
+            }
+        }
+
+
+        /// <summary>
+        /// Get offset of storage of variable from beginning of instance in bytes.
+        /// </summary>
+        public nint Offset
+        {
+            get
+            {
+                if (!this.isOffsetGotten)
+                {
+                    // resolve handle again because handle gotten before registering class will become invalid after adding more variables to class
+                    var handle = class_getInstanceVariable(this.Class.Handle, this.Name);
+                    this.offset = ivar_getOffset(handle != IntPtr.Zero ? handle : this.Handle);
+                    this.isOffsetGotten = true;
+                }
+                return this.offset;
             }
         }
 

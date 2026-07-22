@@ -30,4 +30,5 @@ Low-level macOS native API bindings via P/Invoke and Objective-C runtime interop
 - All P/Invoke calls go through named library handles in `NativeLibraryHandles` — never hardcode dylib paths inline
 - `InternalsVisibleTo` grants access to `CarinaStudio.AppBase.MacOS.NativeBridge` and `CarinaStudio.AppBase.MacOS.Tests`
 - Sending messages with arbitrary signatures and dispatching defined methods go through libffi (`Ffi/LibFfi.cs`), not `Reflection.Emit`; call interfaces, closures and struct type descriptors are cached in native memory for the process lifetime
+- Instance variables are read/written directly at `instance + Variable.Offset` — never through `object_getInstanceVariable`/`object_setInstanceVariable`, which treat the ivar as a single pointer-sized value (the value itself, not a buffer address). `Variable.Offset` re-resolves the `Ivar` handle by name on first use, because handles obtained during `Class.DefineClass` (before `objc_registerClassPair`) become dangling once later `class_addIvar` calls reallocate the ivar list
 - Structure types added to the library which may pass through native calls must also be listed in `ILLink.Descriptors.xml`
