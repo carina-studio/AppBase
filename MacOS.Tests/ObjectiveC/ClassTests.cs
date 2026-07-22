@@ -38,6 +38,57 @@ namespace CarinaStudio.MacOS.ObjectiveC
 
 
         /// <summary>
+        /// Test for binding CLR object to Objective-C object and reading it back from within Objective-C method invocation.
+        /// </summary>
+        [Test]
+        public void ClrObjectBindingTest()
+        {
+            // define class with method which reads the bound CLR object.
+            // implementation must not throw, otherwise the process will be terminated by Environment.FailFast().
+            var boundObject = new object();
+            var getBindingStateSelector = Selector.FromName("clrObjectBindingState");
+            var definedCls = default(Class);
+            var cls = Class.DefineClass("Test_ClassTests_ClrObjectBindingTest", cls =>
+            {
+                cls.DefineMethod(getBindingStateSelector, new Func<IntPtr, Selector, int>((self, _) =>
+                {
+                    if (!definedCls!.TryGetClrObject<object>(self, out var obj))
+                        return 0;
+                    return ReferenceEquals(obj, boundObject) ? 1 : 2;
+                }));
+            });
+            definedCls = cls;
+
+            // bind CLR object
+            var instance = NSObject.Initialize(cls.Allocate());
+            Assert.That(cls.TrySetClrObject(instance, boundObject));
+
+            // read bound CLR object from within Objective-C method invocation.
+            // any temporary buffer whose address may be incorrectly stored in the ivar must be reclaimed and overwritten before reading
+            for (var round = 0; round < 10; ++round)
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                for (var i = 0; i < 500000; ++i)
+                    new byte[IntPtr.Size].AsSpan().Fill(0xff);
+                var bindingState = NSObject.SendMessageCore(instance, getBindingStateSelector, typeof(int));
+                Assert.That(Equals(1, bindingState));
+            }
+
+            // read bound CLR object directly
+            Assert.That(cls.TryGetClrObject<object>(instance, out var readObject));
+            Assert.That(ReferenceEquals(boundObject, readObject));
+
+            // unbind CLR object
+            Assert.That(cls.TrySetClrObject(instance, null));
+            Assert.That(!cls.TryGetClrObject<object>(instance, out _));
+
+            // complete
+            NSObject.Release(instance);
+        }
+
+
+        /// <summary>
         /// Test for instance variables of class.
         /// </summary>
         [Test]

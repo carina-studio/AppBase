@@ -33,14 +33,8 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     // Native symbols.
     static readonly void* objc_msgSend;
     static readonly void* objc_msgSendSuper;
-    [DllImport(NativeLibraryNames.ObjectiveC)]
-    static extern IntPtr object_getInstanceVariable(IntPtr obj, string name, out void* outValue);
-    //static readonly void* object_getIvar;
-    [DllImport(NativeLibraryNames.ObjectiveC)]
-    static extern void object_setInstanceVariable(IntPtr obj, string name, void* value);
-    //static readonly void* object_setIvar;
-    
-    
+
+
     // Constants.
     internal const string CallConstructorRdcMessage = "Dynamic code generation is required for calling specific constructor of NSObject.";
     internal const string CallMethodRdcMessage = "Dynamic code generation is required for calling specific method of NSObject.";
@@ -50,7 +44,6 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     internal const string SendMessageRdcMessage = "Dynamic code generation is required for sending message to NSObject with specific parameters.";
     internal const string SetPropertyRdcMessage = "Dynamic code generation is required for setting specific property of NSObject.";
     internal const string SetVariableRdcMessage = "Dynamic code generation is required for setting variable of NSObject.";
-
 
     // Static fields.
     static readonly Selector? InitSelector;
@@ -413,9 +406,8 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     {
         VerifyHandle(obj);
         var size = ivar.Size;
-        object_getInstanceVariable(obj, ivar.Name, out var outValue);
-        if (outValue is null)
-            return targetType.IsValueType ? Activator.CreateInstance(targetType) : default;
+        // access storage of variable directly because object_getInstanceVariable() treats variable as single pointer-sized value
+        var valuePtr = (byte*)obj + ivar.Offset;
         if (targetType.IsArray)
         {
             if (targetType.GetArrayRank() > 1)
@@ -424,7 +416,7 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
             var elementSize = NativeTypeConversion.GetNativeValueSize(elementType);
             var count = (ivar.Size / elementSize);
             var array = Array.CreateInstance(elementType, count);
-            var elementPtr = (byte*)outValue;
+            var elementPtr = valuePtr;
             for (var i = 0; i < count; ++i)
             {
 #pragma warning disable IL2072
@@ -435,7 +427,7 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
             }
             return array;
         }
-        return NativeTypeConversion.FromNativeValue((byte*)outValue, size, targetType, out var _);
+        return NativeTypeConversion.FromNativeValue(valuePtr, size, targetType, out var _);
     }
 
 
@@ -1414,27 +1406,25 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
                 throw new NotSupportedException($"Setting variable with CLR object or CLR object array is unsupported. Only NSObject, Class and Selector are supported.");
             }
         }
-        fixed (byte* valuePtr = new byte[size])
+        // access storage of variable directly because object_setInstanceVariable() stores given pointer as value of variable
+        var valuePtr = (byte*)obj + ivar.Offset;
+        if (value is Array array)
         {
-            if (value is Array array)
-            {
-                if (valueType!.GetArrayRank() > 1)
-                    throw new NotSupportedException("Only 1-dimensional array is supported.");
-                var arrayLength = array.GetLength(0);
-                if (arrayLength <= 0)
-                    return;
-                var elementType = valueType.GetElementType()!;
-                var elementSize = NativeTypeConversion.GetNativeValueSize(elementType);
-                if (arrayLength * elementSize > size)
-                    throw new ArgumentException($"Size of array is too large: {arrayLength * elementSize}, maximum size is {size}.");
-                var elementPtr = valuePtr;
-                for (var i = 0; i < arrayLength; ++i)
-                    elementPtr += NativeTypeConversion.ToNativeValue(array.GetValue(i), elementPtr);
-            }
-            else
-                NativeTypeConversion.ToNativeValue(value, valuePtr);
-            object_setInstanceVariable(obj, ivar.Name, valuePtr);
+            if (valueType!.GetArrayRank() > 1)
+                throw new NotSupportedException("Only 1-dimensional array is supported.");
+            var arrayLength = array.GetLength(0);
+            if (arrayLength <= 0)
+                return;
+            var elementType = valueType.GetElementType()!;
+            var elementSize = NativeTypeConversion.GetNativeValueSize(elementType);
+            if (arrayLength * elementSize > size)
+                throw new ArgumentException($"Size of array is too large: {arrayLength * elementSize}, maximum size is {size}.");
+            var elementPtr = valuePtr;
+            for (var i = 0; i < arrayLength; ++i)
+                elementPtr += NativeTypeConversion.ToNativeValue(array.GetValue(i), elementPtr);
         }
+        else
+            NativeTypeConversion.ToNativeValue(value, valuePtr);
     }
 
 
