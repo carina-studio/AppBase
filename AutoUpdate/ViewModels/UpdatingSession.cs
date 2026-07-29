@@ -29,79 +29,79 @@ public abstract class UpdatingSession : ViewModel
 	/// <summary>
 	/// Property of <see cref="ApplicationName"/>
 	/// </summary>
-	public static readonly ObservableProperty<string?> ApplicationNameProperty = ObservableProperty.Register<UpdatingSession, string?>(nameof(ApplicationName));
+	public static readonly ObservableProperty<string?> ApplicationNameProp = ObservableProperty.Register<UpdatingSession, string?>(nameof(ApplicationName));
 	/// <summary>
 	/// Property of <see cref="DownloadedPackageSize"/>
 	/// </summary>
-	public static readonly ObservableProperty<long> DownloadedPackageSizeProperty = ObservableProperty.Register<UpdatingSession, long>(nameof(DownloadedPackageSize));
+	public static readonly ObservableProperty<long> DownloadedPackageSizeProp = ObservableProperty.Register<UpdatingSession, long>(nameof(DownloadedPackageSize));
 	/// <summary>
 	/// Property of <see cref="IsBackingUpApplication"/>
 	/// </summary>
-	public static readonly ObservableProperty<bool> IsBackingUpApplicationProperty = ObservableProperty.Register<UpdatingSession, bool>(nameof(IsBackingUpApplication));
+	public static readonly ObservableProperty<bool> IsBackingUpApplicationProp = ObservableProperty.Register<UpdatingSession, bool>(nameof(IsBackingUpApplication));
 	/// <summary>
 	/// Property of <see cref="IsDownloadingPackage"/>
 	/// </summary>
-	public static readonly ObservableProperty<bool> IsDownloadingPackageProperty = ObservableProperty.Register<UpdatingSession, bool>(nameof(IsDownloadingPackage));
+	public static readonly ObservableProperty<bool> IsDownloadingPackageProp = ObservableProperty.Register<UpdatingSession, bool>(nameof(IsDownloadingPackage));
 	/// <summary>
 	/// Property of <see cref="IsInstallingPackage"/>
 	/// </summary>
-	public static readonly ObservableProperty<bool> IsInstallingPackageProperty = ObservableProperty.Register<UpdatingSession, bool>(nameof(IsInstallingPackage));
+	public static readonly ObservableProperty<bool> IsInstallingPackageProp = ObservableProperty.Register<UpdatingSession, bool>(nameof(IsInstallingPackage));
 	/// <summary>
 	/// Property of <see cref="IsProgressAvailable"/>
 	/// </summary>
-	public static readonly ObservableProperty<bool> IsProgressAvailableProperty = ObservableProperty.Register<UpdatingSession, bool>(nameof(IsProgressAvailable));
+	public static readonly ObservableProperty<bool> IsProgressAvailableProp = ObservableProperty.Register<UpdatingSession, bool>(nameof(IsProgressAvailable));
 	/// <summary>
 	/// Property of <see cref="IsRefreshingApplicationIcon"/>
 	/// </summary>
-	public static readonly ObservableProperty<bool> IsRefreshingApplicationIconProperty = ObservableProperty.Register<UpdatingSession, bool>(nameof(IsRefreshingApplicationIcon));
+	public static readonly ObservableProperty<bool> IsRefreshingApplicationIconProp = ObservableProperty.Register<UpdatingSession, bool>(nameof(IsRefreshingApplicationIcon));
 	/// <summary>
 	/// Property of <see cref="IsResolvingPackage"/>
 	/// </summary>
-	public static readonly ObservableProperty<bool> IsResolvingPackageProperty = ObservableProperty.Register<UpdatingSession, bool>(nameof(IsResolvingPackage));
+	public static readonly ObservableProperty<bool> IsResolvingPackageProp = ObservableProperty.Register<UpdatingSession, bool>(nameof(IsResolvingPackage));
 	/// <summary>
 	/// Property of <see cref="IsRestoringApplication"/>
 	/// </summary>
-	public static readonly ObservableProperty<bool> IsRestoringApplicationProperty = ObservableProperty.Register<UpdatingSession, bool>(nameof(IsRestoringApplication));
+	public static readonly ObservableProperty<bool> IsRestoringApplicationProp = ObservableProperty.Register<UpdatingSession, bool>(nameof(IsRestoringApplication));
 	/// <summary>
 	/// Property of <see cref="IsUpdating"/>
 	/// </summary>
-	public static readonly ObservableProperty<bool> IsUpdatingProperty = ObservableProperty.Register<UpdatingSession, bool>(nameof(IsUpdating));
+	public static readonly ObservableProperty<bool> IsUpdatingProp = ObservableProperty.Register<UpdatingSession, bool>(nameof(IsUpdating));
 	/// <summary>
 	/// Property of <see cref="IsUpdatingCancelled"/>
 	/// </summary>
-	public static readonly ObservableProperty<bool> IsUpdatingCancelledProperty = ObservableProperty.Register<UpdatingSession, bool>(nameof(IsUpdatingCancelled));
+	public static readonly ObservableProperty<bool> IsUpdatingCancelledProp = ObservableProperty.Register<UpdatingSession, bool>(nameof(IsUpdatingCancelled));
 	/// <summary>
 	/// Property of <see cref="IsUpdatingCancelling"/>
 	/// </summary>
-	public static readonly ObservableProperty<bool> IsUpdatingCancellingProperty = ObservableProperty.Register<UpdatingSession, bool>(nameof(IsUpdatingCancelling));
+	public static readonly ObservableProperty<bool> IsUpdatingCancellingProp = ObservableProperty.Register<UpdatingSession, bool>(nameof(IsUpdatingCancelling));
 	/// <summary>
 	/// Property of <see cref="IsUpdatingCompleted"/>
 	/// </summary>
-	public static readonly ObservableProperty<bool> IsUpdatingCompletedProperty = ObservableProperty.Register<UpdatingSession, bool>(nameof(IsUpdatingCompleted));
+	public static readonly ObservableProperty<bool> IsUpdatingCompletedProp = ObservableProperty.Register<UpdatingSession, bool>(nameof(IsUpdatingCompleted));
 	/// <summary>
 	/// Property of <see cref="IsUpdatingFailed"/>
 	/// </summary>
-	public static readonly ObservableProperty<bool> IsUpdatingFailedProperty = ObservableProperty.Register<UpdatingSession, bool>(nameof(IsUpdatingFailed));
+	public static readonly ObservableProperty<bool> IsUpdatingFailedProp = ObservableProperty.Register<UpdatingSession, bool>(nameof(IsUpdatingFailed));
 	/// <summary>
 	/// Property of <see cref="IsUpdatingSucceeded"/>
 	/// </summary>
-	public static readonly ObservableProperty<bool> IsUpdatingSucceededProperty = ObservableProperty.Register<UpdatingSession, bool>(nameof(IsUpdatingSucceeded));
+	public static readonly ObservableProperty<bool> IsUpdatingSucceededProp = ObservableProperty.Register<UpdatingSession, bool>(nameof(IsUpdatingSucceeded));
 	/// <summary>
 	/// Property of <see cref="IsVerifyingPackage"/>
 	/// </summary>
-	public static readonly ObservableProperty<bool> IsVerifyingPackageProperty = ObservableProperty.Register<UpdatingSession, bool>(nameof(IsVerifyingPackage));
+	public static readonly ObservableProperty<bool> IsVerifyingPackageProp = ObservableProperty.Register<UpdatingSession, bool>(nameof(IsVerifyingPackage));
 	/// <summary>
 	/// Property of <see cref="Message"/>
 	/// </summary>
-	public static readonly ObservableProperty<string?> MessageProperty = ObservableProperty.Register<UpdatingSession, string?>(nameof(Message));
+	public static readonly ObservableProperty<string?> MessageProp = ObservableProperty.Register<UpdatingSession, string?>(nameof(Message));
 	/// <summary>
 	/// Property of <see cref="PackageSize"/>
 	/// </summary>
-	public static readonly ObservableProperty<long?> PackageSizeProperty = ObservableProperty.Register<UpdatingSession, long?>(nameof(PackageSize));
+	public static readonly ObservableProperty<long?> PackageSizeProp = ObservableProperty.Register<UpdatingSession, long?>(nameof(PackageSize));
 	/// <summary>
 	/// Property of <see cref="ProgressPercentage"/>
 	/// </summary>
-	public static readonly ObservableProperty<double> ProgressPercentageProperty = ObservableProperty.Register<UpdatingSession, double>(nameof(ProgressPercentage), double.NaN, 
+	public static readonly ObservableProperty<double> ProgressPercentageProp = ObservableProperty.Register<UpdatingSession, double>(nameof(ProgressPercentage), double.NaN, 
 		coerce: (_, value) =>
 		{
 			if (double.IsNaN(value))
@@ -115,20 +115,20 @@ public abstract class UpdatingSession : ViewModel
 	/// <summary>
 	/// Property of <see cref="RefreshApplicationIconAutomatically"/>
 	/// </summary>
-	public static readonly ObservableProperty<bool> RefreshApplicationIconAutomaticallyProperty = ObservableProperty.Register<UpdatingSession, bool>(nameof(RefreshApplicationIconAutomatically),
+	public static readonly ObservableProperty<bool> RefreshApplicationIconAutomaticallyProp = ObservableProperty.Register<UpdatingSession, bool>(nameof(RefreshApplicationIconAutomatically),
 		coerce: (session, update) =>
 		{
-			if (session.GetValue(IsUpdatingProperty))
+			if (session.GetValue(IsUpdatingProp))
 				throw new InvalidOperationException();
 			return update;
 		});
 	/// <summary>
 	/// Property of <see cref="RefreshApplicationIconMessage"/>
 	/// </summary>
-	public static readonly ObservableProperty<string?> RefreshApplicationIconMessageProperty = ObservableProperty.Register<UpdatingSession, string?>(nameof(RefreshApplicationIconMessage),
+	public static readonly ObservableProperty<string?> RefreshApplicationIconMessageProp = ObservableProperty.Register<UpdatingSession, string?>(nameof(RefreshApplicationIconMessage),
 		coerce: (session, message) =>
 		{
-			if (session.GetValue(IsUpdatingProperty))
+			if (session.GetValue(IsUpdatingProp))
 				throw new InvalidOperationException();
 			return message;
 		});
@@ -213,8 +213,8 @@ public abstract class UpdatingSession : ViewModel
 	/// </summary>
 	public string? ApplicationName
 	{
-		get => this.GetValue(ApplicationNameProperty);
-		set => this.SetValue(ApplicationNameProperty, value);
+		get => this.GetValue(ApplicationNameProp);
+		set => this.SetValue(ApplicationNameProp, value);
 	}
 
 
@@ -226,32 +226,32 @@ public abstract class UpdatingSession : ViewModel
 
 	// Check availability of progress.
 	void CheckProgressAvailability() =>
-		this.SetValue(IsProgressAvailableProperty, this.IsUpdating && double.IsFinite(this.ProgressPercentage));
+		this.SetValue(IsProgressAvailableProp, this.IsUpdating && double.IsFinite(this.ProgressPercentage));
 	
 	
 	// Complete updating progress.
 	void CompleteUpdating(bool isSucceeded, bool isCancelled)
 	{
-		if (this.IsDisposed || !this.GetValue(IsUpdatingProperty))
+		if (this.IsDisposed || !this.GetValue(IsUpdatingProp))
 			return;
 		this.Logger.LogTrace("Complete updating, succeeded: {s}, cancelled: {c}", isSucceeded, isCancelled);
 		if (isCancelled)
 		{
-			this.SetValue(IsUpdatingProperty, false);
-			this.SetValue(IsUpdatingCancelledProperty, true);
-			this.SetValue(IsUpdatingCompletedProperty, true);
+			this.SetValue(IsUpdatingProp, false);
+			this.SetValue(IsUpdatingCancelledProp, true);
+			this.SetValue(IsUpdatingCompletedProp, true);
 		}
 		else if (isSucceeded)
 		{
-			this.SetValue(IsUpdatingProperty, false);
-			this.SetValue(IsUpdatingSucceededProperty, true);
-			this.SetValue(IsUpdatingCompletedProperty, true);
+			this.SetValue(IsUpdatingProp, false);
+			this.SetValue(IsUpdatingSucceededProp, true);
+			this.SetValue(IsUpdatingCompletedProp, true);
 		}
 		else
 		{
-			this.SetValue(IsUpdatingProperty, false);
-			this.SetValue(IsUpdatingFailedProperty, true);
-			this.SetValue(IsUpdatingCompletedProperty, true);
+			this.SetValue(IsUpdatingProp, false);
+			this.SetValue(IsUpdatingFailedProp, true);
+			this.SetValue(IsUpdatingCompletedProp, true);
 		}
 	}
 
@@ -293,91 +293,91 @@ public abstract class UpdatingSession : ViewModel
 	/// <summary>
 	/// Get size of downloaded package in bytes.
 	/// </summary>
-	public long DownloadedPackageSize => this.GetValue(DownloadedPackageSizeProperty);
+	public long DownloadedPackageSize => this.GetValue(DownloadedPackageSizeProp);
 
 
 	/// <summary>
 	/// Check whether application is being backed-up or not.
 	/// </summary>
-	public bool IsBackingUpApplication => this.GetValue(IsBackingUpApplicationProperty);
+	public bool IsBackingUpApplication => this.GetValue(IsBackingUpApplicationProp);
 
 
 	/// <summary>
 	/// Check whether update package is being downloaded or not.
 	/// </summary>
-	public bool IsDownloadingPackage => this.GetValue(IsDownloadingPackageProperty);
+	public bool IsDownloadingPackage => this.GetValue(IsDownloadingPackageProp);
 
 
 	/// <summary>
 	/// Check whether update package is being installed or not.
 	/// </summary>
-	public bool IsInstallingPackage => this.GetValue(IsInstallingPackageProperty);
+	public bool IsInstallingPackage => this.GetValue(IsInstallingPackageProp);
 
 
 	/// <summary>
 	/// Check whether progress of updating is available or not.
 	/// </summary>
-	public bool IsProgressAvailable => this.GetValue(IsProgressAvailableProperty);
+	public bool IsProgressAvailable => this.GetValue(IsProgressAvailableProp);
 	
 	
 	/// <summary>
 	/// Check whether application icon refreshing is being performed or not.
 	/// </summary>
-	public bool IsRefreshingApplicationIcon => this.GetValue(IsRefreshingApplicationIconProperty);
+	public bool IsRefreshingApplicationIcon => this.GetValue(IsRefreshingApplicationIconProp);
 
 
 	/// <summary>
 	/// Check whether update package is being resolved or not.
 	/// </summary>
-	public bool IsResolvingPackage => this.GetValue(IsResolvingPackageProperty);
+	public bool IsResolvingPackage => this.GetValue(IsResolvingPackageProp);
 
 
 	/// <summary>
 	/// Check whether application is being restored or not.
 	/// </summary>
-	public bool IsRestoringApplication => this.GetValue(IsRestoringApplicationProperty);
+	public bool IsRestoringApplication => this.GetValue(IsRestoringApplicationProp);
 
 
 	/// <summary>
 	/// Check whether updating processing is ongoing or not.
 	/// </summary>
-	public bool IsUpdating => this.GetValue(IsUpdatingProperty);
+	public bool IsUpdating => this.GetValue(IsUpdatingProp);
 
 
 	/// <summary>
 	/// Check whether updating processing is cancelled or not.
 	/// </summary>
-	public bool IsUpdatingCancelled => this.GetValue(IsUpdatingCancelledProperty);
+	public bool IsUpdatingCancelled => this.GetValue(IsUpdatingCancelledProp);
 
 
 	/// <summary>
 	/// Check whether updating processing is being cancelled or not.
 	/// </summary>
-	public bool IsUpdatingCancelling => this.GetValue(IsUpdatingCancellingProperty);
+	public bool IsUpdatingCancelling => this.GetValue(IsUpdatingCancellingProp);
 
 
 	/// <summary>
 	/// Check whether updating processing is completed either successfully or unsuccessfully.
 	/// </summary>
-	public bool IsUpdatingCompleted => this.GetValue(IsUpdatingCompletedProperty);
+	public bool IsUpdatingCompleted => this.GetValue(IsUpdatingCompletedProp);
 
 
 	/// <summary>
 	/// Check whether updating processing is completed unsuccessfully or not.
 	/// </summary>
-	public bool IsUpdatingFailed => this.GetValue(IsUpdatingFailedProperty);
+	public bool IsUpdatingFailed => this.GetValue(IsUpdatingFailedProp);
 
 
 	/// <summary>
 	/// Check whether updating processing is completed successfully or not.
 	/// </summary>
-	public bool IsUpdatingSucceeded => this.GetValue(IsUpdatingSucceededProperty);
+	public bool IsUpdatingSucceeded => this.GetValue(IsUpdatingSucceededProp);
 
 
 	/// <summary>
 	/// Check whether downloaded update package is being verified or not.
 	/// </summary>
-	public bool IsVerifyingPackage => this.GetValue(IsVerifyingPackageProperty);
+	public bool IsVerifyingPackage => this.GetValue(IsVerifyingPackageProp);
 	
 	
 	/// <summary>
@@ -403,7 +403,7 @@ public abstract class UpdatingSession : ViewModel
 	/// <summary>
 	/// Get message which describes status of updating.
 	/// </summary>
-	public string? Message => this.GetValue(MessageProperty);
+	public string? Message => this.GetValue(MessageProp);
 
 
 	/// <summary>
@@ -415,7 +415,7 @@ public abstract class UpdatingSession : ViewModel
 	protected override void OnPropertyChanged(ObservableProperty property, object? oldValue, object? newValue)
 	{
 		base.OnPropertyChanged(property, oldValue, newValue);
-		if (property == IsUpdatingProperty || property == ProgressPercentageProperty)
+		if (property == IsUpdatingProp || property == ProgressPercentageProp)
 			this.CheckProgressAvailability();
 	}
 
@@ -425,7 +425,7 @@ public abstract class UpdatingSession : ViewModel
 	/// </summary>
 	protected virtual void OnUpdaterProgressChanged()
 	{
-		this.SetValue(ProgressPercentageProperty, this.updater.Progress * 100);
+		this.SetValue(ProgressPercentageProp, this.updater.Progress * 100);
 	}
 
 
@@ -435,17 +435,17 @@ public abstract class UpdatingSession : ViewModel
 		switch (propertyName)
 		{
 			case nameof(Updater.DownloadedPackageSize):
-				this.SetValue(DownloadedPackageSizeProperty, this.updater.DownloadedPackageSize);
+				this.SetValue(DownloadedPackageSizeProp, this.updater.DownloadedPackageSize);
 				break;
 			case nameof(Updater.IsCancellable):
 				this.UpdateCanCancelUpdating();
 				break;
 			case nameof(Updater.IsCancelling):
-				this.SetValue(IsUpdatingCancellingProperty, this.updater.IsCancelling);
+				this.SetValue(IsUpdatingCancellingProp, this.updater.IsCancelling);
 				this.UpdateCanCancelUpdating();
 				break;
 			case nameof(Updater.PackageSize):
-				this.SetValue(PackageSizeProperty, this.updater.PackageSize);
+				this.SetValue(PackageSizeProp, this.updater.PackageSize);
 				break;
 			case nameof(Updater.Progress):
 				this.OnUpdaterProgressChanged();
@@ -465,12 +465,12 @@ public abstract class UpdatingSession : ViewModel
 	{
 		if (this.IsDisposed)
 			return;
-		this.SetValue(IsBackingUpApplicationProperty, this.updater.State == UpdaterState.BackingUpApplication);
-		this.SetValue(IsDownloadingPackageProperty, this.updater.State == UpdaterState.DownloadingPackage);
-		this.SetValue(IsInstallingPackageProperty, this.updater.State == UpdaterState.InstallingPackage);
-		this.SetValue(IsResolvingPackageProperty, this.updater.State == UpdaterState.ResolvingPackage);
-		this.SetValue(IsRestoringApplicationProperty, this.updater.State == UpdaterState.RestoringApplication);
-		this.SetValue(IsVerifyingPackageProperty, this.updater.State == UpdaterState.VerifyingPackage);
+		this.SetValue(IsBackingUpApplicationProp, this.updater.State == UpdaterState.BackingUpApplication);
+		this.SetValue(IsDownloadingPackageProp, this.updater.State == UpdaterState.DownloadingPackage);
+		this.SetValue(IsInstallingPackageProp, this.updater.State == UpdaterState.InstallingPackage);
+		this.SetValue(IsResolvingPackageProp, this.updater.State == UpdaterState.ResolvingPackage);
+		this.SetValue(IsRestoringApplicationProp, this.updater.State == UpdaterState.RestoringApplication);
+		this.SetValue(IsVerifyingPackageProp, this.updater.State == UpdaterState.VerifyingPackage);
 		switch (this.updater.State)
 		{
 			case UpdaterState.Cancelled:
@@ -480,10 +480,10 @@ public abstract class UpdatingSession : ViewModel
 				this.CompleteUpdating(false, false);
 				break;
 			case UpdaterState.Starting:
-				this.SetValue(IsUpdatingProperty, true);
+				this.SetValue(IsUpdatingProp, true);
 				break;
 			case UpdaterState.Succeeded:
-				if (this.GetValue(RefreshApplicationIconAutomaticallyProperty))
+				if (this.GetValue(RefreshApplicationIconAutomaticallyProp))
 					_ = this.RefreshApplicationIcon();
 				else
 					this.CompleteUpdating(true, false);
@@ -521,20 +521,20 @@ public abstract class UpdatingSession : ViewModel
 	/// <summary>
 	/// Get size of package in bytes.
 	/// </summary>
-	public long? PackageSize => this.GetValue(PackageSizeProperty);
+	public long? PackageSize => this.GetValue(PackageSizeProp);
 
 
 	/// <summary>
 	/// Get current progress of updating in percentage. <see cref="double.NaN"/> if progress is unavailable.
 	/// </summary>
-	public double ProgressPercentage => this.GetValue(ProgressPercentageProperty);
+	public double ProgressPercentage => this.GetValue(ProgressPercentageProp);
 
 
 	// Refresh application icon.
 	async Task RefreshApplicationIcon()
 	{
 		// check state
-		if (this.IsDisposed || this.UpdaterState != UpdaterState.Succeeded || this.GetValue(IsRefreshingApplicationIconProperty))
+		if (this.IsDisposed || this.UpdaterState != UpdaterState.Succeeded || this.GetValue(IsRefreshingApplicationIconProp))
 			return;
 		if (this.updater.PackageInstaller?.IsApplicationIconUpdated != true)
 		{
@@ -547,7 +547,7 @@ public abstract class UpdatingSession : ViewModel
 		var cancellationTokenSource = new CancellationTokenSource();
 		this.refreshAppIconCancellationTokenSource = cancellationTokenSource;
 		this.UpdateCanCancelUpdating();
-		this.SetValue(IsRefreshingApplicationIconProperty, true);
+		this.SetValue(IsRefreshingApplicationIconProp, true);
 		try
 		{
 			if (Platform.IsMacOS)
@@ -560,7 +560,7 @@ public abstract class UpdatingSession : ViewModel
 					this.Logger.LogDebug("Refresh application icon of application bundle: '{path}'", appBundlePath);
 					if (appBundlePath.EndsWith("/"))
 						appBundlePath = appBundlePath[..^1];
-					var title = this.GetValue(RefreshApplicationIconMessageProperty);
+					var title = this.GetValue(RefreshApplicationIconMessageProp);
 					if (string.IsNullOrEmpty(title))
 						title = "Refresh application icon";
 					await Task.Run(() =>
@@ -624,7 +624,7 @@ public abstract class UpdatingSession : ViewModel
 			cancellationTokenSource.Dispose();
 			this.refreshAppIconCancellationTokenSource = null;
 			this.UpdateCanCancelUpdating();
-			this.ResetValue(IsRefreshingApplicationIconProperty);
+			this.ResetValue(IsRefreshingApplicationIconProp);
 		}
 		this.CompleteUpdating(true, false);
 	}
@@ -635,8 +635,8 @@ public abstract class UpdatingSession : ViewModel
 	/// </summary>
 	public bool RefreshApplicationIconAutomatically
 	{
-		get => this.GetValue(RefreshApplicationIconAutomaticallyProperty);
-		set => this.SetValue(RefreshApplicationIconAutomaticallyProperty, value);
+		get => this.GetValue(RefreshApplicationIconAutomaticallyProp);
+		set => this.SetValue(RefreshApplicationIconAutomaticallyProp, value);
 	}
 	
 	
@@ -645,8 +645,8 @@ public abstract class UpdatingSession : ViewModel
 	/// </summary>
 	public string? RefreshApplicationIconMessage
 	{
-		get => this.GetValue(RefreshApplicationIconMessageProperty);
-		set => this.SetValue(RefreshApplicationIconMessageProperty, value);
+		get => this.GetValue(RefreshApplicationIconMessageProp);
+		set => this.SetValue(RefreshApplicationIconMessageProp, value);
 	}
 
 

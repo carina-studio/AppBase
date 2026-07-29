@@ -190,8 +190,8 @@ class ViewModelTests
 			};
 
 			// check default property value
-			Assert.That(TestViewModel.TestInt32Property.DefaultValue == viewModel.TestInt32, "Default property value is incorrect.");
-			Assert.That(TestViewModel.TestRangeInt32Property.DefaultValue == viewModel.TestRangeInt32, "Default property value is incorrect.");
+			Assert.That(TestViewModel.TestInt32Prop.DefaultValue == viewModel.TestInt32, "Default property value is incorrect.");
+			Assert.That(TestViewModel.TestRangeInt32Prop.DefaultValue == viewModel.TestRangeInt32, "Default property value is incorrect.");
 
 			// change property
 			viewModel.TestInt32 = 123;
@@ -200,8 +200,8 @@ class ViewModelTests
 			latestChangedPropertyName = "";
 			viewModel.TestInt32 = 123;
 			Assert.That("" == latestChangedPropertyName, "PropertyChanged should not be raised.");
-			viewModel.TestInt32 = TestViewModel.TestInt32Property.DefaultValue;
-			Assert.That(TestViewModel.TestInt32Property.DefaultValue == viewModel.TestInt32, "Property value is different from set one.");
+			viewModel.TestInt32 = TestViewModel.TestInt32Prop.DefaultValue;
+			Assert.That(TestViewModel.TestInt32Prop.DefaultValue == viewModel.TestInt32, "Property value is different from set one.");
 			Assert.That(nameof(TestViewModel.TestInt32) == latestChangedPropertyName, "PropertyChanged not received.");
 			latestChangedPropertyName = "";
 
@@ -230,7 +230,7 @@ class ViewModelTests
 			Assert.That("" == latestChangedPropertyName, "PropertyChanged should not be raised.");
 
 			// get property as IObservable
-			var observable = viewModel.GetValueAsObservable(TestViewModel.TestInt32Property);
+			var observable = viewModel.GetValueAsObservable(TestViewModel.TestInt32Prop);
 			var observer = new Observer<int>();
 			using var subscribedObserver = observable.Subscribe(observer);
 			viewModel.TestInt32 = -123;

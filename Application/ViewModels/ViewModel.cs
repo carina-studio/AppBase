@@ -18,11 +18,11 @@ public abstract class ViewModel : BaseDisposable, IApplicationObject, INotifyPro
 	/// <summary>
 	/// Property of <see cref="HasNecessaryTasks"/>.
 	/// </summary>
-	public static readonly ObservableProperty<bool> HasNecessaryTasksProperty = ObservableProperty.Register<ViewModel, bool>(nameof(HasNecessaryTasks));
+	public static readonly ObservableProperty<bool> HasNecessaryTasksProp = ObservableProperty.Register<ViewModel, bool>(nameof(HasNecessaryTasks));
 	/// <summary>
 	/// Property of <see cref="Owner"/>.
 	/// </summary>
-	public static readonly ObservableProperty<ViewModel?> OwnerProperty = ObservableProperty.Register<ViewModel, ViewModel?>(nameof(Owner));
+	public static readonly ObservableProperty<ViewModel?> OwnerProp = ObservableProperty.Register<ViewModel, ViewModel?>(nameof(Owner));
 	
 	
 	// Class to wrap resource.
@@ -348,7 +348,7 @@ public abstract class ViewModel : BaseDisposable, IApplicationObject, INotifyPro
 	/// <summary>
 	/// Check whether at least one necessary task is not completed yet or not.
 	/// </summary>
-	public bool HasNecessaryTasks => this.GetValue(HasNecessaryTasksProperty);
+	public bool HasNecessaryTasks => this.GetValue(HasNecessaryTasksProp);
 
 
 	/// <summary>
@@ -448,7 +448,7 @@ public abstract class ViewModel : BaseDisposable, IApplicationObject, INotifyPro
 	/// <param name="newValue">New value.</param>
 	protected virtual void OnPropertyChanged(ObservableProperty property, object? oldValue, object? newValue)
     {
-		if (property == OwnerProperty)
+		if (property == OwnerProp)
 		{
 			var prevOwner = (oldValue as ViewModel);
 			var newOwner = (newValue as ViewModel);
@@ -527,8 +527,8 @@ public abstract class ViewModel : BaseDisposable, IApplicationObject, INotifyPro
 	/// </summary>
 	public ViewModel? Owner
     {
-		get => this.GetValue(OwnerProperty);
-		set => this.SetValue(OwnerProperty, value);
+		get => this.GetValue(OwnerProp);
+		set => this.SetValue(OwnerProp, value);
     }
 
 
@@ -642,7 +642,7 @@ public abstract class ViewModel : BaseDisposable, IApplicationObject, INotifyPro
 		this.waitingNecessaryTasks ??= new();
 		this.waitingNecessaryTasks.Add(task);
 		if (this.waitingNecessaryTasks.Count == 1)
-			this.SetValue(HasNecessaryTasksProperty, true);
+			this.SetValue(HasNecessaryTasksProp, true);
 		try
 		{
 			await task;
@@ -651,7 +651,7 @@ public abstract class ViewModel : BaseDisposable, IApplicationObject, INotifyPro
 		{
 			this.waitingNecessaryTasks.Remove(task);
 			if (this.waitingNecessaryTasks.IsEmpty())
-				this.SetValue(HasNecessaryTasksProperty, false);
+				this.SetValue(HasNecessaryTasksProp, false);
 		}
 	}
 
@@ -692,7 +692,7 @@ public abstract class ViewModel : BaseDisposable, IApplicationObject, INotifyPro
 			}
 		}
 		if (this.waitingNecessaryTasks.IsEmpty())
-			this.SetValue(HasNecessaryTasksProperty, false);
+			this.SetValue(HasNecessaryTasksProp, false);
 	}
 }
 

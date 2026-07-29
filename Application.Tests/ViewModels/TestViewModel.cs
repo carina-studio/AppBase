@@ -11,8 +11,8 @@ namespace CarinaStudio.ViewModels;
 class TestViewModel : ViewModel
 {
 	// Properties.
-	public static readonly ObservableProperty<int> TestInt32Property = ObservableProperty.Register<TestViewModel, int>(nameof(TestInt32));
-	public static readonly ObservableProperty<int> TestRangeInt32Property = ObservableProperty.Register<TestViewModel, int>(nameof(TestRangeInt32), 1, (_, value) => Math.Max(Math.Min(MaxTestRangeInt32, value), MinTestRangeInt32), (value) => value != InvalidTestRangeInt32);
+	public static readonly ObservableProperty<int> TestInt32Prop = ObservableProperty.Register<TestViewModel, int>(nameof(TestInt32));
+	public static readonly ObservableProperty<int> TestRangeInt32Prop = ObservableProperty.Register<TestViewModel, int>(nameof(TestRangeInt32), 1, (_, value) => Math.Max(Math.Min(MaxTestRangeInt32, value), MinTestRangeInt32), (value) => value != InvalidTestRangeInt32);
 
 
 	// Constants.
@@ -89,15 +89,15 @@ class TestViewModel : ViewModel
 	// Test property (Int32).
 	public int TestInt32
 	{
-		get => this.GetValue(TestInt32Property);
-		set => this.SetValue(TestInt32Property, value);
+		get => this.GetValue(TestInt32Prop);
+		set => this.SetValue(TestInt32Prop, value);
 	}
 
 
 	// Test property (Int32).
 	public int TestRangeInt32
 	{
-		get => this.GetValue(TestRangeInt32Property);
-		set => this.SetValue(TestRangeInt32Property, value);
+		get => this.GetValue(TestRangeInt32Prop);
+		set => this.SetValue(TestRangeInt32Prop, value);
 	}
 }
