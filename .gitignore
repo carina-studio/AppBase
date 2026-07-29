@@ -2,7 +2,10 @@
 .idea
 .vs
 .vscode
+*.DS_Store
 AppBase.sln.DotSettings.user
+AGENTS.local.md
+CLAUDE.local.md
 global.json
 obj
 bin
