@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 #if !NET9_0_OR_GREATER
@@ -45,7 +46,16 @@ public static class ListExtensions
 	/// <param name="element">Element to be found.</param>
 	/// <param name="comparer"><see cref="IComparer{T}"/> to compare elements.</param>
 	/// <returns>Index of found element, or bitwise complement of index of proper position to put element.</returns>
-	public static int BinarySearch<T>(this IList<T> list, T element, IComparer<T> comparer) => BinarySearch(list, 0, list.Count, element, comparer.Compare);
+	/// <remarks>If <paramref name="list"/> is <see cref="ImmutableList{T}"/> or <see cref="ImmutableList{T}.Builder"/> then the binary search implemented by the list itself will be used, and the index of found element may be the index of any element which is equivalent to <paramref name="element"/>.</remarks>
+	public static int BinarySearch<T>(this IList<T> list, T element, IComparer<T> comparer)
+	{
+		// use binary search implemented by list itself which is more efficient than accessing element by index
+		if (list is ImmutableList<T> immutableList)
+			return immutableList.BinarySearch(element, comparer);
+		if (list is ImmutableList<T>.Builder immutableListBuilder)
+			return immutableListBuilder.BinarySearch(element, comparer);
+		return BinarySearch(list, 0, list.Count, element, comparer.Compare);
+	}
 	
 	
 	/// <summary>
@@ -56,10 +66,19 @@ public static class ListExtensions
 	/// <param name="element">Element to be found.</param>
 	/// <param name="comparer"><see cref="IComparer{T}"/> to compare elements.</param>
 	/// <returns>Index of found element, or bitwise complement of index of proper position to put element.</returns>
+	/// <remarks>If <paramref name="list"/> is <see cref="ImmutableList{T}"/> or <see cref="ImmutableList{T}.Builder"/> then the binary search implemented by the list itself will be used, and the index of found element may be the index of any element which is equivalent to <paramref name="element"/>.</remarks>
 #if NET9_0_OR_GREATER
 	[OverloadResolutionPriority(-1)]
 #endif
-	public static int BinarySearch<T>(this IReadOnlyList<T> list, T element, IComparer<T> comparer) => BinarySearch(list, 0, list.Count, element, comparer.Compare);
+	public static int BinarySearch<T>(this IReadOnlyList<T> list, T element, IComparer<T> comparer)
+	{
+		// use binary search implemented by list itself which is more efficient than accessing element by index
+		if (list is ImmutableList<T> immutableList)
+			return immutableList.BinarySearch(element, comparer);
+		if (list is ImmutableList<T>.Builder immutableListBuilder)
+			return immutableListBuilder.BinarySearch(element, comparer);
+		return BinarySearch(list, 0, list.Count, element, comparer.Compare);
+	}
 
 
 	/// <summary>
@@ -70,7 +89,16 @@ public static class ListExtensions
 	/// <param name="element">Element to be found.</param>
 	/// <param name="comparison">Comparison function.</param>
 	/// <returns>Index of found element, or bitwise complement of index of proper position to put element.</returns>
-	public static int BinarySearch<T>(this IList<T> list, T element, Comparison<T> comparison) => BinarySearch(list, 0, list.Count, element, comparison);
+	/// <remarks>If <paramref name="list"/> is <see cref="ImmutableList{T}"/> or <see cref="ImmutableList{T}.Builder"/> then the binary search implemented by the list itself will be used, and the index of found element may be the index of any element which is equivalent to <paramref name="element"/>.</remarks>
+	public static int BinarySearch<T>(this IList<T> list, T element, Comparison<T> comparison)
+	{
+		// use binary search implemented by list itself which is more efficient than accessing element by index
+		if (list is ImmutableList<T> immutableList)
+			return immutableList.BinarySearch(element, Comparer<T>.Create(comparison));
+		if (list is ImmutableList<T>.Builder immutableListBuilder)
+			return immutableListBuilder.BinarySearch(element, Comparer<T>.Create(comparison));
+		return BinarySearch(list, 0, list.Count, element, comparison);
+	}
 	
 	
 	/// <summary>
@@ -81,10 +109,19 @@ public static class ListExtensions
 	/// <param name="element">Element to be found.</param>
 	/// <param name="comparison">Comparison function.</param>
 	/// <returns>Index of found element, or bitwise complement of index of proper position to put element.</returns>
+	/// <remarks>If <paramref name="list"/> is <see cref="ImmutableList{T}"/> or <see cref="ImmutableList{T}.Builder"/> then the binary search implemented by the list itself will be used, and the index of found element may be the index of any element which is equivalent to <paramref name="element"/>.</remarks>
 #if NET9_0_OR_GREATER
 	[OverloadResolutionPriority(-1)]
 #endif
-	public static int BinarySearch<T>(this IReadOnlyList<T> list, T element, Comparison<T> comparison) => BinarySearch(list, 0, list.Count, element, comparison);
+	public static int BinarySearch<T>(this IReadOnlyList<T> list, T element, Comparison<T> comparison)
+	{
+		// use binary search implemented by list itself which is more efficient than accessing element by index
+		if (list is ImmutableList<T> immutableList)
+			return immutableList.BinarySearch(element, Comparer<T>.Create(comparison));
+		if (list is ImmutableList<T>.Builder immutableListBuilder)
+			return immutableListBuilder.BinarySearch(element, Comparer<T>.Create(comparison));
+		return BinarySearch(list, 0, list.Count, element, comparison);
+	}
 	
 	
 	/// <summary>
@@ -175,7 +212,16 @@ public static class ListExtensions
 	/// <param name="list">List to find element.</param>
 	/// <param name="element">Element to be found.</param>
 	/// <returns>Index of found element, or bitwise complement of index of proper position to put element.</returns>
-	public static int BinarySearch<T>(this IList<T> list, T element) where T : IComparable<T> => BinarySearch(list, 0, list.Count, element);
+	/// <remarks>If <paramref name="list"/> is <see cref="ImmutableList{T}"/> or <see cref="ImmutableList{T}.Builder"/> then the binary search implemented by the list itself will be used, and the index of found element may be the index of any element which is equivalent to <paramref name="element"/>.</remarks>
+	public static int BinarySearch<T>(this IList<T> list, T element) where T : IComparable<T>
+	{
+		// use binary search implemented by list itself which is more efficient than accessing element by index
+		if (list is ImmutableList<T> immutableList)
+			return immutableList.BinarySearch(element, Comparer<T>.Default);
+		if (list is ImmutableList<T>.Builder immutableListBuilder)
+			return immutableListBuilder.BinarySearch(element, Comparer<T>.Default);
+		return BinarySearch(list, 0, list.Count, element);
+	}
 	
 	
 	/// <summary>
@@ -185,10 +231,19 @@ public static class ListExtensions
 	/// <param name="list">List to find element.</param>
 	/// <param name="element">Element to be found.</param>
 	/// <returns>Index of found element, or bitwise complement of index of proper position to put element.</returns>
+	/// <remarks>If <paramref name="list"/> is <see cref="ImmutableList{T}"/> or <see cref="ImmutableList{T}.Builder"/> then the binary search implemented by the list itself will be used, and the index of found element may be the index of any element which is equivalent to <paramref name="element"/>.</remarks>
 #if NET9_0_OR_GREATER
 	[OverloadResolutionPriority(-1)]
 #endif
-	public static int BinarySearch<T>(this IReadOnlyList<T> list, T element) where T : IComparable<T> => BinarySearch(list, 0, list.Count, element);
+	public static int BinarySearch<T>(this IReadOnlyList<T> list, T element) where T : IComparable<T>
+	{
+		// use binary search implemented by list itself which is more efficient than accessing element by index
+		if (list is ImmutableList<T> immutableList)
+			return immutableList.BinarySearch(element, Comparer<T>.Default);
+		if (list is ImmutableList<T>.Builder immutableListBuilder)
+			return immutableListBuilder.BinarySearch(element, Comparer<T>.Default);
+		return BinarySearch(list, 0, list.Count, element);
+	}
 
 
 	// Binary search.
@@ -510,6 +565,9 @@ public static class ListExtensions
 	/// <returns>True if elements in <see cref="IList{T}"/> are sorted.</returns>
 	public static bool IsSorted<T>(this IList<T> list, Comparison<T> comparison)
 	{
+		// enumerate elements of list which is inefficient to access element by index
+		if (list is ImmutableList<T> or ImmutableList<T>.Builder)
+			return IsSorted((IEnumerable<T>)list, comparison);
 		var count = list.Count;
 		if (count > 1)
 		{
@@ -538,6 +596,9 @@ public static class ListExtensions
 #endif
 	public static bool IsSorted<T>(this IReadOnlyList<T> list, Comparison<T> comparison)
 	{
+		// enumerate elements of list which is inefficient to access element by index
+		if (list is ImmutableList<T> or ImmutableList<T>.Builder)
+			return IsSorted((IEnumerable<T>)list, comparison);
 		var count = list.Count;
 		if (count > 1)
 		{
@@ -574,6 +635,9 @@ public static class ListExtensions
 	/// <returns>True if elements in <see cref="IList{T}"/> are sorted.</returns>
 	public static bool IsSorted<T>(this IList<T> list) where T : IComparable<T>
 	{
+		// enumerate elements of list which is inefficient to access element by index
+		if (list is ImmutableList<T> or ImmutableList<T>.Builder)
+			return IsSorted((IEnumerable<T>)list, static (lhs, rhs) => lhs.CompareTo(rhs));
 		var count = list.Count;
 		if (count > 1)
 		{
@@ -601,6 +665,9 @@ public static class ListExtensions
 #endif
 	public static bool IsSorted<T>(this IReadOnlyList<T> list) where T : IComparable<T>
 	{
+		// enumerate elements of list which is inefficient to access element by index
+		if (list is ImmutableList<T> or ImmutableList<T>.Builder)
+			return IsSorted((IEnumerable<T>)list, static (lhs, rhs) => lhs.CompareTo(rhs));
 		var count = list.Count;
 		if (count > 1)
 		{
@@ -612,6 +679,24 @@ public static class ListExtensions
 					return false;
 				nextElement = element;
 			}
+		}
+		return true;
+	}
+
+
+	// Check whether elements got from given sequence are sorted or not.
+	static bool IsSorted<T>(IEnumerable<T> elements, Comparison<T> comparison)
+	{
+		using var enumerator = elements.GetEnumerator();
+		if (!enumerator.MoveNext())
+			return true;
+		var previousElement = enumerator.Current;
+		while (enumerator.MoveNext())
+		{
+			var element = enumerator.Current;
+			if (comparison(previousElement, element) > 0)
+				return false;
+			previousElement = element;
 		}
 		return true;
 	}

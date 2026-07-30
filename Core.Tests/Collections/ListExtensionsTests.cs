@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.Specialized;
 using System.Linq;
 
@@ -46,6 +47,112 @@ namespace CarinaStudio.Collections
 				var index = this.random.Next(list.Count);
 				var key = list[index][0] - 1;
 				Assert.That(~index == list.BinarySearch(key, keyGetter, comparison));
+			}
+		}
+
+
+		/// <summary>
+		/// Test binary search on <see cref="ImmutableList{T}"/> and <see cref="ImmutableList{T}.Builder"/>.
+		/// </summary>
+		[Test]
+		public void BinarySearchOnImmutableListTest()
+		{
+			// prepare comparison functions and comparers
+			var ascendingComparison = new Comparison<int>((x, y) => x - y);
+			var ascendingComparer = Comparer<int>.Create(ascendingComparison);
+			var descendingComparison = new Comparison<int>((x, y) => y - x);
+			var descendingComparer = Comparer<int>.Create(descendingComparison);
+
+			// check whether all overloads on immutable lists report the same result as the generic implementation or not
+			void VerifyResults(IList<int> refList, ImmutableList<int> immutableList, ImmutableList<int>.Builder builder, int element, Comparison<int> comparison, IComparer<int> comparer, bool isDefaultOrder, bool hasEquivalentElements)
+			{
+				var expected = refList.BinarySearch(element, comparison);
+				var results = new List<int>
+				{
+					((IList<int>)immutableList).BinarySearch(element, comparison),
+					((IList<int>)immutableList).BinarySearch(element, comparer),
+					((IReadOnlyList<int>)immutableList).BinarySearch(element, comparison),
+					((IReadOnlyList<int>)immutableList).BinarySearch(element, comparer),
+					((IList<int>)builder).BinarySearch(element, comparison),
+					((IList<int>)builder).BinarySearch(element, comparer),
+					((IReadOnlyList<int>)builder).BinarySearch(element, comparison),
+					((IReadOnlyList<int>)builder).BinarySearch(element, comparer),
+				};
+				if (isDefaultOrder)
+				{
+					results.Add(((IList<int>)immutableList).BinarySearch(element));
+					results.Add(((IReadOnlyList<int>)immutableList).BinarySearch(element));
+					results.Add(((IList<int>)builder).BinarySearch(element));
+					results.Add(((IReadOnlyList<int>)builder).BinarySearch(element));
+				}
+				foreach (var result in results)
+				{
+					// the index of an element which is equivalent to another element in list is unspecified, only the position to insert element is
+					if (expected < 0 || !hasEquivalentElements)
+						Assert.That(expected == result, $"Result of searching {element} should be {expected} but is {result}.");
+					else
+					{
+						Assert.That(result >= 0, $"Element {element} should be found in list.");
+						Assert.That(0 == comparison(element, immutableList[result]), $"Element at position {result} should be equivalent to {element}.");
+					}
+				}
+			}
+
+			// build immutable lists with given elements, the builder is filled element by element to build a tree with different shape
+			void VerifyResultsOfSearchingElements(List<int> refList, int firstElement, int lastElement, Comparison<int> comparison, IComparer<int> comparer, bool isDefaultOrder, bool hasEquivalentElements)
+			{
+				var immutableList = ImmutableList.CreateRange(refList);
+				var builder = ImmutableList.CreateBuilder<int>();
+				foreach (var element in refList)
+					builder.Add(element);
+				var step = firstElement <= lastElement ? 1 : -1;
+				for (var element = firstElement; ; element += step)
+				{
+					VerifyResults(refList, immutableList, builder, element, comparison, comparer, isDefaultOrder, hasEquivalentElements);
+					if (element == lastElement)
+						break;
+				}
+			}
+
+			// search in empty lists
+			VerifyResultsOfSearchingElements(new List<int>(), -1, 1, ascendingComparison, ascendingComparer, true, false);
+			VerifyResultsOfSearchingElements(new List<int>(), 1, -1, descendingComparison, descendingComparer, false, false);
+
+			// search in lists with distinct elements sorted by default order
+			for (var t = 0; t < 10; ++t)
+			{
+				var count = this.random.Next(1, 101);
+				var refList = new List<int>(count).Also(it =>
+				{
+					for (var i = 0; i < count; ++i)
+						it.Add(i * 2);
+				});
+				VerifyResultsOfSearchingElements(refList, refList[0] - 1, refList[count - 1] + 1, ascendingComparison, ascendingComparer, true, false);
+			}
+
+			// search in lists with distinct elements sorted by descending order
+			for (var t = 0; t < 10; ++t)
+			{
+				var count = this.random.Next(1, 101);
+				var refList = new List<int>(count).Also(it =>
+				{
+					for (var i = count - 1; i >= 0; --i)
+						it.Add(i * 2);
+				});
+				VerifyResultsOfSearchingElements(refList, refList[0] + 1, refList[count - 1] - 1, descendingComparison, descendingComparer, false, false);
+			}
+
+			// search in lists with equivalent elements
+			for (var t = 0; t < 10; ++t)
+			{
+				var count = this.random.Next(2, 101);
+				var refList = new List<int>(count).Also(it =>
+				{
+					for (var i = 0; i < count; ++i)
+						it.Add(this.random.Next(0, 10) * 2);
+					it.Sort();
+				});
+				VerifyResultsOfSearchingElements(refList, -1, 19, ascendingComparison, ascendingComparer, true, true);
 			}
 		}
 
@@ -265,6 +372,84 @@ namespace CarinaStudio.Collections
 			Assert.That(4 == view[0]);
 			sourceList[4] = 0;
 			Assert.That(0 == view[0]);
+		}
+
+
+		/// <summary>
+		/// Test checking whether elements in <see cref="ImmutableList{T}"/> and <see cref="ImmutableList{T}.Builder"/> are sorted or not.
+		/// </summary>
+		[Test]
+		public void IsSortedOnImmutableListTest()
+		{
+			// prepare comparison function and comparer
+			var comparison = new Comparison<int>((x, y) => x - y);
+			var comparer = Comparer<int>.Create(comparison);
+
+			// check whether all overloads on immutable lists report the same result as the generic implementation or not
+			void VerifyResults(List<int> refList, bool expected)
+			{
+				var immutableList = ImmutableList.CreateRange(refList);
+				var builder = ImmutableList.CreateBuilder<int>();
+				foreach (var element in refList)
+					builder.Add(element);
+				var results = new[]
+				{
+					((IList<int>)refList).IsSorted(comparison),
+					((IList<int>)refList).IsSorted(comparer),
+					((IList<int>)refList).IsSorted(),
+					((IList<int>)immutableList).IsSorted(comparison),
+					((IList<int>)immutableList).IsSorted(comparer),
+					((IList<int>)immutableList).IsSorted(),
+					((IReadOnlyList<int>)immutableList).IsSorted(comparison),
+					((IReadOnlyList<int>)immutableList).IsSorted(comparer),
+					((IReadOnlyList<int>)immutableList).IsSorted(),
+					((IList<int>)builder).IsSorted(comparison),
+					((IList<int>)builder).IsSorted(comparer),
+					((IList<int>)builder).IsSorted(),
+					((IReadOnlyList<int>)builder).IsSorted(comparison),
+					((IReadOnlyList<int>)builder).IsSorted(comparer),
+					((IReadOnlyList<int>)builder).IsSorted(),
+				};
+				foreach (var result in results)
+					Assert.That(expected == result, $"Result of checking whether [{string.Join(", ", refList)}] is sorted or not should be {expected}.");
+			}
+
+			// check empty list and list with single element
+			VerifyResults(new List<int>(), true);
+			VerifyResults(new List<int> { 1 }, true);
+
+			// check sorted lists
+			VerifyResults(new List<int> { 1, 1, 1 }, true);
+			VerifyResults(new List<int> { 1, 2 }, true);
+			VerifyResults(new List<int> { 1, 2, 2, 3, 4 }, true);
+			for (var t = 0; t < 10; ++t)
+			{
+				var count = this.random.Next(2, 101);
+				VerifyResults(new List<int>(count).Also(it =>
+				{
+					for (var i = 0; i < count; ++i)
+						it.Add(this.random.Next(0, 100));
+					it.Sort();
+				}), true);
+			}
+
+			// check unsorted lists with element which is out of order at head, middle and tail
+			VerifyResults(new List<int> { 2, 1 }, false);
+			VerifyResults(new List<int> { 5, 1, 2, 3, 4 }, false);
+			VerifyResults(new List<int> { 1, 2, 0, 3, 4 }, false);
+			VerifyResults(new List<int> { 1, 2, 3, 4, 0 }, false);
+			for (var t = 0; t < 10; ++t)
+			{
+				var count = this.random.Next(2, 101);
+				var refList = new List<int>(count).Also(it =>
+				{
+					for (var i = 0; i < count; ++i)
+						it.Add(i * 2);
+				});
+				var index = this.random.Next(0, count);
+				refList[index] = index == count - 1 ? refList[0] - 1 : refList[count - 1] + 1;
+				VerifyResults(refList, false);
+			}
 		}
 
 
