@@ -10,12 +10,12 @@ namespace CarinaStudio.Threading;
 internal static class DelayedCallbacks
 {
     // Node of delayed call-back.
-    class DelayedCallbackNode(IDelayedCallbackStub callbackStub, long readyTime)
+    class DelayedCallbackNode(IDelayedCallbackStub callbackStub, long readyTimeTicks)
     {
         public readonly IDelayedCallbackStub CallbackStub = callbackStub;
         public volatile DelayedCallbackNode? Next;
         public volatile DelayedCallbackNode? Previous;
-        public readonly long ReadyTime = readyTime;
+        public readonly long ReadyTimeTicks = readyTimeTicks;
     }
     
     
@@ -73,9 +73,9 @@ internal static class DelayedCallbacks
 		        var waitingTime = 0;
 		        if (DelayedCallbackListHead is not null)
 		        {
-			        var currentTime = DelayedCallbackWatch.ElapsedMilliseconds;
-			        var timeDiff = DelayedCallbackListHead.ReadyTime - currentTime;
-			        if (timeDiff <= 0)
+			        var currentTimeTicks = DelayedCallbackWatch.ElapsedTicks;
+			        var timeDiffTicks = DelayedCallbackListHead.ReadyTimeTicks - currentTimeTicks;
+			        if (timeDiffTicks <= 0)
 			        {
 				        delayedCallbackNode = DelayedCallbackListHead;
 				        if (delayedCallbackNode.Next is not null)
@@ -83,10 +83,8 @@ internal static class DelayedCallbacks
 				        DelayedCallbackListHead = delayedCallbackNode.Next;
 				        delayedCallbackNode.Next = null;
 			        }
-			        else if (timeDiff <= int.MaxValue)
-				        waitingTime = (int)timeDiff;
 			        else
-				        waitingTime = int.MaxValue;
+				        waitingTime = TicksToMilliseconds(timeDiffTicks);
 		        }
 		        else
 			        waitingTime = Timeout.Infinite;
@@ -104,6 +102,11 @@ internal static class DelayedCallbacks
         }
         // ReSharper disable once FunctionNeverReturns
     }
+
+
+    // Convert from milliseconds to number of ticks of Stopwatch.
+    static long MillisecondsToTicks(int millis) =>
+        millis * Stopwatch.Frequency / 1000;
 
 
     // Schedule a delayed call-back.
@@ -125,8 +128,8 @@ internal static class DelayedCallbacks
         // create delayed call-back
         if (delayMillis < 0)
 	        delayMillis = 0;
-        var readyTime = DelayedCallbackWatch.ElapsedMilliseconds + delayMillis;
-        var delayedCallbackNode = new DelayedCallbackNode(callbackStub, readyTime);
+        var readyTimeTicks = DelayedCallbackWatch.ElapsedTicks + MillisecondsToTicks(delayMillis);
+        var delayedCallbackNode = new DelayedCallbackNode(callbackStub, readyTimeTicks);
 
         // enqueue to list or post directly
         if (delayMillis > 0)
@@ -137,7 +140,7 @@ internal static class DelayedCallbacks
 		        var nextDelayedCallback = DelayedCallbackListHead;
 		        while (nextDelayedCallback is not null)
 		        {
-			        if (nextDelayedCallback.ReadyTime > readyTime)
+			        if (nextDelayedCallback.ReadyTimeTicks > readyTimeTicks)
 				        break;
 			        prevDelayedCallbackNode = nextDelayedCallback;
 			        nextDelayedCallback = nextDelayedCallback.Next;
@@ -162,6 +165,17 @@ internal static class DelayedCallbacks
         else
 	        callbackStub.Callback();
         return delayedCallbackNode;
+    }
+    
+    
+    // Convert from number of ticks of Stopwatch to milliseconds. The value is rounded up to make sure that
+    // a delayed call-back will never be performed earlier than its requested delay time.
+    static int TicksToMilliseconds(long ticks)
+    {
+        if (ticks <= 0)
+	        return 0;
+        var millis = (ticks * 1000 + Stopwatch.Frequency - 1) / Stopwatch.Frequency;
+        return millis < int.MaxValue ? (int)millis : int.MaxValue;
     }
     
     

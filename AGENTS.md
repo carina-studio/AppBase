@@ -127,6 +127,13 @@ dotnet test Core.Tests -c Release
 Do not run a bare `dotnet test` at the solution root — that pulls in `Application.Android` and fails with `NETSDK1147`
 unless the `android` and `wasm-tools-net9` workloads are installed.
 
+`dotnet test` runs every target framework of a project in parallel, so a test fixture which binds a local port
+(`HttpListener`) must not use a fixed one. Derive it from a per-fixture base port plus `Environment.Version.Major`,
+which is the major version of the target framework the fixture was built for. Keep the base ports apart when
+adding such a fixture; those in use are 9500 (`Core.Tests` / `WebRequestStreamProviderTests`), 9520 (`Core.Tests` /
+`HttpResponseStreamProviderTests`), 9540 (`AutoUpdate.Tests` / `UpdaterTests`) and 9560 (`AutoUpdate.Tests` /
+`UpdatingSessionTests`).
+
 Not every `*.Tests` project is a test suite:
 
 | Project | Kind |

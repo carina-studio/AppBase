@@ -16,8 +16,13 @@ namespace CarinaStudio.Net
 	class WebRequestStreamProviderTests : BaseStreamProviderTests
 	{
 		// Constants.
-		const string HostUri = "http://localhost:9521/";
+		const int BasePort = 9500;
 		const string CustomHeaderKey = "appbase-custom-header";
+		
+		// Static fields.
+		// Port is bound to major version of runtime, which is same as major version of target framework, so that
+		// test cases of all target frameworks can run at the same time without conflicting on the port.
+		static readonly string HostUri = $"http://localhost:{BasePort + Environment.Version.Major}/";
 		
 		// Fields.
 		readonly HttpListener httpListener = new();

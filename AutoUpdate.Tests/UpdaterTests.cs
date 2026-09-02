@@ -50,13 +50,24 @@ namespace CarinaStudio.AutoUpdate
 			protected override async Task PerformOperationAsync(CancellationToken cancellationToken)
 			{
 				await Task.Delay(1000, cancellationToken);
-				this.PackageUri = new Uri("http://localhost:9521");
+				this.PackageUri = new Uri(HostUri);
 			}
 		}
 
 
+		// Constants.
+		const int BasePort = 9540;
+
+
+		// Static fields.
+		// Port is bound to major version of runtime, which is same as major version of target framework, so that
+		// test cases of all target frameworks can run at the same time without conflicting on the port.
+		static readonly string HostUri = $"http://localhost:{BasePort + Environment.Version.Major}/";
+
+
 		// Fields.
 		readonly HttpListener httpListener = new HttpListener();
+		volatile bool isHttpListenerStopping;
 		volatile string? remotePackageFilePath;
 
 
@@ -181,6 +192,7 @@ namespace CarinaStudio.AutoUpdate
 		[OneTimeTearDown]
 		public void DisposeHttpListener()
 		{
+			this.isHttpListenerStopping = true;
 			this.httpListener.Stop();
 		}
 
@@ -404,23 +416,27 @@ namespace CarinaStudio.AutoUpdate
 		[OneTimeSetUp]
 		public void SetupHttpListener()
 		{
-			this.httpListener.Prefixes.Add("http://localhost:9521/");
+			this.httpListener.Prefixes.Add(HostUri);
 			this.httpListener.Start();
 			ThreadPool.QueueUserWorkItem(_ =>
 			{
 				while (true)
 				{
 					// wait for connection
-					HttpListenerContext? context;
+					HttpListenerContext context;
 					try
 					{
 						context = this.httpListener.GetContext();
 					}
-					catch
+					catch (Exception ex)
 					{
-						if (this.httpListener.IsListening != true)
-							break;
-						throw;
+						// Stop() aborts the pending GetContext() call, and IsListening can still report
+						// true at that moment, so the explicit flag is what distinguishes a shutdown from
+						// a real error. Never rethrow here: this runs on a thread pool thread, where an
+						// unhandled exception kills the test host and aborts the whole run.
+						if (!this.isHttpListenerStopping)
+							Console.Error.WriteLine($"Unable to accept HTTP request: {ex.Message}");
+						break;
 					}
 
 					// load update package

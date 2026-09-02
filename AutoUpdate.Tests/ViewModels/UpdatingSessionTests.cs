@@ -28,7 +28,7 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 			protected override async Task PerformOperationAsync(CancellationToken cancellationToken)
 			{
 				await Task.Delay(1000, cancellationToken);
-				this.PackageUri = new Uri("http://localhost:9521");
+				this.PackageUri = new Uri(HostUri);
 			}
 		}
 
@@ -41,6 +41,16 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 			protected override IPackageResolver CreatePackageResolver(IStreamProvider source) =>
 				new DummyPackageResolver(this.Application) { Source = source };
 		}
+
+
+		// Constants.
+		const int BasePort = 9560;
+
+
+		// Static fields.
+		// Port is bound to major version of runtime, which is same as major version of target framework, so that
+		// test cases of all target frameworks can run at the same time without conflicting on the port.
+		static readonly string HostUri = $"http://localhost:{BasePort + Environment.Version.Major}/";
 
 
 		// Fields.
@@ -219,7 +229,7 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 		[OneTimeSetUp]
 		public void SetupHttpListener()
 		{
-			this.httpListener.Prefixes.Add("http://localhost:9521/");
+			this.httpListener.Prefixes.Add(HostUri);
 			this.httpListener.Start();
 			ThreadPool.QueueUserWorkItem(_ =>
 			{

@@ -98,19 +98,19 @@ namespace CarinaStudio.Threading
 			
 			// execute (async)
 			executed = false;
-			execSyncContext = default;
+			execSyncContext = null;
 			await scheduledAction.ExecuteAsync();
 			Assert.That(executed, "Action should be executed.");
 			Assert.That(ReferenceEquals(syncContext, execSyncContext), "Action should be executed by specific SynchronizationContext.");
 			executed = false;
-			execSyncContext = default;
+			execSyncContext = null;
 			await asyncScheduledAction.ExecuteAsync();
 			Assert.That(executed, "Action should be executed.");
 			Assert.That(ReferenceEquals(syncContext, execSyncContext), "Action should be executed by specific SynchronizationContext.");
 
 			// execute after scheduling
 			executed = false;
-			execSyncContext = default;
+			execSyncContext = null;
 			scheduledAction.Schedule(200);
 			Assert.That(scheduledAction.IsScheduled, "Action should be scheduled.");
 			scheduledAction.Execute();
@@ -120,7 +120,7 @@ namespace CarinaStudio.Threading
 			
 			// execute after scheduling (async)
 			executed = false;
-			execSyncContext = default;
+			execSyncContext = null;
 			asyncScheduledAction.Schedule(200);
 			Assert.That(asyncScheduledAction.IsScheduled, "Action should be scheduled.");
 			await asyncScheduledAction.ExecuteAsync();
@@ -130,13 +130,13 @@ namespace CarinaStudio.Threading
 
 			// execute before scheduling
 			executed = false;
-			execSyncContext = default;
+			execSyncContext = null;
 			Assert.That(!scheduledAction.ExecuteIfScheduled(), "Should not execute before scheduling.");
 			Assert.That(!executed, "Action should not be executed.");
 
 			// execute after scheduling
 			executed = false;
-			execSyncContext = default;
+			execSyncContext = null;
 			scheduledAction.Schedule(200);
 			Assert.That(scheduledAction.IsScheduled, "Action should be scheduled.");
 			Assert.That(scheduledAction.ExecuteIfScheduled(), "Should execute after scheduling.");
@@ -146,7 +146,7 @@ namespace CarinaStudio.Threading
 			
 			// execute after scheduling (async)
 			executed = false;
-			execSyncContext = default;
+			execSyncContext = null;
 			asyncScheduledAction.Schedule(200);
 			Assert.That(asyncScheduledAction.IsScheduled, "Action should be scheduled.");
 			Assert.That(await asyncScheduledAction.ExecuteAsyncIfScheduled(), "Should execute after scheduling.");
@@ -290,8 +290,9 @@ namespace CarinaStudio.Threading
 			Assert.That(maxExecutionCounter == 2);
 			maxExecutionCounter = 0;
 			@event.Reset();
-			_ = reentrantAsyncAction.ExecuteAsync();
+			execTask = reentrantAsyncAction.ExecuteAsync();
 			await reentrantAsyncAction.ExecuteAsync();
+			await execTask; // action is reentrant so the execution started above may still be on-going
 			Assert.That(!reentrantAsyncAction.IsExecuting);
 			Assert.That(executionCounter == 0);
 			Assert.That(maxExecutionCounter == 2);

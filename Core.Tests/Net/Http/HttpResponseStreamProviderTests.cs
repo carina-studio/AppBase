@@ -16,8 +16,19 @@ namespace CarinaStudio.Net.Http
 	[TestFixture]
 	public class HttpResponseStreamProviderTests : BaseStreamProviderTests
 	{
+		// Constants.
+		const int BasePort = 9520;
+
+
+		// Static fields.
+		// Port is bound to major version of runtime, which is same as major version of target framework, so that
+		// test cases of all target frameworks can run at the same time without conflicting on the port.
+		static readonly string HostUri = $"http://localhost:{BasePort + Environment.Version.Major}/";
+
+
 		// Fields.
 		readonly HttpListener httpListener = new();
+		volatile bool isHttpListenerStopping;
 		volatile byte[]? preparedResponseData;
 		volatile byte[]? receivedRequestData;
 
@@ -90,7 +101,7 @@ namespace CarinaStudio.Net.Http
 			return new HttpResponseStreamProvider(() => new HttpRequestMessage
 			{
 				Method = HttpMethod.Post,
-				RequestUri = new("http://localhost:9523/"),
+				RequestUri = new(HostUri),
 			});
 		}
 
@@ -99,6 +110,7 @@ namespace CarinaStudio.Net.Http
 		[OneTimeTearDown]
 		public void DisposeHttpListener()
 		{
+			this.isHttpListenerStopping = true;
 			this.httpListener.Stop();
 		}
 
@@ -137,23 +149,27 @@ namespace CarinaStudio.Net.Http
 		[OneTimeSetUp]
 		public void SetupHttpListener()
 		{
-			this.httpListener.Prefixes.Add("http://localhost:9523/");
+			this.httpListener.Prefixes.Add(HostUri);
 			this.httpListener.Start();
 			ThreadPool.QueueUserWorkItem(_ =>
 			{
 				while (true)
 				{
 					// wait for connection
-					HttpListenerContext? context;
+					HttpListenerContext context;
 					try
 					{
 						context = this.httpListener.GetContext();
 					}
-					catch
+					catch (Exception ex)
 					{
-						if (this.httpListener.IsListening != true)
-							break;
-						throw;
+						// Stop() aborts the pending GetContext() call, and IsListening can still report
+						// true at that moment, so the explicit flag is what distinguishes a shutdown from
+						// a real error. Never rethrow here: this runs on a thread pool thread, where an
+						// unhandled exception kills the test host and aborts the whole run.
+						if (!this.isHttpListenerStopping)
+							Console.Error.WriteLine($"Unable to accept HTTP request: {ex.Message}");
+						break;
 					}
 
 					// get request data
