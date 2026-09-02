@@ -190,7 +190,7 @@ public abstract class ObjectTextBox : TextBox
 
 
 	// Validate text.
-	unsafe bool Validate(bool updateObjectAndText, out object? obj)
+	bool Validate(bool updateObjectAndText, out object? obj)
 	{
 		// check state
 		this.VerifyAccess();
@@ -210,7 +210,7 @@ public abstract class ObjectTextBox : TextBox
 				var i = 0;
 				while (i < textLength)
 				{
-					if (char.IsWhiteSpace(*charPtr++))
+					if (char.IsWhiteSpace(unsafe(*charPtr++)))
 						break;
 					++i;
 				}
@@ -222,7 +222,7 @@ public abstract class ObjectTextBox : TextBox
 					++i;
 					while (i < textLength)
 					{
-						var c = *charPtr++;
+						var c = unsafe(*charPtr++);
 						if (!char.IsWhiteSpace(c))
 							trimmedTextBuffer.Append(c);
 						++i;

@@ -10,7 +10,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
     /// <summary>
     /// Object of Core Foundation.
     /// </summary>
-    public unsafe class CFObject : IShareableDisposable<CFObject>
+    public class CFObject : IShareableDisposable<CFObject>
     {
         // Native symbols.
         static readonly delegate*<uint, IntPtr> CFCopyTypeIDDescription;
@@ -35,10 +35,13 @@ namespace CarinaStudio.MacOS.CoreFoundation
             if (Platform.IsNotMacOS)
                 return;
             var libHandle = NativeLibraryHandles.CoreFoundation;
-            CFCopyTypeIDDescription = (delegate*<uint, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CFCopyTypeIDDescription));
-            CFGetTypeID = (delegate*<IntPtr, uint>)NativeLibrary.GetExport(libHandle, nameof(CFGetTypeID));
-            CFRelease = (delegate*<IntPtr, void>)NativeLibrary.GetExport(libHandle, nameof(CFRelease));
-            CFRetain = (delegate*<IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CFRetain));
+            unsafe
+            {
+                CFCopyTypeIDDescription = (delegate*<uint, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CFCopyTypeIDDescription));
+                CFGetTypeID = (delegate*<IntPtr, uint>)NativeLibrary.GetExport(libHandle, nameof(CFGetTypeID));
+                CFRelease = (delegate*<IntPtr, void>)NativeLibrary.GetExport(libHandle, nameof(CFRelease));
+                CFRetain = (delegate*<IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CFRetain));
+            }
         }
 
 
@@ -47,7 +50,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// </summary>
         /// <param name="handle">Handle of instance.</param>
         /// <param name="ownsInstance">True to get ownership of instance.</param>
-        protected CFObject(IntPtr handle, bool ownsInstance) : this(handle, handle != IntPtr.Zero ? CFGetTypeID(handle) : 0, ownsInstance)
+        protected CFObject(IntPtr handle, bool ownsInstance) : this(handle, handle != IntPtr.Zero ? unsafe(CFGetTypeID(handle)) : 0, ownsInstance)
         { }
 
 
@@ -146,7 +149,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// <returns>Static object from export of native library, or Null if symbol not found or type mismatched.</returns>
         public static T? FromExport<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(IntPtr libraryHandle, string name) where T : CFObject
         {
-            if (NativeLibrary.TryGetExport(libraryHandle, name, out var symbolAddress) && FromHandle<T>(*(IntPtr*)symbolAddress) is { } obj)
+            if (NativeLibrary.TryGetExport(libraryHandle, name, out var symbolAddress) && FromHandle<T>(unsafe(*(IntPtr*)symbolAddress)) is { } obj)
             {
                 obj.IsDefaultInstance = true;
                 return obj;
@@ -292,8 +295,13 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// Release given instance.
         /// </summary>
         /// <param name="cf">Handle of instance.</param>
-        public static void Release(IntPtr cf) =>
-            CFRelease(cf);
+        public static void Release(IntPtr cf)
+        {
+            unsafe
+            {
+                CFRelease(cf);
+            }
+        }
 
 
         /// <summary>
@@ -325,7 +333,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
         /// <param name="cf">Handle of instance.</param>
         /// <returns>Handle of retained instance.</returns>
         public static IntPtr Retain(IntPtr cf) =>
-            CFRetain(cf);
+            unsafe(CFRetain(cf));
         
 
         /// <inheritdoc/>
@@ -342,7 +350,7 @@ namespace CarinaStudio.MacOS.CoreFoundation
             {
                 if (CachedTypeDescriptions.TryGetValue(this.TypeId, out var description))
                     return description;
-                description = CFCopyTypeIDDescription(this.TypeId).Let(it =>
+                description = unsafe(CFCopyTypeIDDescription(this.TypeId)).Let(it =>
                 {
                     return new CFString(it, false, true).Use(it =>
                         it.ToString().AsNonNull());

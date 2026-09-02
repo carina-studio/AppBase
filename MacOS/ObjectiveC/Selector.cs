@@ -8,7 +8,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
     /// <summary>
     /// Selector of NSObject.
     /// </summary>
-    public unsafe sealed class Selector : IEquatable<Selector>
+    public sealed class Selector : IEquatable<Selector>
     {
         // Native symbols.
         [DllImport(NativeLibraryNames.ObjectiveC)]
@@ -29,7 +29,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
         Selector(IntPtr handle)
         {
             this.Handle = handle;
-            this.Name = new string(sel_getName(handle));
+            this.Name = unsafe(new string(sel_getName(handle)));
         }
         Selector(IntPtr handle, string name)
         {

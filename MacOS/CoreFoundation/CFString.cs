@@ -6,7 +6,7 @@ namespace CarinaStudio.MacOS.CoreFoundation;
 /// <summary>
 /// String.
 /// </summary>
-public unsafe class CFString : CFObject
+public class CFString : CFObject
 {
     // Native symbols.
     static readonly delegate*<IntPtr, char*, long, IntPtr> CFStringCreateWithCharacters;
@@ -24,9 +24,12 @@ public unsafe class CFString : CFObject
         if (Platform.IsNotMacOS)
             return;
         var libHandle = NativeLibraryHandles.CoreFoundation;
-        CFStringCreateWithCharacters = (delegate*<IntPtr, char*, long, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CFStringCreateWithCharacters));
-        CFStringGetCharacters = (delegate*<IntPtr, CFRange, void*, void>)NativeLibrary.GetExport(libHandle, nameof(CFStringGetCharacters));
-        CFStringGetLength = (delegate*<IntPtr, long>)NativeLibrary.GetExport(libHandle, nameof(CFStringGetLength));
+        unsafe
+        {
+            CFStringCreateWithCharacters = (delegate*<IntPtr, char*, long, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CFStringCreateWithCharacters));
+            CFStringGetCharacters = (delegate*<IntPtr, CFRange, void*, void>)NativeLibrary.GetExport(libHandle, nameof(CFStringGetCharacters));
+            CFStringGetLength = (delegate*<IntPtr, long>)NativeLibrary.GetExport(libHandle, nameof(CFStringGetLength));
+        }
     }
 
 
@@ -39,7 +42,7 @@ public unsafe class CFString : CFObject
         if (s == null)
             throw new ArgumentNullException(nameof(s));
         fixed (char* sPtr = s)
-            return CFStringCreateWithCharacters(CFAllocator.Default.Handle, sPtr, s.Length);
+            return unsafe(CFStringCreateWithCharacters(CFAllocator.Default.Handle, sPtr, s.Length));
     }), true)
     { 
         this.length = s.Length;
@@ -70,7 +73,10 @@ public unsafe class CFString : CFObject
             throw new ArgumentOutOfRangeException(nameof(index));
         fixed (char* p = buffer)
         {
-            CFStringGetCharacters(this.Handle, new CFRange(0, length), p + index);
+            unsafe
+            {
+                CFStringGetCharacters(this.Handle, new CFRange(0, length), p + index);
+            }
         }
     }
 
@@ -85,7 +91,7 @@ public unsafe class CFString : CFObject
             if (this.length >= 0)
                 return this.length;
             this.VerifyReleased();
-            var length = CFStringGetLength(this.Handle);
+            var length = unsafe(CFStringGetLength(this.Handle));
             if (length > int.MaxValue)
                 throw new NotSupportedException($"Length of string is too long: {length}");
             this.length = (int)length;
@@ -113,8 +119,11 @@ public unsafe class CFString : CFObject
         var buffer = new char[this.Length];
         fixed (char* p = buffer)
         {
-            CFStringGetCharacters(this.Handle, new CFRange(0, buffer.Length), p);
-            return new string(p);
+            unsafe
+            {
+                CFStringGetCharacters(this.Handle, new CFRange(0, buffer.Length), p);
+                return new string(p);
+            }
         }
     }
 }

@@ -6,7 +6,7 @@ namespace CarinaStudio;
 /// <summary>
 /// Extensions for <see cref="Span{T}"/> and <see cref="ReadOnlySpan{T}"/>.
 /// </summary>
-public static unsafe class SpanExtensions
+public static class SpanExtensions
 {
     /// <summary>
     /// Check whether given character sequence is empty or contains whitespaces only or not.
@@ -24,7 +24,7 @@ public static unsafe class SpanExtensions
             var count = s.Length;
             while (count > 0)
             {
-                if (!char.IsWhiteSpace(*cPtr))
+                if (!char.IsWhiteSpace(unsafe(*cPtr)))
                     return false;
                 ++cPtr;
                 --count;
@@ -50,7 +50,7 @@ public static unsafe class SpanExtensions
             var count = s.Length;
             while (count > 0)
             {
-                if (!char.IsWhiteSpace(*cPtr))
+                if (!char.IsWhiteSpace(unsafe(*cPtr)))
                     return false;
                 ++cPtr;
                 --count;
@@ -98,7 +98,7 @@ public static unsafe class SpanExtensions
             var count = s.Length;
             while (count > 0)
             {
-                if (!char.IsWhiteSpace(*cPtr))
+                if (!char.IsWhiteSpace(unsafe(*cPtr)))
                     return true;
                 ++cPtr;
                 --count;
@@ -124,7 +124,7 @@ public static unsafe class SpanExtensions
             var count = s.Length;
             while (count > 0)
             {
-                if (!char.IsWhiteSpace(*cPtr))
+                if (!char.IsWhiteSpace(unsafe(*cPtr)))
                     return true;
                 ++cPtr;
                 --count;
@@ -158,7 +158,10 @@ public static unsafe class SpanExtensions
     public static void PinAs<T>(this Span<T> span, PointerAction<T> action) where T : unmanaged
     {
         fixed (T* ptr = span)
-            action(ptr);
+            unsafe
+            {
+                action(ptr);
+            }
     }
 
 
@@ -186,7 +189,10 @@ public static unsafe class SpanExtensions
     public static void Pin<T>(this ReadOnlySpan<T> span, PointerAction<T> action) where T : unmanaged
     {
         fixed (T* ptr = span)
-            action(ptr);
+            unsafe
+            {
+                action(ptr);
+            }
     }
 
 
@@ -246,7 +252,10 @@ public static unsafe class SpanExtensions
     public static R Pin<T, R>(this Span<T> span, PointerInFunc<T, R> func) where T : unmanaged
     {
         fixed (T* ptr = span)
-            return func(ptr);
+            unsafe
+            {
+                return func(ptr);
+            }
     }
 
 
@@ -278,7 +287,10 @@ public static unsafe class SpanExtensions
     public static R Pin<T, R>(this ReadOnlySpan<T> span, PointerInFunc<T, R> func) where T : unmanaged
     {
         fixed (T* ptr = span)
-            return func(ptr);
+            unsafe
+            {
+                return func(ptr);
+            }
     }
 
 

@@ -6,7 +6,7 @@ namespace CarinaStudio.MacOS.CoreFoundation;
 /// <summary>
 /// CFNumber.
 /// </summary>
-public unsafe class CFNumber : CFObject, IConvertible
+public class CFNumber : CFObject, IConvertible
 {
     // Native symbols.
     static readonly delegate*<IntPtr, CFNumberType, void*, IntPtr> CFNumberCreate;
@@ -32,12 +32,15 @@ public unsafe class CFNumber : CFObject, IConvertible
         
         // load symbols
         var libHandle = NativeLibraryHandles.CoreFoundation;
-        CFNumberCreate = (delegate*<IntPtr, CFNumberType, void*, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CFNumberCreate));
-        CFNumberGetType = (delegate*<IntPtr, CFNumberType>)NativeLibrary.GetExport(libHandle, nameof(CFNumberGetType));
-        CFNumberGetValue = (delegate*<IntPtr, CFNumberType, void*, void>)NativeLibrary.GetExport(libHandle, nameof(CFNumberGetValue));
-        kCFNumberNaN = *(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCFNumberNaN));
-        kCFNumberNegativeInfinity = *(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCFNumberNegativeInfinity));
-        kCFNumberPositiveInfinity = *(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCFNumberPositiveInfinity));
+        unsafe
+        {
+            CFNumberCreate = (delegate*<IntPtr, CFNumberType, void*, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CFNumberCreate));
+            CFNumberGetType = (delegate*<IntPtr, CFNumberType>)NativeLibrary.GetExport(libHandle, nameof(CFNumberGetType));
+            CFNumberGetValue = (delegate*<IntPtr, CFNumberType, void*, void>)NativeLibrary.GetExport(libHandle, nameof(CFNumberGetValue));
+            kCFNumberNaN = *(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCFNumberNaN));
+            kCFNumberNegativeInfinity = *(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCFNumberNegativeInfinity));
+            kCFNumberPositiveInfinity = *(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCFNumberPositiveInfinity));
+        }
     }
 
 
@@ -46,7 +49,7 @@ public unsafe class CFNumber : CFObject, IConvertible
     /// </summary>
     /// <param name="value">Value.</param>
     public CFNumber(sbyte value) : this(value.Let(it =>
-        CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.SInt8Type, &it)), 
+        unsafe(CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.SInt8Type, &it))), 
         CFNumberType.SInt8Type, true)
     { }
 
@@ -56,7 +59,7 @@ public unsafe class CFNumber : CFObject, IConvertible
     /// </summary>
     /// <param name="value">Value.</param>
     public CFNumber(byte value) : this(value.Let(it =>
-        CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.CharType, &it)), 
+        unsafe(CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.CharType, &it))), 
         CFNumberType.CharType, true)
     { }
 
@@ -66,7 +69,7 @@ public unsafe class CFNumber : CFObject, IConvertible
     /// </summary>
     /// <param name="value">Value.</param>
     public CFNumber(short value) : this(value.Let(it =>
-        CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.SInt16Type, &it)), 
+        unsafe(CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.SInt16Type, &it))), 
         CFNumberType.SInt16Type, true)
     { }
 
@@ -76,7 +79,7 @@ public unsafe class CFNumber : CFObject, IConvertible
     /// </summary>
     /// <param name="value">Value.</param>
     public CFNumber(ushort value) : this(value.Let(it =>
-        CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.SInt16Type, &it)), 
+        unsafe(CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.SInt16Type, &it))), 
         CFNumberType.SInt16Type, true)
     { }
 
@@ -86,7 +89,7 @@ public unsafe class CFNumber : CFObject, IConvertible
     /// </summary>
     /// <param name="value">Value.</param>
     public CFNumber(int value) : this(value.Let(it =>
-        CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.SInt32Type, &it)), 
+        unsafe(CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.SInt32Type, &it))), 
         CFNumberType.SInt32Type, true)
     { }
 
@@ -96,7 +99,7 @@ public unsafe class CFNumber : CFObject, IConvertible
     /// </summary>
     /// <param name="value">Value.</param>
     public CFNumber(uint value) : this(value.Let(it =>
-        CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.SInt32Type, &it)), 
+        unsafe(CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.SInt32Type, &it))), 
         CFNumberType.SInt32Type, true)
     { }
 
@@ -106,7 +109,7 @@ public unsafe class CFNumber : CFObject, IConvertible
     /// </summary>
     /// <param name="value">Value.</param>
     public CFNumber(long value) : this(value.Let(it =>
-        CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.SInt64Type, &it)), 
+        unsafe(CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.SInt64Type, &it))), 
         CFNumberType.SInt64Type, true)
     { }
 
@@ -116,7 +119,7 @@ public unsafe class CFNumber : CFObject, IConvertible
     /// </summary>
     /// <param name="value">Value.</param>
     public CFNumber(ulong value) : this(value.Let(it =>
-        CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.SInt64Type, &it)), 
+        unsafe(CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.SInt64Type, &it))), 
         CFNumberType.SInt64Type, true)
     { }
 
@@ -126,7 +129,7 @@ public unsafe class CFNumber : CFObject, IConvertible
     /// </summary>
     /// <param name="value">Value.</param>
     public CFNumber(float value) : this(value.Let(it =>
-        CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.Float32Type, &it)), 
+        unsafe(CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.Float32Type, &it))), 
         CFNumberType.Float32Type, true)
     { }
 
@@ -136,7 +139,7 @@ public unsafe class CFNumber : CFObject, IConvertible
     /// </summary>
     /// <param name="value">Value.</param>
     public CFNumber(double value) : this(value.Let(it =>
-        CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.Float64Type, &it)), 
+        unsafe(CFNumberCreate(CFAllocator.Default.Handle, CFNumberType.Float64Type, &it))), 
         CFNumberType.Float64Type, true)
     { }
 
@@ -150,7 +153,7 @@ public unsafe class CFNumber : CFObject, IConvertible
         {
             if (checkType && this.TypeDescription != "CFNumber")
                 throw new ArgumentException("Type of instance is CFNumber.");
-            this.Type = CFNumberGetType(number);
+            this.Type = unsafe(CFNumberGetType(number));
         }
     }
     CFNumber(IntPtr number, CFNumberType type, bool ownsInstance) : base(number, ownsInstance)
@@ -188,7 +191,7 @@ public unsafe class CFNumber : CFObject, IConvertible
         {
             return nanInstance ?? kCFNumberNaN.Let(handle =>
             {
-                nanInstance = new CFNumber(handle, CFNumberGetType(handle), false);
+                nanInstance = new CFNumber(handle, unsafe(CFNumberGetType(handle)), false);
                 nanInstance.IsDefaultInstance = true;
                 return nanInstance;
             });
@@ -205,7 +208,7 @@ public unsafe class CFNumber : CFObject, IConvertible
         {
             return negativeInfinityInstance ?? kCFNumberNegativeInfinity.Let(handle =>
             {
-                negativeInfinityInstance = new CFNumber(handle, CFNumberGetType(handle), false);
+                negativeInfinityInstance = new CFNumber(handle, unsafe(CFNumberGetType(handle)), false);
                 negativeInfinityInstance.IsDefaultInstance = true;
                 return negativeInfinityInstance;
             });
@@ -222,7 +225,7 @@ public unsafe class CFNumber : CFObject, IConvertible
         {
             return positiveInfinityInstance ?? kCFNumberPositiveInfinity.Let(handle =>
             {
-                positiveInfinityInstance = new CFNumber(handle, CFNumberGetType(handle), false);
+                positiveInfinityInstance = new CFNumber(handle, unsafe(CFNumberGetType(handle)), false);
                 positiveInfinityInstance.IsDefaultInstance = true;
                 return positiveInfinityInstance;
             });
@@ -267,7 +270,10 @@ public unsafe class CFNumber : CFObject, IConvertible
     {
         this.VerifyReleased();
         var value = (byte)0;
-        CFNumberGetValue(this.Handle, CFNumberType.CharType, &value);
+        unsafe
+        {
+            CFNumberGetValue(this.Handle, CFNumberType.CharType, &value);
+        }
         return value;
     }
 
@@ -281,7 +287,10 @@ public unsafe class CFNumber : CFObject, IConvertible
     {
         this.VerifyReleased();
         var value = (ushort)0;
-        CFNumberGetValue(this.Handle, CFNumberType.SInt16Type, &value);
+        unsafe
+        {
+            CFNumberGetValue(this.Handle, CFNumberType.SInt16Type, &value);
+        }
         return (char)value;
     }
 
@@ -295,7 +304,10 @@ public unsafe class CFNumber : CFObject, IConvertible
     {
         this.VerifyReleased();
         var value = 0.0;
-        CFNumberGetValue(this.Handle, CFNumberType.Float64Type, &value);
+        unsafe
+        {
+            CFNumberGetValue(this.Handle, CFNumberType.Float64Type, &value);
+        }
         return value;
     }
 
@@ -309,7 +321,10 @@ public unsafe class CFNumber : CFObject, IConvertible
     {
         this.VerifyReleased();
         var value = (short)0;
-        CFNumberGetValue(this.Handle, CFNumberType.SInt32Type, &value);
+        unsafe
+        {
+            CFNumberGetValue(this.Handle, CFNumberType.SInt32Type, &value);
+        }
         return value;
     }
 
@@ -323,7 +338,10 @@ public unsafe class CFNumber : CFObject, IConvertible
     {
         this.VerifyReleased();
         var value = 0;
-        CFNumberGetValue(this.Handle, CFNumberType.SInt32Type, &value);
+        unsafe
+        {
+            CFNumberGetValue(this.Handle, CFNumberType.SInt32Type, &value);
+        }
         return value;
     }
 
@@ -337,7 +355,10 @@ public unsafe class CFNumber : CFObject, IConvertible
     {
         this.VerifyReleased();
         var value = 0L;
-        CFNumberGetValue(this.Handle, CFNumberType.SInt64Type, &value);
+        unsafe
+        {
+            CFNumberGetValue(this.Handle, CFNumberType.SInt64Type, &value);
+        }
         return value;
     }
 
@@ -351,7 +372,10 @@ public unsafe class CFNumber : CFObject, IConvertible
     {
         this.VerifyReleased();
         var value = (sbyte)0;
-        CFNumberGetValue(this.Handle, CFNumberType.SInt8Type, &value);
+        unsafe
+        {
+            CFNumberGetValue(this.Handle, CFNumberType.SInt8Type, &value);
+        }
         return value;
     }
 
@@ -365,7 +389,10 @@ public unsafe class CFNumber : CFObject, IConvertible
     {
         this.VerifyReleased();
         var value = 0f;
-        CFNumberGetValue(this.Handle, CFNumberType.Float32Type, &value);
+        unsafe
+        {
+            CFNumberGetValue(this.Handle, CFNumberType.Float32Type, &value);
+        }
         return value;
     }
 
@@ -411,7 +438,10 @@ public unsafe class CFNumber : CFObject, IConvertible
     {
         this.VerifyReleased();
         var value = (ushort)0;
-        CFNumberGetValue(this.Handle, CFNumberType.SInt32Type, &value);
+        unsafe
+        {
+            CFNumberGetValue(this.Handle, CFNumberType.SInt32Type, &value);
+        }
         return value;
     }
 
@@ -425,7 +455,10 @@ public unsafe class CFNumber : CFObject, IConvertible
     {
         this.VerifyReleased();
         var value = 0u;
-        CFNumberGetValue(this.Handle, CFNumberType.SInt32Type, &value);
+        unsafe
+        {
+            CFNumberGetValue(this.Handle, CFNumberType.SInt32Type, &value);
+        }
         return value;
     }
 
@@ -439,7 +472,10 @@ public unsafe class CFNumber : CFObject, IConvertible
     {
         this.VerifyReleased();
         var value = 0uL;
-        CFNumberGetValue(this.Handle, CFNumberType.SInt64Type, &value);
+        unsafe
+        {
+            CFNumberGetValue(this.Handle, CFNumberType.SInt64Type, &value);
+        }
         return value;
     }
 

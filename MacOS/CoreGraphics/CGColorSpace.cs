@@ -7,7 +7,7 @@ namespace CarinaStudio.MacOS.CoreGraphics;
 /// <summary>
 /// CGColorSpace.
 /// </summary>
-public unsafe class CGColorSpace : CFObject
+public class CGColorSpace : CFObject
 {
     // Native symbols.
     static readonly delegate*<IntPtr, IntPtr> CGColorSpaceCopyICCData;
@@ -43,20 +43,23 @@ public unsafe class CGColorSpace : CFObject
         if (Platform.IsNotMacOS)
             return;
         var libHandle = NativeLibraryHandles.CoreGraphics;
-        CGColorSpaceCopyICCData = (delegate*<IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGColorSpaceCopyICCData));
-        CGColorSpaceCreateWithICCProfile = (delegate*<IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGColorSpaceCreateWithICCProfile));
-        CGColorSpaceCreateWithName = (delegate*<IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGColorSpaceCreateWithName));
-        CGColorSpaceGetModel = (delegate*<IntPtr, CGColorSpaceModel>)NativeLibrary.GetExport(libHandle, nameof(CGColorSpaceGetModel));
-        CGColorSpaceCopyName = (delegate*<IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGColorSpaceCopyName));
-        CGDisplayCopyColorSpace = (delegate*<uint, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGDisplayCopyColorSpace));
-        kCGColorSpaceAdobeRGB1998 = FromHandle<CFString>(*(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCGColorSpaceAdobeRGB1998)));
-        kCGColorSpaceDisplayP3 = FromHandle<CFString>(*(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCGColorSpaceDisplayP3)));
-        kCGColorSpaceGenericCMYK = FromHandle<CFString>(*(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCGColorSpaceGenericCMYK)));
-        kCGColorSpaceGenericGray = FromHandle<CFString>(*(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCGColorSpaceGenericGray)));
-        kCGColorSpaceGenericGrayGamma2_2 = FromHandle<CFString>(*(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCGColorSpaceGenericGrayGamma2_2)));
-        kCGColorSpaceGenericRGB = FromHandle<CFString>(*(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCGColorSpaceGenericRGB)));
-        kCGColorSpaceGenericRGBLinear = FromHandle<CFString>(*(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCGColorSpaceGenericRGBLinear)));
-        kCGColorSpaceSRGB = FromHandle<CFString>(*(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCGColorSpaceSRGB)));
+        unsafe
+        {
+            CGColorSpaceCopyICCData = (delegate*<IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGColorSpaceCopyICCData));
+            CGColorSpaceCreateWithICCProfile = (delegate*<IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGColorSpaceCreateWithICCProfile));
+            CGColorSpaceCreateWithName = (delegate*<IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGColorSpaceCreateWithName));
+            CGColorSpaceGetModel = (delegate*<IntPtr, CGColorSpaceModel>)NativeLibrary.GetExport(libHandle, nameof(CGColorSpaceGetModel));
+            CGColorSpaceCopyName = (delegate*<IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGColorSpaceCopyName));
+            CGDisplayCopyColorSpace = (delegate*<uint, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGDisplayCopyColorSpace));
+            kCGColorSpaceAdobeRGB1998 = FromHandle<CFString>(*(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCGColorSpaceAdobeRGB1998)));
+            kCGColorSpaceDisplayP3 = FromHandle<CFString>(*(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCGColorSpaceDisplayP3)));
+            kCGColorSpaceGenericCMYK = FromHandle<CFString>(*(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCGColorSpaceGenericCMYK)));
+            kCGColorSpaceGenericGray = FromHandle<CFString>(*(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCGColorSpaceGenericGray)));
+            kCGColorSpaceGenericGrayGamma2_2 = FromHandle<CFString>(*(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCGColorSpaceGenericGrayGamma2_2)));
+            kCGColorSpaceGenericRGB = FromHandle<CFString>(*(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCGColorSpaceGenericRGB)));
+            kCGColorSpaceGenericRGBLinear = FromHandle<CFString>(*(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCGColorSpaceGenericRGBLinear)));
+            kCGColorSpaceSRGB = FromHandle<CFString>(*(IntPtr*)NativeLibrary.GetExport(libHandle, nameof(kCGColorSpaceSRGB)));
+        }
     }
 
 
@@ -77,7 +80,7 @@ public unsafe class CGColorSpace : CFObject
     {
         get
         {
-            return adobeRGB1998 ?? new CGColorSpace(CGColorSpaceCreateWithName(kCGColorSpaceAdobeRGB1998!.Handle), false).Also(it =>
+            return adobeRGB1998 ?? new CGColorSpace(unsafe(CGColorSpaceCreateWithName(kCGColorSpaceAdobeRGB1998!.Handle)), false).Also(it =>
             {
                 it.IsDefaultInstance = true;
                 adobeRGB1998 = it;
@@ -93,7 +96,7 @@ public unsafe class CGColorSpace : CFObject
     {
         get
         {
-            return displayP3 ?? new CGColorSpace(CGColorSpaceCreateWithName(kCGColorSpaceDisplayP3!.Handle), false).Also(it =>
+            return displayP3 ?? new CGColorSpace(unsafe(CGColorSpaceCreateWithName(kCGColorSpaceDisplayP3!.Handle)), false).Also(it =>
             {
                 it.IsDefaultInstance = true;
                 displayP3 = it;
@@ -108,7 +111,7 @@ public unsafe class CGColorSpace : CFObject
     /// <param name="display">ID of display.</param>
     /// <returns>Color space of display.</returns>
     public static CGColorSpace FromDisplay(uint display) =>
-        new CGColorSpace(CGDisplayCopyColorSpace(display), false, true);
+        new CGColorSpace(unsafe(CGDisplayCopyColorSpace(display)), false, true);
     
 
     /// <summary>
@@ -117,7 +120,7 @@ public unsafe class CGColorSpace : CFObject
     /// <param name="iccProfile"><see cref="CFData"/> contains ICC profile.</param>
     /// <returns>Color space.</returns>
     public static CGColorSpace FromIccProfile(CFData iccProfile) =>
-        new CGColorSpace(CGColorSpaceCreateWithICCProfile(iccProfile.Handle), false, true);
+        new CGColorSpace(unsafe(CGColorSpaceCreateWithICCProfile(iccProfile.Handle)), false, true);
 
 
     /// <summary>
@@ -127,7 +130,7 @@ public unsafe class CGColorSpace : CFObject
     {
         get
         {
-            return genericCmyk ?? new CGColorSpace(CGColorSpaceCreateWithName(kCGColorSpaceGenericCMYK!.Handle), false).Also(it =>
+            return genericCmyk ?? new CGColorSpace(unsafe(CGColorSpaceCreateWithName(kCGColorSpaceGenericCMYK!.Handle)), false).Also(it =>
             {
                 it.IsDefaultInstance = true;
                 genericCmyk = it;
@@ -143,7 +146,7 @@ public unsafe class CGColorSpace : CFObject
     {
         get
         {
-            return genericGray ?? new CGColorSpace(CGColorSpaceCreateWithName(kCGColorSpaceGenericGray!.Handle), false).Also(it =>
+            return genericGray ?? new CGColorSpace(unsafe(CGColorSpaceCreateWithName(kCGColorSpaceGenericGray!.Handle)), false).Also(it =>
             {
                 it.IsDefaultInstance = true;
                 genericGray = it;
@@ -159,7 +162,7 @@ public unsafe class CGColorSpace : CFObject
     {
         get
         {
-            return genericGrayGamma2_2 ?? new CGColorSpace(CGColorSpaceCreateWithName(kCGColorSpaceGenericGrayGamma2_2!.Handle), false).Also(it =>
+            return genericGrayGamma2_2 ?? new CGColorSpace(unsafe(CGColorSpaceCreateWithName(kCGColorSpaceGenericGrayGamma2_2!.Handle)), false).Also(it =>
             {
                 it.IsDefaultInstance = true;
                 genericGrayGamma2_2 = it;
@@ -175,7 +178,7 @@ public unsafe class CGColorSpace : CFObject
     {
         get
         {
-            return genericRGB ?? new CGColorSpace(CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB!.Handle), false).Also(it =>
+            return genericRGB ?? new CGColorSpace(unsafe(CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB!.Handle)), false).Also(it =>
             {
                 it.IsDefaultInstance = true;
                 genericRGB = it;
@@ -191,7 +194,7 @@ public unsafe class CGColorSpace : CFObject
     {
         get
         {
-            return genericRGBLinear ?? new CGColorSpace(CGColorSpaceCreateWithName(kCGColorSpaceGenericRGBLinear!.Handle), false).Also(it =>
+            return genericRGBLinear ?? new CGColorSpace(unsafe(CGColorSpaceCreateWithName(kCGColorSpaceGenericRGBLinear!.Handle)), false).Also(it =>
             {
                 it.IsDefaultInstance = true;
                 genericRGBLinear = it;
@@ -208,7 +211,7 @@ public unsafe class CGColorSpace : CFObject
         get
         {
             this.VerifyReleased();
-            return CGColorSpaceGetModel(this.Handle);
+            return unsafe(CGColorSpaceGetModel(this.Handle));
         }
     }
 
@@ -221,7 +224,7 @@ public unsafe class CGColorSpace : CFObject
         get
         {
             this.VerifyReleased();
-            var sHandle = CGColorSpaceCopyName(this.Handle);
+            var sHandle = unsafe(CGColorSpaceCopyName(this.Handle));
             if (sHandle == IntPtr.Zero)
                 return null;
             using var s = FromHandle<CFString>(sHandle, true);
@@ -237,7 +240,7 @@ public unsafe class CGColorSpace : CFObject
     {
         get
         {
-            return sRGB ?? new CGColorSpace(CGColorSpaceCreateWithName(kCGColorSpaceSRGB!.Handle), false).Also(it =>
+            return sRGB ?? new CGColorSpace(unsafe(CGColorSpaceCreateWithName(kCGColorSpaceSRGB!.Handle)), false).Also(it =>
             {
                 it.IsDefaultInstance = true;
                 sRGB = it;
@@ -253,7 +256,7 @@ public unsafe class CGColorSpace : CFObject
     public CFData? ToIccProfile()
     {
         this.VerifyReleased();
-        return FromHandle<CFData>(CGColorSpaceCopyICCData(this.Handle), true);
+        return FromHandle<CFData>(unsafe(CGColorSpaceCopyICCData(this.Handle)), true);
     }
 
 

@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 
 namespace CarinaStudio.MacOS
 {
-    internal unsafe class Program
+    internal class Program
     {
         class AppDelegate : NSObject
         {

@@ -13,7 +13,7 @@ namespace CarinaStudio.MacOS.ObjectiveC;
 /// <summary>
 /// Object of Objective-C.
 /// </summary>
-public unsafe class NSObject : IDisposable, IEquatable<NSObject>
+public class NSObject : IDisposable, IEquatable<NSObject>
 {
     [StructLayout(LayoutKind.Sequential)]
     ref struct objc_super
@@ -62,21 +62,24 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
         var libHandle = NativeLibrary.Load(NativeLibraryNames.ObjectiveC);
         if (libHandle != IntPtr.Zero)
         {
-            objc_msgSend = (void*)NativeLibrary.GetExport(libHandle, nameof(objc_msgSend));
-            objc_msgSendSuper = (void*)NativeLibrary.GetExport(libHandle, nameof(objc_msgSendSuper));
-            if (RuntimeInformation.ProcessArchitecture == Architecture.X64)
+            unsafe
             {
-                NativeLibrary.TryGetExport(libHandle, nameof(objc_msgSend_stret), out var stretPtr);
-                objc_msgSend_stret = (void*)stretPtr;
-                NativeLibrary.TryGetExport(libHandle, nameof(objc_msgSendSuper_stret), out stretPtr);
-                objc_msgSendSuper_stret = (void*)stretPtr;
+                objc_msgSend = (void*)NativeLibrary.GetExport(libHandle, nameof(objc_msgSend));
+                objc_msgSendSuper = (void*)NativeLibrary.GetExport(libHandle, nameof(objc_msgSendSuper));
+                if (RuntimeInformation.ProcessArchitecture == Architecture.X64)
+                {
+                    NativeLibrary.TryGetExport(libHandle, nameof(objc_msgSend_stret), out var stretPtr);
+                    objc_msgSend_stret = (void*)stretPtr;
+                    NativeLibrary.TryGetExport(libHandle, nameof(objc_msgSendSuper_stret), out stretPtr);
+                    objc_msgSendSuper_stret = (void*)stretPtr;
+                }
+                //object_getIvar = (void*)NativeLibrary.GetExport(libHandle, nameof(object_getIvar));
+                //object_setIvar = (void*)NativeLibrary.GetExport(libHandle, nameof(object_setIvar));
+                if (objc_msgSend is null)
+                    throw new NotSupportedException("Cannot find 'objc_msgSend' in Objective-C runtime.");
+                if (objc_msgSendSuper is null)
+                    throw new NotSupportedException("Cannot find 'objc_msgSendSuper' in Objective-C runtime.");
             }
-            //object_getIvar = (void*)NativeLibrary.GetExport(libHandle, nameof(object_getIvar));
-            //object_setIvar = (void*)NativeLibrary.GetExport(libHandle, nameof(object_setIvar));
-            if (objc_msgSend is null)
-                throw new NotSupportedException("Cannot find 'objc_msgSend' in Objective-C runtime.");
-            if (objc_msgSendSuper is null)
-                throw new NotSupportedException("Cannot find 'objc_msgSendSuper' in Objective-C runtime.");
         }
         else
             throw new NotSupportedException("Cannot load Objective-C runtime.");
@@ -149,7 +152,7 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <returns>Static object from export of native library, or Null if symbol not found or type mismatched.</returns>
     public static T? FromExport<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(IntPtr libraryHandle, string name) where T : NSObject
     {
-        if (NativeLibrary.TryGetExport(libraryHandle, name, out var symbolAddress) && FromHandle<T>(*(IntPtr*)symbolAddress) is { } obj)
+        if (NativeLibrary.TryGetExport(libraryHandle, name, out var symbolAddress) && FromHandle<T>(unsafe(*(IntPtr*)symbolAddress)) is { } obj)
         {
             obj.IsDefaultInstance = true;
             return obj;
@@ -410,14 +413,14 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
             for (var i = 0; i < count; ++i)
             {
 #pragma warning disable IL2072
-                array.SetValue(NativeTypeConversion.FromNativeValue(elementPtr, size, elementType, out var consumedSize), i);
+                array.SetValue(unsafe(NativeTypeConversion.FromNativeValue(elementPtr, size, elementType, out var consumedSize)), i);
 #pragma warning restore IL2072
                 elementPtr += consumedSize;
                 size -= consumedSize;
             }
             return array;
         }
-        return NativeTypeConversion.FromNativeValue(valuePtr, size, targetType, out var _);
+        return unsafe(NativeTypeConversion.FromNativeValue(valuePtr, size, targetType, out var _));
     }
 
 
@@ -480,7 +483,7 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     public static IntPtr Initialize(IntPtr obj)
     {
         VerifyHandle(obj);
-        return ((delegate*unmanaged<IntPtr, IntPtr, IntPtr>)objc_msgSend)(obj, InitSelector!.Handle);
+        return unsafe(((delegate*unmanaged<IntPtr, IntPtr, IntPtr>)objc_msgSend)(obj, InitSelector!.Handle));
     }
 
 
@@ -551,7 +554,12 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     public static void Release(IntPtr obj)
     {
         if (obj != default)
-            ((delegate*<IntPtr, IntPtr, void>)objc_msgSend)(obj, ReleaseSelector!.Handle);
+        {
+            unsafe
+            {
+                ((delegate*<IntPtr, IntPtr, void>)objc_msgSend)(obj, ReleaseSelector!.Handle);
+            }
+        }
     }
 
 
@@ -563,7 +571,7 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     public T Retain<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>() where T : NSObject
     {
         this.VerifyReleased();
-        var newHandle = ((delegate*unmanaged<IntPtr, IntPtr, IntPtr>)objc_msgSend)(this.handle, RetainSelector!.Handle);
+        var newHandle = unsafe(((delegate*unmanaged<IntPtr, IntPtr, IntPtr>)objc_msgSend)(this.handle, RetainSelector!.Handle));
         try
         {
             if (typeof(T) == typeof(NSObject))
@@ -575,7 +583,10 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
         }
         catch
         {
-            ((delegate*unmanaged<IntPtr, IntPtr, void>)objc_msgSend)(newHandle, ReleaseSelector!.Handle);
+            unsafe
+            {
+                ((delegate*unmanaged<IntPtr, IntPtr, void>)objc_msgSend)(newHandle, ReleaseSelector!.Handle);
+            }
             throw;
         }
     }
@@ -603,7 +614,7 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
             return null;
         if (!typeof(NSObject).IsAssignableFrom(type))
             throw new ArgumentException("The type must be NSObject or extend from NSObject.");
-        var newHandle = ((delegate*unmanaged<IntPtr, IntPtr, IntPtr>)objc_msgSend)(handle, RetainSelector!.Handle);
+        var newHandle = unsafe(((delegate*unmanaged<IntPtr, IntPtr, IntPtr>)objc_msgSend)(handle, RetainSelector!.Handle));
         try
         {
             if (type == typeof(NSObject))
@@ -615,7 +626,10 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
         }
         catch
         {
-            ((delegate*unmanaged<IntPtr, IntPtr, void>)objc_msgSend)(newHandle, ReleaseSelector!.Handle);
+            unsafe
+            {
+                ((delegate*unmanaged<IntPtr, IntPtr, void>)objc_msgSend)(newHandle, ReleaseSelector!.Handle);
+            }
             throw;
         }
     }
@@ -625,8 +639,13 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// Send message to instance.
     /// </summary>
     /// <param name="selector">Selector.</param>
-    public void SendMessage(Selector selector) =>
-        SendMessageCore(objc_msgSend, this.Handle, selector);
+    public void SendMessage(Selector selector)
+    {
+        unsafe
+        {
+            SendMessageCore(objc_msgSend, this.Handle, selector);
+        }
+    }
     
 
     /// <summary>
@@ -635,8 +654,13 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <param name="selector">Selector.</param>
     /// <param name="arg">Argument.</param>
     /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the method must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
-    public void SendMessage(Selector selector, object? arg) =>
-        SendMessageCore(objc_msgSend, this.Handle, selector, arg);
+    public void SendMessage(Selector selector, object? arg)
+    {
+        unsafe
+        {
+            SendMessageCore(objc_msgSend, this.Handle, selector, arg);
+        }
+    }
 
 
     /// <summary>
@@ -650,13 +674,22 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
         switch (args.Length)
         {
             case 0:
-                SendMessageCore(objc_msgSend, this.Handle, selector);
+                unsafe
+                {
+                    SendMessageCore(objc_msgSend, this.Handle, selector);
+                }
                 break;
             case 1:
-                SendMessageCore(objc_msgSend, this.Handle, selector, args[0]);
+                unsafe
+                {
+                    SendMessageCore(objc_msgSend, this.Handle, selector, args[0]);
+                }
                 break;
             default:
-                SendMessageCore(objc_msgSend, this.Handle, selector, null, args);
+                unsafe
+                {
+                    SendMessageCore(objc_msgSend, this.Handle, selector, null, args);
+                }
                 break;
         }
     }
@@ -667,8 +700,13 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// </summary>
     /// <param name="obj">Handle of instance.</param>
     /// <param name="selector">Selector.</param>
-    public static void SendMessage(IntPtr obj, Selector selector) =>
-        SendMessageCore(objc_msgSend, obj, selector);
+    public static void SendMessage(IntPtr obj, Selector selector)
+    {
+        unsafe
+        {
+            SendMessageCore(objc_msgSend, obj, selector);
+        }
+    }
     
 
     /// <summary>
@@ -678,8 +716,13 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <param name="selector">Selector.</param>
     /// <param name="arg">Argument.</param>
     /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the method must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
-    public static void SendMessage(IntPtr obj, Selector selector, object? arg) =>
-        SendMessageCore(objc_msgSend, obj, selector, arg);
+    public static void SendMessage(IntPtr obj, Selector selector, object? arg)
+    {
+        unsafe
+        {
+            SendMessageCore(objc_msgSend, obj, selector, arg);
+        }
+    }
 
 
     /// <summary>
@@ -694,13 +737,22 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
         switch (args.Length)
         {
             case 0:
-                SendMessageCore(objc_msgSend, obj, selector);
+                unsafe
+                {
+                    SendMessageCore(objc_msgSend, obj, selector);
+                }
                 break;
             case 1:
-                SendMessageCore(objc_msgSend, obj, selector, args[0]);
+                unsafe
+                {
+                    SendMessageCore(objc_msgSend, obj, selector, args[0]);
+                }
                 break;
             default:
-                SendMessageCore(objc_msgSend, obj, selector, null, args);
+                unsafe
+                {
+                    SendMessageCore(objc_msgSend, obj, selector, null, args);
+                }
                 break;
         }
     }
@@ -716,7 +768,7 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <returns>Result.</returns>
     /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the method must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
     public T SendMessage<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(Selector selector) =>
-        (T)SendMessageCore(objc_msgSend, this.Handle, selector, typeof(T));
+        (T)unsafe(SendMessageCore(objc_msgSend, this.Handle, selector, typeof(T)));
 #pragma warning restore CS8600
 #pragma warning restore CS8603
 
@@ -734,8 +786,8 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     public T SendMessage<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(Selector selector, params object?[] args)
     {
         if (args.Length == 0)
-            return (T)SendMessageCore(objc_msgSend, this.Handle, selector, typeof(T));
-        return (T)SendMessageCore(objc_msgSend, this.Handle, selector, typeof(T), args);
+            return (T)unsafe(SendMessageCore(objc_msgSend, this.Handle, selector, typeof(T)));
+        return (T)unsafe(SendMessageCore(objc_msgSend, this.Handle, selector, typeof(T), args));
     }
 #pragma warning restore CS8600
 #pragma warning restore CS8603
@@ -752,7 +804,7 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <returns>Result.</returns>
     /// <remarks>If trimming or Native AOT compilation is enabled, fields of custom structure type which is passed to or returned from the method must be kept explicitly, e.g. by <see cref="System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute"/>.</remarks>
     public static T SendMessage<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(IntPtr obj, Selector selector) =>
-        (T)SendMessageCore(objc_msgSend, obj, selector, typeof(T));
+        (T)unsafe(SendMessageCore(objc_msgSend, obj, selector, typeof(T)));
 #pragma warning restore CS8600
 #pragma warning restore CS8603
     
@@ -771,8 +823,8 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     public static T SendMessage<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(IntPtr obj, Selector selector, params object?[] args)
     {
         if (args.Length == 0)
-            return (T)SendMessageCore(objc_msgSend, obj, selector, typeof(T));
-        return (T)SendMessageCore(objc_msgSend, obj, selector, typeof(T), args);
+            return (T)unsafe(SendMessageCore(objc_msgSend, obj, selector, typeof(T)));
+        return (T)unsafe(SendMessageCore(objc_msgSend, obj, selector, typeof(T), args));
     }
 #pragma warning restore CS8600
 #pragma warning restore CS8603
@@ -780,18 +832,18 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
 
     // Send message for testing purpose
     internal static object? SendMessageCore(IntPtr obj, Selector sel, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] Type? returnType, params object?[] args) =>
-        SendMessageCore(objc_msgSend, obj, sel, returnType, args);
+        unsafe(SendMessageCore(objc_msgSend, obj, sel, returnType, args));
 
 
 #pragma warning disable CS8600
 #pragma warning disable CS8603
     // Core implementation of send message to object.
-    static void SendMessageCore(void* msgSendFunc, IntPtr obj, Selector sel) // optimize for calling method without parameter and return value
+    static unsafe void SendMessageCore(void* msgSendFunc, IntPtr obj, Selector sel) // optimize for calling method without parameter and return value
     {
         VerifyHandle(obj);
         ((delegate*unmanaged<IntPtr, IntPtr, void>)msgSendFunc)(obj, sel.Handle);
     }
-    static void SendMessageCore(void* msgSendFunc, IntPtr obj, Selector sel, object? arg) // optimize for property setter
+    static unsafe void SendMessageCore(void* msgSendFunc, IntPtr obj, Selector sel, object? arg) // optimize for property setter
     {
         VerifyHandle(obj);
         var nativeArg = NativeTypeConversion.ToNativeParameter(arg);
@@ -808,9 +860,12 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
         else if (nativeArg is double doubleValue)
             ((delegate*unmanaged<IntPtr, IntPtr, double, void>)msgSendFunc)(obj, sel.Handle, doubleValue);
         else
-            SendMessageCore(msgSendFunc, obj, sel, null, [ arg ]);
+            unsafe
+            {
+                SendMessageCore(msgSendFunc, obj, sel, null, [ arg ]);
+            }
     }
-    static object? SendMessageCore(void* msgSendFunc, IntPtr obj, Selector sel, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] Type returnType) // optimize for property getter
+    static unsafe object? SendMessageCore(void* msgSendFunc, IntPtr obj, Selector sel, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] Type returnType) // optimize for property getter
     {
         var nativeReturnType = NativeTypeConversion.ToNativeType(returnType);
         if (nativeReturnType == typeof(IntPtr))
@@ -836,7 +891,7 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
         return SendMessageCore(msgSendFunc, obj, sel, returnType, Array.Empty<object?>());
     }
     [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "Structure types used with native methods are expected to have fields preserved by caller.")]
-    static object? SendMessageCore(void* msgSendFunc, IntPtr obj, Selector sel, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] Type? returnType, params object?[] args)
+    static unsafe object? SendMessageCore(void* msgSendFunc, IntPtr obj, Selector sel, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] Type? returnType, params object?[] args)
     {
         // check parameter
         VerifyHandle(obj);
@@ -984,7 +1039,7 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
     /// <summary>
     /// Pointer to native objc_msgSend() function.
     /// </summary>
-    internal void* SendMessageNative => objc_msgSend;
+    internal unsafe void* SendMessageNative => unsafe(objc_msgSend);
 
 
     /// <summary>
@@ -998,7 +1053,10 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
         if (superClass is null)
             return;
         var superInfo = new objc_super { receiver = this.Handle, super_class = superClass.Handle };
-        SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector);
+        unsafe
+        {
+            SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector);
+        }
     }
 
 
@@ -1015,7 +1073,10 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
         if (superClass is null)
             return;
         var superInfo = new objc_super { receiver = this.Handle, super_class = superClass.Handle };
-        SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector, arg);
+        unsafe
+        {
+            SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector, arg);
+        }
     }
 
 
@@ -1035,13 +1096,22 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
         switch (args.Length)
         {
             case 0:
-                SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector);
+                unsafe
+                {
+                    SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector);
+                }
                 break;
             case 1:
-                SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector, args[0]);
+                unsafe
+                {
+                    SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector, args[0]);
+                }
                 break;
             default:
-                SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector, null, args);
+                unsafe
+                {
+                    SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector, null, args);
+                }
                 break;
         }
     }
@@ -1063,7 +1133,7 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
         if (superClass is null)
             throw new InvalidOperationException("No super class found.");
         var superInfo = new objc_super { receiver = this.Handle, super_class = superClass.Handle };
-        return (T)SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector, typeof(T));
+        return (T)unsafe(SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector, typeof(T)));
     }
 #pragma warning restore CS8600
 #pragma warning restore CS8603
@@ -1087,8 +1157,8 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
             throw new InvalidOperationException("No super class found.");
         var superInfo = new objc_super { receiver = this.Handle, super_class = superClass.Handle };
         if (args.Length == 0)
-            return (T)SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector, typeof(T));
-        return (T)SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector, typeof(T), args);
+            return (T)unsafe(SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector, typeof(T)));
+        return (T)unsafe(SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector, typeof(T), args));
     }
 #pragma warning restore CS8600
 #pragma warning restore CS8603
@@ -1105,7 +1175,10 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
         if (superClass is null)
             return;
         var superInfo = new objc_super { receiver = obj, super_class = superClass.Handle };
-        SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector);
+        unsafe
+        {
+            SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector);
+        }
     }
 
 
@@ -1122,7 +1195,10 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
         if (superClass is null)
             return;
         var superInfo = new objc_super { receiver = obj, super_class = superClass.Handle };
-        SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector, arg);
+        unsafe
+        {
+            SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector, arg);
+        }
     }
 
 
@@ -1139,7 +1215,10 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
         if (superClass is null)
             return;
         var superInfo = new objc_super { receiver = obj, super_class = superClass.Handle };
-        SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector, null, args);
+        unsafe
+        {
+            SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector, null, args);
+        }
     }
 
 
@@ -1159,7 +1238,7 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
         if (superClass is null)
             throw new InvalidOperationException("No super class found.");
         var superInfo = new objc_super { receiver = obj, super_class = superClass.Handle };
-        return (T)SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector, typeof(T));
+        return (T)unsafe(SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector, typeof(T)));
     }
 #pragma warning restore CS8600
 #pragma warning restore CS8603
@@ -1182,7 +1261,7 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
         if (superClass is null)
             throw new InvalidOperationException("No super class found.");
         var superInfo = new objc_super { receiver = obj, super_class = superClass.Handle };
-        return (T)SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector, typeof(T), args);
+        return (T)unsafe(SendMessageCore(objc_msgSendSuper, new IntPtr(&superInfo), selector, typeof(T), args));
     }
 #pragma warning restore CS8600
 #pragma warning restore CS8603
@@ -1384,10 +1463,15 @@ public unsafe class NSObject : IDisposable, IEquatable<NSObject>
                 throw new ArgumentException($"Size of array is too large: {arrayLength * elementSize}, maximum size is {size}.");
             var elementPtr = valuePtr;
             for (var i = 0; i < arrayLength; ++i)
-                elementPtr += NativeTypeConversion.ToNativeValue(array.GetValue(i), elementPtr);
+                elementPtr += unsafe(NativeTypeConversion.ToNativeValue(array.GetValue(i), elementPtr));
         }
         else
-            NativeTypeConversion.ToNativeValue(value, valuePtr);
+        {
+            unsafe
+            {
+                NativeTypeConversion.ToNativeValue(value, valuePtr);
+            }
+        }
     }
 
 

@@ -132,7 +132,7 @@ namespace CarinaStudio.Buffers
 		/// <param name="pinnable"><see cref="IPinnable"/>.</param>
 		/// <param name="action">Method to receive address of memory and perform action.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe void PinAs<TPtr>(this IPinnable pinnable, PointerAction<TPtr> action) where TPtr : unmanaged =>
+		public static void PinAs<TPtr>(this IPinnable pinnable, PointerAction<TPtr> action) where TPtr : unmanaged =>
 			PinAs(pinnable, 0, action);
 
 
@@ -144,7 +144,7 @@ namespace CarinaStudio.Buffers
 		/// <param name="pinnables"><see cref="IPinnable"/>s.</param>
 		/// <param name="action">Method to receive addresses of memory and perform action.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe void PinAs<TPtr1, TPtr2>(this (IPinnable, IPinnable) pinnables, PointerAction<TPtr1, TPtr2> action) where TPtr1 : unmanaged where TPtr2 : unmanaged =>
+		public static void PinAs<TPtr1, TPtr2>(this (IPinnable, IPinnable) pinnables, PointerAction<TPtr1, TPtr2> action) where TPtr1 : unmanaged where TPtr2 : unmanaged =>
 			PinAs(pinnables, 0, 0, action);
 
 
@@ -156,10 +156,13 @@ namespace CarinaStudio.Buffers
 		/// <param name="elementIndex">Index of first element to pin.</param>
 		/// <param name="action">Method to receive address of memory and perform action.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe void PinAs<TPtr>(this IPinnable pinnable, int elementIndex, PointerAction<TPtr> action) where TPtr : unmanaged
+		public static void PinAs<TPtr>(this IPinnable pinnable, int elementIndex, PointerAction<TPtr> action) where TPtr : unmanaged
 		{
 			using var handle = pinnable.Pin(elementIndex);
-			action((TPtr*)handle.Pointer);
+			unsafe
+			{
+				action((TPtr*)handle.Pointer);
+			}
 		}
 
 
@@ -173,11 +176,14 @@ namespace CarinaStudio.Buffers
 		/// <param name="elementIndex2">Index of first element of 2nd <see cref="IPinnable"/> to pin.</param>
 		/// <param name="action">Method to receive addresses of memory and perform action.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe void PinAs<TPtr1, TPtr2>(this (IPinnable, IPinnable) pinnables, int elementIndex1, int elementIndex2, PointerAction<TPtr1, TPtr2> action) where TPtr1 : unmanaged where TPtr2 : unmanaged
+		public static void PinAs<TPtr1, TPtr2>(this (IPinnable, IPinnable) pinnables, int elementIndex1, int elementIndex2, PointerAction<TPtr1, TPtr2> action) where TPtr1 : unmanaged where TPtr2 : unmanaged
 		{
 			using var handle1 = pinnables.Item1.Pin(elementIndex1);
 			using var handle2 = pinnables.Item2.Pin(elementIndex2);
-			action((TPtr1*)handle1.Pointer, (TPtr2*)handle2.Pointer);
+			unsafe
+			{
+				action((TPtr1*)handle1.Pointer, (TPtr2*)handle2.Pointer);
+			}
 		}
 
 
@@ -190,7 +196,7 @@ namespace CarinaStudio.Buffers
 		/// <param name="func">Function to receive address of memory and generate value.</param>
 		/// <returns>Generated value.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe R PinAs<TPtr, R>(this IPinnable pinnable, PointerInFunc<TPtr, R> func) where TPtr : unmanaged =>
+		public static R PinAs<TPtr, R>(this IPinnable pinnable, PointerInFunc<TPtr, R> func) where TPtr : unmanaged =>
 			PinAs(pinnable, 0, func);
 
 
@@ -204,7 +210,7 @@ namespace CarinaStudio.Buffers
 		/// <param name="func">Function to receive addresses of memory and generate value.</param>
 		/// <returns>Generated value.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe R PinAs<TPtr1, TPtr2, R>(this (IPinnable, IPinnable) pinnables, PointerInFunc<TPtr1, TPtr2, R> func) where TPtr1 : unmanaged where TPtr2 : unmanaged =>
+		public static R PinAs<TPtr1, TPtr2, R>(this (IPinnable, IPinnable) pinnables, PointerInFunc<TPtr1, TPtr2, R> func) where TPtr1 : unmanaged where TPtr2 : unmanaged =>
 			PinAs(pinnables, 0, 0, func);
 
 
@@ -218,10 +224,13 @@ namespace CarinaStudio.Buffers
 		/// <param name="func">Function to receive address of memory and generate value.</param>
 		/// <returns>Generated value.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe R PinAs<TPtr, R>(this IPinnable pinnable, int elementIndex, PointerInFunc<TPtr, R> func) where TPtr : unmanaged
+		public static R PinAs<TPtr, R>(this IPinnable pinnable, int elementIndex, PointerInFunc<TPtr, R> func) where TPtr : unmanaged
 		{
 			using var handle = pinnable.Pin(elementIndex);
-			return func((TPtr*)handle.Pointer);
+			unsafe
+			{
+				return func((TPtr*)handle.Pointer);
+			}
 		}
 
 
@@ -237,11 +246,14 @@ namespace CarinaStudio.Buffers
 		/// <param name="func">Function to receive addresses of memory and generate value.</param>
 		/// <returns>Generated value.</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static unsafe R PinAs<TPtr1, TPtr2, R>(this (IPinnable, IPinnable) pinnables, int elementIndex1, int elementIndex2, PointerInFunc<TPtr1, TPtr2, R> func) where TPtr1 : unmanaged where TPtr2 : unmanaged
+		public static R PinAs<TPtr1, TPtr2, R>(this (IPinnable, IPinnable) pinnables, int elementIndex1, int elementIndex2, PointerInFunc<TPtr1, TPtr2, R> func) where TPtr1 : unmanaged where TPtr2 : unmanaged
 		{
 			using var handle1 = pinnables.Item1.Pin(elementIndex1);
 			using var handle2 = pinnables.Item2.Pin(elementIndex2);
-			return func((TPtr1*)handle1.Pointer, (TPtr2*)handle2.Pointer);
+			unsafe
+			{
+				return func((TPtr1*)handle1.Pointer, (TPtr2*)handle2.Pointer);
+			}
 		}
 	}
 }

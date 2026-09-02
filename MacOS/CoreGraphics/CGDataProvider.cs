@@ -7,7 +7,7 @@ namespace CarinaStudio.MacOS.CoreGraphics;
 /// <summary>
 /// CGDataProvider.
 /// </summary>
-public unsafe class CGDataProvider : CFObject
+public class CGDataProvider : CFObject
 {
     // Native symbols.
     static readonly delegate*<IntPtr, nint, CGDataProviderDirectCallbacks*, IntPtr> CGDataProviderCreateDirect;
@@ -58,17 +58,20 @@ public unsafe class CGDataProvider : CFObject
         if (Platform.IsNotMacOS)
             return;
         var libHandle = NativeLibraryHandles.CoreGraphics;
-        CGDataProviderCreateDirect = (delegate*<IntPtr, nint, CGDataProviderDirectCallbacks*, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGDataProviderCreateDirect));
-        CGDataProviderCreateWithCFData = (delegate*<IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGDataProviderCreateWithCFData));
-        CGDataProviderCopyData = (delegate*<IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGDataProviderCopyData));
-        DataProviderDirectCallbacks = (CGDataProviderDirectCallbacks*)NativeMemory.Alloc((nuint)sizeof(CGDataProviderDirectCallbacks));
-        *DataProviderDirectCallbacks = new CGDataProviderDirectCallbacks
+        unsafe
         {
-            GetBytePointer = &GetDirectBytePointer,
-            GetBytesAtPosition = &GetDirectBytesAtPosition,
-            ReleaseBytePointer = &ReleaseDirectBytePointer,
-            ReleaseInfo = &ReleaseDirectInfo
-        };
+            CGDataProviderCreateDirect = (delegate*<IntPtr, nint, CGDataProviderDirectCallbacks*, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGDataProviderCreateDirect));
+            CGDataProviderCreateWithCFData = (delegate*<IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGDataProviderCreateWithCFData));
+            CGDataProviderCopyData = (delegate*<IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGDataProviderCopyData));
+            DataProviderDirectCallbacks = (CGDataProviderDirectCallbacks*)NativeMemory.Alloc((nuint)sizeof(CGDataProviderDirectCallbacks));
+            *DataProviderDirectCallbacks = new CGDataProviderDirectCallbacks
+            {
+                GetBytePointer = &GetDirectBytePointer,
+                GetBytesAtPosition = &GetDirectBytesAtPosition,
+                ReleaseBytePointer = &ReleaseDirectBytePointer,
+                ReleaseInfo = &ReleaseDirectInfo
+            };
+        }
     }
 
 
@@ -94,7 +97,7 @@ public unsafe class CGDataProvider : CFObject
             throw new ArgumentOutOfRangeException(nameof(size));
         var info = new DirectAccessInfo(data, offset, size);
         var gcHandle = GCHandle.Alloc(info);
-        return CGDataProviderCreateDirect(GCHandle.ToIntPtr(gcHandle), size, DataProviderDirectCallbacks);
+        return unsafe(CGDataProviderCreateDirect(GCHandle.ToIntPtr(gcHandle), size, DataProviderDirectCallbacks));
     }), false, true)
     { }
     
@@ -119,7 +122,7 @@ public unsafe class CGDataProvider : CFObject
         data = data.Retain<CFData>();
         try
         {
-            return new(CGDataProviderCreateWithCFData(data.Handle), false, true)
+            return new(unsafe(CGDataProviderCreateWithCFData(data.Handle)), false, true)
             {
                 data = data,
             };
@@ -189,7 +192,7 @@ public unsafe class CGDataProvider : CFObject
     public CFData ToData()
     {
         this.VerifyReleased();
-        var handle = CGDataProviderCopyData(this.Handle);
+        var handle = unsafe(CGDataProviderCopyData(this.Handle));
         if (handle == IntPtr.Zero)
             throw new InvalidOperationException("Unable to copy data from data provider.");
         return FromHandle<CFData>(handle, true).AsNonNull();

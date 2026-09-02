@@ -5,7 +5,7 @@ namespace CarinaStudio.MacOS.CoreGraphics;
 /// <summary>
 /// Provide functions for displays.
 /// </summary>
-public static unsafe class Display
+public static class Display
 {
     // Native symbols.
     static readonly delegate*<uint, CGRect> CGDisplayBounds;
@@ -24,14 +24,17 @@ public static unsafe class Display
         if (Platform.IsNotMacOS)
             return;
         var libHandle = NativeLibraryHandles.CoreGraphics;
-        CGDisplayBounds = (delegate*<uint, CGRect>)NativeLibrary.GetExport(libHandle, nameof(CGDisplayBounds));
-        CGDisplayPixelsHigh = (delegate*<uint, nuint>)NativeLibrary.GetExport(libHandle, nameof(CGDisplayPixelsHigh));
-        CGDisplayPixelsWide = (delegate*<uint, nuint>)NativeLibrary.GetExport(libHandle, nameof(CGDisplayPixelsWide));
-        CGGetActiveDisplayList = (delegate*<uint, uint*, uint*, CGError>)NativeLibrary.GetExport(libHandle, nameof(CGGetActiveDisplayList));
-        CGGetDisplaysWithPoint = (delegate*<CGPoint, uint, uint*, uint*, CGError>)NativeLibrary.GetExport(libHandle, nameof(CGGetDisplaysWithPoint));
-        CGGetDisplaysWithRect = (delegate*<CGRect, uint, uint*, uint*, CGError>)NativeLibrary.GetExport(libHandle, nameof(CGGetDisplaysWithRect));
-        CGGetOnlineDisplayList = (delegate*<uint, uint*, uint*, CGError>)NativeLibrary.GetExport(libHandle, nameof(CGGetOnlineDisplayList));
-        CGMainDisplayID = (delegate*<uint>)NativeLibrary.GetExport(libHandle, nameof(CGMainDisplayID));
+        unsafe
+        {
+            CGDisplayBounds = (delegate*<uint, CGRect>)NativeLibrary.GetExport(libHandle, nameof(CGDisplayBounds));
+            CGDisplayPixelsHigh = (delegate*<uint, nuint>)NativeLibrary.GetExport(libHandle, nameof(CGDisplayPixelsHigh));
+            CGDisplayPixelsWide = (delegate*<uint, nuint>)NativeLibrary.GetExport(libHandle, nameof(CGDisplayPixelsWide));
+            CGGetActiveDisplayList = (delegate*<uint, uint*, uint*, CGError>)NativeLibrary.GetExport(libHandle, nameof(CGGetActiveDisplayList));
+            CGGetDisplaysWithPoint = (delegate*<CGPoint, uint, uint*, uint*, CGError>)NativeLibrary.GetExport(libHandle, nameof(CGGetDisplaysWithPoint));
+            CGGetDisplaysWithRect = (delegate*<CGRect, uint, uint*, uint*, CGError>)NativeLibrary.GetExport(libHandle, nameof(CGGetDisplaysWithRect));
+            CGGetOnlineDisplayList = (delegate*<uint, uint*, uint*, CGError>)NativeLibrary.GetExport(libHandle, nameof(CGGetOnlineDisplayList));
+            CGMainDisplayID = (delegate*<uint>)NativeLibrary.GetExport(libHandle, nameof(CGMainDisplayID));
+        }
     }
 
 
@@ -48,14 +51,14 @@ public static unsafe class Display
     public static uint[] GetActiveDisplays()
     {
         var displayCount = 0u;
-        var result = CGGetActiveDisplayList(0, null, &displayCount);
+        var result = unsafe(CGGetActiveDisplayList(0, null, &displayCount));
         if (result != CGError.Success)
             throw result.ToException();
         if (displayCount == 0)
             return [];
         var displays = new uint[displayCount];
         fixed (uint* displaysPtr = displays)
-            result = CGGetActiveDisplayList(displayCount, displaysPtr, &displayCount);
+            result = unsafe(CGGetActiveDisplayList(displayCount, displaysPtr, &displayCount));
         if (result == CGError.Success)
             return displays;
         throw result.ToException();
@@ -68,7 +71,7 @@ public static unsafe class Display
     /// <param name="display">ID of display.</param>
     /// <returns>Bounds of display.</returns>
     public static CGRect GetDisplayBounds(uint display) => 
-        CGDisplayBounds(display);
+        unsafe(CGDisplayBounds(display));
 
 
     /// <summary>
@@ -80,7 +83,7 @@ public static unsafe class Display
     {
         var displays = 0u;
         var displayCount = 0u;
-        var result = CGGetDisplaysWithPoint(point, 1, &displays, &displayCount);
+        var result = unsafe(CGGetDisplaysWithPoint(point, 1, &displays, &displayCount));
         if (result != CGError.Success)
             throw result.ToException();
         if (displayCount == 1)
@@ -98,7 +101,7 @@ public static unsafe class Display
     {
         var displays = 0u;
         var displayCount = 0u;
-        var result = CGGetDisplaysWithRect(rect, 1, &displays, &displayCount);
+        var result = unsafe(CGGetDisplaysWithRect(rect, 1, &displays, &displayCount));
         if (result != CGError.Success)
             throw result.ToException();
         if (displayCount == 1)
@@ -115,14 +118,14 @@ public static unsafe class Display
     public static uint[] GetDisplaysFromPoint(CGPoint point)
     {
         var displayCount = 0u;
-        var result = CGGetDisplaysWithPoint(point, 0, null, &displayCount);
+        var result = unsafe(CGGetDisplaysWithPoint(point, 0, null, &displayCount));
         if (result != CGError.Success)
             throw result.ToException();
         if (displayCount == 0)
             return [];
         var displays = new uint[displayCount];
         fixed (uint* displaysPtr = displays)
-            result = CGGetDisplaysWithPoint(point, displayCount, displaysPtr, &displayCount);
+            result = unsafe(CGGetDisplaysWithPoint(point, displayCount, displaysPtr, &displayCount));
         if (result == CGError.Success)
             return displays;
         throw result.ToException();
@@ -137,14 +140,14 @@ public static unsafe class Display
     public static uint[] GetDisplaysFromRect(CGRect rect)
     {
         var displayCount = 0u;
-        var result = CGGetDisplaysWithRect(rect, 0, null, &displayCount);
+        var result = unsafe(CGGetDisplaysWithRect(rect, 0, null, &displayCount));
         if (result != CGError.Success)
             throw result.ToException();
         if (displayCount == 0)
             return [];
         var displays = new uint[displayCount];
         fixed (uint* displaysPtr = displays)
-            result = CGGetDisplaysWithRect(rect, displayCount, displaysPtr, &displayCount);
+            result = unsafe(CGGetDisplaysWithRect(rect, displayCount, displaysPtr, &displayCount));
         if (result == CGError.Success)
             return displays;
         throw result.ToException();
@@ -156,7 +159,7 @@ public static unsafe class Display
     /// </summary>
     /// <returns>ID of main display.</returns>
 	public static uint GetMainDisplay() => 
-        CGMainDisplayID();
+        unsafe(CGMainDisplayID());
 
 
     /// <summary>
@@ -166,14 +169,14 @@ public static unsafe class Display
     public static uint[] GetOnlineDisplays()
     {
         var displayCount = 0u;
-        var result = CGGetOnlineDisplayList(0, null, &displayCount);
+        var result = unsafe(CGGetOnlineDisplayList(0, null, &displayCount));
         if (result != CGError.Success)
             throw result.ToException();
         if (displayCount == 0)
             return [];
         var displays = new uint[displayCount];
         fixed (uint* displaysPtr = displays) 
-            result = CGGetOnlineDisplayList(displayCount, displaysPtr, &displayCount);
+            result = unsafe(CGGetOnlineDisplayList(displayCount, displaysPtr, &displayCount));
         if (result == CGError.Success)
             return displays;
         throw result.ToException();

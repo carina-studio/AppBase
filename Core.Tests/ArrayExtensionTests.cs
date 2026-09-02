@@ -13,15 +13,18 @@ namespace CarinaStudio
 		/// Test for pinning array.
 		/// </summary>
 		[Test]
-		public unsafe void PinningTest()
+		public void PinningTest()
 		{
 			// pin byte array
 			var byteArray = new byte[128];
 			var result = byteArray.Pin((address) =>
 			{
 				var ptr = (byte*)address;
-				for (var i = 0; i < byteArray.Length; ++i)
-					*(ptr++) = (byte)i;
+				unsafe
+				{
+					for (var i = 0; i < byteArray.Length; ++i)
+						*(ptr++) = (byte)i;
+				}
 				return true;
 			});
 			Assert.That(result, "Result of Pin() is incorrect.");
@@ -33,8 +36,11 @@ namespace CarinaStudio
 			result = intArray.Pin((address) =>
 			{
 				var ptr = (int*)address;
-				for (var i = 0; i < intArray.Length; ++i)
-					*(ptr++) = (i * 2);
+				unsafe
+				{
+					for (var i = 0; i < intArray.Length; ++i)
+						*(ptr++) = (i * 2);
+				}
 				return false;
 			});
 			Assert.That(!result, "Result of Pin() is incorrect.");

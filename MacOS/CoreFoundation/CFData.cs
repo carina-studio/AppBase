@@ -7,7 +7,7 @@ namespace CarinaStudio.MacOS.CoreFoundation;
 /// <summary>
 /// CFData.
 /// </summary>
-public unsafe class CFData : CFObject
+public class CFData : CFObject
 {
     // Native symbols.
     internal static readonly delegate*<IntPtr, void*, nint, void> CFDataAppendBytes;
@@ -25,13 +25,16 @@ public unsafe class CFData : CFObject
         if (Platform.IsNotMacOS)
             return;
         var libHandle = NativeLibraryHandles.CoreFoundation;
-        CFDataAppendBytes = (delegate*<IntPtr, void*, nint, void>)NativeLibrary.GetExport(libHandle, nameof(CFDataAppendBytes));
-        CFDataCreate = (delegate*<IntPtr, void*, nint, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CFDataCreate));
-        CFDataCreateMutable = (delegate*<IntPtr, nint, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CFDataCreateMutable));
-        CFDataGetBytePtr = (delegate*<IntPtr, byte*>)NativeLibrary.GetExport(libHandle, nameof(CFDataGetBytePtr));
-        CFDataGetLength = (delegate*<IntPtr, nuint>)NativeLibrary.GetExport(libHandle, nameof(CFDataGetLength));
-        CFDataGetMutableBytePtr = (delegate*<IntPtr, byte*>)NativeLibrary.GetExport(libHandle, nameof(CFDataGetMutableBytePtr));
-        CFDataSetLength = (delegate*<IntPtr, nint, void>)NativeLibrary.GetExport(libHandle, nameof(CFDataSetLength));
+        unsafe
+        {
+            CFDataAppendBytes = (delegate*<IntPtr, void*, nint, void>)NativeLibrary.GetExport(libHandle, nameof(CFDataAppendBytes));
+            CFDataCreate = (delegate*<IntPtr, void*, nint, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CFDataCreate));
+            CFDataCreateMutable = (delegate*<IntPtr, nint, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CFDataCreateMutable));
+            CFDataGetBytePtr = (delegate*<IntPtr, byte*>)NativeLibrary.GetExport(libHandle, nameof(CFDataGetBytePtr));
+            CFDataGetLength = (delegate*<IntPtr, nuint>)NativeLibrary.GetExport(libHandle, nameof(CFDataGetLength));
+            CFDataGetMutableBytePtr = (delegate*<IntPtr, byte*>)NativeLibrary.GetExport(libHandle, nameof(CFDataGetMutableBytePtr));
+            CFDataSetLength = (delegate*<IntPtr, nint, void>)NativeLibrary.GetExport(libHandle, nameof(CFDataSetLength));
+        }
     }
 
 
@@ -66,7 +69,7 @@ public unsafe class CFData : CFObject
             throw new ArgumentOutOfRangeException(nameof(offset));
         if (size <= 0 || offset + size > data.Length)
             throw new ArgumentOutOfRangeException(nameof(size));
-        return CFDataCreate(allocator.Handle, ptr + offset, size);
+        return unsafe(CFDataCreate(allocator.Handle, ptr + offset, size));
     }), false, true)
     { }
 
@@ -92,7 +95,7 @@ public unsafe class CFData : CFObject
             throw new ArgumentException("Address of data cannot be 0.");
         if (size < 0)
             throw new ArgumentOutOfRangeException(nameof(size));
-        return CFDataCreate(allocator.Handle, data.ToPointer(), size);
+        return unsafe(CFDataCreate(allocator.Handle, data.ToPointer(), size));
     }), false, true)
     { }
 
@@ -111,7 +114,7 @@ public unsafe class CFData : CFObject
     /// <param name="allocator">Allocator.</param>
     /// <param name="data">Source data to copy.</param>
     public CFData(CFAllocator allocator, ReadOnlySpan<byte> data) : this(data.Pin((ptr, size) =>
-        CFDataCreate(allocator.Handle, ptr.ToPointer(), size)), false, true)
+        unsafe(CFDataCreate(allocator.Handle, ptr.ToPointer(), size))), false, true)
     { }
 
 
@@ -129,7 +132,7 @@ public unsafe class CFData : CFObject
     /// <param name="allocator">Allocator.</param>
     /// <param name="data">Source data to copy.</param>
     public CFData(CFAllocator allocator, Span<byte> data) : this(data.Pin((ptr, size) =>
-        CFDataCreate(allocator.Handle, ptr.ToPointer(), size)), false, true)
+        unsafe(CFDataCreate(allocator.Handle, ptr.ToPointer(), size))), false, true)
     { }
 
 
@@ -152,7 +155,10 @@ public unsafe class CFData : CFObject
         var length = this.Length;
         if (length > int.MaxValue)
             throw new NotSupportedException($"Too large to get data as span: {length}.");
-        return new(CFDataGetBytePtr(this.Handle), (int)length);
+        unsafe
+        {
+            return new(CFDataGetBytePtr(this.Handle), (int)length);
+        }
     }
 
 
@@ -169,7 +175,10 @@ public unsafe class CFData : CFObject
         var size = (length - offset);
         if (size > int.MaxValue)
             throw new NotSupportedException($"Too large to get data as span: {size}.");
-        return new(CFDataGetBytePtr(this.Handle) + offset, (int)size);
+        unsafe
+        {
+            return new(CFDataGetBytePtr(this.Handle) + offset, (int)size);
+        }
     }
 
 
@@ -186,7 +195,10 @@ public unsafe class CFData : CFObject
             throw new ArgumentOutOfRangeException(nameof(Length));
         if (size <= 0 || offset + size > length)
             throw new ArgumentOutOfRangeException(nameof(size));
-        return new(CFDataGetBytePtr(this.Handle) + offset, size);
+        unsafe
+        {
+            return new(CFDataGetBytePtr(this.Handle) + offset, size);
+        }
     }
 
 
@@ -222,12 +234,15 @@ public unsafe class CFData : CFObject
         }
         if (size > int.MaxValue)
             throw new NotSupportedException($"Size of data in stream is too large: {size}.");
-        var handle = CFDataCreateMutable(allocator.Handle, (nint)size);
+        var handle = unsafe(CFDataCreateMutable(allocator.Handle, (nint)size));
         try
         {
-            var bufferPtr = CFDataGetMutableBytePtr(handle);
-            CFDataSetLength(handle, (nint)size);
-            CFDataSetLength(handle, stream.Read(new Span<byte>(bufferPtr, (int)size)));
+            unsafe
+            {
+                var bufferPtr = CFDataGetMutableBytePtr(handle);
+                CFDataSetLength(handle, (nint)size);
+                CFDataSetLength(handle, stream.Read(new Span<byte>(bufferPtr, (int)size)));
+            }
         }
         catch
         {
@@ -246,7 +261,7 @@ public unsafe class CFData : CFObject
         get
         {
             this.VerifyReleased();
-            var length = CFDataGetLength(this.Handle);
+            var length = unsafe(CFDataGetLength(this.Handle));
             if ((decimal)length > long.MaxValue)
                 throw new NotSupportedException($"Length is too large: {length}.");
             return (long)length;

@@ -5,7 +5,7 @@ namespace CarinaStudio.MacOS.CoreFoundation;
 /// <summary>
 /// CFMutableData.
 /// </summary>
-public unsafe class CFMutableData : CFData
+public class CFMutableData : CFData
 {
     /// <summary>
     /// Initialize new <see cref="CFMutableData"/> instance.
@@ -20,7 +20,7 @@ public unsafe class CFMutableData : CFData
     /// </summary>
     /// <param name="allocator">Allocator.</param>
     /// <param name="capacity">Capacity.</param>
-    public CFMutableData(CFAllocator allocator, int capacity) : this(CFDataCreateMutable(allocator.Handle, capacity), false, true)
+    public CFMutableData(CFAllocator allocator, int capacity) : this(unsafe(CFDataCreateMutable(allocator.Handle, capacity)), false, true)
     { }
 
 
@@ -55,7 +55,10 @@ public unsafe class CFMutableData : CFData
             throw new ArgumentOutOfRangeException(nameof(size));
         this.VerifyReleased();
         fixed (byte* p = data)
-            CFDataAppendBytes(this.Handle, p + offset, size);
+            unsafe
+            {
+                CFDataAppendBytes(this.Handle, p + offset, size);
+            }
     }
 
 
@@ -70,7 +73,10 @@ public unsafe class CFMutableData : CFData
         this.VerifyReleased();
         ref var bytes = ref data.GetPinnableReference();
         fixed (byte* p = &bytes)
-            CFDataAppendBytes(this.Handle, p, data.Length);
+            unsafe
+            {
+                CFDataAppendBytes(this.Handle, p, data.Length);
+            }
     }
 
 
@@ -85,7 +91,10 @@ public unsafe class CFMutableData : CFData
         this.VerifyReleased();
         ref readonly var bytes = ref data.GetPinnableReference();
         fixed (byte* p = &bytes)
-            CFDataAppendBytes(this.Handle, p, data.Length);
+            unsafe
+            {
+                CFDataAppendBytes(this.Handle, p, data.Length);
+            }
     }
 
 
@@ -98,7 +107,7 @@ public unsafe class CFMutableData : CFData
         var length = this.Length;
         if (length > int.MaxValue)
             throw new NotSupportedException($"Too large to get data as span: {length}.");
-        return new(CFDataGetMutableBytePtr(this.Handle), (int)length);
+        return unsafe(new(unsafe(CFDataGetMutableBytePtr(this.Handle)), (int)length));
     }
 
 
@@ -115,7 +124,7 @@ public unsafe class CFMutableData : CFData
         var size = (length - offset);
         if (size > int.MaxValue)
             throw new NotSupportedException($"Too large to get data as span: {size}.");
-        return new(CFDataGetMutableBytePtr(this.Handle) + offset, (int)size);
+        return unsafe(new(unsafe(CFDataGetMutableBytePtr(this.Handle)) + offset, (int)size));
     }
 
 
@@ -132,7 +141,7 @@ public unsafe class CFMutableData : CFData
             throw new ArgumentOutOfRangeException(nameof(Length));
         if (size <= 0 || offset + size > length)
             throw new ArgumentOutOfRangeException(nameof(size));
-        return new(CFDataGetMutableBytePtr(this.Handle) + offset, size);
+        return unsafe(new(unsafe(CFDataGetMutableBytePtr(this.Handle)) + offset, size));
     }
 
 
@@ -147,7 +156,10 @@ public unsafe class CFMutableData : CFData
             if (value < 0 || value > nint.MaxValue)
                 throw new ArgumentOutOfRangeException();
             this.VerifyReleased();
-            CFDataSetLength(this.Handle, (nint)value);
+            unsafe
+            {
+                CFDataSetLength(this.Handle, (nint)value);
+            }
         }
     }
 }

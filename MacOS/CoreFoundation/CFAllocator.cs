@@ -6,7 +6,7 @@ namespace CarinaStudio.MacOS.CoreFoundation;
 /// <summary>
 /// CFAllocator.
 /// </summary>
-public unsafe class CFAllocator : CFObject
+public class CFAllocator : CFObject
 {
     // Native symbols.
     static readonly delegate*<IntPtr> CFAllocatorGetDefault;
@@ -24,7 +24,10 @@ public unsafe class CFAllocator : CFObject
     {
         if (Platform.IsNotMacOS)
             return;
-        CFAllocatorGetDefault = (delegate*<IntPtr>)NativeLibrary.GetExport(NativeLibraryHandles.CoreFoundation, nameof(CFAllocatorGetDefault));
+        unsafe
+        {
+            CFAllocatorGetDefault = (delegate*<IntPtr>)NativeLibrary.GetExport(NativeLibraryHandles.CoreFoundation, nameof(CFAllocatorGetDefault));
+        }
     }
 
 
@@ -32,7 +35,7 @@ public unsafe class CFAllocator : CFObject
     CFAllocator(IntPtr allocator, bool ownsInstance) : base(allocator, Global.Run(() =>
     {
         if (defaultAllocatorHandle == IntPtr.Zero)
-            defaultAllocatorHandle = CFAllocatorGetDefault();
+            defaultAllocatorHandle = unsafe(CFAllocatorGetDefault());
         return ownsInstance && allocator != defaultAllocatorHandle;
     }))
     { 
@@ -47,7 +50,7 @@ public unsafe class CFAllocator : CFObject
     {
         get
         {
-            return defaultAllocator ?? CFAllocatorGetDefault().Let(handle =>
+            return defaultAllocator ?? unsafe(CFAllocatorGetDefault()).Let(handle =>
             {
                 defaultAllocatorHandle = handle;
                 defaultAllocator = new CFAllocator(handle, false);

@@ -310,7 +310,7 @@ public abstract class ValueTextBox : TextBox
 
 
 	// Validate text.
-	unsafe bool Validate(bool updateValueAndText, out object? value)
+	bool Validate(bool updateValueAndText, out object? value)
 	{
 		// check state
 		this.VerifyAccess();
@@ -330,7 +330,7 @@ public abstract class ValueTextBox : TextBox
 				var i = 0;
 				while (i < textLength)
 				{
-					if (char.IsWhiteSpace(*charPtr++))
+					if (char.IsWhiteSpace(unsafe(*charPtr++)))
 						break;
 					++i;
 				}
@@ -342,7 +342,7 @@ public abstract class ValueTextBox : TextBox
 					++i;
 					while (i < textLength)
 					{
-						var c = *charPtr++;
+						var c = unsafe(*charPtr++);
 						if (!char.IsWhiteSpace(c))
 							trimmedTextBuffer.Append(c);
 						++i;

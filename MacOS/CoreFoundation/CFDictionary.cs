@@ -6,7 +6,7 @@ namespace CarinaStudio.MacOS.CoreFoundation;
 /// <summary>
 /// CFDictionary.
 /// </summary>
-public unsafe class CFDictionary : CFObject
+public class CFDictionary : CFObject
 {
     // Native symbols.
     static readonly delegate*<IntPtr, IntPtr, bool> CFDictionaryContainsKey;
@@ -21,10 +21,13 @@ public unsafe class CFDictionary : CFObject
         if (Platform.IsNotMacOS)
             return;
         var libHandle = NativeLibraryHandles.CoreFoundation;
-        CFDictionaryContainsKey = (delegate*<IntPtr, IntPtr, bool>)NativeLibrary.GetExport(libHandle, nameof(CFDictionaryContainsKey));
-        CFDictionaryContainsValue = (delegate*<IntPtr, IntPtr, bool>)NativeLibrary.GetExport(libHandle, nameof(CFDictionaryContainsValue));
-        CFDictionaryGetCount = (delegate*<IntPtr, nint>)NativeLibrary.GetExport(libHandle, nameof(CFDictionaryGetCount));
-        CFDictionaryGetValueIfPresent = (delegate*<IntPtr, IntPtr, IntPtr*, bool>)NativeLibrary.GetExport(libHandle, nameof(CFDictionaryGetValueIfPresent));
+        unsafe
+        {
+            CFDictionaryContainsKey = (delegate*<IntPtr, IntPtr, bool>)NativeLibrary.GetExport(libHandle, nameof(CFDictionaryContainsKey));
+            CFDictionaryContainsValue = (delegate*<IntPtr, IntPtr, bool>)NativeLibrary.GetExport(libHandle, nameof(CFDictionaryContainsValue));
+            CFDictionaryGetCount = (delegate*<IntPtr, nint>)NativeLibrary.GetExport(libHandle, nameof(CFDictionaryGetCount));
+            CFDictionaryGetValueIfPresent = (delegate*<IntPtr, IntPtr, IntPtr*, bool>)NativeLibrary.GetExport(libHandle, nameof(CFDictionaryGetValueIfPresent));
+        }
     }
     
     
@@ -44,7 +47,7 @@ public unsafe class CFDictionary : CFObject
     /// <param name="key">Key.</param>
     /// <returns>True if key is contained in dictionary.</returns>
     public bool ContainsKey(CFObject key) =>
-        CFDictionaryContainsKey(this.Handle, key.Handle);
+        unsafe(CFDictionaryContainsKey(this.Handle, key.Handle));
     
     
     /// <summary>
@@ -53,13 +56,13 @@ public unsafe class CFDictionary : CFObject
     /// <param name="value">Value which can be null.</param>
     /// <returns>True if value is contained in dictionary.</returns>
     public bool ContainsValue(CFObject? value) =>
-        CFDictionaryContainsValue(this.Handle, value?.Handle ?? default);
+        unsafe(CFDictionaryContainsValue(this.Handle, value?.Handle ?? default));
 
 
     /// <summary>
     /// Get number of key-value pairs in dictionary.
     /// </summary>
-    public int Count => (int)CFDictionaryGetCount(this.Handle);
+    public int Count => (int)unsafe(CFDictionaryGetCount(this.Handle));
 
 
     /// <summary>
@@ -71,7 +74,7 @@ public unsafe class CFDictionary : CFObject
     public bool TryGetValue(CFString key, out CFObject? value)
     {
         var valueHandle = IntPtr.Zero;
-        if (CFDictionaryGetValueIfPresent(this.Handle, key.Handle, &valueHandle))
+        if (unsafe(CFDictionaryGetValueIfPresent(this.Handle, key.Handle, &valueHandle)))
         {
             value = FromHandle(valueHandle);
             return true;

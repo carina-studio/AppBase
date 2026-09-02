@@ -9,7 +9,7 @@ namespace CarinaStudio.MacOS.CoreGraphics;
 /// <summary>
 /// Predefined properties of <see cref="CGImage"/>.
 /// </summary>
-public static unsafe class CGImageProperties
+public static class CGImageProperties
 {
     /// <summary>
     /// Please refer to <a href="https://developer.apple.com/documentation/imageio/kCGImagePropertyColorModel">kCGImagePropertyColorModel</a>.
@@ -106,26 +106,29 @@ public static unsafe class CGImageProperties
         
         // load symbols in ImageIO.Framework
         var imageIOLibHandle = NativeLibraryHandles.ImageIO;
-        ColorModel = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyColorModel"), false, false);
-        ColorModelCMYK = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyColorModelCMYK"), false, false);
-        ColorModelGray = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyColorModelGray"), false, false);
-        ColorModelLab = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyColorModelLab"), false, false);
-        ColorModelRGB = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyColorModelRGB"), false, false);
-        Depth = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyDepth"), false, false);
-        DPIHeight = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyDPIHeight"), false, false);
-        DPIWidth = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyDPIWidth"), false, false);
-        FileContentsDictionary = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyFileContentsDictionary"), false, false);
-        FileSize = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyFileSize"), false, false);
-        HasAlpha = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyHasAlpha"), false, false);
-        ImageCount = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyImageCount"), false, false);
-        Images = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyImages"), false, false);
-        NamedColorSpace = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyNamedColorSpace"), false, false);
-        Orientation = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyOrientation"), false, false);
-        PixelFormat = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyPixelFormat"), false, false);
-        PixelHeight = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyPixelHeight"), false, false);
-        PixelWidth = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyPixelWidth"), false, false);
-        PrimaryImage = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyPrimaryImage"), false, false);
-        ProfileName = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyProfileName"), false, false);
-        ThumbnailImages = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyThumbnailImages"), false, false);
+        unsafe
+        {
+            ColorModel = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyColorModel"), false, false);
+            ColorModelCMYK = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyColorModelCMYK"), false, false);
+            ColorModelGray = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyColorModelGray"), false, false);
+            ColorModelLab = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyColorModelLab"), false, false);
+            ColorModelRGB = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyColorModelRGB"), false, false);
+            Depth = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyDepth"), false, false);
+            DPIHeight = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyDPIHeight"), false, false);
+            DPIWidth = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyDPIWidth"), false, false);
+            FileContentsDictionary = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyFileContentsDictionary"), false, false);
+            FileSize = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyFileSize"), false, false);
+            HasAlpha = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyHasAlpha"), false, false);
+            ImageCount = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyImageCount"), false, false);
+            Images = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyImages"), false, false);
+            NamedColorSpace = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyNamedColorSpace"), false, false);
+            Orientation = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyOrientation"), false, false);
+            PixelFormat = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyPixelFormat"), false, false);
+            PixelHeight = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyPixelHeight"), false, false);
+            PixelWidth = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyPixelWidth"), false, false);
+            PrimaryImage = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyPrimaryImage"), false, false);
+            ProfileName = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyProfileName"), false, false);
+            ThumbnailImages = new CFString(*(nint*)NativeLibrary.GetExport(imageIOLibHandle, "kCGImagePropertyThumbnailImages"), false, false);
+        }
     }
 }

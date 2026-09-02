@@ -8,7 +8,7 @@ namespace CarinaStudio.IO;
 /// <summary>
 /// Extensions for file name and path.
 /// </summary>
-public static unsafe class PathExtensions
+public static class PathExtensions
 {
     // Fields.
     static ISet<char>? InvalidFileNameChars;
@@ -37,12 +37,12 @@ public static unsafe class PathExtensions
             var count = s.Length;
             if (p == null || count == 0)
                 return false;
-            if (char.IsWhiteSpace(*p) || char.IsWhiteSpace(p[count - 1]))
+            if (unsafe(char.IsWhiteSpace(*p) || char.IsWhiteSpace(p[count - 1])))
                 return false;
             var cPtr = p;
             do
             {
-                if (InvalidFileNameChars.Contains(*cPtr))
+                if (InvalidFileNameChars.Contains(unsafe(*cPtr)))
                     return false;
                 --count;
                 ++cPtr;
@@ -75,12 +75,12 @@ public static unsafe class PathExtensions
             var count = s.Length;
             if (p == null || count == 0)
                 return false;
-            if (char.IsWhiteSpace(*p) || char.IsWhiteSpace(p[count - 1]))
+            if (unsafe(char.IsWhiteSpace(*p) || char.IsWhiteSpace(p[count - 1])))
                 return false;
             var cPtr = p;
             do
             {
-                if (InvalidPathChars.Contains(*cPtr))
+                if (InvalidPathChars.Contains(unsafe(*cPtr)))
                     return false;
                 --count;
                 ++cPtr;

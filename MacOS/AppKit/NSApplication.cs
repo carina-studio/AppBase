@@ -8,7 +8,7 @@ namespace CarinaStudio.MacOS.AppKit;
 /// <summary>
 /// NSApplication.
 /// </summary>
-public unsafe class NSApplication : NSResponder
+public class NSApplication : NSResponder
 {
 #pragma warning disable CS1591
     /// <summary>
@@ -73,7 +73,10 @@ public unsafe class NSApplication : NSResponder
         if (Platform.IsNotMacOS)
             return;
         var libHandle = NativeLibraryHandles.AppKit;
-        NSAppPtr = (IntPtr*)NativeLibrary.GetExport(libHandle, "NSApp");
+        unsafe
+        {
+            NSAppPtr = (IntPtr*)NativeLibrary.GetExport(libHandle, "NSApp");
+        }
         NSApplicationClass = Class.GetClass("NSApplication").AsNonNull();
     }
 
@@ -171,7 +174,7 @@ public unsafe class NSApplication : NSResponder
             {
                 if (_Current != null)
                     return _Current;
-                var app = NSAppPtr != null ? *NSAppPtr : IntPtr.Zero;
+                var app = unsafe(NSAppPtr != null ? *NSAppPtr : IntPtr.Zero);
                 if (app == IntPtr.Zero)
                     return null;
                 _Current = new(app, true)

@@ -63,7 +63,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
     /// <summary>
     /// Represent property of class.
     /// </summary>
-    public unsafe class Property : Member
+    public class Property : Member
     {
         // Native symbols.
         [DllImport(NativeLibraryNames.ObjectiveC)]
@@ -77,8 +77,11 @@ namespace CarinaStudio.MacOS.ObjectiveC
             {
                 if (it != IntPtr.Zero)
                 {
-                    var selector = Selector.FromUid(new string((sbyte*)it));
-                    NativeMemory.Free((void*)it);
+                    var selector = Selector.FromUid(unsafe(new string((sbyte*)it)));
+                    unsafe
+                    {
+                        NativeMemory.Free((void*)it);
+                    }
                     return selector;
                 }
                 return Selector.FromName(name);
@@ -87,7 +90,10 @@ namespace CarinaStudio.MacOS.ObjectiveC
             {
                 if (it != IntPtr.Zero)
                 {
-                    NativeMemory.Free((void*)it);
+                    unsafe
+                    {
+                        NativeMemory.Free((void*)it);
+                    }
                     return true;
                 }
                 return false;
@@ -96,8 +102,11 @@ namespace CarinaStudio.MacOS.ObjectiveC
             {
                 if (it != IntPtr.Zero)
                 {
-                    var selector = Selector.FromUid(new string((sbyte*)it));
-                    NativeMemory.Free((void*)it);
+                    var selector = Selector.FromUid(unsafe(new string((sbyte*)it)));
+                    unsafe
+                    {
+                        NativeMemory.Free((void*)it);
+                    }
                     return selector;
                 }
                 return Selector.FromName($"set{char.ToUpper(name[0])}{name.Substring(1)}:");
@@ -127,7 +136,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
     /// <summary>
     /// Descriptor of variable of class.
     /// </summary>
-    public unsafe class Variable : Member
+    public class Variable : Member
     {
         // Native symbols.
         [DllImport(NativeLibraryNames.ObjectiveC)]
@@ -149,8 +158,8 @@ namespace CarinaStudio.MacOS.ObjectiveC
         // Constructor.
         internal Variable(Class cls, IntPtr handle, string name) : base(cls, handle, name)
         { 
-            var typeEncoding = ivar_getTypeEncoding(handle);
-            this.TypeEncoding = typeEncoding != null ? new string(typeEncoding) : "";
+            var typeEncoding = unsafe(ivar_getTypeEncoding(handle));
+            this.TypeEncoding = typeEncoding != null ? unsafe(new string(typeEncoding)) : "";
         }
 
 

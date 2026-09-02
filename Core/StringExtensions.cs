@@ -8,7 +8,7 @@ namespace CarinaStudio;
 /// <summary>
 /// Extensions for <see cref="string"/>.
 /// </summary>
-public static unsafe class StringExtensions
+public static class StringExtensions
 {
     /// <summary>
     /// Get the first line of the string.
@@ -30,7 +30,7 @@ public static unsafe class StringExtensions
             var cPtr = p;
             for (int start = 0, end = 0; end <= length; ++end, ++cPtr)
             {
-                var c = *cPtr;
+                var c = unsafe(*cPtr);
                 if (c == '\n')
                 {
                     if (lineBuffer is null)
@@ -79,7 +79,7 @@ public static unsafe class StringExtensions
             var start = length;
             do
             {
-                var c = *cPtr--;
+                var c = unsafe(*cPtr--);
                 if (c == '\n')
                     break;
                 if (c == '\r' && !includeCarriageReturns)
@@ -92,7 +92,7 @@ public static unsafe class StringExtensions
                 var lineBuffer = new StringBuilder(length - start);
                 do
                 {
-                    var c = *cPtr++;
+                    var c = unsafe(*cPtr++);
                     if (c != '\r')
                         lineBuffer.Append(c);
                     ++start;
@@ -122,7 +122,7 @@ public static unsafe class StringExtensions
             var cPtr = p + length - 1;
             do
             {
-                var c = *cPtr--;
+                var c = unsafe(*cPtr--);
                 if (c == '\n')
                     return true;
                 --length;
@@ -151,7 +151,7 @@ public static unsafe class StringExtensions
             var cPtr = p + length - 1;
             do
             {
-                var c = *cPtr--;
+                var c = unsafe(*cPtr--);
                 if (c == '\n')
                     ++count;
                 --length;
@@ -171,7 +171,10 @@ public static unsafe class StringExtensions
     public static void Pin(this string s, Action<IntPtr> action)
     {
         fixed (char* p = s)
-            action(new(p));
+            unsafe
+            {
+                action(new(p));
+            }
     }
 
 
@@ -187,7 +190,10 @@ public static unsafe class StringExtensions
     public static R Pin<R>(this string s, Func<IntPtr, R> func)
     {
         fixed (char* p = s)
-            return func(new(p));
+            unsafe
+            {
+                return func(new(p));
+            }
     }
     
     
@@ -201,7 +207,10 @@ public static unsafe class StringExtensions
     public static void Pin(this string s, PointerAction<char> action)
     {
         fixed (char* p = s)
-            action(p);
+            unsafe
+            {
+                action(p);
+            }
     }
 
 
@@ -217,7 +226,10 @@ public static unsafe class StringExtensions
     public static R Pin<R>(this string s, PointerInFunc<char, R> func)
     {
         fixed (char* p = s)
-            return func(p);
+            unsafe
+            {
+                return func(p);
+            }
     }
 
 
@@ -243,7 +255,7 @@ public static unsafe class StringExtensions
             var cPtr = p;
             do
             {
-                var c = *cPtr++;
+                var c = unsafe(*cPtr++);
                 if (c == '\n' || (c == '\r' && removeCarriageReturns))
                 {
                     if (segmentStart < segmentEnd)

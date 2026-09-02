@@ -173,12 +173,15 @@ public static class ArrayExtensions
 	/// <param name="array">Array.</param>
 	/// <param name="action">Method to receive address of array and perform action.</param>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static unsafe void PinAs<T, TPtr>(this T[] array, PointerAction<TPtr> action) where TPtr : unmanaged
+	public static void PinAs<T, TPtr>(this T[] array, PointerAction<TPtr> action) where TPtr : unmanaged
 	{
 		var gcHandle = GCHandle.Alloc(array, GCHandleType.Pinned);
 		try
 		{
-			action((TPtr*)gcHandle.AddrOfPinnedObject());
+			unsafe
+			{
+				action((TPtr*)gcHandle.AddrOfPinnedObject());
+			}
 		}
 		finally
 		{
@@ -197,14 +200,17 @@ public static class ArrayExtensions
 	/// <param name="arrays">Arrays.</param>
 	/// <param name="action">Method to receive addresses of arrays and perform action.</param>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static unsafe void PinAs<T1, T2, TPtr1, TPtr2>(this (T1[], T2[]) arrays, PointerAction<TPtr1, TPtr2> action) where TPtr1 : unmanaged where TPtr2 : unmanaged
+	public static void PinAs<T1, T2, TPtr1, TPtr2>(this (T1[], T2[]) arrays, PointerAction<TPtr1, TPtr2> action) where TPtr1 : unmanaged where TPtr2 : unmanaged
 	{
 		var gcHandle2 = new GCHandle();
 		var gcHandle1 = GCHandle.Alloc(arrays.Item1, GCHandleType.Pinned);
 		try
 		{
 			gcHandle2 = GCHandle.Alloc(arrays.Item2, GCHandleType.Pinned);
-			action((TPtr1*)gcHandle1.AddrOfPinnedObject(), (TPtr2*)gcHandle2.AddrOfPinnedObject());
+			unsafe
+			{
+				action((TPtr1*)gcHandle1.AddrOfPinnedObject(), (TPtr2*)gcHandle2.AddrOfPinnedObject());
+			}
 		}
 		finally
 		{
@@ -224,12 +230,15 @@ public static class ArrayExtensions
 	/// <param name="func">Function to receive address of array and generate value.</param>
 	/// <returns>Generated value.</returns>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static unsafe R PinAs<T, TPtr, R>(this T[] array, PointerInFunc<TPtr, R> func) where TPtr : unmanaged
+	public static R PinAs<T, TPtr, R>(this T[] array, PointerInFunc<TPtr, R> func) where TPtr : unmanaged
 	{
 		var gcHandle = GCHandle.Alloc(array, GCHandleType.Pinned);
 		try
 		{
-			return func((TPtr*)gcHandle.AddrOfPinnedObject());
+			unsafe
+			{
+				return func((TPtr*)gcHandle.AddrOfPinnedObject());
+			}
 		}
 		finally
 		{
@@ -250,14 +259,17 @@ public static class ArrayExtensions
 	/// <param name="func">Function to receive addresses of arrays and generate value.</param>
 	/// <returns>Generated value.</returns>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static unsafe R PinAs<T1, T2, TPtr1, TPtr2, R>(this (T1[], T2[]) arrays, PointerInFunc<TPtr1, TPtr2, R> func) where TPtr1 : unmanaged where TPtr2 : unmanaged
+	public static R PinAs<T1, T2, TPtr1, TPtr2, R>(this (T1[], T2[]) arrays, PointerInFunc<TPtr1, TPtr2, R> func) where TPtr1 : unmanaged where TPtr2 : unmanaged
 	{
 		var gcHandle2 = new GCHandle();
 		var gcHandle1 = GCHandle.Alloc(arrays.Item1, GCHandleType.Pinned);
 		try
 		{
 			gcHandle2 = GCHandle.Alloc(arrays.Item2, GCHandleType.Pinned);
-			return func((TPtr1*)gcHandle1.AddrOfPinnedObject(), (TPtr2*)gcHandle2.AddrOfPinnedObject());
+			unsafe
+			{
+				return func((TPtr1*)gcHandle1.AddrOfPinnedObject(), (TPtr2*)gcHandle2.AddrOfPinnedObject());
+			}
 		}
 		finally
 		{

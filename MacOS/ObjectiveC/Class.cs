@@ -11,7 +11,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
     /// <summary>
     /// Class of Objective-C.
     /// </summary>
-    public sealed unsafe class Class : IEquatable<Class>
+    public sealed class Class : IEquatable<Class>
     {
         // Native symbols.
         [DllImport(NativeLibraryNames.ObjectiveC)]
@@ -556,51 +556,54 @@ namespace CarinaStudio.MacOS.ObjectiveC
         // Define method.
         void DefineMethodCore(Selector name, Delegate impl, bool verifyImpl)
         {
-            // verify implementation
-            if (verifyImpl)
-                this.VerifyMethodImplementation(impl);
+            unsafe
+            {
+                // verify implementation
+                if (verifyImpl)
+                    this.VerifyMethodImplementation(impl);
             
-            // convert to native types
-            var invokeMethod = impl.GetType().GetMethod("Invoke").AsNonNull();
-            var parameters = invokeMethod.GetParameters();
-            var paramCount = parameters.Length;
-            var paramTypes = new Type[paramCount].Also(it =>
-            {
-                for (var i = paramCount - 1; i >= 0; --i)
-                    it[i] = parameters[i].ParameterType;
-            });
-            var nativeParamTypes = new Type[paramCount].Also(it =>
-            {
-                for (var i = paramCount - 1; i >= 0; --i)
-                    it[i] = NativeTypeConversion.ToNativeType(paramTypes[i]);
-            });
-            var returnType = invokeMethod.ReturnType.Let(it =>
-            {
-                if (it == typeof(void))
-                    return null;
-                return it;
-            });
-            var nativeReturnType = returnType != null ? NativeTypeConversion.ToNativeType(returnType) : null;
+                // convert to native types
+                var invokeMethod = impl.GetType().GetMethod("Invoke").AsNonNull();
+                var parameters = invokeMethod.GetParameters();
+                var paramCount = parameters.Length;
+                var paramTypes = new Type[paramCount].Also(it =>
+                {
+                    for (var i = paramCount - 1; i >= 0; --i)
+                        it[i] = parameters[i].ParameterType;
+                });
+                var nativeParamTypes = new Type[paramCount].Also(it =>
+                {
+                    for (var i = paramCount - 1; i >= 0; --i)
+                        it[i] = NativeTypeConversion.ToNativeType(paramTypes[i]);
+                });
+                var returnType = invokeMethod.ReturnType.Let(it =>
+                {
+                    if (it == typeof(void))
+                        return null;
+                    return it;
+                });
+                var nativeReturnType = returnType != null ? NativeTypeConversion.ToNativeType(returnType) : null;
 
-            // create libffi closure to dispatch calls to implementation
-            var cif = LibFfi.CreateCif(nativeReturnType, nativeParamTypes, out _, out _);
-            var context = new MethodImplContext(impl, $"{this.Name}.{name.Name}", nativeParamTypes, nativeReturnType, paramTypes);
-            var contextHandle = GCHandle.Alloc(context); // keep context alive for process lifetime
-            void* closureCode;
-            try
-            {
-                LibFfi.CreateClosure(cif, (delegate* unmanaged<void*, void*, void**, void*, void>)&InvokeMethodImpl, GCHandle.ToIntPtr(contextHandle), out closureCode);
-            }
-            catch
-            {
-                contextHandle.Free();
-                throw;
-            }
+                // create libffi closure to dispatch calls to implementation
+                var cif = LibFfi.CreateCif(nativeReturnType, nativeParamTypes, out _, out _);
+                var context = new MethodImplContext(impl, $"{this.Name}.{name.Name}", nativeParamTypes, nativeReturnType, paramTypes);
+                var contextHandle = GCHandle.Alloc(context); // keep context alive for process lifetime
+                void* closureCode;
+                try
+                {
+                    LibFfi.CreateClosure(cif, (delegate* unmanaged<void*, void*, void**, void*, void>)&InvokeMethodImpl, GCHandle.ToIntPtr(contextHandle), out closureCode);
+                }
+                catch
+                {
+                    contextHandle.Free();
+                    throw;
+                }
 
-            // add method
-            if (!class_addMethod(this.Handle, name.Handle, (IntPtr)closureCode, ""))
-                throw new Exception($"Failed to add method '{name}' to '{this.Name}'.");
-            this.nativeBridgeMethods.Add(context);
+                // add method
+                if (!class_addMethod(this.Handle, name.Handle, (IntPtr)closureCode, ""))
+                    throw new Exception($"Failed to add method '{name}' to '{this.Name}'.");
+                this.nativeBridgeMethods.Add(context);
+            }
         }
 
 
@@ -679,22 +682,25 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <returns><see cref="Class"/>.</returns>
         public static Class FromHandle(IntPtr handle)
         {
-            if (handle == IntPtr.Zero)
-                throw new ArgumentException("Handle of instance cannot be null.");
-            if (CachedClassesByHandle.TryGetValue(handle, out var nsClass))
-                return nsClass;
-            var namePtr = class_getName(handle);
-            if (namePtr == null)
-                throw new ArgumentException("Unable to get name of class.");
-            var name = new string(namePtr);
-            if (CachedClassesByName.TryGetValue(name, out nsClass))
-                return nsClass;
-            return new Class(handle, name, false, false).Also(it => 
+            unsafe
             {
-                it.isRegistered = true;
-                CachedClassesByName.TryAdd(name, it);
-                CachedClassesByHandle.TryAdd(handle, it);
-            });
+                if (handle == IntPtr.Zero)
+                    throw new ArgumentException("Handle of instance cannot be null.");
+                if (CachedClassesByHandle.TryGetValue(handle, out var nsClass))
+                    return nsClass;
+                var namePtr = class_getName(handle);
+                if (namePtr == null)
+                    throw new ArgumentException("Unable to get name of class.");
+                var name = new string(namePtr);
+                if (CachedClassesByName.TryGetValue(name, out nsClass))
+                    return nsClass;
+                return new Class(handle, name, false, false).Also(it => 
+                {
+                    it.isRegistered = true;
+                    CachedClassesByName.TryAdd(name, it);
+                    CachedClassesByHandle.TryAdd(handle, it);
+                });
+            }
         }
 
 
@@ -789,23 +795,26 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <returns>Descriptors of instance variables.</returns>
         public Variable[] GetInstanceVariables()
         {
-            if (this.areAllIVarsCached || this.IsProtocol)
-                return this.cachedIVars.Values.ToArray();
-            var varsPtr = class_copyIvarList(this.Handle, out var count);
-            try
+            unsafe
             {
-                for (var i = 0; i < count; ++i)
+                if (this.areAllIVarsCached || this.IsProtocol)
+                    return this.cachedIVars.Values.ToArray();
+                var varsPtr = class_copyIvarList(this.Handle, out var count);
+                try
                 {
-                    var name = new string(ivar_getName(varsPtr[i]));
-                    this.cachedIVars.TryAdd(name, new Variable(this, varsPtr[i], name));
+                    for (var i = 0; i < count; ++i)
+                    {
+                        var name = new string(ivar_getName(varsPtr[i]));
+                        this.cachedIVars.TryAdd(name, new Variable(this, varsPtr[i], name));
+                    }
                 }
+                finally
+                {
+                    NativeMemory.Free(varsPtr);
+                }
+                this.areAllIVarsCached = true;
+                return this.cachedIVars.Values.ToArray();
             }
-            finally
-            {
-                NativeMemory.Free(varsPtr);
-            }
-            this.areAllIVarsCached = true;
-            return this.cachedIVars.Values.ToArray();
         }
 
 
@@ -836,30 +845,33 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <returns>Descriptors of methods.</returns>
         public Method[] GetMethods()
         {
-            if (this.areAllMethodsCached)
-                return this.cachedMethods.Values.ToArray();
-            if (!this.IsProtocol)
+            unsafe
             {
-                var methodsPtr = class_copyMethodList(this.Handle, out var count);
-                if (methodsPtr != null)
+                if (this.areAllMethodsCached)
+                    return this.cachedMethods.Values.ToArray();
+                if (!this.IsProtocol)
                 {
-                    try
+                    var methodsPtr = class_copyMethodList(this.Handle, out var count);
+                    if (methodsPtr != null)
                     {
-                        for (var i = 0; i < count; ++i)
+                        try
                         {
-                            var selector = Selector.FromHandle(method_getName(methodsPtr[i]));
-                            var method = new Method(this, methodsPtr[i], selector);
-                            this.cachedMethods.TryAdd(selector, method);
+                            for (var i = 0; i < count; ++i)
+                            {
+                                var selector = Selector.FromHandle(method_getName(methodsPtr[i]));
+                                var method = new Method(this, methodsPtr[i], selector);
+                                this.cachedMethods.TryAdd(selector, method);
+                            }
+                        }
+                        finally
+                        {
+                            NativeMemory.Free(methodsPtr);
                         }
                     }
-                    finally
-                    {
-                        NativeMemory.Free(methodsPtr);
-                    }
                 }
+                this.areAllMethodsCached = true;
+                return this.cachedMethods.Values.ToArray();
             }
-            this.areAllMethodsCached = true;
-            return this.cachedMethods.Values.ToArray();
         }
 
 
@@ -869,25 +881,28 @@ namespace CarinaStudio.MacOS.ObjectiveC
         /// <returns>Descriptors of properties.</returns>
         public Property[] GetProperties()
         {
-            if (areAllPropertiesCached)
-                return this.cachedProperties.Values.ToArray();
-            var propertiesPtr = this.IsProtocol
-                ? protocol_copyPropertyList(this.Handle, out var count)
-                : class_copyPropertyList(this.Handle, out count);
-            try
+            unsafe
             {
-                for (var i = 0; i < count; ++i)
+                if (areAllPropertiesCached)
+                    return this.cachedProperties.Values.ToArray();
+                var propertiesPtr = this.IsProtocol
+                    ? protocol_copyPropertyList(this.Handle, out var count)
+                    : class_copyPropertyList(this.Handle, out count);
+                try
                 {
-                    var name = new string(property_getName(propertiesPtr[i]));
-                    this.cachedProperties.TryAdd(name, new Property(this, propertiesPtr[i], name));
+                    for (var i = 0; i < count; ++i)
+                    {
+                        var name = new string(property_getName(propertiesPtr[i]));
+                        this.cachedProperties.TryAdd(name, new Property(this, propertiesPtr[i], name));
+                    }
                 }
+                finally
+                {
+                    NativeMemory.Free(propertiesPtr);
+                }
+                this.areAllPropertiesCached = true;
+                return this.cachedProperties.Values.ToArray();
             }
-            finally
-            {
-                NativeMemory.Free(propertiesPtr);
-            }
-            this.areAllPropertiesCached = true;
-            return this.cachedProperties.Values.ToArray();
         }
 
 
@@ -956,37 +971,40 @@ namespace CarinaStudio.MacOS.ObjectiveC
         // Entry of methods defined through DefineMethod, called by libffi closure.
         [UnconditionalSuppressMessage("Trimming", "IL2062", Justification = "Structure types used with native methods are expected to have fields preserved by caller.")]
         [UnmanagedCallersOnly]
-        static void InvokeMethodImpl(void* cif, void* returnBuffer, void** args, void* userData)
+        static unsafe void InvokeMethodImpl(void* cif, void* returnBuffer, void** args, void* userData)
         {
-            MethodImplContext? context = null;
-            try
+            unsafe
             {
-                // get context
-                context = (MethodImplContext)GCHandle.FromIntPtr((IntPtr)userData).Target.AsNonNull();
-                var paramTypes = context.ParameterTypes;
-                var nativeParamTypes = context.NativeParameterTypes;
-                var paramCount = paramTypes.Length;
-
-                // convert arguments
-                var implArgs = new object?[paramCount];
-                implArgs[0] = *(IntPtr*)args[0];
-                implArgs[1] = Selector.FromHandle(*(IntPtr*)args[1]);
-                for (var i = 2; i < paramCount; ++i)
+                MethodImplContext? context = null;
+                try
                 {
-                    var nativeValue = NativeTypeConversion.FromNativeValue((byte*)args[i], NativeTypeConversion.GetNativeValueSize(nativeParamTypes[i]), nativeParamTypes[i], out _);
-                    implArgs[i] = nativeValue is not null ? NativeTypeConversion.FromNativeParameter(nativeValue, paramTypes[i]) : null;
+                    // get context
+                    context = (MethodImplContext)GCHandle.FromIntPtr((IntPtr)userData).Target.AsNonNull();
+                    var paramTypes = context.ParameterTypes;
+                    var nativeParamTypes = context.NativeParameterTypes;
+                    var paramCount = paramTypes.Length;
+
+                    // convert arguments
+                    var implArgs = new object?[paramCount];
+                    implArgs[0] = *(IntPtr*)args[0];
+                    implArgs[1] = Selector.FromHandle(*(IntPtr*)args[1]);
+                    for (var i = 2; i < paramCount; ++i)
+                    {
+                        var nativeValue = NativeTypeConversion.FromNativeValue((byte*)args[i], NativeTypeConversion.GetNativeValueSize(nativeParamTypes[i]), nativeParamTypes[i], out _);
+                        implArgs[i] = nativeValue is not null ? NativeTypeConversion.FromNativeParameter(nativeValue, paramTypes[i]) : null;
+                    }
+
+                    // invoke implementation
+                    var result = context.Implementation.DynamicInvoke(implArgs);
+
+                    // convert return value
+                    if (context.NativeReturnType is not null)
+                        WriteNativeReturnValue(NativeTypeConversion.ToNativeParameter(result), returnBuffer);
                 }
-
-                // invoke implementation
-                var result = context.Implementation.DynamicInvoke(implArgs);
-
-                // convert return value
-                if (context.NativeReturnType is not null)
-                    WriteNativeReturnValue(NativeTypeConversion.ToNativeParameter(result), returnBuffer);
-            }
-            catch (Exception ex)
-            {
-                Environment.FailFast($"Unhandled exception in implementation of '{context?.Label}'.", ex);
+                catch (Exception ex)
+                {
+                    Environment.FailFast($"Unhandled exception in implementation of '{context?.Label}'.", ex);
+                }
             }
         }
 
@@ -1141,57 +1159,60 @@ namespace CarinaStudio.MacOS.ObjectiveC
 
 
         // Write native value returned from method implementation into return buffer of libffi closure.
-        static void WriteNativeReturnValue(object nativeValue, void* returnBuffer)
+        static unsafe void WriteNativeReturnValue(object nativeValue, void* returnBuffer)
         {
-            if (nativeValue is Enum)
-                nativeValue = Convert.ChangeType(nativeValue, Enum.GetUnderlyingType(nativeValue.GetType()));
-            switch (nativeValue)
+            unsafe
             {
-                // integral values narrower than ffi_arg must be widened to full ffi_arg
-                case bool boolValue: // Objective-C BOOL is signed char
-                    *(long*)returnBuffer = boolValue ? 1 : 0;
-                    break;
-                case sbyte sbyteValue:
-                    *(long*)returnBuffer = sbyteValue;
-                    break;
-                case short shortValue:
-                    *(long*)returnBuffer = shortValue;
-                    break;
-                case int intValue:
-                    *(long*)returnBuffer = intValue;
-                    break;
-                case byte byteValue:
-                    *(ulong*)returnBuffer = byteValue;
-                    break;
-                case ushort ushortValue:
-                    *(ulong*)returnBuffer = ushortValue;
-                    break;
-                case char charValue:
-                    *(ulong*)returnBuffer = charValue;
-                    break;
-                case uint uintValue:
-                    *(ulong*)returnBuffer = uintValue;
-                    break;
-                case long longValue:
-                    *(long*)returnBuffer = longValue;
-                    break;
-                case ulong ulongValue:
-                    *(ulong*)returnBuffer = ulongValue;
-                    break;
-                case nint nintValue:
-                    *(nint*)returnBuffer = nintValue;
-                    break;
-                case float floatValue:
-                    *(float*)returnBuffer = floatValue;
-                    break;
-                case double doubleValue:
-                    *(double*)returnBuffer = doubleValue;
-                    break;
-                case ValueType:
-                    NativeStructureLayout.Get(nativeValue.GetType()).Write(nativeValue, (byte*)returnBuffer);
-                    break;
-                default:
-                    throw new NotSupportedException($"Cannot convert {nativeValue.GetType().Name} to native return value.");
+                if (nativeValue is Enum)
+                    nativeValue = Convert.ChangeType(nativeValue, Enum.GetUnderlyingType(nativeValue.GetType()));
+                switch (nativeValue)
+                {
+                    // integral values narrower than ffi_arg must be widened to full ffi_arg
+                    case bool boolValue: // Objective-C BOOL is signed char
+                        *(long*)returnBuffer = boolValue ? 1 : 0;
+                        break;
+                    case sbyte sbyteValue:
+                        *(long*)returnBuffer = sbyteValue;
+                        break;
+                    case short shortValue:
+                        *(long*)returnBuffer = shortValue;
+                        break;
+                    case int intValue:
+                        *(long*)returnBuffer = intValue;
+                        break;
+                    case byte byteValue:
+                        *(ulong*)returnBuffer = byteValue;
+                        break;
+                    case ushort ushortValue:
+                        *(ulong*)returnBuffer = ushortValue;
+                        break;
+                    case char charValue:
+                        *(ulong*)returnBuffer = charValue;
+                        break;
+                    case uint uintValue:
+                        *(ulong*)returnBuffer = uintValue;
+                        break;
+                    case long longValue:
+                        *(long*)returnBuffer = longValue;
+                        break;
+                    case ulong ulongValue:
+                        *(ulong*)returnBuffer = ulongValue;
+                        break;
+                    case nint nintValue:
+                        *(nint*)returnBuffer = nintValue;
+                        break;
+                    case float floatValue:
+                        *(float*)returnBuffer = floatValue;
+                        break;
+                    case double doubleValue:
+                        *(double*)returnBuffer = doubleValue;
+                        break;
+                    case ValueType:
+                        NativeStructureLayout.Get(nativeValue.GetType()).Write(nativeValue, (byte*)returnBuffer);
+                        break;
+                    default:
+                        throw new NotSupportedException($"Cannot convert {nativeValue.GetType().Name} to native return value.");
+                }
             }
         }
     }

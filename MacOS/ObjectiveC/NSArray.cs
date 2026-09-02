@@ -187,7 +187,7 @@ public class NSArray<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.
     /// <param name="obj">Handle of allocated instance.</param>
     /// <param name="objects">Objects.</param>
     /// <returns>Handle of initialized instance.</returns>
-    protected static unsafe IntPtr Initialize(IntPtr obj, IEnumerable<T> objects)
+    protected static IntPtr Initialize(IntPtr obj, IEnumerable<T> objects)
     {
         IntPtr[] handleList;
         if (objects is IList<T> list)

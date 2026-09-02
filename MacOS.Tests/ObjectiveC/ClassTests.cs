@@ -9,7 +9,7 @@ namespace CarinaStudio.MacOS.ObjectiveC
     /// Tests of <see cref="Class"/> and its members.
     /// </summary>
     [TestFixture]
-    public unsafe class ClassTests
+    public class ClassTests
     {
         // Structure for testing.
         [StructLayout(LayoutKind.Sequential)]

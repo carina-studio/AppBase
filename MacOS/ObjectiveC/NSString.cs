@@ -64,22 +64,28 @@ public class NSString : NSObject, IComparable<NSString>, IEquatable<NSString>
 
 
     /// <inheritdoc/>
-    public unsafe int CompareTo(NSString? s)
+    public int CompareTo(NSString? s)
     {
         if (s == null)
             return 1;
         this.VerifyReleased();
         s.VerifyReleased();
-        return ((delegate*unmanaged<nint, nint, nint, int>)SendMessageNative)(this.Handle, CompareSelector!.Handle, s.Handle);
+        unsafe
+        {
+            return ((delegate*unmanaged<nint, nint, nint, int>)SendMessageNative)(this.Handle, CompareSelector!.Handle, s.Handle);
+        }
     }
 
 
     /// <inheritdoc/>
-    public unsafe bool Equals(NSString? s)
+    public bool Equals(NSString? s)
     {
         if (s == null || s.IsReleased || this.IsReleased)
             return false;
-        return ((delegate*unmanaged<nint, nint, nint, bool>)SendMessageNative)(this.Handle, IsEqualToSelector!.Handle, s.Handle);
+        unsafe
+        {
+            return ((delegate*unmanaged<nint, nint, nint, bool>)SendMessageNative)(this.Handle, IsEqualToSelector!.Handle, s.Handle);
+        }
     }
 
 
@@ -121,7 +127,7 @@ public class NSString : NSObject, IComparable<NSString>, IEquatable<NSString>
 
 
     /// <inheritdoc/>
-    public override unsafe string ToString()
+    public override string ToString()
     {
         if (this.IsReleased)
             return "";
@@ -130,7 +136,10 @@ public class NSString : NSObject, IComparable<NSString>, IEquatable<NSString>
         var length = this.Length;
         var buffer = new char[length];
         fixed (char* p = buffer)
-            ((delegate*unmanaged<nint, nint, char*, NSRange, void>)SendMessageNative)(this.Handle, GetCharsSelector!.Handle, p, new NSRange(0, length));
+            unsafe
+            {
+                ((delegate*unmanaged<nint, nint, char*, NSRange, void>)SendMessageNative)(this.Handle, GetCharsSelector!.Handle, p, new NSRange(0, length));
+            }
         s = new string(buffer);
         this.stringRef = new WeakReference<string>(s);
         return s;

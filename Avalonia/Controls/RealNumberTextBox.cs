@@ -119,7 +119,7 @@ public class RealNumberTextBox : ValueTextBox<double>
 
 
     /// <inheritdoc/>
-    protected override unsafe void OnPastingFromClipboard(string? text)
+    protected override void OnPastingFromClipboard(string? text)
     {
         if (text is null)
             return;
@@ -137,7 +137,7 @@ public class RealNumberTextBox : ValueTextBox<double>
                 var cPtr = p;
                 for (var i = 0; i < length; ++i, ++cPtr)
                 {
-                    var c = *cPtr;
+                    var c = unsafe(*cPtr);
                     if (c >= '0' && c <= '9')
                         newText.Append(c);
                     else

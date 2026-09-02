@@ -182,7 +182,7 @@ public class NSColor : NSObject
     /// <summary>
     /// Get cyan, magenta, yellow, black and alpha of color.
     /// </summary>
-    public unsafe (double, double, double, double, double) CMYK
+    public (double, double, double, double, double) CMYK
     {
         get
         {
@@ -192,8 +192,11 @@ public class NSColor : NSObject
                 throw new InvalidOperationException("Cannot get CMYK from color with non-CMYK model.");
             var cmyka = stackalloc double[5];
             GetCmykaSelector ??= Selector.FromName("getCyan:magenta:yellow:black:alpha:");
-            ((delegate*unmanaged<nint, nint, double*, double*, double*, double*, double*, void>)SendMessageNative)(this.Handle, GetCmykaSelector.Handle, cmyka, (cmyka + 1), (cmyka + 2), (cmyka + 3), (cmyka + 4));
-            return (cmyka[0], cmyka[1], cmyka[2], cmyka[3], cmyka[4]);
+            unsafe
+            {
+                ((delegate*unmanaged<nint, nint, double*, double*, double*, double*, double*, void>)SendMessageNative)(this.Handle, GetCmykaSelector.Handle, cmyka, (cmyka + 1), (cmyka + 2), (cmyka + 3), (cmyka + 4));
+                return (cmyka[0], cmyka[1], cmyka[2], cmyka[3], cmyka[4]);
+            }
         }
     }
 
@@ -284,7 +287,7 @@ public class NSColor : NSObject
     /// <param name="colorSpace">Color space</param>
     /// <param name="components">Color components.</param>
     /// <returns>Color.</returns>
-    public unsafe static NSColor Create(NSColorSpace colorSpace, params double[] components)
+    public static NSColor Create(NSColorSpace colorSpace, params double[] components)
     {
         var componentCount = components.Length;
         if (componentCount == 0)
@@ -341,7 +344,7 @@ public class NSColor : NSObject
     /// <param name="b">Blue.</param>
     /// <param name="a">Alpha.</param>
     /// <returns>Color.</returns>
-    public unsafe static NSColor CreateRGBA(NSColorSpace colorSpace, double r, double g, double b, double a = 1.0)
+    public static NSColor CreateRGBA(NSColorSpace colorSpace, double r, double g, double b, double a = 1.0)
     {
         if (colorSpace.ColorSpaceModel != NSColorSpace.Model.RGB)
             throw new ArgumentException($"Color model of '{colorSpace.LocalizedName}' is not RGB.");
@@ -435,7 +438,7 @@ public class NSColor : NSObject
     /// <summary>
     /// Get grayscale and alpha of color.
     /// </summary>
-    public unsafe (double, double) Grayscale
+    public (double, double) Grayscale
     {
         get
         {
@@ -446,7 +449,10 @@ public class NSColor : NSObject
             var ga = stackalloc double[2];
             GetWhiteSelector ??= Selector.FromName("getWhite:alpha:");
             this.SendMessage(GetWhiteSelector, (IntPtr)ga, (IntPtr)(ga + 1));
-            return (ga[0], ga[1]);
+            unsafe
+            {
+                return (ga[0], ga[1]);
+            }
         }
     }
 
@@ -530,7 +536,7 @@ public class NSColor : NSObject
     /// <summary>
     /// Get hue, saturation, intensity (brightness) and alpha of color.
     /// </summary>
-    public unsafe (double, double, double, double) HSI
+    public (double, double, double, double) HSI
     {
         get
         {
@@ -541,7 +547,10 @@ public class NSColor : NSObject
             var hsia = stackalloc double[4];
             GetHsiaSelector ??= Selector.FromName("getHue:saturation:brightness:alpha:");
             this.SendMessage(GetHsiaSelector, (IntPtr)hsia, (IntPtr)(hsia + 1), (IntPtr)(hsia + 2), (IntPtr)(hsia + 3));
-            return (hsia[0], hsia[1], hsia[2], hsia[3]);
+            unsafe
+            {
+                return (hsia[0], hsia[1], hsia[2], hsia[3]);
+            }
         }
     }
 
@@ -685,7 +694,7 @@ public class NSColor : NSObject
     /// <summary>
     /// Get RGBA components.
     /// </summary>
-    public unsafe (double, double, double, double) RGBA
+    public (double, double, double, double) RGBA
     {
         get
         {
@@ -695,8 +704,11 @@ public class NSColor : NSObject
                 throw new InvalidOperationException("Cannot get RGBA from color with non-RGB model.");
             var rgba = stackalloc double[4];
             GetRgbaSelector ??= Selector.FromName("getRed:green:blue:alpha:");
-            ((delegate*unmanaged<nint, nint, double*, double*, double*, double*, void>)SendMessageNative)(this.Handle, GetRgbaSelector.Handle, rgba, (rgba + 1), (rgba + 2), (rgba + 3));
-            return (rgba[0], rgba[1], rgba[2], rgba[3]);
+            unsafe
+            {
+                ((delegate*unmanaged<nint, nint, double*, double*, double*, double*, void>)SendMessageNative)(this.Handle, GetRgbaSelector.Handle, rgba, (rgba + 1), (rgba + 2), (rgba + 3));
+                return (rgba[0], rgba[1], rgba[2], rgba[3]);
+            }
         }
     }
 

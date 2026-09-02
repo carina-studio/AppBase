@@ -9,7 +9,7 @@ namespace CarinaStudio.MacOS.ImageIO;
 /// <summary>
 /// CGImageSource.
 /// </summary>
-public unsafe class CGImageSource : CFObject
+public class CGImageSource : CFObject
 {
     // Native symbols.
     static readonly delegate*<IntPtr, nuint, IntPtr, IntPtr> CGImageSourceCopyPropertiesAtIndex;
@@ -26,12 +26,30 @@ public unsafe class CGImageSource : CFObject
         if (Platform.IsNotMacOS)
             return;
         var libHandle = NativeLibraryHandles.ImageIO;
-        CGImageSourceCopyPropertiesAtIndex = (delegate*<IntPtr, nuint, IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGImageSourceCopyPropertiesAtIndex));
-        CGImageSourceCreateImageAtIndex = (delegate*<IntPtr, nuint, IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGImageSourceCreateImageAtIndex));
-        CGImageSourceCreateWithData = (delegate*<IntPtr, IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGImageSourceCreateWithData));
-        CGImageSourceGetCount = (delegate*<IntPtr, nuint>)NativeLibrary.GetExport(libHandle, nameof(CGImageSourceGetCount));
-        CGImageSourceGetPrimaryImageIndex = (delegate*<IntPtr, nuint>)NativeLibrary.GetExport(libHandle, nameof(CGImageSourceGetPrimaryImageIndex));
-        CGImageSourceGetStatus = (delegate*<IntPtr, CGImageSourceStatus>)NativeLibrary.GetExport(libHandle, nameof(CGImageSourceGetStatus));
+        unsafe
+        {
+            CGImageSourceCopyPropertiesAtIndex = (delegate*<IntPtr, nuint, IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGImageSourceCopyPropertiesAtIndex));
+        }
+        unsafe
+        {
+            CGImageSourceCreateImageAtIndex = (delegate*<IntPtr, nuint, IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGImageSourceCreateImageAtIndex));
+        }
+        unsafe
+        {
+            CGImageSourceCreateWithData = (delegate*<IntPtr, IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGImageSourceCreateWithData));
+        }
+        unsafe
+        {
+            CGImageSourceGetCount = (delegate*<IntPtr, nuint>)NativeLibrary.GetExport(libHandle, nameof(CGImageSourceGetCount));
+        }
+        unsafe
+        {
+            CGImageSourceGetPrimaryImageIndex = (delegate*<IntPtr, nuint>)NativeLibrary.GetExport(libHandle, nameof(CGImageSourceGetPrimaryImageIndex));
+        }
+        unsafe
+        {
+            CGImageSourceGetStatus = (delegate*<IntPtr, CGImageSourceStatus>)NativeLibrary.GetExport(libHandle, nameof(CGImageSourceGetStatus));
+        }
     }
 
 
@@ -55,7 +73,7 @@ public unsafe class CGImageSource : CFObject
     {
         if (index < 0)
             throw new ArgumentOutOfRangeException(nameof(index));
-        var handle = CGImageSourceCopyPropertiesAtIndex(this.Handle, (nuint)index, options?.Handle ?? default);
+        var handle = unsafe(CGImageSourceCopyPropertiesAtIndex(this.Handle, (nuint)index, options?.Handle ?? default));
         return handle != default ? new CFDictionary(handle, false, true) : null;
     }
 
@@ -67,7 +85,7 @@ public unsafe class CGImageSource : CFObject
     public CGImage? CreateImage()
     {
         this.VerifyReleased();
-        return FromHandle<CGImage>(CGImageSourceCreateImageAtIndex(this.Handle, CGImageSourceGetPrimaryImageIndex(this.Handle), IntPtr.Zero), true);
+        return FromHandle<CGImage>(unsafe(CGImageSourceCreateImageAtIndex(this.Handle, CGImageSourceGetPrimaryImageIndex(this.Handle), IntPtr.Zero)), true);
     }
 
 
@@ -81,7 +99,7 @@ public unsafe class CGImageSource : CFObject
         this.VerifyReleased();
         if (index < 0 || index >= this.ImageCount)
             throw new ArgumentOutOfRangeException(nameof(index));
-        return FromHandle<CGImage>(CGImageSourceCreateImageAtIndex(this.Handle, (nuint)index, IntPtr.Zero), true);
+        return FromHandle<CGImage>(unsafe(CGImageSourceCreateImageAtIndex(this.Handle, (nuint)index, IntPtr.Zero)), true);
     }
 
 
@@ -94,10 +112,10 @@ public unsafe class CGImageSource : CFObject
     {
         if (data.Handle == IntPtr.Zero)
             throw new ArgumentException("Data cannot be null.");
-        var handle = CGImageSourceCreateWithData(data.Handle, IntPtr.Zero);
+        var handle = unsafe(CGImageSourceCreateWithData(data.Handle, IntPtr.Zero));
         try
         {
-            VerifyStatus(CGImageSourceGetStatus(handle));
+            VerifyStatus(unsafe(CGImageSourceGetStatus(handle)));
             return new(handle, false, true);
         }
         catch
@@ -117,10 +135,10 @@ public unsafe class CGImageSource : CFObject
     {
         using var stream = new FileStream(fileName, FileMode.Open);
         using var data = CFData.FromStream(stream);
-        var handle = CGImageSourceCreateWithData(data.Handle, IntPtr.Zero);
+        var handle = unsafe(CGImageSourceCreateWithData(data.Handle, IntPtr.Zero));
         try
         {
-            VerifyStatus(CGImageSourceGetStatus(handle));
+            VerifyStatus(unsafe(CGImageSourceGetStatus(handle)));
             return new(handle, false, true);
         }
         catch
@@ -139,10 +157,10 @@ public unsafe class CGImageSource : CFObject
     public static CGImageSource FromStream(Stream stream)
     {
         using var data = CFData.FromStream(stream);
-        var handle = CGImageSourceCreateWithData(data.Handle, IntPtr.Zero);
+        var handle = unsafe(CGImageSourceCreateWithData(data.Handle, IntPtr.Zero));
         try
         {
-            VerifyStatus(CGImageSourceGetStatus(handle));
+            VerifyStatus(unsafe(CGImageSourceGetStatus(handle)));
             return new(handle, false, true);
         }
         catch
@@ -161,7 +179,7 @@ public unsafe class CGImageSource : CFObject
         get
         {
             this.VerifyReleased();
-            return (int)CGImageSourceGetCount(this.Handle);
+            return (int)unsafe(CGImageSourceGetCount(this.Handle));
         }
     }
 
@@ -174,7 +192,7 @@ public unsafe class CGImageSource : CFObject
         get
         {
             this.VerifyReleased();
-            return (int)CGImageSourceGetPrimaryImageIndex(this.Handle);
+            return (int)unsafe(CGImageSourceGetPrimaryImageIndex(this.Handle));
         }
     }
 
@@ -187,7 +205,7 @@ public unsafe class CGImageSource : CFObject
         get
         {
             this.VerifyReleased();
-            return CGImageSourceGetStatus(this.Handle);
+            return unsafe(CGImageSourceGetStatus(this.Handle));
         }
     }
 

@@ -8,7 +8,7 @@ namespace CarinaStudio.MacOS.CoreGraphics;
 /// <summary>
 /// CGImage.
 /// </summary>
-public unsafe class CGImage : CFObject
+public class CGImage : CFObject
 {
     // Native symbols.
     static readonly delegate*<nuint, nuint, nuint, nuint, nuint, IntPtr, CGBitmapInfo, IntPtr, IntPtr, bool, CGColorRenderingIntent, IntPtr> CGImageCreate;
@@ -42,19 +42,22 @@ public unsafe class CGImage : CFObject
         if (Platform.IsNotMacOS)
             return;
         var libHandle = NativeLibraryHandles.CoreGraphics;
-        CGImageCreate = (delegate*<nuint, nuint, nuint, nuint, nuint, IntPtr, CGBitmapInfo, IntPtr, IntPtr, bool, CGColorRenderingIntent, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGImageCreate));
-        CGImageCreateCopy = (delegate*<IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGImageCreateCopy));
-        CGImageCreateCopyWithColorSpace = (delegate*<IntPtr, IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGImageCreateCopyWithColorSpace));
-        CGImageGetAlphaInfo = (delegate*<IntPtr, CGImageAlphaInfo>)NativeLibrary.GetExport(libHandle, nameof(CGImageGetAlphaInfo));
-        CGImageGetBitmapInfo = (delegate*<IntPtr, CGBitmapInfo>)NativeLibrary.GetExport(libHandle, nameof(CGImageGetBitmapInfo));
-        CGImageGetBitsPerPixel = (delegate*<IntPtr, nuint>)NativeLibrary.GetExport(libHandle, nameof(CGImageGetBitsPerPixel));
-        CGImageGetByteOrderInfo = (delegate*<IntPtr, CGImageByteOrderInfo>)NativeLibrary.GetExport(libHandle, nameof(CGImageGetByteOrderInfo));
-        CGImageGetBytesPerRow = (delegate*<IntPtr, nuint>)NativeLibrary.GetExport(libHandle, nameof(CGImageGetBytesPerRow));
-        CGImageGetColorSpace = (delegate*<IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGImageGetColorSpace));
-        CGImageGetDataProvider = (delegate*<IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGImageGetDataProvider));
-        CGImageGetHeight = (delegate*<IntPtr, nuint>)NativeLibrary.GetExport(libHandle, nameof(CGImageGetHeight));
-        CGImageGetPixelFormatInfo = (delegate*<IntPtr, CGImagePixelFormatInfo>)NativeLibrary.GetExport(libHandle, nameof(CGImageGetPixelFormatInfo));
-        CGImageGetWidth = (delegate*<IntPtr, nuint>)NativeLibrary.GetExport(libHandle, nameof(CGImageGetWidth));
+        unsafe
+        {
+            CGImageCreate = (delegate*<nuint, nuint, nuint, nuint, nuint, IntPtr, CGBitmapInfo, IntPtr, IntPtr, bool, CGColorRenderingIntent, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGImageCreate));
+            CGImageCreateCopy = (delegate*<IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGImageCreateCopy));
+            CGImageCreateCopyWithColorSpace = (delegate*<IntPtr, IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGImageCreateCopyWithColorSpace));
+            CGImageGetAlphaInfo = (delegate*<IntPtr, CGImageAlphaInfo>)NativeLibrary.GetExport(libHandle, nameof(CGImageGetAlphaInfo));
+            CGImageGetBitmapInfo = (delegate*<IntPtr, CGBitmapInfo>)NativeLibrary.GetExport(libHandle, nameof(CGImageGetBitmapInfo));
+            CGImageGetBitsPerPixel = (delegate*<IntPtr, nuint>)NativeLibrary.GetExport(libHandle, nameof(CGImageGetBitsPerPixel));
+            CGImageGetByteOrderInfo = (delegate*<IntPtr, CGImageByteOrderInfo>)NativeLibrary.GetExport(libHandle, nameof(CGImageGetByteOrderInfo));
+            CGImageGetBytesPerRow = (delegate*<IntPtr, nuint>)NativeLibrary.GetExport(libHandle, nameof(CGImageGetBytesPerRow));
+            CGImageGetColorSpace = (delegate*<IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGImageGetColorSpace));
+            CGImageGetDataProvider = (delegate*<IntPtr, IntPtr>)NativeLibrary.GetExport(libHandle, nameof(CGImageGetDataProvider));
+            CGImageGetHeight = (delegate*<IntPtr, nuint>)NativeLibrary.GetExport(libHandle, nameof(CGImageGetHeight));
+            CGImageGetPixelFormatInfo = (delegate*<IntPtr, CGImagePixelFormatInfo>)NativeLibrary.GetExport(libHandle, nameof(CGImageGetPixelFormatInfo));
+            CGImageGetWidth = (delegate*<IntPtr, nuint>)NativeLibrary.GetExport(libHandle, nameof(CGImageGetWidth));
+        }
     }
 
 
@@ -158,7 +161,7 @@ public unsafe class CGImage : CFObject
         if (data.Length < bytesPerRow * height)
             throw new ArgumentException($"Insufficient data for image: {data.Length}, {bytesPerRow * height} required.");
         var bitmapInfo = (CGBitmapInfo)(((uint)alphaInfo & (uint)CGBitmapInfo.AlphaInfoMask) | ((uint)byteOrder & (uint)~CGBitmapInfo.AlphaInfoMask));
-        return CGImageCreate((nuint)width, (nuint)height, (nuint)bitsPerComponent, (nuint)bitsPerPixel, (nuint)bytesPerRow, colorSpace.Handle, bitmapInfo, dataProvider.Handle, IntPtr.Zero, false, renderingIntent);
+        return unsafe(CGImageCreate((nuint)width, (nuint)height, (nuint)bitsPerComponent, (nuint)bitsPerPixel, (nuint)bytesPerRow, colorSpace.Handle, bitmapInfo, dataProvider.Handle, IntPtr.Zero, false, renderingIntent));
     }), false, true)
     { 
         this.dataProvider = dataProvider.Retain<CGDataProvider>();
@@ -173,7 +176,7 @@ public unsafe class CGImage : CFObject
     public CGImage(CGImage source) : this(Global.Run(() =>
     {
         source.VerifyReleased();
-        return CGImageCreateCopy(source.Handle);
+        return unsafe(CGImageCreateCopy(source.Handle));
     }), false, true)
     { }
 
@@ -186,7 +189,7 @@ public unsafe class CGImage : CFObject
     public CGImage(CGImage source, CGColorSpace colorSpace) : this(Global.Run(() =>
     {
         source.VerifyReleased();
-        return CGImageCreateCopyWithColorSpace(source.Handle, colorSpace.Handle);
+        return unsafe(CGImageCreateCopyWithColorSpace(source.Handle, colorSpace.Handle));
     }), false, true)
     { }
 
@@ -209,7 +212,7 @@ public unsafe class CGImage : CFObject
         get
         {
             this.VerifyReleased();
-            return (CGImageAlphaInfo)(CGImageGetBitmapInfo(this.Handle) & CGBitmapInfo.AlphaInfoMask);
+            return (CGImageAlphaInfo)(unsafe(CGImageGetBitmapInfo(this.Handle)) & CGBitmapInfo.AlphaInfoMask);
         }
     }
 
@@ -222,7 +225,7 @@ public unsafe class CGImage : CFObject
         get
         {
             this.VerifyReleased();
-            return (int)CGImageGetBitsPerPixel(this.Handle);
+            return (int)unsafe(CGImageGetBitsPerPixel(this.Handle));
         }
     }
 
@@ -235,7 +238,7 @@ public unsafe class CGImage : CFObject
         get
         {
             this.VerifyReleased();
-            return CGImageGetByteOrderInfo(this.Handle);
+            return unsafe(CGImageGetByteOrderInfo(this.Handle));
         }
     }
 
@@ -248,7 +251,7 @@ public unsafe class CGImage : CFObject
         get
         {
             this.VerifyReleased();
-            return (int)CGImageGetBytesPerRow(this.Handle);
+            return (int)unsafe(CGImageGetBytesPerRow(this.Handle));
         }
     }
 
@@ -261,7 +264,7 @@ public unsafe class CGImage : CFObject
         get
         {
             this.VerifyReleased();
-            var handle = CGImageGetColorSpace(this.Handle);
+            var handle = unsafe(CGImageGetColorSpace(this.Handle));
             return handle != IntPtr.Zero ? FromHandle<CGColorSpace>(handle, false) : null;
         }
     }
@@ -275,7 +278,7 @@ public unsafe class CGImage : CFObject
         get
         {
             this.VerifyReleased();
-            return this.dataProvider ?? FromHandle<CGDataProvider>(CGImageGetDataProvider(this.Handle), false).Also(it =>
+            return this.dataProvider ?? FromHandle<CGDataProvider>(unsafe(CGImageGetDataProvider(this.Handle)), false).Also(it =>
             {
                 this.dataProvider = it;
             }).AsNonNull();
@@ -327,7 +330,7 @@ public unsafe class CGImage : CFObject
         get
         {
             this.VerifyReleased();
-            return (int)CGImageGetHeight(this.Handle);
+            return (int)unsafe(CGImageGetHeight(this.Handle));
         }
     }
 
@@ -349,7 +352,7 @@ public unsafe class CGImage : CFObject
         get
         {
             this.VerifyReleased();
-            return CGImageGetPixelFormatInfo(this.Handle);
+            return unsafe(CGImageGetPixelFormatInfo(this.Handle));
         }
     }
 
@@ -362,7 +365,7 @@ public unsafe class CGImage : CFObject
         get
         {
             this.VerifyReleased();
-            return (int)CGImageGetWidth(this.Handle);
+            return (int)unsafe(CGImageGetWidth(this.Handle));
         }
     }
 }
