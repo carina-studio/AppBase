@@ -1,6 +1,6 @@
 # AppBase Solution
 
-A set of NuGet-published .NET libraries providing foundational infrastructure for building desktop and mobile applications. Current version: **2.3.0.0**.
+A set of NuGet-published .NET libraries providing foundational infrastructure for building desktop and mobile applications.
 
 ## Solution Structure
 
@@ -34,7 +34,7 @@ Core
 ## Build & Packaging
 
 - **Shared properties**: [`Directory.Build.props`](Directory.Build.props) — version, authors, Avalonia version, AOT settings
-- **Target frameworks**: `net6.0` through `net10.0` (Android projects: `net8.0-android` through `net10.0-android`)
+- **Target frameworks**: `net8.0` through `net11.0` (Android projects: `net8.0-android` through `net10.0-android`)
 - **Language**: C# with `LangVersion=preview`
 - **AOT**: All projects are `IsAotCompatible=true`
 - **Packaging scripts**: [`BuildPackages.bat`](BuildPackages.bat) / [`BuildPackages.sh`](BuildPackages.sh)

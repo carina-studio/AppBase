@@ -8,11 +8,6 @@ IF exist Packages (
 )
 mkdir Packages
 
-dotnet build Application.Android -c Release "/p:AndroidSdkDirectory=%ANDROID_SDK_DIR%" "/p:JavaSdkDirectory=%JDK_DIR%"
-IF %ERRORLEVEL% NEQ 0 ( 
-   exit
-)
-
 dotnet build Application.Avalonia -c Release
 IF %ERRORLEVEL% NEQ 0 ( 
    exit

@@ -131,7 +131,7 @@ public abstract class BaseUpdaterComponent : BaseDisposableApplicationObject, IU
 		{
 			await this.PerformOperationAsync(this.cancellationTokenSource.Token);
 		}
-		catch (TaskCanceledException)
+		catch (OperationCanceledException)
 		{ }
 		catch (Exception ex)
 		{

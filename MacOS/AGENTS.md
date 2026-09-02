@@ -2,7 +2,7 @@
 
 **Package**: `CarinaStudio.AppBase.MacOS`
 **Namespace**: `CarinaStudio.MacOS`
-**Targets**: `net6.0` – `net10.0`
+**Targets**: `net8.0` – `net11.0`
 **AOT**: Yes (`IsAotCompatible=true`). No dynamic code generation anywhere: message sends and defined-method trampolines go through libffi (`Ffi/`), and structure marshalling uses reflection-based layout computation (`NativeStructureLayout.cs`) instead of `Marshal.SizeOf(Type)`/`PtrToStructure(Type)`. Fields of the library's own structure types are preserved under trimming via the embedded `ILLink.Descriptors.xml`; consumer-defined structures passed to native methods must have their fields preserved by the consumer (e.g. `[DynamicDependency]` or direct field usage)
 **Depends on**: `Core`
 

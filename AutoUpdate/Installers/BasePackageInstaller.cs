@@ -29,9 +29,7 @@ public abstract class BasePackageInstaller : BaseUpdaterComponent, IPackageInsta
 	/// </summary>
 	/// <param name="app">Application.</param>
 	protected BasePackageInstaller(IApplication app) : base(app)
-	{
-		this.InstalledFilePaths = installedFilePaths.AsReadOnly();
-	}
+	{ }
 
 
 	/// <summary>
@@ -60,7 +58,18 @@ public abstract class BasePackageInstaller : BaseUpdaterComponent, IPackageInsta
 
 
 	/// <inheritdoc/>
-	public ISet<string> InstalledFilePaths { get; }
+	/// <remarks>
+	/// A snapshot is returned, because files keep being reported from the installing thread while the caller reads the
+	/// set to roll the installation back.
+	/// </remarks>
+	public ISet<string> InstalledFilePaths
+	{
+		get
+		{
+			lock (this.installedFilePaths)
+				return new HashSet<string>(this.installedFilePaths, PathEqualityComparer.Default).AsReadOnly();
+		}
+	}
 
 
 	/// <inheritdoc/>
@@ -118,19 +127,18 @@ public abstract class BasePackageInstaller : BaseUpdaterComponent, IPackageInsta
 	/// Report path of installed file.
 	/// </summary>
 	/// <param name="filePath">File path.</param>
-	/// <remarks>The method can be called in any thread.</remarks>
+	/// <remarks>
+	/// The method can be called in any thread, and the path is recorded immediately instead of being posted to the
+	/// thread of the instance. Once the file has been written it must be tracked whatever the state becomes: posting
+	/// the report let the instance reach a completed or cancelled state first, which dropped the report and left the
+	/// file behind when the installation was rolled back.
+	/// </remarks>
 	protected void ReportInstalledFilePath(string filePath)
 	{
-		if (!this.CheckAccess())
-		{
-			this.SynchronizationContext.Post(() => this.ReportInstalledFilePath(filePath));
-			return;
-		}
-		if (!this.IsStartedOrCancelling() || this.IsCompletedOrCancelled() || this.IsDisposed)
-			return;
 		if (!Path.IsPathRooted(filePath))
 			filePath = Path.Combine(this.targetDirectoryPath.AsNonNull(), filePath);
-		this.installedFilePaths.Add(filePath);
+		lock (this.installedFilePaths)
+			this.installedFilePaths.Add(filePath);
 	}
 
 	

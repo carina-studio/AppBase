@@ -2,7 +2,7 @@
 
 **Package**: `CarinaStudio.AppBase.Core`
 **Namespace**: `CarinaStudio`
-**Targets**: `net6.0` – `net10.0`
+**Targets**: `net8.0` – `net11.0`
 **AOT**: Yes
 
 The foundation library for AppBase. All other projects depend on this one.

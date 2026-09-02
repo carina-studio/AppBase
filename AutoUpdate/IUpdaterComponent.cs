@@ -126,7 +126,22 @@ public static class UpdaterComponentExtensions
 			if (updaterComponent.IsInitializing() && !updaterComponent.Start())
 				throw new InvalidOperationException("Unable to start component.");
 			await using var _ = cancellationToken != CancellationToken.None
-				? cancellationToken.Register(() => taskCompletionSource.TrySetCanceled())
+				? cancellationToken.Register(() =>
+				{
+					// Request cancellation and keep waiting until the component actually reaches a terminal state.
+					// Completing the wait as soon as the token is cancelled lets the caller start rolling back while
+					// the component is still running, so files installed after the roll-back are left behind.
+					try
+					{
+						updaterComponent.Cancel();
+					}
+					catch
+					{
+						// The component cannot be cancelled from this thread or has been disposed, so there is
+						// nothing left to wait for.
+						taskCompletionSource.TrySetCanceled();
+					}
+				})
 				: new();
 			await taskCompletionSource.Task;
 			if (updaterComponent.State == UpdaterComponentState.Disposed)

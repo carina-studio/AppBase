@@ -2,7 +2,7 @@
 
 **Package**: `CarinaStudio.AppBase.Application.Avalonia`
 **Namespace**: `CarinaStudio`
-**Targets**: `net6.0` – `net10.0`
+**Targets**: `net8.0` – `net11.0`
 **AOT**: Yes
 **Depends on**: `Application`, `Avalonia`
 

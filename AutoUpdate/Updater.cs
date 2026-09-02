@@ -744,7 +744,10 @@ public class Updater : BaseDisposableApplicationObject, INotifyPropertyChanged
 	async Task RestoreApplicationAsync(string backupDirectory)
 	{
 		// check state
-		if (this.state != UpdaterState.RestoringApplication)
+		// Disposing while installing cancels the installation but leaves the state as Disposed, so the caller cannot
+		// move it to RestoringApplication. The application still has to be restored in that case, otherwise disposing
+		// during installation leaves a partially updated application behind.
+		if (this.state != UpdaterState.RestoringApplication && this.state != UpdaterState.Disposed)
 			return;
 
 		// report progress

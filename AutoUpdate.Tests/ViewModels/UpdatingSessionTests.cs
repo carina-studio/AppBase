@@ -45,6 +45,7 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 
 		// Fields.
 		readonly HttpListener httpListener = new HttpListener();
+		volatile bool isHttpListenerStopping;
 		volatile string? remotePackageFilePath;
 
 
@@ -78,7 +79,9 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 					Assert.That(session.CancelUpdatingCommand.CanExecute(null));
 					session.CancelUpdatingCommand.Execute(null);
 					Assert.That(!session.CancelUpdatingCommand.CanExecute(null));
-					Assert.That(session.IsUpdatingCancelling);
+					// Cancellation can complete synchronously inside Execute(), in which case the transient cancelling
+					// state is already gone by the time it is read here.
+					Assert.That(session.IsUpdatingCancelling || session.IsUpdatingCompleted, "Session should be cancelling or already completed after cancelling.");
 					Assert.That(await session.WaitForPropertyAsync(nameof(UpdatingSession.IsUpdatingCompleted), true, 60000));
 					await Task.Delay(500);
 					Assert.That(session.IsUpdatingCancelled);
@@ -103,7 +106,9 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 					Assert.That(session.CancelUpdatingCommand.CanExecute(null));
 					session.CancelUpdatingCommand.Execute(null);
 					Assert.That(!session.CancelUpdatingCommand.CanExecute(null));
-					Assert.That(session.IsUpdatingCancelling);
+					// Cancellation can complete synchronously inside Execute(), in which case the transient cancelling
+					// state is already gone by the time it is read here.
+					Assert.That(session.IsUpdatingCancelling || session.IsUpdatingCompleted, "Session should be cancelling or already completed after cancelling.");
 					Assert.That(await session.WaitForPropertyAsync(nameof(UpdatingSession.IsUpdatingCompleted), true, 60000));
 					await Task.Delay(500);
 					Assert.That(session.IsUpdatingCancelled);
@@ -127,7 +132,9 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 					Assert.That(session.CancelUpdatingCommand.CanExecute(null));
 					session.CancelUpdatingCommand.Execute(null);
 					Assert.That(!session.CancelUpdatingCommand.CanExecute(null));
-					Assert.That(session.IsUpdatingCancelling);
+					// Cancellation can complete synchronously inside Execute(), in which case the transient cancelling
+					// state is already gone by the time it is read here.
+					Assert.That(session.IsUpdatingCancelling || session.IsUpdatingCompleted, "Session should be cancelling or already completed after cancelling.");
 					Assert.That(await session.WaitForPropertyAsync(nameof(UpdatingSession.IsUpdatingCompleted), true, 60000));
 					await Task.Delay(500);
 					Assert.That(session.IsUpdatingCancelled);
@@ -147,6 +154,7 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 		[OneTimeTearDown]
 		public void DisposeHttpListener()
 		{
+			this.isHttpListenerStopping = true;
 			this.httpListener.Stop();
 		}
 
@@ -218,34 +226,46 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 				while (true)
 				{
 					// wait for connection
-					HttpListenerContext? context;
+					HttpListenerContext context;
 					try
 					{
 						context = this.httpListener.GetContext();
 					}
-					catch
+					catch (Exception ex)
 					{
-						if (this.httpListener.IsListening != true)
-							break;
-						throw;
+						// Stop() aborts the pending GetContext() call, and IsListening can still report
+						// true at that moment, so the explicit flag is what distinguishes a shutdown from
+						// a real error. Never rethrow here: this runs on a thread pool thread, where an
+						// unhandled exception kills the test host and aborts the whole run.
+						if (!this.isHttpListenerStopping)
+							Console.Error.WriteLine($"Unable to accept HTTP request: {ex.Message}");
+						break;
 					}
 
-					// load update package
-					var updatePackage = this.remotePackageFilePath?.Let(it =>
+					// handle request
+					try
 					{
-						return new FileStream(it, FileMode.Open, FileAccess.Read).Use(stream => stream.ReadAllBytes());
-					}) ?? Array.Empty<byte>();
+						// load update package
+						var updatePackage = this.remotePackageFilePath?.Let(it =>
+						{
+							return new FileStream(it, FileMode.Open, FileAccess.Read).Use(stream => stream.ReadAllBytes());
+						}) ?? Array.Empty<byte>();
 
-					// response
-					context.Response.Let(response =>
+						// response
+						context.Response.Let(response =>
+						{
+							response.ContentLength64 = updatePackage.Length;
+							response.ContentEncoding = Encoding.UTF8;
+							using var stream = response.OutputStream;
+							Thread.Sleep(3000);
+							stream.Write(updatePackage, 0, updatePackage.Length);
+							stream.Flush();
+						});
+					}
+					catch (Exception ex)
 					{
-						response.ContentLength64 = updatePackage.Length;
-						response.ContentEncoding = Encoding.UTF8;
-						using var stream = response.OutputStream;
-						Thread.Sleep(3000);
-						stream.Write(updatePackage, 0, updatePackage.Length);
-						stream.Flush();
-					});
+						Console.Error.WriteLine($"Unable to handle HTTP request: {ex.Message}");
+					}
 				}
 			});
 		}

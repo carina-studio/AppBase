@@ -2,7 +2,7 @@
 
 **Package**: `CarinaStudio.AppBase.Avalonia`
 **Namespace**: `CarinaStudio`
-**Targets**: `net6.0` – `net10.0`
+**Targets**: `net8.0` – `net11.0`
 **AOT**: Yes
 **Depends on**: `MacOS`, `Avalonia 11.0.10`, `Microsoft.Extensions.Logging.Abstractions`
 

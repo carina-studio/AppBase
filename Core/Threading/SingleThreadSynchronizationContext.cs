@@ -83,7 +83,7 @@ public class SingleThreadSynchronizationContext : SynchronizationContext, IDispo
 			// get next call-back
 			var postedCallback = this.syncLock.Lock(() =>
 			{
-				if (this.postedCallbackListHead != null)
+				if (this.postedCallbackListHead is not null)
 				{
 					var postedCallback = this.postedCallbackListHead;
 					this.postedCallbackListHead = postedCallback.Next;
@@ -95,7 +95,7 @@ public class SingleThreadSynchronizationContext : SynchronizationContext, IDispo
 				Monitor.Wait(this.syncLock);
 				return null;
 			});
-			if (postedCallback == null)
+			if (postedCallback is null)
 				continue;
 
 			// execute call-back
@@ -118,6 +118,13 @@ public class SingleThreadSynchronizationContext : SynchronizationContext, IDispo
 
 
 	/// <summary>
+	/// Check whether the instance has been disposed or not.
+	/// </summary>
+	[ThreadSafe]
+	public bool IsDisposed => this.isDisposed;
+
+
+	/// <summary>
 	/// Get name.
 	/// </summary>
 	[ThreadSafe]
@@ -129,13 +136,21 @@ public class SingleThreadSynchronizationContext : SynchronizationContext, IDispo
 	/// </summary>
 	/// <param name="callback">Call-back.</param>
 	/// <param name="state">Custom state passed to call-back.</param>
+	/// <remarks>
+	/// The call-back is dropped silently after the instance has been disposed, consistent with call-backs which are
+	/// already queued when disposing. This method must never throw for that case: the runtime also calls it to resume
+	/// <c>await</c> continuations which captured this context, and such a call cannot handle an exception. The exception
+	/// would be re-thrown on a thread pool thread as an unhandled exception and terminate the process. Use
+	/// <see cref="IsDisposed"/> to check the state before posting when the caller needs to know.
+	/// </remarks>
 	[ThreadSafe]
 	public override void Post(SendOrPostCallback callback, object? state)
 	{
 		lock (this.syncLock)
 		{
 			// check state
-			this.ThrowIfDisposed();
+			if (this.isDisposed)
+				return;
 
 			// prepare control block
 			var postedCallback = this.freePostedCallbackListHead?.Also((it) =>
@@ -147,7 +162,7 @@ public class SingleThreadSynchronizationContext : SynchronizationContext, IDispo
 			postedCallback.CallbackState = state;
 
 			// enqueue call-back
-			if (this.postedCallbackListTail != null)
+			if (this.postedCallbackListTail is not null)
 				this.postedCallbackListTail.Next = postedCallback;
 			else
 				this.postedCallbackListHead = postedCallback;
@@ -164,9 +179,15 @@ public class SingleThreadSynchronizationContext : SynchronizationContext, IDispo
 	/// </summary>
 	/// <param name="callback">Call-back.</param>
 	/// <param name="state">Custom state passed to call-back.</param>
+	/// <exception cref="ObjectDisposedException">The instance has been disposed.</exception>
+	/// <remarks>
+	/// Unlike <see cref="Post"/>, the caller of this method waits for the call-back and can handle the exception, so the
+	/// disposed state is reported instead of dropped. Dropping it here would block the caller forever.
+	/// </remarks>
 	[ThreadSafe]
 	public override void Send(SendOrPostCallback callback, object? state)
 	{
+		this.ThrowIfDisposed();
 		if (Thread.CurrentThread == this.executionThread)
 			callback(state);
 		else
@@ -175,7 +196,7 @@ public class SingleThreadSynchronizationContext : SynchronizationContext, IDispo
 			var exception = (Exception?)null;
 			lock (syncLock)
 			{
-				this.Post((_) =>
+				this.Post(_ =>
 				{
 					try
 					{
@@ -193,7 +214,7 @@ public class SingleThreadSynchronizationContext : SynchronizationContext, IDispo
 				}, null);
 				Monitor.Wait(syncLock);
 			}
-			if (exception != null)
+			if (exception is not null)
 				throw new Exception("Exception occurred while executing call-back.", exception);
 		}
 	}

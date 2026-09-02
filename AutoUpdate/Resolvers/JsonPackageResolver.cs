@@ -1,15 +1,12 @@
 ﻿using CarinaStudio.IO;
 using System;
 using System.Runtime.InteropServices;
-#if !NETSTANDARD
 using System.Text.Json;
-#endif
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace CarinaStudio.AutoUpdate.Resolvers;
 
-#if !NETSTANDARD
 /// <summary>
 /// <see cref="IPackageResolver"/> to resolve package manifest in JSON format.
 /// </summary>
@@ -241,4 +238,3 @@ public class JsonPackageResolver : BasePackageResolver
 			throw new ArgumentException("Package URI not found.");
 	}
 }
-#endif

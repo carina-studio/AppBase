@@ -1,4 +1,4 @@
-﻿using NUnit.Framework;
+using NUnit.Framework;
 using System;
 using System.IO;
 
@@ -52,8 +52,8 @@ namespace CarinaStudio.Configuration
 				var value = keyValue.Value;
 #pragma warning disable CS0618
 				settings.SetValue(key, value);
-				Assert.AreNotEqual(value, key.DefaultValue, "Test value should be different from default value.");
-				Assert.AreEqual(value, settings.GetValueOrDefault(key), "Value should be same as set one.");
+				Assert.That(key.DefaultValue, Is.Not.EqualTo(value), "Test value should be different from default value.");
+				Assert.That(settings.GetValueOrDefault(key), Is.EqualTo(value), "Value should be same as set one.");
 #pragma warning restore CS0618
 			}
 
@@ -62,9 +62,9 @@ namespace CarinaStudio.Configuration
 
 			// check values
 #pragma warning disable CS0618
-			Assert.IsFalse(settings.IsOnUpgradeCalled, "Setting upgrading should not be called.");
+			Assert.That(settings.IsOnUpgradeCalled, Is.False, "Setting upgrading should not be called.");
 			foreach (var key in TestSettings.AllKeys)
-				Assert.AreEqual(key.DefaultValue, settings.GetValueOrDefault(key), "Value should be same as default value.");
+				Assert.That(settings.GetValueOrDefault(key), Is.EqualTo(key.DefaultValue), "Value should be same as default value.");
 
 			// modify values
 			foreach (var keyValue in TestSettings.TestValues)
@@ -78,9 +78,9 @@ namespace CarinaStudio.Configuration
 			settings.Load(filePath);
 
 			// check values
-			Assert.IsFalse(settings.IsOnUpgradeCalled, "Setting upgrading should not be called.");
+			Assert.That(settings.IsOnUpgradeCalled, Is.False, "Setting upgrading should not be called.");
 			foreach (var keyValue in TestSettings.TestValues)
-				Assert.AreEqual(keyValue.Value, settings.GetValueOrDefault(keyValue.Key), "Value should be same as value before saving.");
+				Assert.That(settings.GetValueOrDefault(keyValue.Key), Is.EqualTo(keyValue.Value), "Value should be same as value before saving.");
 #pragma warning restore CS0618
 		}
 
@@ -108,8 +108,8 @@ namespace CarinaStudio.Configuration
 				var key = keyValue.Key;
 				var value = keyValue.Value;
 				settings.SetValue(key, value);
-				Assert.AreNotEqual(value, key.DefaultValue, "Test value should be different from default value.");
-				Assert.AreEqual(value, settings.GetValueOrDefault(key), "Value should be same as set one.");
+				Assert.That(key.DefaultValue, Is.Not.EqualTo(value), "Test value should be different from default value.");
+				Assert.That(settings.GetValueOrDefault(key), Is.EqualTo(value), "Value should be same as set one.");
 			}
 #pragma warning restore CS0618
 
@@ -119,9 +119,9 @@ namespace CarinaStudio.Configuration
 
 			// check values
 #pragma warning disable CS0618
-			Assert.IsFalse(settings.IsOnUpgradeCalled, "Setting upgrading should not be called.");
+			Assert.That(settings.IsOnUpgradeCalled, Is.False, "Setting upgrading should not be called.");
 			foreach (var key in TestSettings.AllKeys)
-				Assert.AreEqual(key.DefaultValue, settings.GetValueOrDefault(key), "Value should be same as default value.");
+				Assert.That(settings.GetValueOrDefault(key), Is.EqualTo(key.DefaultValue), "Value should be same as default value.");
 
 			// modify values
 			foreach (var keyValue in TestSettings.TestValues)
@@ -142,9 +142,9 @@ namespace CarinaStudio.Configuration
 
 			// check values
 #pragma warning disable CS0618
-			Assert.IsFalse(settings.IsOnUpgradeCalled, "Setting upgrading should not be called.");
+			Assert.That(settings.IsOnUpgradeCalled, Is.False, "Setting upgrading should not be called.");
 			foreach (var keyValue in TestSettings.TestValues)
-				Assert.AreEqual(keyValue.Value, settings.GetValueOrDefault(keyValue.Key), "Value should be same as value before saving.");
+				Assert.That(settings.GetValueOrDefault(keyValue.Key), Is.EqualTo(keyValue.Value), "Value should be same as value before saving.");
 #pragma warning restore CS0618
 		}
 
@@ -177,8 +177,8 @@ namespace CarinaStudio.Configuration
 				newSettings.Load(stream);
 
 			// check upgrading state
-			Assert.IsTrue(newSettings.IsOnUpgradeCalled, "Upgrading should happens after loading.");
-			Assert.AreEqual(1, newSettings.OldVersion, "Incorrect old version when upgrading.");
+			Assert.That(newSettings.IsOnUpgradeCalled, Is.True, "Upgrading should happens after loading.");
+			Assert.That(newSettings.OldVersion, Is.EqualTo(1), "Incorrect old version when upgrading.");
 			newSettings.IsOnUpgradeCalled = false;
 
 			// save and load new settings
@@ -191,7 +191,7 @@ namespace CarinaStudio.Configuration
 				newSettings.Load(stream);
 
 			// check upgrading state
-			Assert.IsFalse(newSettings.IsOnUpgradeCalled, "Upgrading should not happens after loading.");
+			Assert.That(newSettings.IsOnUpgradeCalled, Is.False, "Upgrading should not happens after loading.");
 		}
 	}
 }

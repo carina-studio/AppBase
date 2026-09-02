@@ -614,7 +614,7 @@ public abstract class UpdatingSession : ViewModel
 		}
 		catch (Exception ex)
 		{
-			if (ex is TaskCanceledException)
+			if (ex is OperationCanceledException)
 				this.Logger.LogWarning("Application icon refreshing has been cancelled");
 			else
 				this.Logger.LogError(ex, "Error occurred while refreshing application icon");

@@ -1,4 +1,4 @@
-﻿using NUnit.Framework;
+using NUnit.Framework;
 using System;
 using System.IO;
 using System.Linq;
@@ -62,9 +62,9 @@ namespace CarinaStudio.Configuration
 			stream.Position = 0;
 			var verify = this.CreatePersistentSettings();
 			verify.Load(stream);
-			Assert.AreEqual(false, verify.GetValueOrDefault(TestSettings.BooleanKey), "BooleanKey from A should survive.");
-			Assert.AreEqual(42, verify.GetValueOrDefault(TestSettings.Int32Key), "Int32Key from A should survive.");
-			Assert.AreEqual("added", verify.GetValueOrDefault(TestSettings.StringKey), "StringKey from B should be present.");
+			Assert.That(verify.GetValueOrDefault(TestSettings.BooleanKey), Is.EqualTo(false), "BooleanKey from A should survive.");
+			Assert.That(verify.GetValueOrDefault(TestSettings.Int32Key), Is.EqualTo(42), "Int32Key from A should survive.");
+			Assert.That(verify.GetValueOrDefault(TestSettings.StringKey), Is.EqualTo("added"), "StringKey from B should be present.");
 		}
 
 
@@ -91,8 +91,8 @@ namespace CarinaStudio.Configuration
 				// verify: Int32Key overridden, StringKey preserved
 				var verify = this.CreatePersistentSettings();
 				verify.Load(filePath);
-				Assert.AreEqual(999, verify.GetValueOrDefault(TestSettings.Int32Key), "Int32Key should be overridden by B.");
-				Assert.AreEqual("old", verify.GetValueOrDefault(TestSettings.StringKey), "StringKey should be preserved from file.");
+				Assert.That(verify.GetValueOrDefault(TestSettings.Int32Key), Is.EqualTo(999), "Int32Key should be overridden by B.");
+				Assert.That(verify.GetValueOrDefault(TestSettings.StringKey), Is.EqualTo("old"), "StringKey should be preserved from file.");
 			}
 			finally
 			{
@@ -132,8 +132,8 @@ namespace CarinaStudio.Configuration
 				// verify both changes are present
 				var verify = this.CreatePersistentSettings();
 				verify.Load(filePath);
-				Assert.AreEqual(20, verify.GetValueOrDefault(TestSettings.Int32Key), "Our update to Int32Key should win.");
-				Assert.AreEqual("external", verify.GetValueOrDefault(TestSettings.StringKey), "External writer's StringKey should be preserved.");
+				Assert.That(verify.GetValueOrDefault(TestSettings.Int32Key), Is.EqualTo(20), "Our update to Int32Key should win.");
+				Assert.That(verify.GetValueOrDefault(TestSettings.StringKey), Is.EqualTo("external"), "External writer's StringKey should be preserved.");
 			}
 			finally
 			{
@@ -165,9 +165,9 @@ namespace CarinaStudio.Configuration
 				// verify all three are present
 				var verify = this.CreatePersistentSettings();
 				verify.Load(filePath);
-				Assert.AreEqual(false, verify.GetValueOrDefault(TestSettings.BooleanKey), "BooleanKey from A should survive.");
-				Assert.AreEqual(42, verify.GetValueOrDefault(TestSettings.Int32Key), "Int32Key from A should survive.");
-				Assert.AreEqual("hi", verify.GetValueOrDefault(TestSettings.StringKey), "StringKey from B should be present.");
+				Assert.That(verify.GetValueOrDefault(TestSettings.BooleanKey), Is.EqualTo(false), "BooleanKey from A should survive.");
+				Assert.That(verify.GetValueOrDefault(TestSettings.Int32Key), Is.EqualTo(42), "Int32Key from A should survive.");
+				Assert.That(verify.GetValueOrDefault(TestSettings.StringKey), Is.EqualTo("hi"), "StringKey from B should be present.");
 			}
 			finally
 			{
@@ -200,8 +200,8 @@ namespace CarinaStudio.Configuration
 				// verify: Int32Key gone from file, StringKey preserved
 				var verify = this.CreatePersistentSettings();
 				verify.Load(filePath);
-				Assert.IsNull(verify.Keys.FirstOrDefault(k => k.Name == TestSettings.Int32Key.Name), "Int32Key entry should be absent from the file.");
-				Assert.AreEqual("alive", verify.GetValueOrDefault(TestSettings.StringKey), "StringKey should be preserved from file.");
+				Assert.That(verify.Keys.FirstOrDefault(k => k.Name == TestSettings.Int32Key.Name), Is.Null, "Int32Key entry should be absent from the file.");
+				Assert.That(verify.GetValueOrDefault(TestSettings.StringKey), Is.EqualTo("alive"), "StringKey should be preserved from file.");
 			}
 			finally
 			{
@@ -234,9 +234,9 @@ namespace CarinaStudio.Configuration
 				// verify: Int32Key gone from file, StringKey preserved
 				var verify = this.CreatePersistentSettings();
 				verify.Load(filePath);
-				Assert.AreEqual(TestSettings.Int32Key.DefaultValue, verify.GetValueOrDefault(TestSettings.Int32Key), "Int32Key should fall back to default after reset.");
-				Assert.IsNull(verify.Keys.FirstOrDefault(k => k.Name == TestSettings.Int32Key.Name), "Int32Key entry should be absent from the file.");
-				Assert.AreEqual("alive", verify.GetValueOrDefault(TestSettings.StringKey), "StringKey should be preserved from file.");
+				Assert.That(verify.GetValueOrDefault(TestSettings.Int32Key), Is.EqualTo(TestSettings.Int32Key.DefaultValue), "Int32Key should fall back to default after reset.");
+				Assert.That(verify.Keys.FirstOrDefault(k => k.Name == TestSettings.Int32Key.Name), Is.Null, "Int32Key entry should be absent from the file.");
+				Assert.That(verify.GetValueOrDefault(TestSettings.StringKey), Is.EqualTo("alive"), "StringKey should be preserved from file.");
 			}
 			finally
 			{
@@ -254,16 +254,16 @@ namespace CarinaStudio.Configuration
 			var filePath = NewTempFilePath();
 			try
 			{
-				Assert.IsFalse(File.Exists(filePath), "Precondition: file should not exist.");
+				Assert.That(File.Exists(filePath), Is.False, "Precondition: file should not exist.");
 
 				var settings = this.CreatePersistentSettings();
 				settings.SetValue<int>(TestSettings.Int32Key, 7);
 				Assert.DoesNotThrow(() => settings.Save(filePath, true), "Save with keep should not throw when file is absent.");
-				Assert.IsTrue(File.Exists(filePath), "File should be created.");
+				Assert.That(File.Exists(filePath), Is.True, "File should be created.");
 
 				var verify = this.CreatePersistentSettings();
 				verify.Load(filePath);
-				Assert.AreEqual(7, verify.GetValueOrDefault(TestSettings.Int32Key), "Saved value should round-trip.");
+				Assert.That(verify.GetValueOrDefault(TestSettings.Int32Key), Is.EqualTo(7), "Saved value should round-trip.");
 			}
 			finally
 			{
@@ -329,8 +329,8 @@ namespace CarinaStudio.Configuration
 			stream.Position = 0;
 			settingsB.Save(stream, true);
 
-			Assert.Less(stream.Length, initialLength, "New content should be shorter than original.");
-			Assert.AreEqual(stream.Position, stream.Length, "Stream should be truncated to new content length (no trailing garbage).");
+			Assert.That(stream.Length, Is.LessThan(initialLength), "New content should be shorter than original.");
+			Assert.That(stream.Length, Is.EqualTo(stream.Position), "Stream should be truncated to new content length (no trailing garbage).");
 
 			// stream should still be a valid serialized payload
 			stream.Position = 0;
@@ -338,7 +338,7 @@ namespace CarinaStudio.Configuration
 			Assert.DoesNotThrow(() => verify.Load(stream), "Truncated stream should still be a valid serialization.");
 #pragma warning disable CS0618
 			foreach (var key in TestSettings.AllKeys)
-				Assert.AreEqual(key.DefaultValue, verify.GetValueOrDefault(key), $"{key.Name} should be at default after reset round-trip.");
+				Assert.That(verify.GetValueOrDefault(key), Is.EqualTo(key.DefaultValue), $"{key.Name} should be at default after reset round-trip.");
 #pragma warning restore CS0618
 		}
 
@@ -369,7 +369,7 @@ namespace CarinaStudio.Configuration
 				// verify: file no longer contains Int32Key
 				var verify = this.CreatePersistentSettings();
 				verify.Load(filePath);
-				Assert.IsNull(verify.Keys.FirstOrDefault(k => k.Name == TestSettings.Int32Key.Name), "Tombstone from template should have removed Int32Key from the file.");
+				Assert.That(verify.Keys.FirstOrDefault(k => k.Name == TestSettings.Int32Key.Name), Is.Null, "Tombstone from template should have removed Int32Key from the file.");
 			}
 			finally
 			{

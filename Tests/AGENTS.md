@@ -2,7 +2,7 @@
 
 **Package**: `CarinaStudio.AppBase.Tests`
 **Namespace**: `CarinaStudio.Tests`
-**Targets**: `net6.0` – `net10.0`
+**Targets**: `net8.0` – `net11.0`
 **Depends on**: `Core`
 
 Shared test helper library published on NuGet. Consumed by test projects in this solution and by downstream consumers writing tests against AppBase-based code.

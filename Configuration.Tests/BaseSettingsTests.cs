@@ -1,4 +1,4 @@
-﻿using NUnit.Framework;
+using NUnit.Framework;
 using System;
 using System.Linq;
 
@@ -23,8 +23,8 @@ namespace CarinaStudio.Configuration
 				if (!TestSettings.TestValues.TryGetValue(key, out var value))
 					continue;
 				baseSettings.SetValue(key, value);
-				Assert.AreNotEqual(value, key.DefaultValue, "Test value should be different from default value.");
-				Assert.AreEqual(value, baseSettings.GetValueOrDefault(key), "Value should be same as set one.");
+				Assert.That(key.DefaultValue, Is.Not.EqualTo(value), "Test value should be different from default value.");
+				Assert.That(baseSettings.GetValueOrDefault(key), Is.EqualTo(value), "Value should be same as set one.");
 			}
 
 			// copy settings
@@ -33,7 +33,7 @@ namespace CarinaStudio.Configuration
 			{
 				var baseValue = baseSettings.GetValueOrDefault(key);
 				var copiedValue = copiedSettings.GetValueOrDefault(key);
-				Assert.AreEqual(baseValue, copiedValue, "Value should be same as base.");
+				Assert.That(copiedValue, Is.EqualTo(baseValue), "Value should be same as base.");
 			}
 
 			// reset bae settings.
@@ -41,7 +41,7 @@ namespace CarinaStudio.Configuration
 
 			// check copied settings
 			foreach (var key in TestSettings.AllKeys)
-				Assert.AreNotEqual(copiedSettings.GetValueOrDefault(key), key.DefaultValue, "Copied value should be affected by base.");
+				Assert.That(key.DefaultValue, Is.Not.EqualTo(copiedSettings.GetValueOrDefault(key)), "Copied value should be affected by base.");
 		}
 
 
@@ -66,7 +66,7 @@ namespace CarinaStudio.Configuration
 			foreach (var key in TestSettings.AllKeys)
 			{
 				var value = settings.GetValueOrDefault(key);
-				Assert.AreEqual(key.DefaultValue, value, "Value should be default value.");
+				Assert.That(value, Is.EqualTo(key.DefaultValue), "Value should be default value.");
 			}
 
 			// modify values
@@ -75,8 +75,8 @@ namespace CarinaStudio.Configuration
 				if (!TestSettings.TestValues.TryGetValue(key, out var value))
 					continue;
 				settings.SetValue(key, value);
-				Assert.AreNotEqual(value, key.DefaultValue, "Test value should be different from default value.");
-				Assert.AreEqual(value, settings.GetValueOrDefault(key), "Value should be same as set one.");
+				Assert.That(key.DefaultValue, Is.Not.EqualTo(value), "Test value should be different from default value.");
+				Assert.That(settings.GetValueOrDefault(key), Is.EqualTo(value), "Value should be same as set one.");
 			}
 
 			// reset all values
@@ -86,7 +86,7 @@ namespace CarinaStudio.Configuration
 			foreach (var key in TestSettings.AllKeys)
 			{
 				var value = settings.GetValueOrDefault(key);
-				Assert.AreEqual(key.DefaultValue, value, "Value should be default value.");
+				Assert.That(value, Is.EqualTo(key.DefaultValue), "Value should be default value.");
 			}
 		}
 
@@ -106,26 +106,26 @@ namespace CarinaStudio.Configuration
 
 			// reset value
 			settings.ResetValue(TestSettings.Int32Key);
-			Assert.IsNull(settingChangingEventArgs, "Should not receive SettingChanging event.");
-			Assert.IsNull(settingChangedEventArgs, "Should not receive SettingChanged event.");
+			Assert.That(settingChangingEventArgs, Is.Null, "Should not receive SettingChanging event.");
+			Assert.That(settingChangedEventArgs, Is.Null, "Should not receive SettingChanged event.");
 
 			// modify value
 			var testValue = TestSettings.TestValues[TestSettings.Int32Key];
 			settings.SetValue(TestSettings.Int32Key, testValue);
-			Assert.IsNotNull(settingChangingEventArgs, "Should receive SettingsChanging event.");
-			Assert.AreEqual(TestSettings.Int32Key, settingChangingEventArgs?.Key, "Key reported by SettingChanging is incorrect.");
-			Assert.AreEqual(TestSettings.Int32Key.DefaultValue, settingChangingEventArgs?.Value, "Current value reported by SettingChanging is incorrect.");
-			Assert.AreEqual(testValue, settingChangingEventArgs?.NewValue, "New value reported by SettingChanging is incorrect.");
-			Assert.IsNotNull(settingChangedEventArgs, "Should receive SettingChanged event.");
-			Assert.AreEqual(TestSettings.Int32Key.DefaultValue, settingChangedEventArgs?.PreviousValue, "Previous value reported by SettingChanged is incorrect.");
-			Assert.AreEqual(testValue, settingChangedEventArgs?.Value, "Current value reported by SettingChanged is incorrect.");
+			Assert.That(settingChangingEventArgs, Is.Not.Null, "Should receive SettingsChanging event.");
+			Assert.That(settingChangingEventArgs?.Key, Is.EqualTo(TestSettings.Int32Key), "Key reported by SettingChanging is incorrect.");
+			Assert.That(settingChangingEventArgs?.Value, Is.EqualTo(TestSettings.Int32Key.DefaultValue), "Current value reported by SettingChanging is incorrect.");
+			Assert.That(settingChangingEventArgs?.NewValue, Is.EqualTo(testValue), "New value reported by SettingChanging is incorrect.");
+			Assert.That(settingChangedEventArgs, Is.Not.Null, "Should receive SettingChanged event.");
+			Assert.That(settingChangedEventArgs?.PreviousValue, Is.EqualTo(TestSettings.Int32Key.DefaultValue), "Previous value reported by SettingChanged is incorrect.");
+			Assert.That(settingChangedEventArgs?.Value, Is.EqualTo(testValue), "Current value reported by SettingChanged is incorrect.");
 
 			// modify by same value
 			settingChangingEventArgs = null;
 			settingChangedEventArgs = null;
 			settings.SetValue(TestSettings.Int32Key, testValue);
-			Assert.IsNull(settingChangingEventArgs, "Should not receive SettingChanging event.");
-			Assert.IsNull(settingChangedEventArgs, "Should not receive SettingChanged event.");
+			Assert.That(settingChangingEventArgs, Is.Null, "Should not receive SettingChanging event.");
+			Assert.That(settingChangedEventArgs, Is.Null, "Should not receive SettingChanged event.");
 		}
 
 
@@ -146,59 +146,59 @@ namespace CarinaStudio.Configuration
 			settings.SettingChanging += (_, e) => settingChangingEventArgs = e;
 
 			// reset value
-			Assert.AreEqual(boolKey.DefaultValue, settings.GetValueOrDefault(boolKey));
-			Assert.AreEqual(anotherBoolKey.DefaultValue, settings.GetValueOrDefault(anotherBoolKey));
-			Assert.IsNull(settings.Keys.FirstOrDefault(it => object.ReferenceEquals(it, boolKey)));
+			Assert.That(settings.GetValueOrDefault(boolKey), Is.EqualTo(boolKey.DefaultValue));
+			Assert.That(settings.GetValueOrDefault(anotherBoolKey), Is.EqualTo(anotherBoolKey.DefaultValue));
+			Assert.That(settings.Keys.FirstOrDefault(it => object.ReferenceEquals(it, boolKey)), Is.Null);
 			settings.ResetValue(anotherBoolKey);
-			Assert.IsNull(settingChangingEventArgs);
-			Assert.IsNull(settingChangedEventArgs);
-			Assert.AreEqual(boolKey.DefaultValue, settings.GetValueOrDefault(boolKey));
-			Assert.AreEqual(anotherBoolKey.DefaultValue, settings.GetValueOrDefault(anotherBoolKey));
-			Assert.IsNull(settings.Keys.FirstOrDefault(it => object.ReferenceEquals(it, anotherBoolKey)));
+			Assert.That(settingChangingEventArgs, Is.Null);
+			Assert.That(settingChangedEventArgs, Is.Null);
+			Assert.That(settings.GetValueOrDefault(boolKey), Is.EqualTo(boolKey.DefaultValue));
+			Assert.That(settings.GetValueOrDefault(anotherBoolKey), Is.EqualTo(anotherBoolKey.DefaultValue));
+			Assert.That(settings.Keys.FirstOrDefault(it => object.ReferenceEquals(it, anotherBoolKey)), Is.Null);
 
 			// set value
 			settings.SetValue<bool>(anotherBoolKey, anotherBoolKey.DefaultValue);
-			Assert.IsNull(settingChangingEventArgs);
-			Assert.IsNull(settingChangedEventArgs);
-			Assert.AreEqual(anotherBoolKey.DefaultValue, settings.GetValueOrDefault(anotherBoolKey));
+			Assert.That(settingChangingEventArgs, Is.Null);
+			Assert.That(settingChangedEventArgs, Is.Null);
+			Assert.That(settings.GetValueOrDefault(anotherBoolKey), Is.EqualTo(anotherBoolKey.DefaultValue));
 			settings.SetValue<bool>(boolKey, anotherBoolKey.DefaultValue);
-			Assert.IsNotNull(settingChangingEventArgs);
-			Assert.IsNotNull(settingChangedEventArgs);
-			Assert.AreEqual(anotherBoolKey.DefaultValue, settings.GetValueOrDefault(anotherBoolKey));
-			Assert.IsNotNull(settings.Keys.FirstOrDefault(it => object.ReferenceEquals(it, boolKey)));
+			Assert.That(settingChangingEventArgs, Is.Not.Null);
+			Assert.That(settingChangedEventArgs, Is.Not.Null);
+			Assert.That(settings.GetValueOrDefault(anotherBoolKey), Is.EqualTo(anotherBoolKey.DefaultValue));
+			Assert.That(settings.Keys.FirstOrDefault(it => object.ReferenceEquals(it, boolKey)), Is.Not.Null);
 			settingChangingEventArgs = null;
 			settingChangedEventArgs = null;
 			settings.SetValue<bool>(boolKey, boolKey.DefaultValue);
-			Assert.IsNotNull(settingChangingEventArgs);
-			Assert.IsNotNull(settingChangedEventArgs);
-			Assert.AreEqual(boolKey.DefaultValue, settings.GetValueOrDefault(boolKey));
+			Assert.That(settingChangingEventArgs, Is.Not.Null);
+			Assert.That(settingChangedEventArgs, Is.Not.Null);
+			Assert.That(settings.GetValueOrDefault(boolKey), Is.EqualTo(boolKey.DefaultValue));
 			settingChangingEventArgs = null;
 			settingChangedEventArgs = null;
 			settings.SetValue<bool>(anotherBoolKey, boolKey.DefaultValue);
-			Assert.IsNotNull(settingChangingEventArgs);
-			Assert.IsNotNull(settingChangedEventArgs);
-			Assert.AreEqual(boolKey.DefaultValue, settings.GetValueOrDefault(anotherBoolKey));
-			Assert.IsNotNull(settings.Keys.FirstOrDefault(it => object.ReferenceEquals(it, anotherBoolKey)));
+			Assert.That(settingChangingEventArgs, Is.Not.Null);
+			Assert.That(settingChangedEventArgs, Is.Not.Null);
+			Assert.That(settings.GetValueOrDefault(anotherBoolKey), Is.EqualTo(boolKey.DefaultValue));
+			Assert.That(settings.Keys.FirstOrDefault(it => object.ReferenceEquals(it, anotherBoolKey)), Is.Not.Null);
 			settingChangingEventArgs = null;
 			settingChangedEventArgs = null;
 			settings.SetValue<bool>(anotherBoolKey, anotherBoolKey.DefaultValue);
-			Assert.IsNotNull(settingChangingEventArgs);
-			Assert.IsNotNull(settingChangedEventArgs);
-			Assert.AreEqual(anotherBoolKey.DefaultValue, settings.GetValueOrDefault(anotherBoolKey));
+			Assert.That(settingChangingEventArgs, Is.Not.Null);
+			Assert.That(settingChangedEventArgs, Is.Not.Null);
+			Assert.That(settings.GetValueOrDefault(anotherBoolKey), Is.EqualTo(anotherBoolKey.DefaultValue));
 			settingChangingEventArgs = null;
 			settingChangedEventArgs = null;
 			settings.SetValue<bool>(boolKey, !boolKey.DefaultValue);
-			Assert.IsNotNull(settingChangingEventArgs);
-			Assert.IsNotNull(settingChangedEventArgs);
-			Assert.IsNotNull(settings.Keys.FirstOrDefault(it => object.ReferenceEquals(it, boolKey)));
-			Assert.IsNull(settings.Keys.FirstOrDefault(it => object.ReferenceEquals(it, anotherBoolKey)));
+			Assert.That(settingChangingEventArgs, Is.Not.Null);
+			Assert.That(settingChangedEventArgs, Is.Not.Null);
+			Assert.That(settings.Keys.FirstOrDefault(it => object.ReferenceEquals(it, boolKey)), Is.Not.Null);
+			Assert.That(settings.Keys.FirstOrDefault(it => object.ReferenceEquals(it, anotherBoolKey)), Is.Null);
 			settingChangingEventArgs = null;
 			settingChangedEventArgs = null;
 			settings.SetValue<bool>(anotherBoolKey2, !boolKey.DefaultValue);
-			Assert.IsNull(settingChangingEventArgs);
-			Assert.IsNull(settingChangedEventArgs);
-			Assert.IsNull(settings.Keys.FirstOrDefault(it => object.ReferenceEquals(it, boolKey)));
-			Assert.IsNotNull(settings.Keys.FirstOrDefault(it => object.ReferenceEquals(it, anotherBoolKey2)));
+			Assert.That(settingChangingEventArgs, Is.Null);
+			Assert.That(settingChangedEventArgs, Is.Null);
+			Assert.That(settings.Keys.FirstOrDefault(it => object.ReferenceEquals(it, boolKey)), Is.Null);
+			Assert.That(settings.Keys.FirstOrDefault(it => object.ReferenceEquals(it, anotherBoolKey2)), Is.Not.Null);
 		}
 	}
 #pragma warning restore CS0618

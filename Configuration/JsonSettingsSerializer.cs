@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-#if !NETSTANDARD
 using System.Text.Json;
-#endif
 
 namespace CarinaStudio.Configuration
 {
-#if !NETSTANDARD
 	/// <summary>
 	/// Implementation of <see cref="ISettingsSerializer"/> which serialize settings to JSON format data.
 	/// </summary>
@@ -476,5 +473,4 @@ namespace CarinaStudio.Configuration
 			}
 		}
 	}
-#endif
 }

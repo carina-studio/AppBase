@@ -23,21 +23,18 @@ namespace CarinaStudio.Threading
 			// dispose
 			syncContext.Dispose();
 			Thread.Sleep(500);
+			Assert.That(syncContext.IsDisposed, "Instance should be disposed.");
 			Assert.That(!syncContext.ExecutionThread.IsAlive, "Execution thread should not be alive after disposing.");
 
-			// access after disposing
-			try
-			{
-				syncContext.Post(_ => { }, null);
-				throw new AssertionException("Instance should not be accessible after disposing.");
-			}
-			catch (AssertionException)
-			{
-				throw;
-			}
-			// ReSharper disable once EmptyGeneralCatchClause
-			catch
-			{ }
+			// post after disposing, the call-back should be dropped instead of throwing, because the runtime also posts
+			// await continuations through this method and cannot handle an exception from it
+			var isCallbackExecuted = false;
+			Assert.DoesNotThrow(() => syncContext.Post(_ => isCallbackExecuted = true, null), "Posting after disposing should not throw.");
+			Thread.Sleep(500);
+			Assert.That(!isCallbackExecuted, "Call-back posted after disposing should not be executed.");
+
+			// send after disposing, the caller waits for the call-back so it must be told instead of blocking forever
+			Assert.Throws<ObjectDisposedException>(() => syncContext.Send(_ => { }, null), "Sending after disposing should throw.");
 		}
 
 

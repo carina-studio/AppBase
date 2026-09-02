@@ -97,7 +97,6 @@ public static class EnumConverters
                 return null;
             if (value is not Type type || !type.IsEnum)
                 return null;
-#if NET7_0_OR_GREATER
             var rawValues = Enum.GetValuesAsUnderlyingType(type);
             var valueCount = rawValues.Length;
             if (valueCount > 0)
@@ -166,9 +165,6 @@ public static class EnumConverters
                 return values;
             }
             return Array.Empty<object>();
-#else
-            return Enum.GetValues(type);
-#endif
         }
 
         /// <inheritdoc/>.

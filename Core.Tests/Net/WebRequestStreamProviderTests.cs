@@ -21,6 +21,7 @@ namespace CarinaStudio.Net
 		
 		// Fields.
 		readonly HttpListener httpListener = new();
+		volatile bool isHttpListenerStopping;
 		volatile byte[]? preparedResponseData;
 		volatile string? receivedCustomHeaderValue;
 		volatile byte[]? receivedRequestData;
@@ -54,6 +55,7 @@ namespace CarinaStudio.Net
 		[OneTimeTearDown]
 		public void DisposeHttpListener()
 		{
+			this.isHttpListenerStopping = true;
 			this.httpListener.Stop();
 		}
 
@@ -75,34 +77,46 @@ namespace CarinaStudio.Net
 				while (true)
 				{
 					// wait for connection
-					HttpListenerContext? context;
+					HttpListenerContext context;
 					try
 					{
 						context = this.httpListener.GetContext();
 					}
-					catch
+					catch (Exception ex)
 					{
-						if (this.httpListener.IsListening != true)
-							break;
-						throw;
+						// Stop() aborts the pending GetContext() call, and IsListening can still report
+						// true at that moment, so the explicit flag is what distinguishes a shutdown from
+						// a real error. Never rethrow here: this runs on a thread pool thread, where an
+						// unhandled exception kills the test host and aborts the whole run.
+						if (!this.isHttpListenerStopping)
+							Console.Error.WriteLine($"Unable to accept HTTP request: {ex.Message}");
+						break;
 					}
-					
-					// get custom header
-					this.receivedCustomHeaderValue = context.Request.Headers[CustomHeaderKey];
 
-					// get request data
-					this.receivedRequestData = context.Request.InputStream.Use(it => it.ReadAllBytes());
-
-					// response
-					var responseBuffer = this.preparedResponseData ?? Array.Empty<byte>();
-					context.Response.Let(response =>
+					// handle request
+					try
 					{
-						response.ContentLength64 = responseBuffer.Length;
-						response.ContentEncoding = Encoding.UTF8;
-						using var stream = response.OutputStream;
-						stream.Write(responseBuffer, 0, responseBuffer.Length);
-						stream.Flush();
-					});
+						// get custom header
+						this.receivedCustomHeaderValue = context.Request.Headers[CustomHeaderKey];
+
+						// get request data
+						this.receivedRequestData = context.Request.InputStream.Use(it => it.ReadAllBytes());
+
+						// response
+						var responseBuffer = this.preparedResponseData ?? Array.Empty<byte>();
+						context.Response.Let(response =>
+						{
+							response.ContentLength64 = responseBuffer.Length;
+							response.ContentEncoding = Encoding.UTF8;
+							using var stream = response.OutputStream;
+							stream.Write(responseBuffer, 0, responseBuffer.Length);
+							stream.Flush();
+						});
+					}
+					catch (Exception ex)
+					{
+						Console.Error.WriteLine($"Unable to handle HTTP request: {ex.Message}");
+					}
 				}
 			});
 		}

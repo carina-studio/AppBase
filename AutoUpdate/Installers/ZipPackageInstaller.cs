@@ -110,7 +110,7 @@ public class ZipPackageInstaller : BasePackageInstaller
 			// ReSharper disable once EmptyGeneralCatchClause
 			catch (Exception ex)
 			{
-				if (ex is TaskCanceledException)
+				if (ex is OperationCanceledException)
 					throw;
 			}
 			return null;

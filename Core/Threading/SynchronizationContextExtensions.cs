@@ -267,6 +267,8 @@ public static class SynchronizationContextExtensions
 	{
 		if (cancellationToken.IsCancellationRequested)
 			return Task.FromCanceled(cancellationToken);
+		if (synchronizationContext is SingleThreadSynchronizationContext { IsDisposed: true })
+			return Task.FromException(new ObjectDisposedException(nameof(SingleThreadSynchronizationContext)));
 		var taskCompletionSource = new TaskCompletionSource();
 		var cancellationTokenRegistration = default(CancellationTokenRegistration);
 		cancellationTokenRegistration = cancellationToken.Register(() =>
@@ -311,6 +313,8 @@ public static class SynchronizationContextExtensions
 	{
 		if (cancellationToken.IsCancellationRequested)
 			return Task.FromCanceled(cancellationToken);
+		if (synchronizationContext is SingleThreadSynchronizationContext { IsDisposed: true })
+			return Task.FromException(new ObjectDisposedException(nameof(SingleThreadSynchronizationContext)));
 		var taskCompletionSource = new TaskCompletionSource();
 		var cancellationTokenRegistration = default(CancellationTokenRegistration);
 		cancellationTokenRegistration = cancellationToken.Register(() =>
@@ -355,6 +359,8 @@ public static class SynchronizationContextExtensions
 	{
 		if (cancellationToken.IsCancellationRequested)
 			return Task.FromCanceled<R>(cancellationToken);
+		if (synchronizationContext is SingleThreadSynchronizationContext { IsDisposed: true })
+			return Task.FromException<R>(new ObjectDisposedException(nameof(SingleThreadSynchronizationContext)));
 		var taskCompletionSource = new TaskCompletionSource<R>();
 		var cancellationTokenRegistration = default(CancellationTokenRegistration);
 		cancellationTokenRegistration = cancellationToken.Register(() =>
@@ -398,6 +404,8 @@ public static class SynchronizationContextExtensions
 	{
 		if (cancellationToken.IsCancellationRequested)
 			return Task.FromCanceled<R>(cancellationToken);
+		if (synchronizationContext is SingleThreadSynchronizationContext { IsDisposed: true })
+			return Task.FromException<R>(new ObjectDisposedException(nameof(SingleThreadSynchronizationContext)));
 		var taskCompletionSource = new TaskCompletionSource<R>();
 		var cancellationTokenRegistration = default(CancellationTokenRegistration);
 		cancellationTokenRegistration = cancellationToken.Register(() =>
