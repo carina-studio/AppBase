@@ -37,7 +37,9 @@ Core
 - **Target frameworks**: `net8.0` through `net11.0` (Android projects: `net8.0-android` through `net10.0-android`)
 - **Language**: C# with `LangVersion=preview`
 - **AOT**: All projects are `IsAotCompatible=true`
-- **Packaging scripts**: [`BuildPackages.bat`](BuildPackages.bat) / [`BuildPackages.sh`](BuildPackages.sh)
+- **Packaging scripts**: [`BuildPackages.bat`](BuildPackages.bat) / [`BuildPackages.sh`](BuildPackages.sh) — both take
+  `--config <name>`, `--framework <tfm>`, `--output <dir>` and a repeatable `--project <name>`, and both run the test
+  suites before packing. Use `--no-tests` to skip them, or `--tests-only` to run them without building packages.
 
 ## Workflow
 
@@ -110,11 +112,28 @@ Rules that apply only within one library project — everything above applies so
 
 ## Testing
 
-Each library project has a companion `*.Tests` project. Run tests with:
+Each library project has a companion `*.Tests` project. Run the whole suite through the packaging script:
 
 ```sh
-dotnet test
+./BuildPackages.sh --tests-only
 ```
+
+Or run a single project directly:
+
+```sh
+dotnet test Core.Tests -c Release
+```
+
+Do not run a bare `dotnet test` at the solution root — that pulls in `Application.Android` and fails with `NETSDK1147`
+unless the `android` and `wasm-tools-net9` workloads are installed.
+
+Not every `*.Tests` project is a test suite:
+
+| Project | Kind |
+|---|---|
+| `Core.Tests`, `Configuration.Tests`, `Tests.Tests`, `Application.Tests`, `AutoUpdate.Tests`, `Avalonia.Tests` | NUnit suites, run on every platform |
+| `MacOS.Tests` | NUnit suite, macOS only — skipped elsewhere |
+| `Application.Avalonia.Tests`, `Application.Android.Tests` | Sample applications, no test cases |
 
 Test projects are not published to NuGet and do not have their own `AGENTS.md`.
 
