@@ -271,6 +271,11 @@ public class ZipPackageInstaller : BasePackageInstaller
 							this.Logger.LogTrace("Delete file '{targetFileName}'", targetFileName);
 							File.Delete(targetFileName);
 						}
+						// Report before extracting, not after. Extraction creates the file before it observes the
+						// cancellation token, so an installation cancelled in between would leave a file which the
+						// roll-back does not know about. Reporting a file which was never created is harmless, the
+						// roll-back simply finds nothing to delete.
+						this.ReportInstalledFilePath(targetFileName);
 						this.Logger.LogTrace("Install file '{zipEntryPath}' to '{targetFileName}'", zipEntryPath, targetFileName);
 #if NET10_0_OR_GREATER
 					await zipEntry.ExtractToFileAsync(targetFileName, false, cancellationToken);
@@ -299,7 +304,6 @@ public class ZipPackageInstaller : BasePackageInstaller
 						throw new OperationCanceledException();
 					}
 				}
-				this.ReportInstalledFilePath(targetFileName);
 				this.ReportProgress((double)(++extractedEntryCount) / entryCount);
 				if (cancellationToken.IsCancellationRequested)
 				{

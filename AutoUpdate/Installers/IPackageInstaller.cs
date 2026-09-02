@@ -11,6 +11,10 @@ public interface IPackageInstaller : IUpdaterComponent
 	/// <summary>
 	/// Get set of the path of the installed files.
 	/// </summary>
+	/// <remarks>
+	/// A path is added before the file is written, so the set is what an interrupted installation has to roll back and
+	/// may contain a file whose installation failed before creating it.
+	/// </remarks>
 	ISet<string> InstalledFilePaths { get; }
 
 

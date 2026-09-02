@@ -274,6 +274,16 @@ namespace CarinaStudio.AutoUpdate
 				});
 
 				// verify installed files
+				// Disposing only requests cancellation. The update task keeps running, can still install one more file
+				// and rolls the installation back afterwards, so wait until the application directory stops changing
+				// instead of checking it immediately. Waiting for the first match is not enough, the installation may
+				// be between two files at that moment.
+				var stableCount = 0;
+				for (var i = 0; i < 200 && stableCount < 5; ++i)
+				{
+					await Task.Delay(100);
+					stableCount = baseAppFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)) ? stableCount + 1 : 0;
+				}
 				Assert.That(baseAppFilePaths.SetEquals(this.CollectFilePaths(baseAppDirectory)));
 			});
 		}
