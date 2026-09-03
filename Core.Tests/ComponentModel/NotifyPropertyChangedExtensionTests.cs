@@ -81,7 +81,7 @@ public class NotifyPropertyChangedExtensionTests
                 await obj.WaitForPropertyChangeAsync(nameof(TestClass.Bar), it => it.Bar == currentBar + 1, cancellationTokenSource.Token);
                 Assert.Fail();
             }
-            catch (TaskCanceledException _)
+            catch (TaskCanceledException)
             { }
             Assert.That(!obj.HasPropertyChangedHandlers);
         }
@@ -110,6 +110,62 @@ public class NotifyPropertyChangedExtensionTests
             obj.Foo = targetFoo - 1;
             Task.Delay(1000, CancellationToken.None).GetAwaiter().OnCompleted(() => obj.Foo = targetFoo);
             await task;
+            Assert.That(!obj.HasPropertyChangedHandlers);
+        }
+    }
+    
+    
+    // Test for using WaitForPropertyChangeAsync() with timeout.
+    [Test]
+    public async Task WaitForPropertyChangeWithTimeoutTest()
+    {
+        // prepare
+        var obj = new TestClass();
+        var random = new Random();
+        
+        // wait for property change to current value
+        {
+            var currentBar = obj.Bar;
+            await obj.WaitForPropertyChangeAsync(nameof(TestClass.Bar), it => it.Bar == currentBar, TimeSpan.FromSeconds(1));
+            Assert.That(!obj.HasPropertyChangedHandlers);
+        }
+        
+        // timeout check
+        {
+            var currentBar = obj.Bar;
+            try
+            {
+                await obj.WaitForPropertyChangeAsync(nameof(TestClass.Bar), it => it.Bar == currentBar + 1, TimeSpan.FromSeconds(1));
+                Assert.Fail();
+            }
+            catch (TimeoutException)
+            { }
+            Assert.That(!obj.HasPropertyChangedHandlers);
+        }
+        
+        // cancellation should be reported instead of timeout
+        {
+            var currentBar = obj.Bar;
+            using var cancellationTokenSource = new CancellationTokenSource();
+            cancellationTokenSource.CancelAfter(1000);
+            try
+            {
+                await obj.WaitForPropertyChangeAsync(nameof(TestClass.Bar), it => it.Bar == currentBar + 1, TimeSpan.FromSeconds(10), cancellationTokenSource.Token);
+                Assert.Fail();
+            }
+            catch (OperationCanceledException)
+            { }
+            Assert.That(!obj.HasPropertyChangedHandlers);
+        }
+        
+        // check changing to desired value before timeout
+        {
+            var targetFoo = (int)(random.NextDouble() * int.MaxValue);
+            var task = obj.WaitForPropertyChangeAsync(nameof(TestClass.Foo), it => it.Foo == targetFoo, TimeSpan.FromSeconds(3));
+            await Task.Delay(1000, CancellationToken.None);
+            obj.Foo = targetFoo;
+            await task;
+            Assert.That(obj.Foo == targetFoo);
             Assert.That(!obj.HasPropertyChangedHandlers);
         }
     }

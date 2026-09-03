@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging;
 using System;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
@@ -22,18 +21,7 @@ namespace CarinaStudio
 
 
 		// Fields.
-		readonly Thread thread;
-
-
-		// Constructor.
-		public TestApplication()
-		{
-			this.LoggerFactory = new LoggerFactory(new ILoggerProvider[] { TestLoggerProvider.Default });
-			this.thread = Thread.CurrentThread;
-			this.PersistentState = new MemorySettings();
-			this.Settings = new TestSettings();
-			this.SynchronizationContext = SynchronizationContext.Current ?? throw new InvalidOperationException("No SynchronizationContext on current thread.");
-		}
+		readonly Thread thread = Thread.CurrentThread;
 
 
 		// Implementations.
@@ -48,12 +36,20 @@ namespace CarinaStudio
 			_ => defaultValue,
 		};
 		public bool IsShutdownStarted => false;
-		public ILoggerFactory LoggerFactory { get; }
-		public event PropertyChangedEventHandler? PropertyChanged;
-		public ISettings PersistentState { get; }
+		public ILoggerFactory LoggerFactory { get; } = new LoggerFactory([ TestLoggerProvider.Default ]);
+		public event PropertyChangedEventHandler? PropertyChanged // Properties of TestApplication are all fixed, so the event is never raised.
+		{
+			add { }
+			remove { }
+		}
+		public ISettings PersistentState { get; } = new MemorySettings();
 		public string RootPrivateDirectoryPath => Path.GetTempPath();
-		public ISettings Settings { get; }
-		public event EventHandler? StringsUpdated;
-		public SynchronizationContext SynchronizationContext { get; }
+		public ISettings Settings { get; } = new TestSettings();
+		public event EventHandler? StringsUpdated // Strings of TestApplication are all fixed, so the event is never raised.
+		{
+			add { }
+			remove { }
+		}
+		public SynchronizationContext SynchronizationContext { get; } = SynchronizationContext.Current ?? throw new InvalidOperationException("No SynchronizationContext on current thread.");
 	}
 }

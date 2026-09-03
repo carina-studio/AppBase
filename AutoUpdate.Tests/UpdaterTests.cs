@@ -1,7 +1,7 @@
 ﻿using CarinaStudio.AutoUpdate.Installers;
 using CarinaStudio.AutoUpdate.Resolvers;
+using CarinaStudio.ComponentModel;
 using CarinaStudio.IO;
-using CarinaStudio.Tests;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -108,7 +108,7 @@ namespace CarinaStudio.AutoUpdate
 					Assert.That(!updater.Cancel());
 					Assert.That(updater.Start());
 					Assert.That(updater.Cancel());
-					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.Cancelled, 10000));
+					await updater.WaitForPropertyChangeAsync(nameof(Updater.State), it => it.State == UpdaterState.Cancelled, TimeSpan.FromSeconds(10));
 				});
 
 				// verify installed files
@@ -126,7 +126,7 @@ namespace CarinaStudio.AutoUpdate
 					await Task.Delay(500);
 					Assert.That(UpdaterState.ResolvingPackage == updater.State);
 					Assert.That(updater.Cancel());
-					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.Cancelled, 10000));
+					await updater.WaitForPropertyChangeAsync(nameof(Updater.State), it => it.State == UpdaterState.Cancelled, TimeSpan.FromSeconds(10));
 				});
 
 				// verify installed files
@@ -141,10 +141,10 @@ namespace CarinaStudio.AutoUpdate
 				}).UseAsync(async updater =>
 				{
 					Assert.That(updater.Start());
-					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.DownloadingPackage, 10000));
+					await updater.WaitForPropertyChangeAsync(nameof(Updater.State), it => it.State == UpdaterState.DownloadingPackage, TimeSpan.FromSeconds(10));
 					await Task.Delay(500);
 					Assert.That(updater.Cancel());
-					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.Cancelled, 10000));
+					await updater.WaitForPropertyChangeAsync(nameof(Updater.State), it => it.State == UpdaterState.Cancelled, TimeSpan.FromSeconds(10));
 				});
 
 				// verify installed files
@@ -159,9 +159,9 @@ namespace CarinaStudio.AutoUpdate
 				}).UseAsync(async updater =>
 				{
 					Assert.That(updater.Start());
-					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.InstallingPackage, 60000));
+					await updater.WaitForPropertyChangeAsync(nameof(Updater.State), it => it.State == UpdaterState.InstallingPackage, TimeSpan.FromSeconds(60));
 					Assert.That(updater.Cancel());
-					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.Cancelled, 10000));
+					await updater.WaitForPropertyChangeAsync(nameof(Updater.State), it => it.State == UpdaterState.Cancelled, TimeSpan.FromSeconds(10));
 				});
 
 				// verify installed files
@@ -176,7 +176,7 @@ namespace CarinaStudio.AutoUpdate
 				}).UseAsync(async updater =>
 				{
 					Assert.That(updater.Start());
-					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.Succeeded, 60000));
+					await updater.WaitForPropertyChangeAsync(nameof(Updater.State), it => it.State == UpdaterState.Succeeded, TimeSpan.FromSeconds(60));
 					Assert.That(!updater.Cancel());
 				});
 
@@ -260,7 +260,7 @@ namespace CarinaStudio.AutoUpdate
 				}).UseAsync(async updater =>
 				{
 					Assert.That(updater.Start());
-					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.DownloadingPackage, 10000));
+					await updater.WaitForPropertyChangeAsync(nameof(Updater.State), it => it.State == UpdaterState.DownloadingPackage, TimeSpan.FromSeconds(10));
 					await Task.Delay(500);
 					// ReSharper disable once DisposeOnUsingVariable
 					updater.Dispose();
@@ -279,7 +279,7 @@ namespace CarinaStudio.AutoUpdate
 				}).UseAsync(async updater =>
 				{
 					Assert.That(updater.Start());
-					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.InstallingPackage, 60000));
+					await updater.WaitForPropertyChangeAsync(nameof(Updater.State), it => it.State == UpdaterState.InstallingPackage, TimeSpan.FromSeconds(60));
 					// ReSharper disable once DisposeOnUsingVariable
 					updater.Dispose();
 					Assert.That(UpdaterState.Disposed == updater.State);
@@ -327,10 +327,10 @@ namespace CarinaStudio.AutoUpdate
 				}).UseAsync(async updater =>
 				{
 					Assert.That(updater.Start());
-					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.ResolvingPackage, 1000));
-					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.DownloadingPackage, 5000));
-					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.VerifyingPackage, 60000));
-					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.Failed, 10000));
+					await updater.WaitForPropertyChangeAsync(nameof(Updater.State), it => it.State == UpdaterState.ResolvingPackage, TimeSpan.FromSeconds(1));
+					await updater.WaitForPropertyChangeAsync(nameof(Updater.State), it => it.State == UpdaterState.DownloadingPackage, TimeSpan.FromSeconds(5));
+					await updater.WaitForPropertyChangeAsync(nameof(Updater.State), it => it.State == UpdaterState.VerifyingPackage, TimeSpan.FromSeconds(60));
+					await updater.WaitForPropertyChangeAsync(nameof(Updater.State), it => it.State == UpdaterState.Failed, TimeSpan.FromSeconds(10));
 				});
 
 				// verify installed files
@@ -398,13 +398,13 @@ namespace CarinaStudio.AutoUpdate
 						}
 					});
 					Assert.That(updater.Start());
-					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.DownloadingPackage, 5000));
-					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.Progress), 0.0, 5000));
+					await updater.WaitForPropertyChangeAsync(nameof(Updater.State), it => it.State == UpdaterState.DownloadingPackage, TimeSpan.FromSeconds(5));
+					await updater.WaitForPropertyChangeAsync(nameof(Updater.Progress), it => it.Progress == 0.0, TimeSpan.FromSeconds(5));
 					updater.PropertyChanged += propertyChangedHandler;
-					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.InstallingPackage, 60000));
+					await updater.WaitForPropertyChangeAsync(nameof(Updater.State), it => it.State == UpdaterState.InstallingPackage, TimeSpan.FromSeconds(60));
 					updater.PropertyChanged -= propertyChangedHandler;
 					Assert.That(hasIncrementalProgressChange);
-					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.Succeeded, 10000));
+					await updater.WaitForPropertyChangeAsync(nameof(Updater.State), it => it.State == UpdaterState.Succeeded, TimeSpan.FromSeconds(10));
 				});
 			});
 		}
@@ -517,11 +517,11 @@ namespace CarinaStudio.AutoUpdate
 				}).UseAsync(async updater =>
 				{
 					Assert.That(updater.Start());
-					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.ResolvingPackage, 1000));
-					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.DownloadingPackage, 5000));
-					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.VerifyingPackage, 60000));
-					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.InstallingPackage, 5000));
-					Assert.That(await updater.WaitForPropertyAsync(nameof(Updater.State), UpdaterState.Succeeded, 10000));
+					await updater.WaitForPropertyChangeAsync(nameof(Updater.State), it => it.State == UpdaterState.ResolvingPackage, TimeSpan.FromSeconds(1));
+					await updater.WaitForPropertyChangeAsync(nameof(Updater.State), it => it.State == UpdaterState.DownloadingPackage, TimeSpan.FromSeconds(5));
+					await updater.WaitForPropertyChangeAsync(nameof(Updater.State), it => it.State == UpdaterState.VerifyingPackage, TimeSpan.FromSeconds(60));
+					await updater.WaitForPropertyChangeAsync(nameof(Updater.State), it => it.State == UpdaterState.InstallingPackage, TimeSpan.FromSeconds(5));
+					await updater.WaitForPropertyChangeAsync(nameof(Updater.State), it => it.State == UpdaterState.Succeeded, TimeSpan.FromSeconds(10));
 				});
 
 				// verify installed files

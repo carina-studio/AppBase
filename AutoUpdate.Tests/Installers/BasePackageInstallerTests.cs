@@ -1,6 +1,7 @@
-﻿using CarinaStudio.IO;
-using CarinaStudio.Tests;
+﻿using CarinaStudio.ComponentModel;
+using CarinaStudio.IO;
 using NUnit.Framework;
+using System;
 using System.Collections.Generic;
 
 namespace CarinaStudio.AutoUpdate.Installers
@@ -36,14 +37,14 @@ namespace CarinaStudio.AutoUpdate.Installers
 				// prepare
 				var installer = this.CreateInstance();
 				var packageSourceDir = this.GenerateRandomApplication();
-				var packageFileName = Random.CreateFileWithRandomName(this.RootTempDirectoryPath).Use(it => it.Name);
+				var packageFileName = Tests.Random.CreateFileWithRandomName(this.RootTempDirectoryPath).Use(it => it.Name);
 				this.CreatePackageFile(packageSourceDir, packageFileName);
 
 				// install package
 				installer.PackageFileName = packageFileName;
 				installer.TargetDirectoryPath = this.CreateTempDirectory();
 				Assert.That(installer.Start());
-				Assert.That(await installer.WaitForPropertyAsync(nameof(IPackageInstaller.State), UpdaterComponentState.Succeeded, 60000));
+				await installer.WaitForPropertyChangeAsync(nameof(IPackageInstaller.State), it => it.State == UpdaterComponentState.Succeeded, TimeSpan.FromSeconds(60));
 
 				// verify installed files
 				this.VerifyFilesAndDirectories(packageSourceDir, installer.TargetDirectoryPath);

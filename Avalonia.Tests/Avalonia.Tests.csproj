@@ -18,6 +18,8 @@
 		<PackageReference Include="NUnit3TestAdapter" Version="4.6.0"/>
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1"/>
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
+		<!-- Pinned to resolve GHSA-xrw6-gwf8-vvr9 in the version referenced by Avalonia.X11. -->
+		<PackageReference Include="Tmds.DBus.Protocol" Version="0.92.0" />
 	</ItemGroup>
 
 	<ItemGroup>

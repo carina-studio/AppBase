@@ -52,9 +52,9 @@ namespace CarinaStudio
 
 
 		// Implementations.
-		public IDisposable BeginScope<TState>(TState state) => new Scope();
+		public IDisposable BeginScope<TState>(TState state) where TState : notnull => new Scope();
 		public bool IsEnabled(LogLevel logLevel) => true;
-		public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+		public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
 		{
 			var message = formatter(state, exception);
 			this.provider.Log(new LogItem(this.categoryName, logLevel, eventId, message));

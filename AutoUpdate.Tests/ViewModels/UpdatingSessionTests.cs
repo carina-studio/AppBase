@@ -1,6 +1,6 @@
 ﻿using CarinaStudio.AutoUpdate.Resolvers;
+using CarinaStudio.ComponentModel;
 using CarinaStudio.IO;
-using CarinaStudio.Tests;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -20,11 +20,8 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 	class UpdatingSessionTests : BaseTests
 	{
 		// Dummy package resolver.
-		class DummyPackageResolver : BasePackageResolver
+		class DummyPackageResolver(IApplication app) : BasePackageResolver(app)
 		{
-			public DummyPackageResolver(IApplication app) : base(app)
-			{ }
-
 			protected override async Task PerformOperationAsync(CancellationToken cancellationToken)
 			{
 				await Task.Delay(1000, cancellationToken);
@@ -34,10 +31,8 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 
 
 		// Updating session.
-		class UpdatingSessionImpl : UpdatingSession
+		class UpdatingSessionImpl(IApplication app) : UpdatingSession(app)
 		{
-			public UpdatingSessionImpl(IApplication app) : base(app)
-			{ }
 			protected override IPackageResolver CreatePackageResolver(IStreamProvider source) =>
 				new DummyPackageResolver(this.Application) { Source = source };
 		}
@@ -92,7 +87,7 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 					// Cancellation can complete synchronously inside Execute(), in which case the transient cancelling
 					// state is already gone by the time it is read here.
 					Assert.That(session.IsUpdatingCancelling || session.IsUpdatingCompleted, "Session should be cancelling or already completed after cancelling.");
-					Assert.That(await session.WaitForPropertyAsync(nameof(UpdatingSession.IsUpdatingCompleted), true, 60000));
+					await session.WaitForPropertyChangeAsync(nameof(UpdatingSession.IsUpdatingCompleted), it => it.IsUpdatingCompleted, TimeSpan.FromSeconds(60));
 					await Task.Delay(500);
 					Assert.That(session.IsUpdatingCancelled);
 					Assert.That(!session.IsUpdatingFailed);
@@ -111,7 +106,7 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 				{
 					Assert.That(session.StartUpdatingCommand.CanExecute(null));
 					session.StartUpdatingCommand.Execute(null);
-					Assert.That(await session.WaitForPropertyAsync(nameof(UpdatingSession.IsDownloadingPackage), true, 60000));
+					await session.WaitForPropertyChangeAsync(nameof(UpdatingSession.IsDownloadingPackage), it => it.IsDownloadingPackage, TimeSpan.FromSeconds(60));
 					await Task.Delay(50);
 					Assert.That(session.CancelUpdatingCommand.CanExecute(null));
 					session.CancelUpdatingCommand.Execute(null);
@@ -119,7 +114,7 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 					// Cancellation can complete synchronously inside Execute(), in which case the transient cancelling
 					// state is already gone by the time it is read here.
 					Assert.That(session.IsUpdatingCancelling || session.IsUpdatingCompleted, "Session should be cancelling or already completed after cancelling.");
-					Assert.That(await session.WaitForPropertyAsync(nameof(UpdatingSession.IsUpdatingCompleted), true, 60000));
+					await session.WaitForPropertyChangeAsync(nameof(UpdatingSession.IsUpdatingCompleted), it => it.IsUpdatingCompleted, TimeSpan.FromSeconds(60));
 					await Task.Delay(500);
 					Assert.That(session.IsUpdatingCancelled);
 					Assert.That(!session.IsUpdatingFailed);
@@ -138,14 +133,14 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 				{
 					Assert.That(session.StartUpdatingCommand.CanExecute(null));
 					session.StartUpdatingCommand.Execute(null);
-					Assert.That(await session.WaitForPropertyAsync(nameof(UpdatingSession.IsInstallingPackage), true, 60000));
+					await session.WaitForPropertyChangeAsync(nameof(UpdatingSession.IsInstallingPackage), it => it.IsInstallingPackage, TimeSpan.FromSeconds(60));
 					Assert.That(session.CancelUpdatingCommand.CanExecute(null));
 					session.CancelUpdatingCommand.Execute(null);
 					Assert.That(!session.CancelUpdatingCommand.CanExecute(null));
 					// Cancellation can complete synchronously inside Execute(), in which case the transient cancelling
 					// state is already gone by the time it is read here.
 					Assert.That(session.IsUpdatingCancelling || session.IsUpdatingCompleted, "Session should be cancelling or already completed after cancelling.");
-					Assert.That(await session.WaitForPropertyAsync(nameof(UpdatingSession.IsUpdatingCompleted), true, 60000));
+					await session.WaitForPropertyChangeAsync(nameof(UpdatingSession.IsUpdatingCompleted), it => it.IsUpdatingCompleted, TimeSpan.FromSeconds(60));
 					await Task.Delay(500);
 					Assert.That(session.IsUpdatingCancelled);
 					Assert.That(!session.IsUpdatingFailed);
@@ -193,7 +188,7 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 				{
 					Assert.That(session.StartUpdatingCommand.CanExecute(null));
 					session.StartUpdatingCommand.Execute(null);
-					Assert.That(await session.WaitForPropertyAsync(nameof(UpdatingSession.IsUpdatingCompleted), true, 60000));
+					await session.WaitForPropertyChangeAsync(nameof(UpdatingSession.IsUpdatingCompleted), it => it.IsUpdatingCompleted, TimeSpan.FromSeconds(60));
 					await Task.Delay(500);
 					Assert.That(!session.IsUpdatingCancelled);
 					Assert.That(session.IsUpdatingFailed);
@@ -332,7 +327,7 @@ namespace CarinaStudio.AutoUpdate.ViewModels
 				Assert.That(!session.IsUpdatingCompleted);
 				Assert.That(!session.IsUpdatingFailed);
 				Assert.That(!session.IsUpdatingSucceeded);
-				Assert.That(await session.WaitForPropertyAsync(nameof(UpdatingSession.IsUpdatingCompleted), true, 60000));
+				await session.WaitForPropertyChangeAsync(nameof(UpdatingSession.IsUpdatingCompleted), it => it.IsUpdatingCompleted, TimeSpan.FromSeconds(60));
 				await Task.Delay(500);
 				Assert.That(!session.CancelUpdatingCommand.CanExecute(null));
 				Assert.That(!session.StartUpdatingCommand.CanExecute(null));

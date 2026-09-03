@@ -100,4 +100,32 @@ public static class NotifyPropertyChangedExtensions
             obj.PropertyChanged -= propertyChangedHandler;
         }
     }
+
+
+    /// <summary>
+    /// Wait for the property changing to desired value asynchronously.
+    /// </summary>
+    /// <param name="obj">Object owns the property.</param>
+    /// <param name="propertyName">Name of property.</param>
+    /// <param name="checkPropertyValue">Function to check whether the value is desired one or not.</param>
+    /// <param name="timeout">Timeout of waiting, or <see cref="Timeout.InfiniteTimeSpan"/> to wait without timeout.</param>
+    /// <param name="cancellationToken"><see cref="CancellationToken"/> to cancel waiting.</param>
+    /// <typeparam name="T">Type of object owns the property.</typeparam>
+    /// <returns>Task of waiting for property value.</returns>
+    /// <exception cref="TimeoutException">Value of the property didn't change to desired value before timeout.</exception>
+    public static async Task WaitForPropertyChangeAsync<T>(this T obj, string propertyName, Predicate<T> checkPropertyValue, TimeSpan timeout, CancellationToken cancellationToken = default) where T : INotifyPropertyChanged
+    {
+        if (timeout < TimeSpan.Zero && timeout != Timeout.InfiniteTimeSpan)
+            throw new ArgumentOutOfRangeException(nameof(timeout));
+        using var timeoutCancellationTokenSource = new CancellationTokenSource(timeout);
+        using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCancellationTokenSource.Token);
+        try
+        {
+            await obj.WaitForPropertyChangeAsync(propertyName, checkPropertyValue, cancellationTokenSource.Token);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && timeoutCancellationTokenSource.IsCancellationRequested)
+        {
+            throw new TimeoutException($"Value of property '{propertyName}' didn't change to desired value in {timeout}.");
+        }
+    }
 }

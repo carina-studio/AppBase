@@ -43,6 +43,7 @@ namespace CarinaStudio.Tests
 		/// Test for waiting for property values.
 		/// </summary>
 		[Test]
+#pragma warning disable CS0618 // Test of the obsolete WaitForPropertyAsync() itself.
 		public async Task WaitingForPropertyTest()
 		{
 			// prepare
@@ -100,5 +101,6 @@ namespace CarinaStudio.Tests
 					throw;
 			}
 		}
+#pragma warning restore CS0618
 	}
 }

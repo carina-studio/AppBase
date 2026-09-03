@@ -19,6 +19,8 @@
         <PackageReference Include="Avalonia.Desktop" Version="$(AvaloniaVersion)"/>
         <PackageReference Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)"/>
         <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0"/>
+        <!-- Pinned to resolve GHSA-xrw6-gwf8-vvr9 in the version referenced by Avalonia.X11. -->
+        <PackageReference Include="Tmds.DBus.Protocol" Version="0.92.0"/>
     </ItemGroup>
 
     <ItemGroup>

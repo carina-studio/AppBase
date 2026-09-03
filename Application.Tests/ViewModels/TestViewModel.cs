@@ -8,7 +8,7 @@ namespace CarinaStudio.ViewModels;
 /// <summary>
 /// Test implementation of <see cref="ViewModel"/>.
 /// </summary>
-class TestViewModel : ViewModel
+class TestViewModel(TestApplication app) : ViewModel(app)
 {
 	// Properties.
 	public static readonly ObservableProperty<int> TestInt32Prop = ObservableProperty.Register<TestViewModel, int>(nameof(TestInt32));
@@ -27,11 +27,6 @@ class TestViewModel : ViewModel
 	readonly Random random = new();
 	
 	
-	// Constructor.
-	public TestViewModel(TestApplication app) : base(app)
-	{ }
-	
-	
 	// Add resource.
 	public new void AddResource(IDisposable resource) =>
 		base.AddResource(resource);
@@ -48,8 +43,10 @@ class TestViewModel : ViewModel
 	
 	
 	// Add resource.
+#pragma warning disable CS0618 // Forwarder which keeps the obsolete overload under test.
 	public new void AddResource(Func<Task> setupAsync, Func<Task> disposeAsync) =>
 		base.AddResource(setupAsync, disposeAsync);
+#pragma warning restore CS0618
 	
 	
 	// Add resources.
