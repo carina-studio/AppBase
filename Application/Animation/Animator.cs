@@ -23,7 +23,7 @@ public class Animator : IThreadDependent
         // Fields.
         readonly ScheduledAction animateAction;
         int animatorCount;
-        long scheduledAnimationTime;
+        long scheduledAnimationTimeTicks;
         Animator? scheduledAnimators;
         readonly Stopwatch stopwatch = new();
 
@@ -32,9 +32,9 @@ public class Animator : IThreadDependent
         {
             this.animateAction = new ScheduledAction(() =>
             {
-                var currentTime = this.stopwatch.ElapsedMilliseconds;
+                var currentTimeTicks = this.CurrentTimeTicks;
                 var animator = this.scheduledAnimators;
-                while (animator != null && animator.nextAnimationTime <= currentTime)
+                while (animator != null && animator.nextAnimationTimeTicks <= currentTimeTicks)
                 {
                     // remove animator from list
                     var nextAnimator = animator.nextAnimator;
@@ -71,8 +71,8 @@ public class Animator : IThreadDependent
                 this.ScheduleNextAnimation();
         }
 
-        // Get current time for animation.
-        public long CurrentTimeMilliseconds => this.stopwatch.ElapsedMilliseconds;
+        // Get current time for animation in ticks of TimeSpan.
+        public long CurrentTimeTicks => this.stopwatch.Elapsed.Ticks;
 
         // Check whether animation of given animator is scheduled or not.
         public bool IsAnimationScheduled(Animator animator) =>
@@ -102,11 +102,11 @@ public class Animator : IThreadDependent
             }
 
             // add to list according to next animation time
-            if (animator.nextAnimationTime <= 0)
+            if (animator.nextAnimationTimeTicks <= 0)
                 return;
             var prevAnimator = (Animator?)null;
             var nextAnimator = this.scheduledAnimators;
-            while (nextAnimator != null && nextAnimator.nextAnimationTime < animator.nextAnimationTime)
+            while (nextAnimator != null && nextAnimator.nextAnimationTimeTicks < animator.nextAnimationTimeTicks)
             {
                 prevAnimator = nextAnimator;
                 nextAnimator = nextAnimator.nextAnimator;
@@ -137,11 +137,21 @@ public class Animator : IThreadDependent
             var animator = this.scheduledAnimators;
             if (animator == null)
                 return;
-            if (!this.animateAction.IsScheduled || this.scheduledAnimationTime > animator.nextAnimationTime)
+            if (!this.animateAction.IsScheduled || this.scheduledAnimationTimeTicks > animator.nextAnimationTimeTicks)
             {
-                this.scheduledAnimationTime = animator.nextAnimationTime;
-                this.animateAction.Reschedule((int)Math.Max(0, this.scheduledAnimationTime - this.stopwatch.ElapsedMilliseconds));
+                this.scheduledAnimationTimeTicks = animator.nextAnimationTimeTicks;
+                this.animateAction.Reschedule(TicksToMilliseconds(this.scheduledAnimationTimeTicks - this.CurrentTimeTicks));
             }
+        }
+
+        // Convert from ticks of TimeSpan to milliseconds. The value is rounded up to make sure that
+        // animation will never be performed earlier than its scheduled time.
+        static int TicksToMilliseconds(long ticks)
+        {
+            if (ticks <= 0)
+                return 0;
+            var millis = (ticks + TimeSpan.TicksPerMillisecond - 1) / TimeSpan.TicksPerMillisecond;
+            return millis < int.MaxValue ? (int)millis : int.MaxValue;
         }
 
         // Unregister animator.
@@ -161,15 +171,15 @@ public class Animator : IThreadDependent
 
     // Fields.
     readonly AnimationTimer animationTimer;
-    long completionTime;
+    long completionTimeTicks;
     TimeSpan delay = TimeSpan.Zero;
     TimeSpan duration;
     TimeSpan interval = DefaultInterval;
-    long nextAnimationTime;
+    long nextAnimationTimeTicks;
     Animator? nextAnimator;
-    long prevAnimationTime;
+    long prevAnimationTimeTicks;
     Animator? prevAnimator;
-    long startTime = -1;
+    long startTimeTicks = -1;
     readonly Thread thread;
 
 
@@ -193,8 +203,8 @@ public class Animator : IThreadDependent
     void Animate()
     {
         // calculate original progress
-        var currentTime = this.animationTimer.CurrentTimeMilliseconds;
-        var progress = ((double)currentTime - this.startTime - this.delay.TotalMilliseconds) / this.duration.TotalMilliseconds;
+        var currentTimeTicks = this.animationTimer.CurrentTimeTicks;
+        var progress = ((double)currentTimeTicks - this.startTimeTicks - this.delay.Ticks) / this.duration.Ticks;
 
         // complete animation
         if (progress >= 1)
@@ -210,13 +220,13 @@ public class Animator : IThreadDependent
             return;
 
         // schedule next update
-        currentTime = this.animationTimer.CurrentTimeMilliseconds;
-        while (this.nextAnimationTime <= currentTime)
+        currentTimeTicks = this.animationTimer.CurrentTimeTicks;
+        while (this.nextAnimationTimeTicks <= currentTimeTicks)
         {
-            this.prevAnimationTime = this.nextAnimationTime;
-            this.nextAnimationTime += (long)this.interval.TotalMilliseconds;
+            this.prevAnimationTimeTicks = this.nextAnimationTimeTicks;
+            this.nextAnimationTimeTicks += this.interval.Ticks;
         }
-        this.nextAnimationTime = Math.Min(this.completionTime, this.nextAnimationTime);
+        this.nextAnimationTimeTicks = Math.Min(this.completionTimeTicks, this.nextAnimationTimeTicks);
         this.animationTimer.ScheduleNextAnimation(this);
     }
 
@@ -229,10 +239,10 @@ public class Animator : IThreadDependent
         this.VerifyAccess();
         if (this.IsStarted)
         {
-            this.startTime = -1;
-            this.completionTime = 0;
-            this.prevAnimationTime = 0;
-            this.nextAnimationTime = 0;
+            this.startTimeTicks = -1;
+            this.completionTimeTicks = 0;
+            this.prevAnimationTimeTicks = 0;
+            this.nextAnimationTimeTicks = 0;
             this.Progress = 0;
             this.animationTimer.CancelAnimation(this);
             this.OnCancelled(EventArgs.Empty);
@@ -253,10 +263,10 @@ public class Animator : IThreadDependent
     // Complete current animation.
     void Complete()
     {
-        this.startTime = -1;
-        this.completionTime = 0;
-        this.prevAnimationTime = 0;
-        this.nextAnimationTime = 0;
+        this.startTimeTicks = -1;
+        this.completionTimeTicks = 0;
+        this.prevAnimationTimeTicks = 0;
+        this.nextAnimationTimeTicks = 0;
         this.Progress = 0;
         this.animationTimer.CancelAnimation(this);
         this.OnCompleted(EventArgs.Empty);
@@ -287,16 +297,16 @@ public class Animator : IThreadDependent
             this.delay = value;
             if (this.IsStarted)
             {
-                var currentTime = this.animationTimer.CurrentTimeMilliseconds;
-                var scheduledStartingTime = this.startTime + (long)this.delay.TotalMilliseconds;
-                this.completionTime = this.startTime + (long)(this.delay + this.duration).TotalMilliseconds;
-                if (currentTime <= scheduledStartingTime)
+                var currentTimeTicks = this.animationTimer.CurrentTimeTicks;
+                var scheduledStartingTimeTicks = this.startTimeTicks + this.delay.Ticks;
+                this.completionTimeTicks = this.startTimeTicks + (this.delay + this.duration).Ticks;
+                if (currentTimeTicks <= scheduledStartingTimeTicks)
                 {
-                    this.prevAnimationTime = scheduledStartingTime;
-                    this.nextAnimationTime = this.prevAnimationTime + (long)this.interval.TotalMilliseconds;
+                    this.prevAnimationTimeTicks = scheduledStartingTimeTicks;
+                    this.nextAnimationTimeTicks = this.prevAnimationTimeTicks + this.interval.Ticks;
                 }
                 else
-                    this.nextAnimationTime = Math.Min(this.completionTime, this.nextAnimationTime);
+                    this.nextAnimationTimeTicks = Math.Min(this.completionTimeTicks, this.nextAnimationTimeTicks);
                 this.animationTimer.ScheduleNextAnimation(this);
             }
         }
@@ -321,16 +331,16 @@ public class Animator : IThreadDependent
             this.duration = value;
             if (this.IsStarted)
             {
-                var currentTime = this.animationTimer.CurrentTimeMilliseconds;
-                var scheduledStartingTime = this.startTime + (long)this.delay.TotalMilliseconds;
-                this.completionTime = this.startTime + (long)(this.delay + this.duration).TotalMilliseconds;
-                if (currentTime <= scheduledStartingTime)
+                var currentTimeTicks = this.animationTimer.CurrentTimeTicks;
+                var scheduledStartingTimeTicks = this.startTimeTicks + this.delay.Ticks;
+                this.completionTimeTicks = this.startTimeTicks + (this.delay + this.duration).Ticks;
+                if (currentTimeTicks <= scheduledStartingTimeTicks)
                 {
-                    this.prevAnimationTime = scheduledStartingTime;
-                    this.nextAnimationTime = this.prevAnimationTime + (long)this.interval.TotalMilliseconds;
+                    this.prevAnimationTimeTicks = scheduledStartingTimeTicks;
+                    this.nextAnimationTimeTicks = this.prevAnimationTimeTicks + this.interval.Ticks;
                 }
                 else
-                    this.nextAnimationTime = Math.Min(this.completionTime, this.nextAnimationTime);
+                    this.nextAnimationTimeTicks = Math.Min(this.completionTimeTicks, this.nextAnimationTimeTicks);
                 this.animationTimer.ScheduleNextAnimation(this);
             }
         }
@@ -361,7 +371,7 @@ public class Animator : IThreadDependent
             this.interval = value;
             if (this.IsStarted)
             {
-                this.nextAnimationTime = Math.Min(this.completionTime, this.prevAnimationTime + (long)value.TotalMilliseconds);
+                this.nextAnimationTimeTicks = Math.Min(this.completionTimeTicks, this.prevAnimationTimeTicks + value.Ticks);
                 this.animationTimer.ScheduleNextAnimation(this);
             }
         }
@@ -371,7 +381,7 @@ public class Animator : IThreadDependent
     /// <summary>
     /// Check whether animation is started or not.
     /// </summary>
-    public bool IsStarted => this.startTime >= 0;
+    public bool IsStarted => this.startTimeTicks >= 0;
 
 
     /// <summary>
@@ -415,14 +425,14 @@ public class Animator : IThreadDependent
         // check state
         this.VerifyAccess();
         this.Cancel();
-        if (this.startTime > 0)
+        if (this.startTimeTicks > 0)
             return;
 
         // start animation
-        this.startTime = this.animationTimer.CurrentTimeMilliseconds;
-        this.completionTime = this.startTime + (long)(this.delay + this.duration).TotalMilliseconds;
-        this.prevAnimationTime = this.startTime + (long)this.delay.TotalMilliseconds;
-        this.nextAnimationTime = this.prevAnimationTime + (long)this.interval.TotalMilliseconds;
+        this.startTimeTicks = this.animationTimer.CurrentTimeTicks;
+        this.completionTimeTicks = this.startTimeTicks + (this.delay + this.duration).Ticks;
+        this.prevAnimationTimeTicks = this.startTimeTicks + this.delay.Ticks;
+        this.nextAnimationTimeTicks = this.prevAnimationTimeTicks + this.interval.Ticks;
         this.animationTimer.ScheduleNextAnimation(this);
     }
 
