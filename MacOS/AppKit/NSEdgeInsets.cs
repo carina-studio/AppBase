@@ -37,10 +37,11 @@ public struct NSEdgeInsets
     }
 
 
+    // Fields are in native memory layout order. Do not sort alphabetically.
     /// <summary>
-    /// Bottom inset.
+    /// Top inset.
     /// </summary>
-    public double Bottom;
+    public double Top;
 
 
     /// <summary>
@@ -50,15 +51,15 @@ public struct NSEdgeInsets
 
 
     /// <summary>
-    /// Right inset.
+    /// Bottom inset.
     /// </summary>
-    public double Right;
+    public double Bottom;
 
 
     /// <summary>
-    /// Top inset.
+    /// Right inset.
     /// </summary>
-    public double Top;
+    public double Right;
 
 
     /// <inheritdoc/>
