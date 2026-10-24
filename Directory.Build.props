@@ -4,9 +4,9 @@
     <PropertyGroup>
 
         <!-- Version -->
-        <AssemblyVersion>2.4.7.929</AssemblyVersion>
-        <PackageVersion>2.4.7.929</PackageVersion>
-        <Version>2.4.7.929</Version>
+        <AssemblyVersion>2.4.8.1024</AssemblyVersion>
+        <PackageVersion>2.4.8.1024</PackageVersion>
+        <Version>2.4.8.1024</Version>
 
         <!-- Other information -->
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
