@@ -13,6 +13,10 @@ namespace CarinaStudio.Controls;
 public class RealNumberTextBox : ValueTextBox<double>
 {
     /// <summary>
+    /// Property of <see cref="Increment"/>.
+    /// </summary>
+    public static readonly StyledProperty<double> IncrementProperty = AvaloniaProperty.Register<RealNumberTextBox, double>(nameof(Increment), 1, validate: v => double.IsFinite(v) && v > 0);
+    /// <summary>
     /// Property of <see cref="IsNaNAllowed"/>.
     /// </summary>
     public static readonly StyledProperty<bool> IsNaNAllowedProperty = AvaloniaProperty.Register<RealNumberTextBox, bool>(nameof(IsNaNAllowed), false);
@@ -36,6 +40,16 @@ public class RealNumberTextBox : ValueTextBox<double>
     public RealNumberTextBox()
     {
         this.PseudoClasses.Set(":realNumberTextBox", true);
+    }
+
+
+    /// <summary>
+    /// Get or set the amount to increase or decrease the value when pressing Up or Down key.
+    /// </summary>
+    public double Increment
+    {
+        get => this.GetValue(IncrementProperty);
+        set => this.SetValue(IncrementProperty, value);
     }
 
 
@@ -82,7 +96,6 @@ public class RealNumberTextBox : ValueTextBox<double>
     /// <inheritdoc/>
     protected override void OnKeyDown(KeyEventArgs e)
     {
-        base.OnKeyDown(e);
         if (!e.Handled && e.KeyModifiers == 0)
         {
             switch (e.Key)
@@ -94,12 +107,13 @@ public class RealNumberTextBox : ValueTextBox<double>
                         var min = this.Minimum;
                         if (value > min)
                         {
-                            this.Value = value > (min + 1) ? (value - 1) : min;
+                            var increment = this.Increment;
+                            this.Value = value > (min + increment) ? (value - increment) : min;
                             this.SelectAll();
                         }
                     }
                     e.Handled = true;
-                    break;
+                    return;
                 case Key.Up:
                     if (this.Validate() && this.Value.HasValue)
                     {
@@ -107,14 +121,16 @@ public class RealNumberTextBox : ValueTextBox<double>
                         var max = this.Maximum;
                         if (value < max)
                         {
-                            this.Value = value < (max - 1) ? (value + 1) : max;
+                            var increment = this.Increment;
+                            this.Value = value < (max - increment) ? (value + increment) : max;
                             this.SelectAll();
                         }
                     }
                     e.Handled = true;
-                    break;
+                    return;
             }
         }
+        base.OnKeyDown(e);
     }
 
 

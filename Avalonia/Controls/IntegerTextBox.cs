@@ -96,7 +96,6 @@ namespace CarinaStudio.Controls
         /// <inheritdoc/>
         protected override void OnKeyDown(KeyEventArgs e)
         {
-            base.OnKeyDown(e);
             if (!e.Handled && e.KeyModifiers == 0)
             {
                 switch (e.Key)
@@ -112,7 +111,7 @@ namespace CarinaStudio.Controls
                             }
                         }
                         e.Handled = true;
-                        break;
+                        return;
                     case Key.Up:
                         if (this.Validate() && this.Value.HasValue)
                         {
@@ -124,9 +123,10 @@ namespace CarinaStudio.Controls
                             }
                         }
                         e.Handled = true;
-                        break;
+                        return;
                 }
             }
+            base.OnKeyDown(e);
         }
 
 

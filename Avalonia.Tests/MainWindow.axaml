@@ -189,6 +189,10 @@
 			
 			<abControls:RealNumberTextBox Name="realNumberTextBox4" HorizontalAlignment="Left" IsNullValueAllowed="True" Maximum="10" Minimum="-10" PlaceholderText="Range: [-10, 10], Nullable" Width="300"/>
 			<TextBlock Classes="Footer" Text="{Binding #realNumberTextBox4.Value, StringFormat={}Value: {0}}"/>
+			<Separator Classes="Small"/>
+
+			<abControls:RealNumberTextBox Name="realNumberTextBox5" HorizontalAlignment="Left" Increment="0.5" IsNullValueAllowed="False" Maximum="10" Minimum="-10" PlaceholderText="Range: [-10, 10], Increment: 0.5" Width="300"/>
+			<TextBlock Classes="Footer" Text="{Binding #realNumberTextBox5.Value, StringFormat={}Value: {0}}"/>
 			<Separator/>
 
 			<!-- SelectableTextBlock -->
