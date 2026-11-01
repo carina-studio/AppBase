@@ -192,7 +192,20 @@
 			<Separator Classes="Small"/>
 
 			<abControls:RealNumberTextBox Name="realNumberTextBox5" HorizontalAlignment="Left" Increment="0.5" IsNullValueAllowed="False" Maximum="10" Minimum="-10" PlaceholderText="Range: [-10, 10], Increment: 0.5" Width="300"/>
+			<TextBlock Classes="Footer" Text="Press Up/Down to change value by 0.5."/>
 			<TextBlock Classes="Footer" Text="{Binding #realNumberTextBox5.Value, StringFormat={}Value: {0}}"/>
+			<Separator Classes="Small"/>
+
+			<abControls:RealNumberTextBox Name="realNumberTextBox6" HorizontalAlignment="Left" Increment="0.25" IsNullValueAllowed="False" MinDecimalPlaces="2" Width="300"/>
+			<TextBlock Classes="Footer" Text="At least 2 decimal places are displayed. Value is not rounded."/>
+			<TextBlock Classes="Footer" Text="{Binding #realNumberTextBox6.Value, StringFormat={}Value: {0}}"/>
+			<Separator Classes="Small"/>
+
+			<abControls:RealNumberTextBox Name="realNumberTextBox7" DecimalPlaces="2" HorizontalAlignment="Left" Increment="0.1" IsNullValueAllowed="False" Maximum="9.999" MinDecimalPlaces="2" Minimum="0.123" PlaceholderText="Range: [0.123, 9.999], 2 decimal places" Width="300"/>
+			<TextBlock Classes="Footer" Text="Value is rounded to 2 decimal places, and the range is narrowed to [ActualMinimum, ActualMaximum]."/>
+			<TextBlock Classes="Footer" Text="{Binding #realNumberTextBox7.Value, StringFormat={}Value: {0}}"/>
+			<TextBlock Classes="Footer" Text="{Binding #realNumberTextBox7.ActualMinimum, StringFormat={}ActualMinimum: {0}}"/>
+			<TextBlock Classes="Footer" Text="{Binding #realNumberTextBox7.ActualMaximum, StringFormat={}ActualMaximum: {0}}"/>
 			<Separator/>
 
 			<!-- SelectableTextBlock -->
