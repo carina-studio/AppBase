@@ -16,6 +16,10 @@ namespace CarinaStudio.Controls
         /// </summary>
         public static readonly StyledProperty<bool> AcceptsPositiveSignProperty = AvaloniaProperty.Register<IntegerTextBox, bool>(nameof(AcceptsPositiveSign), false);
         /// <summary>
+        /// Property of <see cref="Increment"/>.
+        /// </summary>
+        public static readonly StyledProperty<long> IncrementProperty = AvaloniaProperty.Register<IntegerTextBox, long>(nameof(Increment), 1, validate: v => v > 0);
+        /// <summary>
         /// Property of <see cref="Maximum"/>.
         /// </summary>
         public static readonly StyledProperty<long> MaximumProperty = AvaloniaProperty.Register<IntegerTextBox, long>(nameof(Maximum), long.MaxValue);
@@ -64,6 +68,16 @@ namespace CarinaStudio.Controls
 
 
         /// <summary>
+        /// Get or set the amount to increase or decrease the value when pressing Up or Down key.
+        /// </summary>
+        public long Increment
+        {
+            get => this.GetValue(IncrementProperty);
+            set => this.SetValue(IncrementProperty, value);
+        }
+
+
+        /// <summary>
         /// Get or set maximum value.
         /// </summary>
         public long Maximum
@@ -104,9 +118,11 @@ namespace CarinaStudio.Controls
                         if (this.Validate() && this.Value.HasValue)
                         {
                             var value = this.Value.GetValueOrDefault();
-                            if (value > this.Minimum)
+                            var min = this.Minimum;
+                            if (value > min)
                             {
-                                this.Value = (value - 1);
+                                var increment = this.Increment;
+                                this.Value = (value < long.MinValue + increment || value - increment < min) ? min : (value - increment);
                                 this.SelectAll();
                             }
                         }
@@ -116,9 +132,11 @@ namespace CarinaStudio.Controls
                         if (this.Validate() && this.Value.HasValue)
                         {
                             var value = this.Value.GetValueOrDefault();
-                            if (value < this.Maximum)
+                            var max = this.Maximum;
+                            if (value < max)
                             {
-                                this.Value = (value + 1);
+                                var increment = this.Increment;
+                                this.Value = (value > long.MaxValue - increment || value + increment > max) ? max : (value + increment);
                                 this.SelectAll();
                             }
                         }

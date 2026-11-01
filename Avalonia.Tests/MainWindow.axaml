@@ -107,6 +107,11 @@
 			
 			<abControls:IntegerTextBox Name="integerTextBox4" HorizontalAlignment="Left" IsNullValueAllowed="True" Maximum="10" Minimum="-10" PlaceholderText="Range: [-10, 10], Nullable" Width="300"/>
 			<TextBlock Classes="Footer" Text="{Binding #integerTextBox4.Value, StringFormat={}Value: {0}}"/>
+			<Separator Classes="Small"/>
+
+			<abControls:IntegerTextBox Name="integerTextBox5" HorizontalAlignment="Left" Increment="5" IsNullValueAllowed="False" Maximum="10" Minimum="-10" PlaceholderText="Range: [-10, 10], Increment: 5" Width="300"/>
+			<TextBlock Classes="Footer" Text="Press Up/Down to change value by 5."/>
+			<TextBlock Classes="Footer" Text="{Binding #integerTextBox5.Value, StringFormat={}Value: {0}}"/>
 			<Separator/>
 
 			<!-- LinkTextBlock -->
