@@ -12,7 +12,7 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <Authors>Carina Studio</Authors>
         <Company>Carina Studio</Company>
-        <Copyright>©2021-$([System.DateTime]::Now.Year) Carina Studio</Copyright>
+        <Copyright>© 2021-$([System.DateTime]::Now.Year) Carina Studio</Copyright>
         <LangVersion>preview</LangVersion>
         <Nullable>enable</Nullable>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
